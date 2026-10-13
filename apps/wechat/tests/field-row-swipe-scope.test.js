@@ -76,10 +76,10 @@ it('the gesture-ending tap leaves the menu open, while a fresh title tap closes 
  const c=rows()('a');c.start(point(250));c.move(point(100));c.end(point(100));c.tapHead();expect(c.data.actions).toBe(true);
  c.start(point(30));c.end(point(30));c.tapHead();expect(c.data.actions).toBe(false);
 });
-it('navigation dismisses and switches in one tap, and hide/scroll dismiss without changing field content',()=>{
- let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;}});
- const row=rows()('a'),before=JSON.stringify(row.data.field);page.selectAllComponents=()=>[row];page.setData=v=>Object.assign(page.data,v);page.refresh=()=>{};
- row.reveal();page.tab({currentTarget:{dataset:{value:'影像'}}});expect(row.data.actions).toBe(false);expect(page.data.tab).toBe('影像');
+it('navigation dismisses and switches in one tap, and hide/scroll dismiss without changing field content',async()=>{
+ let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;},wx:{hideKeyboard(){},pageScrollTo({complete}){complete();}}});
+ const row=rows()('a'),before=JSON.stringify(row.data.field);page.selectAllComponents=()=>[row];page.setData=(v,cb)=>{Object.assign(page.data,v);cb?.();};page.refresh=(v,cb)=>page.setData(v,cb);page.tabPositions={};page.measureTab=async()=>({scrollTop:0,rows:[]});
+ row.reveal();await page.tab({currentTarget:{dataset:{value:'影像'}}});expect(row.data.actions).toBe(false);expect(page.data.tab).toBe('影像');
  for(const event of ['onPageScroll','onHide']){row.reveal();page[event]();expect(row.data.offset).toBe(0);}
  expect(JSON.stringify(row.data.field)).toBe(before);
 });

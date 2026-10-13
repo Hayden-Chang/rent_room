@@ -1,8 +1,8 @@
 import {stats,formView,houseTopics,rules,problem,activeEntries,answer,fieldView,MAP_ID,uid} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
-Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',sheet:'',note:'',noteId:'',noteTitle:'',coach:0,coachTexts:['先填房源信息，方便区分和比较。','按房间或分类检查，点标题可展开或收起。','切换到询问签约，记录费用、承诺与合同条件。','左滑检查项，露出标记问题、备注和拍摄；右滑或点击其他位置收起，也可以长按检查项标题。'],hideCoach:false},
-  onLoad(options){this.folds={};this.setData({id:options.id});watch(this);this.refresh();if(options.new&&service().store.get().settings.onboarding)this.setData({coach:1});},
-  onShow(){if(this.data.id)this.refresh();},onUnload(){unwatch(this);},onHide(){this.dismissSwipe();},onPageScroll(){this.dismissSwipe();},
+Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',note:'',noteId:'',noteTitle:'',coach:0,coachTexts:['先填房源信息，方便区分和比较。','按房间或分类检查，点标题可展开或收起。','切换到询问签约，记录费用、承诺与合同条件。','左滑检查项，露出标记问题、备注和拍摄；右滑或点击其他位置收起，也可以长按检查项标题。'],hideCoach:false},
+  onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id});watch(this);this.refresh();if(options.new&&service().store.get().settings.onboarding)this.setData({coach:1});},
+  onShow(){if(this.data.id)this.refresh();},onUnload(){this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.dismissSwipe();},onPageScroll(){this.dismissSwipe();},
   dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
   checklistData(h,view){
     const key=JSON.stringify(view),folds=this.folds[key]||{};
@@ -14,15 +14,60 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
     const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters,...patch};
     this.setData({...patch,...this.checklistData(h,view)});
   },
-  refresh(){const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
-    this.setData({house:h,...this.checklistData(h,view),visibleMedia:h.media.filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]),saveError:service().store.status().error});
+  refresh(patch={},done){const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
+    this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:h.media.filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]),saveError:service().store.status().error},done);
     wx.setNavigationBarTitle({title:h.name});
   },
   retry(){service().store.save();},
   fold(e){if(this.dismissSwipe())return;const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});const folds=this.folds[key]||={};const id=e.currentTarget.dataset.id,expanded=e.currentTarget.dataset.expanded;folds[id]=!expanded;this.refresh();},
   phase(e){if(this.dismissSwipe())return;const phase=e.currentTarget.dataset.value;if(phase===this.data.phase)return;this.updateChecklist({phase});},search(e){const query=e.detail.value;if(query===this.data.query)return;this.updateChecklist({query});},
   toggleFilters(){if(this.dismissSwipe())return;this.setData({showFilters:!this.data.showFilters});},filter(e){if(this.dismissSwipe())return;const v=e.currentTarget.dataset.value;if(v==='全部'&&!this.data.filters.length)return;this.updateChecklist({filters:v==='全部'?[]:this.data.filters.includes(v)?this.data.filters.filter(x=>x!==v):[...this.data.filters,v]});},
-  tab(e){this.dismissSwipe();this.setData({tab:e.currentTarget.dataset.value});this.refresh();},
+  measureTab(){
+    return new Promise(resolve=>{
+      const query=this.createSelectorQuery();
+      query.selectViewport().scrollOffset();
+      query.selectAll('.scroll-anchor').fields({dataset:true,rect:true});
+      query.exec(([viewport,rows])=>resolve({scrollTop:viewport?.scrollTop||0,rows:rows||[]}));
+    });
+  },
+  async tab(e){
+    const target=e.currentTarget.dataset.value;
+    if(this.unloaded||!this.data.tabs.includes(target))return;
+    this.requestedTab=target;
+    if(this.switchingTab||target===this.data.tab)return;
+    this.switchingTab=true;
+    try{
+      while(!this.unloaded&&this.requestedTab!==this.data.tab){
+        const from=this.data.tab,position=await this.measureTab();
+        if(this.unloaded)return;
+        // Prefer the item crossing the top edge, then nearby surviving items.
+        const rows=position.rows.filter(row=>row.dataset?.scrollKey&&row.bottom>row.top);
+        const below=rows.filter(row=>row.bottom>0);
+        const above=rows.filter(row=>row.bottom<=0).reverse();
+        this.tabPositions[from]={scrollTop:position.scrollTop,anchors:[...below,...above].map(row=>({key:row.dataset.scrollKey,top:row.top}))};
+        const next=this.requestedTab;
+        if(next===from)break;
+        this.dismissSwipe();wx.hideKeyboard();
+        // Keep the new content invisible until its nonanimated scroll is applied.
+        await new Promise(resolve=>this.refresh({tab:next,restoringTab:true},resolve));
+        if(this.unloaded)return;
+        const saved=this.tabPositions[next],layout=await this.measureTab();
+        if(this.unloaded)return;
+        let scrollTop=saved?.scrollTop||0;
+        const current=new Map(layout.rows.map(row=>[row.dataset?.scrollKey,row]));
+        for(const anchor of saved?.anchors||[]){
+          const row=current.get(anchor.key);
+          if(row&&row.bottom>row.top){scrollTop=layout.scrollTop+row.top-anchor.top;break;}
+        }
+        await new Promise(resolve=>wx.pageScrollTo({scrollTop:Math.max(0,scrollTop),duration:0,complete:resolve}));
+        if(this.unloaded)return;
+        await new Promise(resolve=>this.setData({restoringTab:false},resolve));
+      }
+    }finally{
+      this.switchingTab=false;
+      if(!this.unloaded&&this.data.restoringTab)this.setData({restoringTab:false});
+    }
+  },
   answer(e){attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);this.setData({stats:stats(service().store.house(this.data.id))});});},
   choose(e){attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
   group(e){if(this.dismissSwipe())return;attempt(()=>{service().store.group(this.data.id,e.currentTarget.dataset.id,e.currentTarget.dataset.op,e.currentTarget.dataset.value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[e.currentTarget.dataset.id]=true;this.refresh();});},
