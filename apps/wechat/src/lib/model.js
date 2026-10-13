@@ -79,9 +79,15 @@ export function formView(h,view={},folds={}) {
       p.children.push({t});
     }
     const rows=[];
+    function hasContent(n) {
+      if(n.t)return rules.topicActive(n.t,h,detailVisibility)&&n.t.fields.some(f=>rules.fieldActive(f,h)&&!rules.isPermissionController(n.t,f)&&matches(h,n.t,f,view));
+      return groups.has(n.g.id)||n.children.some(hasContent);
+    }
+    if(!root.children.some(hasContent))continue;
     function visit(n,depth=0) {
       if(n.t){for(const f of n.t.fields)if(rules.topicActive(n.t,h,detailVisibility)&&rules.fieldActive(f,h)&&!rules.isPermissionController(n.t,f)&&matches(h,n.t,f,view))rows.push({...fieldView(h,f),depth});return;}
       const g=groups.get(n.g.id),expanded=folds[n.g.id]??(n.rootGroup||!!filtered);
+      if(!g&&!hasContent(n))return;
       if(filtered&&!entries.some(e=>(e.topic.path||[]).some(p=>p.id===n.g.id)))return;
       let options=[],selected='',skipped=false;
       if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?['正常','有问题','没有']:g.aggregate?['是','否']:[];}
