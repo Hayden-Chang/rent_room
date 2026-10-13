@@ -29,3 +29,17 @@ node scripts/check.mjs
 29 项通过。新增两文件共 12 项覆盖重播、无房源、四步推进、动画时序、手动左拖、保存失败重试、取消勾选、普通进入/自动关闭、隐藏/卸载取消定时器、折叠恢复与数据保留、自定义/空模板。既有 runtime 覆盖构建后的 Page 生命周期与共享 store；detail-navigation 和 detail-filter 覆盖修改生命周期及详情页后的切页/筛选状态。没有运行全量测试。官方 wcc 8 文件、wcsc 6 文件通过。日志：`artifacts/onboarding/after-final.log`、`artifacts/compile-result.json`。
 
 VM/handler 测试只证明逻辑边界，不等于真实点击、手势或像素验收。真实截图、用户视觉批准和真机手势验收单独记录；没有批准前不得合并或发布。
+
+## 最终提交与界面验收限制
+
+产品与测试提交：`eba1d982550f6b91fa72b110a1283fc8c8260629`。29 项通过的工作树与该提交的产品源码、测试、构建配置、资源完全相同；提交只固定已有文件，随后没有改动上述输入。官方编译对应同一输入。
+
+实际开发者工具采用实验实例池，使用独立 profile 和冻结工程，不改用户业务缓存：
+
+- run `2b28ce17060c464189949cba9e4005c3`：App/Page 就绪，但截图脚本错误地用 navigateTo 进入 Tab 设置页，未到达被测引导；属于测试前置条件错误，不是产品失败。该冻结快照早于最终图标尺寸调整，不能作为最终画面证据。
+- 修正脚本为 switchTab 并断言真实路由后，run `50267fc651a648908335aa80775728b3`：冻结提交 `eba1d98`，snapshot `c4e811bcc3d6665951887ec01ac5f28a5b88682b351240c946c7ef433adf00ac`；App Service health timeout，未进入测试回调，没有实际四步截图。冷启动基础设施仍处于实验状态。
+- 原开发者工具窗口当前运行另一个任务 `media-captions`，只读检查后未切换工程、点击控件或抢占其会话。
+
+上述 run 的原始 receipt、health/test 日志保留在本机 `/Volumes/mac2/codex-builds/wechat-instance-pool/runs/<runId>/`；该目录含私有运行 profile，不上传整目录。Figma 原型导出位于本任务 `apps/wechat/artifacts/onboarding/figma/`，不是应用运行截图。
+
+结论：逻辑及官方编译通过，真实视觉、点击/拖动、安全区与大字体验收未完成，禁止宣称 merge-ready。尚未合并或发布。自动审批拒绝把源码推送到 `Hayden-Chang/rent_room`，明确要求用户授权该外部目的地后才能推送并创建 PR；没有改用其他方式绕过。
