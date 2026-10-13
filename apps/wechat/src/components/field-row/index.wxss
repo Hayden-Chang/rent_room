@@ -18,3 +18,4 @@
 .swipe-action.flag-active{background:#bb4149}
 
 .choice{font-weight:400}
+.field.hide-divider{border-bottom-color:transparent}
