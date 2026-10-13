@@ -1,3 +1,4 @@
+import {applyPlace} from '../../lib/places.js';
 import {stats,formView,houseTopics,rules,problem,activeEntries,answer,fieldView,MAP_ID,uid} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
 Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',sheet:'',note:'',noteId:'',noteTitle:'',coach:0,coachTexts:['先填房源信息，方便区分和比较。','按房间或分类检查，点标题可展开或收起。','切换到询问签约，记录费用、承诺与合同条件。','左滑检查项，露出标记问题、备注和拍摄；右滑或点击其他位置收起，也可以长按检查项标题。'],hideCoach:false},
@@ -23,14 +24,13 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   phase(e){const phase=e.currentTarget.dataset.value;if(phase===this.data.phase)return;this.updateChecklist({phase});},search(e){const query=e.detail.value;if(query===this.data.query)return;this.updateChecklist({query});},
   toggleFilters(){this.setData({showFilters:!this.data.showFilters});},filter(e){const v=e.currentTarget.dataset.value;if(v==='全部'&&!this.data.filters.length)return;this.updateChecklist({filters:v==='全部'?[]:this.data.filters.includes(v)?this.data.filters.filter(x=>x!==v):[...this.data.filters,v]});},
   tab(e){this.dismissSwipe();this.setData({tab:e.currentTarget.dataset.value});this.refresh();},
-  answer(e){attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);this.setData({stats:stats(service().store.house(this.data.id))});});},
+  answer(e){attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);const h=service().store.house(this.data.id);this.setData({stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''});});},
   choose(e){attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
   group(e){attempt(()=>{service().store.group(this.data.id,e.currentTarget.dataset.id,e.currentTarget.dataset.op,e.currentTarget.dataset.value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[e.currentTarget.dataset.id]=true;this.refresh();});},
   action(e){attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===id);if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!problem(f,h.answers[id]));this.refresh();}
     if(action==='note')this.setData({sheet:'note',noteId:id,noteTitle:f.label,note:h.answers[id]?.note||''});
     if(action==='media'){await service().chooseMedia(h.id,id);this.refresh();}
     if(action==='preview')await service().preview(h.media.filter(m=>m.fieldId===id));
-    if(action==='map')await this.map();
   });},
   note(e){this.setData({note:e.detail.value});},saveNote(){attempt(()=>{service().store.answer(this.data.id,this.data.noteId,'note',this.data.note);this.close();this.refresh();});},close(){this.setData({sheet:''});},noop(){},
   mediaFilter(e){const mediaType=e.currentTarget.dataset.value;if(mediaType===this.data.mediaType)return;const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}this.setData({mediaType,visibleMedia:h.media.filter(m=>mediaType==='all'||m.type===mediaType)});},
@@ -39,7 +39,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   mediaManage(e){attempt(async()=>{if(this.data.house.archived)return;const id=e.currentTarget.dataset.id,res=await service().api('showActionSheet',{itemList:['关联到检查项','取消关联','移除影像']});if(res.tapIndex===0){this.setData({sheet:'link',linkMediaId:id,linkQuery:'',linkFields:houseTopics(this.data.house).flatMap(t=>t.fields).map(f=>({id:f.id,label:f.label}))});}if(res.tapIndex===1)service().store.edit(this.data.id,h=>h.media.find(m=>m.id===id).fieldId='');if(res.tapIndex===2&&await confirm('移除影像','将从房源中移除。原备份不受影响。'))service().store.edit(this.data.id,h=>h.media=h.media.filter(m=>m.id!==id));this.refresh();});},
   linkSearch(e){const q=e.detail.value;this.setData({linkQuery:q,linkFields:houseTopics(this.data.house).flatMap(t=>t.fields).filter(f=>f.label.includes(q)).map(f=>({id:f.id,label:f.label}))});},
   linkMedia(e){attempt(()=>{service().store.edit(this.data.id,h=>h.media.find(m=>m.id===this.data.linkMediaId).fieldId=e.currentTarget.dataset.id);this.close();this.refresh();});},
-  map(){return attempt(async()=>{const location=await service().api('chooseLocation');service().store.edit(this.data.id,h=>{h.location={latitude:location.latitude,longitude:location.longitude};h.address=location.address||location.name;h.answers.f1_1={...h.answers.f1_1,value:h.address};h.answers[MAP_ID]={...h.answers[MAP_ID],value:location.name||h.address};});this.refresh();});},
+  selectPlace(e){attempt(()=>{service().store.edit(this.data.id,h=>applyPlace(h,e.detail,MAP_ID));this.refresh();});},
   addIssue(){attempt(async()=>{const title=await prompt('新建问题','描述需要跟进的问题');if(title)service().store.edit(this.data.id,h=>h.issues.push({id:uid(),title,resolved:false}));this.refresh();});},
   resolve(e){attempt(()=>{service().store.edit(this.data.id,h=>{const i=h.issues.find(i=>i.id===e.currentTarget.dataset.id);i.resolved=!i.resolved;});this.refresh();});},
   decision(e){attempt(()=>{service().store.edit(this.data.id,h=>h.decision=e.currentTarget.dataset.value);this.refresh();});},

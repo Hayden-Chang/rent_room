@@ -1,1 +1,1 @@
-{"component":true}
+{"component": true, "usingComponents": {"address-picker": "/components/address-picker/index"}}

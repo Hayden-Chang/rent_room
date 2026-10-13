@@ -1,3 +1,4 @@
+import {keepsLocation} from './places.js';
 import topics from './topics.json' with {type:'json'};
 import * as rules from './source-model.js';
 
@@ -98,7 +99,19 @@ export function updateAnswer(h,id,prop,value) {
   if(!['value','note','otherText','issueFlag'].includes(prop))throw Error('不支持的修改');
   if(prop==='value'&&f.type==='n'&&value!==''&&(!Number.isFinite(Number(value))||Number(value)<0))throw Error('请填写非负数字');
   h.answers[id]={...(h.answers[id]||{}),[prop]:value};
-  if(prop==='value'){rules.syncGroupField(h,houseTopics(h),id);if(id==='f1_1')h.address=value;}
+  if(prop==='value'){
+    rules.syncGroupField(h,houseTopics(h),id);
+    if(id==='f1_1'){
+      const base=h.locationAddress||h.address;
+      if(h.location&&!h.locationAnchor)h.locationAnchor=h.location;
+      h.locationAddress=base;
+      if(h.locationAnchor){
+        h.location=keepsLocation(value,base)?h.locationAnchor:null;
+        h.answers[MAP_ID]={...h.answers[MAP_ID],value:h.location?base:''};
+      }
+      h.address=value;
+    }
+  }
 }
 export function updateGroup(h,id,operation,value) {
   if(h.archived)throw Error('归档房源只读，请先还原');

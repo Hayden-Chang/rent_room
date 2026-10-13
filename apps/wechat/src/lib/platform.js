@@ -1,9 +1,10 @@
+import {createPlaces} from './places.js';
 import {createStore} from './store.js';
 import {uid,clone,prepareImport,emptyState,freshHouse} from './model.js';
 import {makeBackup,readBackup,readExcel,exportExcel,MAX_BYTES} from './files.js';
 
 export function createPlatform(wx) {
-  const fs=wx.getFileSystemManager(),root=wx.env.USER_DATA_PATH+'/xunju',current=root+'/state.json',previous=root+'/previous.json';
+  const fs=wx.getFileSystemManager(),root=wx.env.USER_DATA_PATH+'/'+(typeof __TEST_DATA_ROOT__==='undefined'?'xunju':__TEST_DATA_ROOT__),current=root+'/state.json',previous=root+'/previous.json';
   try{fs.mkdirSync(root,true);}catch{}
   try{fs.mkdirSync(root+'/media',true);}catch{}
   const exists=p=>{try{fs.accessSync(p);return true;}catch{return false;}};
@@ -53,7 +54,7 @@ export function createPlatform(wx) {
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,api,chooseMedia,exportFile,selectImport,commitImport,removeHouse,root,
+  return {store,api,places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,exportFile,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }
