@@ -32,3 +32,17 @@ node scripts/check.mjs
 - 原生桌面操作出现 `noWindowsAvailable`，官方 Page 元素 API 超时。本次集成使用真实页面的生产事件处理器及真实 WebView 布局查询，不能宣称验证了指针/触摸事件派发。未做真机验收。
 
 本地原始日志、脚本、运行断言及截图保存在 `apps/wechat/artifacts/broadband-installation/`（不提交生成产物）。PR 仍待用户视觉确认，未合并或发布。
+
+## 2026-10-13 用户批准后的合并验证
+
+用户在查看两种实际截图及验收限制后明确要求“合入”。主线已前进到 `9ae3a41faa1bba741428358e9eeae3aff5cb4721`，新增根分组展开修复及分组审计测试。Git 合并模拟无冲突，树与 GitHub 合并候选一致；在本任务工作区整合后发现新主线的一条测试仍要求未选择宽带时保留安装条件标题。该断言在组合版本按预期失败，已按本次获批需求改为整组隐藏，保留所有答案、备注和媒体断言。
+
+Node 24.21.0 重新构建后执行以下精确选择，22 项通过、145 项未选中，没有运行完整套件；官方 wcc 8 文件、wcsc 6 文件均通过。
+
+```sh
+node node_modules/vitest/vitest.mjs run tests/broadband-installation.test.js tests/inspection-wording.test.js tests/model.test.js tests/runtime.test.js tests/root-group-fold.test.js tests/group-visibility-audit.test.js -t 'installation|normal questions|saved group states|functional sink|every original|categories collapsed|presence changes|template snapshots|compares 2-3|persists reloadable|imports as new|built App|root|宽带 controls|map_topic_83_0 exposes'
+```
+
+在原 15 项基础上，增加主线根分组 4 项用例，以及宽带控制、安装字段可达性和更新后的旧标题断言 3 项。原始失败及本轮结果保存在 artifacts/broadband-installation/broadband-main-before.log 与 broadband-merge-tests.log。
+
+此前真实 WebView 显隐及两张截图证据可复用：主线变化只对带控制的根分类保留根节点；宽带所在“电路网络与隐私”的根节点没有这些控制，仍走原路径。该分类的页面模板、事件处理器、显隐条件及行样式没有改变，原宽带行和子项测试继续通过。未重新声称真实指针或真机验收。此后仅更新验证文档，不再修改已通过验证的产品代码或测试。
