@@ -1,0 +1,56 @@
+{
+  "steps": [
+    "Photo caption saved via native button click and SDK textarea input",
+    "Video caption added through element tap/input",
+    "Clearing caption restores plus",
+    "Cancel preserves saved photo caption",
+    "Page reload and durable file both retain captions"
+  ],
+  "fixture": "Bundled illustration image and video metadata; no physical capture or playback claimed",
+  "captions": [
+    "客厅墙角有裂缝\n入住前请房东确认\n这一段备注可以写很长，完整显示在照片下方。",
+    "晚上六点拍摄\n窗外车流声音较大",
+    ""
+  ],
+  "layout": [
+    [
+      {
+        "id": "",
+        "dataset": {
+          "id": "caption-photo"
+        },
+        "left": 16,
+        "right": 130,
+        "top": 182,
+        "bottom": 298,
+        "width": 114,
+        "height": 116
+      },
+      {
+        "id": "",
+        "dataset": {
+          "id": "caption-video"
+        },
+        "left": 138,
+        "right": 252,
+        "top": 182,
+        "bottom": 238,
+        "width": 114,
+        "height": 56
+      },
+      {
+        "id": "",
+        "dataset": {
+          "id": "caption-empty"
+        },
+        "left": 260,
+        "right": 374,
+        "top": 182,
+        "bottom": 226,
+        "width": 114,
+        "height": 44
+      }
+    ]
+  ],
+  "status": "passed"
+}

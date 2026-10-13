@@ -54,8 +54,30 @@
 - 合并须有用户授权并通过适用门禁；修改授权不自动等于上线授权。
 - 用户启用多 agent 后，每个写入 agent 使用独立分支和 worktree，构建产物与可写缓存不共享；只读审查可共享访问。
 - 并行开始前约定接口及文件负责人；应用配置、共享模型、存储格式和依赖锁文件由指定负责人协调，禁止多个 agent 同时改同一份工作树。
-- 开发者工具测试先串行排队或由单一执行者独占会话。增加并发前须验证项目窗口、端口、数据和关闭行为互不干扰；不得重启或关闭其他任务占用的工具。
+- 微信开发者工具测试统一使用下述三槽常驻实例池领用与归还；真实桌面鼠标/键盘操作仍须串行独占。不得重启或关闭其他任务占用的工具。
 - 最终集成、PR 审查及体验版上传由统一负责人执行，防止分支组合回归或覆盖待验收版本。
+
+## 微信开发者工具常驻实例池（2026-10-13）
+
+- 用户已授权合入并让各 session 使用三槽池；实现与限制见 [runner 说明](scripts/wechat-pool/README.md) 和 [现场记录](docs/wechat/INSTANCE_POOL_VALIDATION.md)。本机池根为 `/Volumes/mac2/codex-builds/wechat-instance-pool`，容量 **3**；这是配置容量，不是三个实例已完成真实页面验收的声明。
+- 每个 Agent 在自己的 worktree 构建 `apps/wechat/dist`，通过 runner 提交冻结快照；禁止直接抢用默认工具、他人的窗口、端口或 profile。旧版仍在使用的实例不接管、不迁移、不退出，原任务自行完成。
+- 三槽各有独立 App、profile 和 IDE/自动化/MiniCode 主/回退端口，依次为 `19651/19751/32161/33261`、`19652/19752/32162/33262`、`19653/19753/32163/33263`。最多三任务并行，第四任务 FIFO 等待；不能绕过租约直接占端口。
+- 生命周期为领用 → 测试 → 清理测试数据和关闭该项目 → 归还。**正常完成不退出开发者工具，不清除工具登录配置，不按空闲时间淘汰**，下一任务复用该槽位存活进程。测试工程和数据必须可丢弃。
+- 回调必须连接 `WECHAT_WS_ENDPOINT`，使用 `WECHAT_PROJECT_PATH` 和 `WECHAT_ARTIFACT_DIR`；不得用 `automator.launch()`、厂商 CLI fallback、Finder/open 或外层启动器拉起副本。禁止按名称 kill、关闭所有窗口和重启共享工具。
+- 项目健康、清理、关闭或身份核对失败时槽位隔离并保留进程。保留失败 receipt 和日志，报告阻碍；不得自行删除租约、接管异常槽、修改池配置或清用户缓存来重试。扩容/恢复由统一维护者处理。
+- 真实微信首次启动、三槽并发和连续复用仍待现场验收，当前命令保留 `--experimental`。使用该入口不代表测试已通过；失败不能降级抢用他人实例。SDK/替身进程测试不替代 UI 交互与真机证据。
+
+从含最新池代码的 worktree 执行（SDK 依赖只需安装一次；回调路径必须为绝对路径）：
+
+```sh
+npm ci --ignore-scripts --prefix scripts/wechat-pool
+python3 scripts/wechat-pool/pool.py --root /Volumes/mac2/codex-builds/wechat-instance-pool status
+python3 scripts/wechat-pool/pool.py --root /Volumes/mac2/codex-builds/wechat-instance-pool run \
+  --project "$PWD/apps/wechat/dist" --experimental --wait 300 --timeout 120 \
+  -- node /绝对路径/your-test.cjs
+```
+
+旧 worktree 尚未同步时，可使用维护者通知中明确给出的已合入 runner 绝对路径；被测工程仍使用本任务自己的构建产物，不覆盖脏工作树来同步。
 
 ## 发布与工具能力边界
 
@@ -63,5 +85,5 @@
 - 长期单测、组件测试和 E2E 回归用例保留在仓库；不得为了清理临时验证代码而删除回归覆盖。测试与调试资源不随业务打包发布。
 - 构建、测试、生成预览码、手机运行、上传体验版、提交审核、审核通过和正式发布分别提供证据，不把前一步成功当作后一步完成。
 - 预览上传、提审和发布按用户已授权范围执行；首次登录、扫码和平台授权需用户完成时明确说明，不能假报完成。凭据不得写入源码、报告或日志。
-- 当前已落地的是开发验证文档中的 build/test/check/package 命令。统一小程序 E2E runner、会话租约、源码冻结/receipt、官方 Skills/MCP 和云测接入均须现场核实，不视为已具备。
+- 当前已落地的是开发验证文档中的 build/test/check/package 命令。池 runner 的租约、源码冻结/receipt 已落地；微信现场 E2E、官方 Skills/MCP 和云测接入仍须核实，不视为已验收。
 - 新增公共 runner 后，将真实入口、资源隔离、版本、结果路径和恢复方式写入开发验证文档，再规定强制使用。普通任务不得安装、升级或重置共享运行时来绕过问题；同一 SHA 的失败重试保留原始证据。
