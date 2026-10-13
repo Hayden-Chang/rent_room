@@ -25,7 +25,7 @@ function harness(){
       const query={selectViewport(){kinds.push('viewport');return query;},scrollOffset(){return query;},selectAll(){kinds.push('anchors');return query;},fields(){return query;},exec(cb){const run=()=>cb(kinds.map(kind=>kind==='viewport'?{scrollTop}:(anchors[page.data.tab]||[]).map(a=>({dataset:{scrollKey:a.key},top:a.top-scrollTop,bottom:a.top+a.height-scrollTop}))));if(defer)queries.push(run);else run();}};
       return query;
     };
-    page.selectAllComponents=()=>[{closeSwipe(){}}];page.onLoad({id});
+    page.selectAllComponents=()=>[{data:{actions:false,offset:0},closeSwipe(){}}];page.onLoad({id});
     return page;
   }
   open();
