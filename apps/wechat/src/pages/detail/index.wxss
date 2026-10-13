@@ -20,3 +20,28 @@
 
 /* Preserve layout for measurement while hiding the intermediate scroll position. */
 .tab-restoring{visibility:hidden;pointer-events:none}
+
+/* Figma coachmarks, anchored to measured controls in the current checklist. */
+.coach-layer{position:fixed;inset:0;z-index:1000;overflow:hidden}
+.coach-dim{position:absolute;inset:0;background:#1c263899}
+.coach-highlight{position:absolute;box-sizing:border-box;border:2px solid #fff;border-radius:26px;box-shadow:0 0 0 2000px #1c263899;pointer-events:none}
+.coach-highlight-row{border-radius:10px}
+.coach-pointer{position:absolute;width:2px;background:#fff}
+.coach-card{position:absolute;left:16px;right:16px;box-sizing:border-box;min-height:196px;padding:14px 16px 12px;border-radius:16px;background:#fff;color:#1c2638;display:flex;flex-direction:column;max-height:calc(100% - 24px);overflow-y:auto}
+.coach-measuring .coach-card{visibility:hidden;top:16px}
+.coach-step{font-size:12px;line-height:20px;color:#667187;padding:0 2px}
+.coach-title{font-size:17px;line-height:28px;font-weight:600;margin-top:5px;padding:0 2px}
+.coach-body{font-size:14px;line-height:22px;color:#667187;white-space:pre-line;min-height:48px;margin-top:5px;padding:0 2px}
+.coach-card .coach-next:not([size=mini]){width:100%;height:44px;min-height:44px;flex-shrink:0;background:#4d56df;color:#fff;border-radius:10px;font-size:15px;font-weight:600;line-height:22px;padding:11px 0;margin:20px 0 0}
+.coach-card-last{min-height:220px}
+.coach-card-last .coach-next:not([size=mini]){margin-top:8px}
+.coach-preference{display:flex;align-items:center;gap:10px;width:180px;min-height:36px;color:#667187;font-size:13px;line-height:22px}
+.coach-checkbox{box-sizing:border-box;width:18px;height:18px;border:1.2px solid #667187;border-radius:4px;line-height:16px;text-align:center}
+.coach-checked{background:#4d56df;border-color:#4d56df;color:white}
+.coach-demo{position:absolute;height:48px;background:white;border-radius:10px;overflow:hidden;display:flex;align-items:center}
+.coach-demo-label{padding:0 8px;font-size:13px;line-height:22px;color:#1c2638;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;box-sizing:border-box;transition:width 450ms ease}
+.coach-demo-open{width:calc(100% - 132px)}
+.coach-demo-actions{display:flex;position:absolute;right:0;top:2px;transform:translateX(100%);transition:transform 450ms ease}
+.coach-demo-actions-open{transform:translateX(0)}
+.coach-demo-action{width:44px;height:44px;display:flex;align-items:center;justify-content:center}.coach-demo-actions image{width:26px;height:26px}
+.coach-error{color:#bb4149;font-size:13px;line-height:20px;margin-top:4px}
