@@ -23,6 +23,10 @@ node scripts/check.mjs
 
 结果：15 项通过、14 项未选；未运行全量单测或 UI 套件。官方 `wcc` 检查 8 个 WXML、`wcsc` 检查 6 个 WXSS 成功。输出保存在 `artifacts/unanswered-group-fold/final-tests.log`、`final-compile.log`；提交 SHA 记录在同目录 `validated-head.txt`。本地依赖独立复制自锁文件一致的已有安装，无依赖或锁文件变更。
 
+## 主线更新后的组合验证
+
+主线在开发期间推进到 `9270183a34e3100a2b8424cd9c197b3781d4bae5`，引入清单筛选的原子更新。任务分支无冲突合入该提交，在 `30c8f4595f48b2e244aee9ad0a41dd744bcd8bfb` 重新构建、执行上述 15 项测试，并增加 `tests/detail-filter.test.js` 的 `commits filter selection`、`clears multi-select filters`、`updates phase and search` 三项，核对筛选、搜索和折叠状态的组合行为。合计 18 项通过，19 项未选，官方编译再次通过。完整输出见 `integrated-build.log`、`integrated-tests.log`、`integrated-compile.log`。之后只更新本文档；源码、测试、构建输入与依赖未变，验证证据适用于最终 head。
+
 ## 验收边界
 
 VM handler 测试不代表真实点击、渲染或触摸命中。开发者工具当前运行另一任务的 `detail-tab-state` 工程；尝试独立导入本工程时，入口窗口变暗但未显示可操作的导入面板，未成功打开本次构建，也未获得实际运行截图。没有清理用户数据或改动其他任务源码。
