@@ -25,19 +25,90 @@ class PoolTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def test_two_concurrent_owners_and_third_waiter(self):
+    def test_three_concurrent_owners_and_fourth_waiter(self):
+        self.slots.append({'id': '3'})
+        (self.root / 'slots/3').mkdir()
         first = pool.acquire(self.root, {'slots': self.slots}, 'first', 0)
         second = pool.acquire(self.root, {'slots': self.slots}, 'second', 0)
-        self.assertNotEqual(first.slot['id'], second.slot['id'])
+        third = pool.acquire(self.root, {'slots': self.slots}, 'third', 0)
+        self.assertEqual({first.slot['id'], second.slot['id'], third.slot['id']}, {'1', '2', '3'})
         try:
             with self.assertRaises(TimeoutError):
-                pool.acquire(self.root, {'slots': self.slots}, 'third', 0.01)
+                pool.acquire(self.root, {'slots': self.slots}, 'fourth', 0.01)
+            second.close()
+            fourth = pool.acquire(self.root, {'slots': self.slots}, 'fourth', 0)
+            self.assertEqual(fourth.slot['id'], '2')
+            fourth.close()
         finally:
             first.close()
-            second.close()
-        third = pool.acquire(self.root, {'slots': self.slots}, 'third', 0)
-        third.close()
+            third.close()
         self.assertEqual(list((self.root / 'queue').iterdir()), [])
+
+    def app_fixture(self):
+        app = self.root / 'vendor.app'
+        core = app / 'Contents/Resources/package.nw/core.wxvpkg'
+        core.parent.mkdir(parents=True)
+        core.write_bytes(b'header let v=32123; body v=33233,e.listen footer')
+        (app / 'Contents/Info.plist').write_bytes(pool.plistlib.dumps(
+            {'CFBundleShortVersionString': pool.VERSION}))
+        return app
+
+    def fake_ditto(self, args, **kwargs):
+        self.assertEqual(args[0], 'ditto')
+        pool.shutil.copytree(args[1], args[2])
+
+    def test_initialize_defaults_to_three_distinct_slots(self):
+        app = self.app_fixture()
+        source = self.root / 'source-profile'
+        pool.write_json(source / 'WeappLocalData/hash_key_map_2.json', {})
+        for name in ('WeappPlugin', 'WeappVendor'):
+            (source / name).mkdir()
+        with patch.object(pool, 'free_ports'), patch.object(pool.subprocess, 'run', side_effect=self.fake_ditto):
+            cfg = pool.initialize(self.root / 'new-pool', app, source)
+        self.assertEqual(len(cfg['slots']), 3)
+        ports = [p for slot in cfg['slots'] for p in slot['ports'].values()]
+        self.assertEqual(len(set(ports)), 12)
+        self.assertEqual(cfg['slots'][2]['ports']['auto'], 19753)
+        self.assertEqual(pool.load_config(self.root / 'new-pool'), cfg)
+
+    def expansion_fixture(self):
+        app = self.app_fixture()
+        cfg = {'schemaVersion': 1, 'root': str(self.root.resolve()), 'version': pool.VERSION,
+               'slots': [pool.slot_config(self.root.resolve(), i) for i in range(2)]}
+        pool.write_json(self.root / 'pool.json', cfg)
+        return app, cfg
+
+    def test_expand_preserves_busy_slots_and_is_idempotent(self):
+        app, before = self.expansion_fixture()
+        state = self.root / 'slots/1/runtime.json'
+        pool.write_json(state, {'pid': os.getpid(), 'state': 'leased', 'runId': 'another-agent'})
+        state_bytes = state.read_bytes()
+        lease = pool.try_slot(self.root, self.slots[1])
+        try:
+            with patch.object(pool, 'free_ports') as ports, \
+                    patch.object(pool.subprocess, 'run', side_effect=self.fake_ditto) as copy:
+                cfg = pool.expand(self.root, app)
+                self.assertEqual(cfg['slots'][:2], before['slots'])
+                self.assertEqual(state.read_bytes(), state_bytes)
+                self.assertIsNone(pool.try_slot(self.root, self.slots[1]))
+                self.assertEqual(pool.expand(self.root, app), cfg)
+                self.assertEqual(copy.call_count, 1)
+                self.assertEqual(ports.call_args.args[0], [19653, 19753, 32163, 33263])
+                self.assertEqual(len(cfg['slots']), 3)
+        finally:
+            lease.close()
+
+    def test_failed_expansion_does_not_publish_or_modify_existing_slots(self):
+        app, before = self.expansion_fixture()
+        config_bytes = (self.root / 'pool.json').read_bytes()
+        for target, error in [('free_ports', OSError('busy port')),
+                              ('prepare_slot', RuntimeError('copy failed'))]:
+            with self.subTest(target=target), patch.object(pool, 'free_ports'), \
+                    patch.object(pool, target, side_effect=error):
+                with self.assertRaises(type(error)):
+                    pool.expand(self.root, app)
+                self.assertEqual((self.root / 'pool.json').read_bytes(), config_bytes)
+                self.assertFalse((self.root / 'slots/3').exists())
 
     def test_child_keeps_lease_if_supervisor_releases_descriptor(self):
         lease = pool.try_slot(self.root, self.slots[0])

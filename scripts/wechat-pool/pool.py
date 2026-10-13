@@ -18,6 +18,7 @@ import urllib.request
 import uuid
 
 VERSION = '2.01.2510290'
+CAPACITY = 3
 DIRS = ('WeappCode WeappLog WeappPureSimulatorCache WeappTheming WeappEditor '
         'WeNativeModules WeappRemote WeappSimulator WeappMiniApp WeappHybird '
         'WeappAITemplateCache WeappPluginData WeappMiniCode WebdebuggerVendor '
@@ -174,6 +175,8 @@ def load_config(root):
     cfg = read_json(root / 'pool.json')
     if cfg.get('schemaVersion') != 1 or cfg.get('root') != str(root):
         raise ValueError('Pool identity mismatch')
+    if not 1 <= len(cfg['slots']) <= CAPACITY:
+        raise ValueError('Pool must contain one to three slots')
     ports = []
     for index, slot in enumerate(cfg['slots']):
         expected = root / 'slots' / str(index + 1) / 'Wechat.app'
@@ -185,35 +188,79 @@ def load_config(root):
     return cfg
 
 
-def initialize(root, source_app, source_profile, count=2):
+def slot_config(root, index):
+    return {'id': str(index + 1),
+            'app': str(root / 'slots' / str(index + 1) / 'Wechat.app'),
+            'ports': {'ide': 19651 + index, 'auto': 19751 + index,
+                      'internal': 32161 + index, 'fallback': 33261 + index}}
+
+
+def check_source_app(source_app):
+    info = plistlib.loads((source_app / 'Contents/Info.plist').read_bytes())
+    if info['CFBundleShortVersionString'] != VERSION:
+        raise ValueError('Supported archive version: ' + VERSION)
+
+
+def prepare_slot(slot, source_app):
+    app = Path(slot['app'])
+    # Never overwrite a live slot or a partially prepared one.
+    app.parent.mkdir(parents=True, exist_ok=False)
+    subprocess.run(['ditto', str(source_app), str(app)], check=True)
+    slot['patch'] = patch_ports(app / 'Contents/Resources/package.nw/core.wxvpkg',
+                               [slot['ports']['internal'], slot['ports']['fallback']])
+
+
+def initialize(root, source_app, source_profile, count=CAPACITY):
     root, source_app, source_profile = map(lambda p: Path(p).resolve(),
                                          (root, source_app, source_profile))
     if (root / 'pool.json').exists() or root.exists() and any(root.iterdir()):
         raise ValueError('Initialization requires a new, empty pool root')
-    info = plistlib.loads((source_app / 'Contents/Info.plist').read_bytes())
-    if info['CFBundleShortVersionString'] != VERSION or not 1 <= count <= 2:
-        raise ValueError('Validated only for DevTools ' + VERSION + ' with up to 2 slots')
-    slots = []
-    for index in range(count):
-        slots.append({'id': str(index + 1),
-                      'app': str(root / 'slots' / str(index + 1) / 'Wechat.app'),
-                      'ports': {'ide': 19651 + index, 'auto': 19751 + index,
-                                'internal': 32161 + index, 'fallback': 33261 + index}})
+    check_source_app(source_app)
+    if not 1 <= count <= CAPACITY:
+        raise ValueError('Pool supports up to three slots')
+    slots = [slot_config(root, index) for index in range(count)]
     free_ports([p for s in slots for p in s['ports'].values()])
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
     seed_preferences(source_profile / 'WeappLocalData', root / 'seed', 19651)
     for slot in slots:
-        app = Path(slot['app'])
-        app.parent.mkdir(parents=True)
-        subprocess.run(['ditto', str(source_app), str(app)], check=True)
-        slot['patch'] = patch_ports(app / 'Contents/Resources/package.nw/core.wxvpkg',
-                                   [slot['ports']['internal'], slot['ports']['fallback']])
-    # Shared input assets are read-only; every run receives independent copies.
+        prepare_slot(slot, source_app)
+    # Shared input assets are read-only; every resident receives independent copies.
     for name in ('WeappPlugin', 'WeappVendor'):
         shutil.copytree(source_profile / name, root / 'assets' / name)
     cfg = {'schemaVersion': 1, 'root': str(root), 'version': VERSION, 'slots': slots}
     write_json(root / 'pool.json', cfg)
     return cfg
+
+
+def expand(root, source_app):
+    """Add missing slots up to three without acquiring or changing existing leases."""
+    root, source_app = Path(root).resolve(), Path(source_app).resolve()
+    check_source_app(source_app)
+    with (root / 'expand.lock').open('a') as maintenance:
+        fcntl.flock(maintenance, fcntl.LOCK_EX)
+        cfg = load_config(root)
+        if len(cfg['slots']) == CAPACITY:
+            return cfg
+        if cfg['version'] != VERSION:
+            raise ValueError('Pool version differs from source app')
+        additions = [slot_config(root, i) for i in range(len(cfg['slots']), CAPACITY)]
+        new_ports = [p for slot in additions for p in slot['ports'].values()]
+        existing_ports = {p for slot in cfg['slots'] for p in slot['ports'].values()}
+        if existing_ports.intersection(new_ports):
+            raise ValueError('New ports overlap existing slots')
+        free_ports(new_ports)
+        for slot in additions:
+            prepare_slot(slot, source_app)
+        # Copying is outside allocator.lock so active jobs can continue to lease.
+        # Publish only a complete configuration, preserving old slot records.
+        with (root / 'allocator.lock').open('a') as guard:
+            fcntl.flock(guard, fcntl.LOCK_EX)
+            if load_config(root) != cfg:
+                raise RuntimeError('Pool changed during expansion; refusing to overwrite it')
+            free_ports(new_ports)
+            cfg['slots'].extend(additions)
+            write_json(root / 'pool.json', cfg)
+        return cfg
 
 
 class Lease:
@@ -560,6 +607,8 @@ def main():
     init = sub.add_parser('init')
     init.add_argument('--source-app', required=True, type=Path)
     init.add_argument('--source-profile', required=True, type=Path)
+    grow = sub.add_parser('expand', help='Add missing slots up to three; preserve existing instances')
+    grow.add_argument('--source-app', required=True, type=Path)
     execute = sub.add_parser('run')
     execute.add_argument('--project', required=True, type=Path)
     execute.add_argument('--wait', type=float, default=300)
@@ -572,6 +621,9 @@ def main():
     if args.action == 'init':
         initialize(args.root, args.source_app, args.source_profile)
         print(str(args.root / 'pool.json'))
+    elif args.action == 'expand':
+        cfg = expand(args.root, args.source_app)
+        print(json.dumps({'root': cfg['root'], 'slots': len(cfg['slots'])}))
     elif args.action == 'status':
         cfg = load_config(args.root)
         result = []
