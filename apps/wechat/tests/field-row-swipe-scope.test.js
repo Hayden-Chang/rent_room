@@ -13,11 +13,13 @@ function nodes(path){
  return out;
 }
 const has=(n,c)=>(n.attrs.class||'').split(' ').includes(c);
-it('moves and reveals actions only within the description, keeping answers and attachments outside',()=>{
+it('keeps the title stationary and answer gestures outside the swipe surface',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
  const label=all.find(n=>has(n,'label')),tray=all.find(n=>has(n,'swipe-tray'));
  const shell=all.find(n=>has(n,'swipe-shell'));
  expect(label.parents).toContain(shell);expect(tray.parents).toContain(shell);
+ expect(label.parents.some(p=>p.attrs.style?.includes('translate'))).toBe(false);
+ expect(tray.attrs.style).toContain('132+offset');
  const content=all.filter(n=>['choices','input','note','thumbs'].some(c=>has(n,c))||['picker','map'].includes(n.tag));
  expect(content.length).toBeGreaterThan(5);
  for(const n of content){
@@ -77,7 +79,7 @@ it('the gesture-ending tap leaves the menu open, while a fresh title tap closes 
  c.start(point(30));c.end(point(30));c.tapHead();expect(c.data.actions).toBe(false);
 });
 it('navigation dismisses and switches in one tap, and hide/scroll dismiss without changing field content',async()=>{
- let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;},wx:{hideKeyboard(){},pageScrollTo({complete}){complete();}}});
+ let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;},setTimeout,clearTimeout,wx:{hideKeyboard(){},pageScrollTo({complete}){complete();}}});
  const row=rows()('a'),before=JSON.stringify(row.data.field);page.selectAllComponents=()=>[row];page.setData=(v,cb)=>{Object.assign(page.data,v);cb?.();};page.refresh=(v,cb)=>page.setData(v,cb);page.tabPositions={};page.measureTab=async()=>({scrollTop:0,rows:[]});
  row.reveal();await page.tab({currentTarget:{dataset:{value:'影像'}}});expect(row.data.actions).toBe(false);expect(page.data.tab).toBe('影像');
  for(const event of ['onPageScroll','onHide']){row.reveal();page[event]();expect(row.data.offset).toBe(0);}
