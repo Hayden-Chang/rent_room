@@ -1,6 +1,6 @@
-<block wx:if="{{house}}">
+<view wx:if="{{house}}" bindtap="dismissSwipe">
  <view wx:if="{{house.archived}}" class="readonly">归档房源 · 只读查看，在归档列表中可还原</view>
- <view class="page detail" bindtap="dismissSwipe">
+ <view class="page detail">
   <view wx:if="{{saveError}}" class="error" bindtap="retry">{{saveError}} 点击重试</view>
   <block wx:if="{{tab==='清单'}}">
    <view class="card progress"><view class="row between"><text class="subtitle">现场检查</text><text>{{stats.done}} / {{stats.total}}</text></view><view class="track"><view style="width:{{stats.total?stats.done/stats.total*100:0}}%"/></view><view class="row between muted"><text>已记录 {{stats.done}} 项</text><text class="issue-text">{{stats.issues}} 项有问题</text></view></view>
@@ -28,4 +28,4 @@
   <block wx:if="{{sheet==='link'}}"><view class="subtitle">关联检查项</view><input placeholder="搜索检查项" value="{{linkQuery}}" bindinput="linkSearch"/><scroll-view scroll-y style="height:45vh"><button wx:for="{{linkFields}}" wx:key="id" class="menu" data-id="{{item.id}}" bindtap="linkMedia">{{item.label}}</button></scroll-view></block>
  </view></view>
  <view wx:if="{{coach}}" class="mask"><view class="sheet"><view class="muted">快速上手 {{coach}} / 4</view><view class="subtitle">{{coachTexts[coach-1]}}</view><view class="row between"><text>下次不再自动显示</text><switch checked="{{hideCoach}}" color="#4D56DF" bindchange="hideCoach"/></view><view class="space"/><button class="primary" bindtap="coachNext">{{coach===4?'开始记录':'知道了，下一步'}}</button></view></view>
-</block>
+</view>

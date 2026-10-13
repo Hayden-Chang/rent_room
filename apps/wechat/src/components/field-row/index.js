@@ -1,4 +1,4 @@
-const ACTION_WIDTH=180;
+const ACTION_WIDTH=132;
 const hasContent=value=>value!==undefined&&value!==null&&String(value).length>0;
 let activeRow=null;
 Component({
@@ -8,7 +8,8 @@ Component({
  lifetimes:{detached(){if(activeRow===this)activeRow=null;}},
  methods:{
   start(e){
-   if(activeRow&&activeRow!==this)activeRow.closeSwipe();
+   this.suppressTapUntil=0;this.dismissedTouch=!!(activeRow&&activeRow!==this);
+   if(this.dismissedTouch)activeRow.closeSwipe();
    if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
    const p=e.touches[0];this.gesture={x:p.clientX,y:p.clientY,base:this.data.offset,axis:'',dx:0};
   },
@@ -34,12 +35,15 @@ Component({
   cancel(){this.closeSwipe();},
   reveal(){if(this.data.readonly)return;if(activeRow&&activeRow!==this)activeRow.closeSwipe();activeRow=this;this.setData({actions:true,offset:-ACTION_WIDTH,dragging:false});},
   closeSwipe(){this.gesture=null;if(activeRow===this)activeRow=null;if(this.data.offset||this.data.actions||this.data.dragging)this.setData({actions:false,offset:0,dragging:false});},
+  bodyStart(){this.suppressTapUntil=0;this.dismissedTouch=!!activeRow;if(activeRow)activeRow.closeSwipe();},
+  consumeDismissal(){const dismissed=this.dismissedTouch||this.data.actions||Date.now()<(this.suppressTapUntil||0);this.dismissedTouch=false;if(dismissed)this.closeSwipe();return dismissed;},
+  tapHead(){if(Date.now()>=(this.suppressTapUntil||0))this.closeSwipe();},
   noop(){},
   emit(prop,value){if(!this.data.readonly)this.triggerEvent('answer',{id:this.data.field.id,prop,value});},
-  handleInputFocus(e){this.setData({[e.currentTarget.dataset.input+'Focused']:true});},
+  handleInputFocus(e){if(activeRow)activeRow.closeSwipe();this.setData({[e.currentTarget.dataset.input+'Focused']:true});},
   handleInputBlur(e){const key=e.currentTarget.dataset.input;this.setData({[key+'Focused']:false,[key+'Filled']:hasContent(e.detail.value)});},
   input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
-  choose(e){if(this.data.actions||Date.now()<(this.suppressTapUntil||0)){this.closeSwipe();return;}if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
-  action(e){const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
+  choose(e){if(this.consumeDismissal())return;if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
+  action(e){if(Date.now()<(this.suppressTapUntil||0))return;if(!e.currentTarget.dataset.tray&&this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
  }
 });
