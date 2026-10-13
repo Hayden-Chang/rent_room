@@ -22,3 +22,12 @@ it('renders transient state without rewriting observed readonly properties',()=>
  const {c,spec}=component('address-picker',{getApp:()=>({service:{places:{},api:vi.fn()}})});Object.assign(c.data,{address:'旧地址',location:{latitude:22,longitude:114},anchor:'旧地址',readonly:false});
  const patches=[];c.setData=p=>{patches.push(p);Object.assign(c.data,p);};spec.lifetimes.attached.call(c);c.picker.update({query:'小区'});expect(patches.every(p=>!Object.hasOwn(p,'readonly'))).toBe(true);spec.lifetimes.detached.call(c);
 });
+it('opens native permission settings and retries only after a current granted callback',()=>{
+ const {c}=component('address-picker');c.picker={revision:4,disposed:false,state:{locationAction:'settings',readonly:false},gps:vi.fn()};
+ const markup=fs.readFileSync('dist/components/address-picker/index.wxml','utf8');expect(markup).toContain('open-type="openSetting"');expect(markup).toContain('bindopensetting="settingsChanged"');expect(markup).toContain('去设置开启');
+ c.settingsStart();c.settingsChanged({detail:{authSetting:{'scope.userLocation':false}}});expect(c.picker.gps).not.toHaveBeenCalled();
+ c.settingsChanged({detail:{authSetting:{'scope.userLocation':true}}});expect(c.picker.gps).toHaveBeenCalledTimes(1);
+ c.picker.revision++;c.settingsChanged({detail:{authSetting:{'scope.userLocation':true}}});expect(c.picker.gps).toHaveBeenCalledTimes(1);
+ c.settingsStart();c.picker.disposed=true;c.settingsChanged({detail:{authSetting:{'scope.userLocation':true}}});expect(c.picker.gps).toHaveBeenCalledTimes(1);
+ c.picker.disposed=false;c.picker.state.readonly=true;c.settingsChanged({detail:{authSetting:{'scope.userLocation':true}}});expect(c.picker.gps).toHaveBeenCalledTimes(1);
+});

@@ -1,7 +1,7 @@
 import {AddressPicker} from '../../lib/address-picker.js';
 Component({
   properties:{address:String,location:Object,anchor:String,readonly:Boolean},
-  data:{center:null,query:'',items:[],mode:'',busy:false,message:'',scale:16},
+  data:{center:null,query:'',items:[],mode:'',busy:false,message:'',locationAction:'',scale:16},
   observers:{'address,location,anchor,readonly'(){this.picker?.sync(this.data);}},
   lifetimes:{
     attached(){
@@ -18,6 +18,12 @@ Component({
     locate(){this.picker.gps();},
     use(e){this.picker.use(e.currentTarget.dataset.id);},
     retry(){this.picker.retry();},
+    settingsStart(){this.settingsRevision=this.picker.revision;},
+    settingsChanged(e){
+      const picker=this.picker;
+      if(picker.disposed||picker.state.readonly||picker.revision!==this.settingsRevision||picker.state.locationAction!=='settings')return;
+      if(e.detail?.authSetting?.['scope.userLocation']===true)picker.gps();
+    },
     region(e){
       const detail=e.detail||{},type=detail.type||e.type,cause=detail.causedBy||e.causedBy;
       if(type!=='end'||!['drag','scale'].includes(cause))return;

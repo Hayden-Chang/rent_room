@@ -10,5 +10,5 @@
  </view>
  <view wx:if="{{busy}}" class="status">正在查找地点…</view>
  <view wx:if="{{center||items.length}}" class="attribution">地点信息来源：天地图</view>
- <view wx:if="{{message}}" class="status">{{message}} <text class="retry" bindtap="retry">重试</text></view>
+ <view wx:if="{{message}}" class="status">{{message}} <button wx:if="{{locationAction==='settings'&&!readonly}}" class="permission-settings" open-type="openSetting" bindtap="settingsStart" bindopensetting="settingsChanged">去设置开启</button><text wx:else class="retry" bindtap="retry">重试</text></view>
 </view>
