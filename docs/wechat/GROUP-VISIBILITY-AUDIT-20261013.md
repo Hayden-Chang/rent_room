@@ -39,6 +39,14 @@ node scripts/check.mjs
 
 自动化证明模型、Page 局部处理逻辑和 WXML 条件表达式，不证明真实触摸、像素或设备表现。桌面控制先前返回 `noWindowsAvailable`，没有取得此次新界面的真实截图。
 
-在隔离测试房源和独立 worktree 工程中，需实际核对三处修复及条件恢复，用户确认 UI 后才能合入。未更改用户已有房源、清除缓存或操作手机。
+仍需在隔离测试房源和独立 worktree 工程中实际核对三处修复及条件恢复。未更改用户已有房源、清除缓存或操作手机。用户在获知真实界面尚未验收后明确要求“合入”，本次按该指令执行合并，不把该授权描述为真实界面验证通过。
 
-远程推送此前被自动审批拒绝，要求明确授权向 `Hayden-Chang/rent_room` 上传源码、测试和文档。本次用户要求继续排查，没有提供该授权，因此没有再次推送、创建 PR、合并、上传体验版或发布。
+远程推送在早期阶段曾因缺少明确授权被自动审批拒绝；用户随后明确要求“合入”，据此执行分支推送、PR 审查和合并。不上传体验版或发布。
+
+## 最新主线组合验证
+
+已将分支无冲突重放至 `5f50839a87dd7151fade0563408ce52dbb6c3034`，包含主线分隔线修复和底部标签切换状态保留。核对重放后应用差异，仍只有根检查组和模板搜索折叠三处修复，宽带逻辑保持原样。
+
+验证提交 `5cfb1315b2cafe68c4aab9e4bf8aef22c986226e`：重新构建、上述 155 项用例，加上 `tests/detail-navigation.test.js` 的 `restores a deep checklist after a short media page and retains form view state`，共 156 项通过，30 项未选择。增加导航用例是为验证 `formView` 与最新主线的标签恢复逻辑组合。官方 wcc/wcsc 通过；日志位于 `apps/wechat/artifacts/pest-group/merge-head-tests.log`。
+
+最终 PR 提交在该验证提交之后只更新本 Markdown 记录；源码、测试、资源、依赖、配置和构建输入均无变化，可复用该次结果。最终 SHA 另存 `apps/wechat/artifacts/pest-group/merge-validated-head.txt`，并写入 PR 描述。
