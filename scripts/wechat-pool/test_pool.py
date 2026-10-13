@@ -163,17 +163,96 @@ class PoolTests(unittest.TestCase):
         with patch.object(pool.subprocess, 'check_output', return_value=rows):
             self.assertEqual(pool.profile_processes('/pool/run/profile'), [1])
 
-    def test_import_readiness_requires_matching_appid_and_library(self):
-        run_dir = self.root / 'run'
-        project = run_dir / 'project'
-        pool.write_json(project / 'project.config.json', {'appid': 'test-app'})
-        key = pool.hashlib.md5(('project2_' + str(project)).encode()).hexdigest()
-        meta = run_dir / 'profile/WeappLocalData' / ('localstorage_' + key + '.json')
-        pool.write_json(meta, {'appid': 'test-app', 'libVersion': '3.17.3'})
-        pool.wait_project_metadata(run_dir, 1)
-        pool.write_json(meta, {'appid': 'wrong-app', 'libVersion': '3.17.3'})
-        with self.assertRaises(TimeoutError):
-            pool.wait_project_metadata(run_dir, 0.01)
+    def resident_fixture(self):
+        app = self.root / 'slots/1/Wechat.app'
+        archive = app / 'Contents/Resources/package.nw/core.wxvpkg'
+        archive.parent.mkdir(parents=True)
+        archive.write_bytes(b'version-checked-fixture')
+        for name in ('WeappPlugin', 'WeappVendor'):
+            (self.root / 'assets' / name).mkdir(parents=True)
+        pool.write_json(self.root / 'seed/hash_key_map_2.json', {})
+        slot = {'id': '1', 'app': str(app),
+                'patch': {'after': pool.hashlib.sha256(archive.read_bytes()).hexdigest()},
+                'ports': {'ide': 49651, 'auto': 49751, 'internal': 42161, 'fallback': 43261}}
+        pool.write_json(self.root / 'pool.json', {'schemaVersion': 1, 'root': str(self.root.resolve()),
+                        'version': pool.VERSION, 'slots': [slot]})
+        src = self.root / 'project-source'
+        pool.write_json(src / 'project.config.json', {'appid': 'fixture-app'})
+        (src / 'app.js').write_text('App({})')
+        return slot, src
+
+    def test_two_jobs_reuse_one_live_process_and_release_the_lease(self):
+        slot, src = self.resident_fixture()
+        launched, requests = [], []
+        real_popen = subprocess.Popen
+        def spawn(args, **kwargs):
+            if args[0].endswith('/Contents/MacOS/wechatdevtools'):
+                child = real_popen([sys.executable, '-c', 'import time; time.sleep(60)'], **kwargs)
+                launched.append(child)
+                return child
+            return real_popen(args, **kwargs)
+        try:
+            with patch.object(pool.subprocess, 'Popen', side_effect=spawn), \
+                    patch.object(pool, 'free_ports'), patch.object(pool, 'wait_ready'), \
+                    patch.object(pool, 'http', side_effect=lambda *a: requests.append(a[1:])), \
+                    patch.object(pool, 'sdk_check') as sdk, patch.object(pool, 'close_project') as close:
+                first = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', 'pass'], 0))
+                self.assertIsNone(launched[0].poll(), 'Normal completion must keep resident alive')
+                second = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', 'pass'], 0))
+                self.assertEqual(len(launched), 1, 'Reuse must not spawn a second tool')
+                self.assertEqual(first['runtimePid'], second['runtimePid'])
+                self.assertFalse(first['runtimeReused'])
+                self.assertTrue(second['runtimeReused'])
+                self.assertEqual(first['residentState'], 'idle')
+                self.assertEqual(second['status'], 'passed')
+                self.assertNotEqual(first['runId'], second['runId'])
+                self.assertEqual(close.call_count, 4)  # Prepare + return for each job.
+                resets = [c for c in sdk.call_args_list if c.args[0] == 'reset-data.cjs']
+                self.assertEqual(len(resets), 4)
+                self.assertNotEqual(requests[0][1], requests[2][1], 'Jobs must use separate snapshots')
+                lease = pool.try_slot(self.root.resolve(), slot)
+                self.assertIsNotNone(lease, 'Resident must not hold the job lease forever')
+                lease.close()
+        finally:
+            for child in launched:
+                child.kill()
+                child.wait()
+
+    def test_return_failure_quarantines_resident_without_killing_it(self):
+        slot, src = self.resident_fixture()
+        child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+        try:
+            state = {'lifecycle': 'resident-v1', 'state': 'leased', 'runId': 'job',
+                     'pid': child.pid, 'identity': pool.process_identity(child.pid),
+                     'profile': str(pool.slot_profile(self.root, slot))}
+            pool.write_json(pool.runtime_path(self.root, slot), state)
+            with patch.object(pool, 'sdk_check', side_effect=RuntimeError('reset failed')), \
+                    patch.object(pool, 'close_project') as close:
+                with self.assertRaisesRegex(RuntimeError, 'reset failed'):
+                    pool.return_resident(self.root, slot, 'job', src, {}, None, self.root)
+                close.assert_not_called()
+            pool.set_resident_state(self.root, slot, 'job', 'quarantined', reason='reset failed')
+            self.assertIsNone(pool.try_slot(self.root, slot))
+            self.assertIsNone(child.poll())
+            with self.assertRaisesRegex(RuntimeError, 'owner changed'):
+                pool.set_resident_state(self.root, slot, 'different-job', 'idle')
+        finally:
+            child.kill()
+            child.wait()
+
+    def test_controller_crash_does_not_reassign_a_leased_resident(self):
+        slot, _ = self.resident_fixture()
+        child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
+        try:
+            pool.write_json(pool.runtime_path(self.root, slot), {
+                'lifecycle': 'resident-v1', 'state': 'leased', 'runId': 'lost-controller',
+                'pid': child.pid, 'identity': pool.process_identity(child.pid),
+                'profile': str(pool.slot_profile(self.root, slot)), 'ownerPid': 99999999})
+            self.assertIsNone(pool.try_slot(self.root, slot))
+            self.assertIsNone(child.poll())
+        finally:
+            child.kill()
+            child.wait()
 
     def test_stop_refuses_pid_identity_mismatch(self):
         child = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(30)'],

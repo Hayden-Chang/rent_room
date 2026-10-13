@@ -225,6 +225,19 @@ class Lease:
         os.close(self.fd)
 
 
+def runtime_path(root, slot):
+    return Path(root) / 'slots' / slot['id'] / 'runtime.json'
+
+
+def slot_profile(root, slot):
+    return Path(root) / 'slots' / slot['id'] / 'resident-profile'
+
+
+def matching_runtime(state):
+    return bool(state.get('pid') and state.get('identity') and
+                process_identity(state['pid']) == state['identity'])
+
+
 def try_slot(root, slot):
     path = Path(root) / 'slots' / slot['id']
     fd = os.open(path / 'lease.lock', os.O_CREAT | os.O_RDWR, 0o600)
@@ -233,16 +246,30 @@ def try_slot(root, slot):
     except BlockingIOError:
         os.close(fd)
         return None
-    state = path / 'runtime.json'
-    if state.exists():
-        previous = read_json(state)
-        if process_identity(previous['pid']) == previous['identity']:
-            os.close(fd)
-            return None  # Orphan runtime: quarantine; never kill it to steal a slot.
-        if previous.get('profile') and profile_processes(previous['profile']):
+    try:
+        state_path = runtime_path(root, slot)
+        if state_path.exists():
+            previous = read_json(state_path)
+            resident = previous.get('lifecycle') == 'resident-v1'
+            if resident and (previous.get('state') != 'idle' or
+                             previous.get('profile') != str(slot_profile(root, slot))):
+                os.close(fd)
+                return None
+            if matching_runtime(previous):
+                if not resident:  # Never adopt another agent's legacy run.
+                    os.close(fd)
+                    return None
+            elif previous.get('profile') and profile_processes(previous['profile']):
+                os.close(fd)
+                return None
+        elif slot_profile(root, slot).exists():
+            # Unregistered/partially started profile needs explicit diagnosis.
             os.close(fd)
             return None
-    return Lease(fd, slot)
+        return Lease(fd, slot)
+    except BaseException:
+        os.close(fd)
+        raise
 
 
 def acquire(root, cfg, run_id, timeout, notify=lambda: None):
@@ -305,49 +332,63 @@ def stop_owned(proc, identity):
         proc.wait(timeout=5)
 
 
-def start_runtime(root, slot, run_dir, lease, prepared=False):
-    root, run_dir = Path(root), Path(run_dir)
-    profile = run_dir / 'profile'
-    if not prepared:
+def ensure_runtime(root, slot, run_id):
+    """Claim an idle resident; create the tool only if no live resident exists."""
+    root = Path(root)
+    state_path = runtime_path(root, slot)
+    previous = read_json(state_path) if state_path.exists() else {}
+    profile = slot_profile(root, slot)
+    app = Path(slot['app'])
+    package = app / 'Contents/Resources/package.nw'
+    if hashlib.sha256((package / 'core.wxvpkg').read_bytes()).hexdigest() != slot['patch']['after']:
+        raise RuntimeError('Tool archive changed; revalidate before use')
+    if matching_runtime(previous):
+        if (previous.get('lifecycle') != 'resident-v1' or previous.get('state') != 'idle'
+                or previous.get('profile') != str(profile)):
+            raise RuntimeError('Runtime is not a reusable idle resident')
+        state = dict(previous, state='leased', runId=run_id, ownerPid=os.getpid())
+        write_json(state_path, state)
+        return state, True
+    if previous.get('lifecycle') == 'resident-v1' and previous.get('state') != 'idle':
+        raise RuntimeError('Resident requires explicit recovery')
+    if previous.get('profile') and profile_processes(previous['profile']):
+        raise RuntimeError('Previous runtime still has helpers; refusing to replace it')
+    if profile.exists() and previous.get('lifecycle') != 'resident-v1':
+        raise RuntimeError('Refusing to adopt an unregistered persistent profile')
+    free_ports(list(slot['ports'].values()))
+    state = {'lifecycle': 'resident-v1', 'state': 'leased', 'runId': run_id,
+             'ownerPid': os.getpid(), 'profile': str(profile)}
+    # Persist ownership before boot. A crash during boot quarantines the slot.
+    write_json(state_path, state)
+    if not profile.exists():
         profile.mkdir(mode=0o700)
         for name in DIRS:
             (profile / name).mkdir()
         seed_preferences(root / 'seed', profile / 'WeappLocalData', slot['ports']['ide'])
         for name in ('WeappPlugin', 'WeappVendor'):
             shutil.copytree(root / 'assets' / name, profile / name)
-    app = Path(slot['app'])
-    package = app / 'Contents/Resources/package.nw'
-    if hashlib.sha256((package / 'core.wxvpkg').read_bytes()).hexdigest() != slot['patch']['after']:
-        raise RuntimeError('Tool archive changed; revalidate before use')
-    free_ports(list(slot['ports'].values()))
     args = [str(app / 'Contents/MacOS/wechatdevtools'), str(package), '--cli',
             '--enable-service-port', '--ide-http-port', str(slot['ports']['ide']),
             '--user-data-dir=' + str(profile), '--package-dir=' + str(package),
             '-load-extension=' + str(profile / 'WeappPlugin'),
-            '--custom-devtools-frontend=' + (profile / 'WeappPlugin/inspector').as_uri(),
-            '--app-session-id=pool-' + run_dir.name]
-    with (run_dir / 'runtime.log').open('ab') as log:
-        proc = subprocess.Popen(args, stdout=log, stderr=log, start_new_session=True,
-                                pass_fds=(lease.fd,))
-    identity = process_identity(proc.pid)
-    try:
-        if not identity:
-            raise RuntimeError('Cannot identify newly started runtime')
-        write_json(root / 'slots' / slot['id'] / 'runtime.json',
-                   {'pid': proc.pid, 'identity': identity, 'runId': run_dir.name,
-                    'profile': str(profile)})
-    except BaseException:
-        if identity:
-            stop_owned(proc, identity)
-        raise
-    return proc, identity
+            '--custom-devtools-frontend=' + (profile / 'WeappPlugin/inspector').as_uri()]
+    with (profile.parent / 'runtime.log').open('ab') as log:
+        # Resident lifetime exceeds the lease. Inheriting lease.fd would keep
+        # the slot locked forever after the first job returns it.
+        proc = subprocess.Popen(args, stdout=log, stderr=log, stdin=subprocess.DEVNULL,
+                                start_new_session=True, close_fds=True)
+    state.update(pid=proc.pid, identity=process_identity(proc.pid))
+    write_json(state_path, state)
+    if not state['identity']:
+        raise RuntimeError('Cannot identify newly started resident')
+    return state, False
 
 
-def wait_ready(slot, proc, timeout=50):
+def wait_ready(slot, state, timeout=50):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
-        if proc.poll() is not None:
-            raise RuntimeError('DevTools exited before readiness; see runtime.log')
+        if not matching_runtime(state):
+            raise RuntimeError('Resident exited or its identity changed')
         try:
             with socket.create_connection(('127.0.0.1', slot['ports']['internal']), timeout=1):
                 with socket.create_connection(('127.0.0.1', slot['ports']['ide']), timeout=1):
@@ -357,21 +398,48 @@ def wait_ready(slot, proc, timeout=50):
     raise TimeoutError('IDE and internal service were not both ready')
 
 
-def wait_project_metadata(run_dir, timeout=90):
-    project = Path(run_dir) / 'project'
-    config = read_json(project / 'project.config.json')
-    key = hashlib.md5(('project2_' + str(project)).encode()).hexdigest()
-    metadata = Path(run_dir) / 'profile/WeappLocalData' / ('localstorage_' + key + '.json')
+def sdk_check(script, env, lease, log_path, *args):
+    with Path(log_path).open('w') as log:
+        subprocess.run([env.get('WECHAT_NODE', 'node'), str(Path(__file__).with_name(script)), *args],
+                       env=env, stdout=log, stderr=subprocess.STDOUT, check=True,
+                       timeout=55, pass_fds=(lease.fd,))
+
+
+def close_project(slot, project, timeout=20):
+    http(slot, 'close', project)
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         try:
-            value = read_json(metadata)
-            if value.get('appid') == config['appid'] and value.get('libVersion'):
-                return
-        except (FileNotFoundError, json.JSONDecodeError):
-            pass
-        time.sleep(0.5)
-    raise TimeoutError('Imported project metadata never became ready')
+            with socket.create_connection(('127.0.0.1', slot['ports']['auto']), timeout=1):
+                pass
+        except ConnectionRefusedError:
+            return
+        time.sleep(0.25)
+    raise TimeoutError('Project automation port did not close; resident quarantined')
+
+
+def set_resident_state(root, slot, run_id, value, **fields):
+    path = runtime_path(root, slot)
+    state = read_json(path)
+    if state.get('lifecycle') != 'resident-v1' or state.get('runId') != run_id:
+        raise RuntimeError('Lease owner changed; refusing to update resident')
+    if value == 'idle' and not matching_runtime(state):
+        raise RuntimeError('Cannot return a dead or replaced resident as idle')
+    state.update(state=value, **fields)
+    if value == 'idle':
+        state.update(lastRunId=run_id, runId=None, ownerPid=None)
+    write_json(path, state)
+
+
+def return_resident(root, slot, run_id, project, env, lease, run_dir):
+    state = read_json(runtime_path(root, slot))
+    if state.get('runId') != run_id or not matching_runtime(state):
+        raise RuntimeError('Resident owner or identity changed before return')
+    # Only disposable mini-program storage inside this leased pool profile is
+    # reset. Tool login, plugin assets and the resident process remain alive.
+    sdk_check('reset-data.cjs', env, lease, Path(run_dir) / 'reset-after.log')
+    close_project(slot, project)
+    set_resident_state(root, slot, run_id, 'idle', returned=time.time())
 
 
 def run(root, project, command, wait_seconds=300, test_seconds=120):
@@ -381,11 +449,14 @@ def run(root, project, command, wait_seconds=300, test_seconds=120):
     run_dir = root / 'runs' / run_id
     run_dir.mkdir(parents=True, mode=0o700)
     receipt = {'runId': run_id, 'source': str(Path(project).resolve()), 'started': time.time(),
-               'status': 'snapshot', 'runnerPid': os.getpid(), 'command': command, 'mockBoundary': 'callback-defined'}
-    receipt['runnerHash'] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+               'status': 'snapshot', 'runnerPid': os.getpid(), 'command': command,
+               'mockBoundary': 'callback-defined', 'lifecycle': 'resident-v1',
+               'runnerHash': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
     receipt_path = run_dir / 'receipt.json'
-    lease = proc = child = None
-    identity = child_identity = None
+    lease = child = state = None
+    child_identity = None
+    project_ready = False
+    env = None
     def update(**kwargs):
         receipt.update(kwargs, heartbeat=time.time())
         write_json(receipt_path, receipt)
@@ -410,34 +481,28 @@ def run(root, project, command, wait_seconds=300, test_seconds=120):
         lease = acquire(root, cfg, run_id, wait_seconds, lambda: update(status='queued'))
         slot = lease.slot
         update(status='starting', slot=slot['id'], ports=slot['ports'],
-               queueFinished=time.time(), profile=str(run_dir / 'profile'))
-        proc, identity = start_runtime(root, slot, run_dir, lease)
-        update(runtimePid=proc.pid)
-        wait_ready(slot, proc)
-        update(status='importing')
-        http(slot, 'auto', run_dir / 'project')
-        wait_project_metadata(run_dir)
-        # Fresh profiles compile before project metadata finishes importing.
-        # Restart only this owned runtime to load the completed metadata.
-        stop_owned(proc, identity)
-        stop_profile_helpers(run_dir / 'profile')
-        proc, identity = start_runtime(root, slot, run_dir, lease, prepared=True)
-        update(runtimePid=proc.pid, status='starting-automation')
-        wait_ready(slot, proc)
-        http(slot, 'auto', run_dir / 'project')
-        # SDK health includes actual app service/page readiness, not just open HTTP ports.
+               queueFinished=time.time(), profile=str(slot_profile(root, slot)))
+        state, reused = ensure_runtime(root, slot, run_id)
+        update(runtimePid=state['pid'], runtimeReused=reused)
+        wait_ready(slot, state)
         env = dict(os.environ, WECHAT_WS_ENDPOINT='ws://127.0.0.1:%d' % slot['ports']['auto'],
                    WECHAT_PROJECT_PATH=str(run_dir / 'project'), WECHAT_RUN_ID=run_id,
                    WECHAT_ARTIFACT_DIR=str(run_dir), WECHAT_SLOT_ID=slot['id'])
-        probe = Path(__file__).with_name('health.cjs')
-        with (run_dir / 'health.log').open('w') as health_log:
-            subprocess.run([env.get('WECHAT_NODE', 'node'), str(probe)], env=env,
-                           stdout=health_log, stderr=subprocess.STDOUT,
-                           check=True, timeout=55, pass_fds=(lease.fd,))
+        update(status='preparing-project')
+        http(slot, 'auto', run_dir / 'project')
+        sdk_check('health.cjs', env, lease, run_dir / 'health-before.log')
+        sdk_check('reset-data.cjs', env, lease, run_dir / 'reset-before.log')
+        # Reopen the project after clearing storage so App globals are also new.
+        # This closes one project window, not the long-lived tool process.
+        close_project(slot, run_dir / 'project')
+        http(slot, 'auto', run_dir / 'project')
+        sdk_check('health.cjs', env, lease, run_dir / 'health.log')
+        project_ready = True
         update(status='running', testStarted=time.time())
         with (run_dir / 'test.log').open('w') as log:
-            child = subprocess.Popen(command, cwd=run_dir / 'project', env=env, stdout=log, stderr=subprocess.STDOUT,
-                                     start_new_session=True, pass_fds=(lease.fd,))
+            child = subprocess.Popen(command, cwd=run_dir / 'project', env=env, stdout=log,
+                                     stderr=subprocess.STDOUT, start_new_session=True,
+                                     pass_fds=(lease.fd,))
             child_identity = process_identity(child.pid)
             deadline = time.monotonic() + test_seconds
             while child.poll() is None:
@@ -459,17 +524,29 @@ def run(root, project, command, wait_seconds=300, test_seconds=120):
         try:
             if child is not None and child.poll() is None:
                 stop_owned(child, child_identity)
-            if proc is not None:
-                stop_owned(proc, identity)
-                stop_profile_helpers(run_dir / 'profile')
+            if lease is not None:
+                if project_ready:
+                    return_resident(root, lease.slot, run_id, run_dir / 'project', env, lease, run_dir)
+                    update(residentState='idle', residentRetained=True)
+                else:
+                    path = runtime_path(root, lease.slot)
+                    if path.exists() and read_json(path).get('runId') == run_id:
+                        set_resident_state(root, lease.slot, run_id, 'quarantined',
+                                           reason=receipt.get('error', 'Project did not become ready'))
+                        update(residentState='quarantined', residentRetained=True)
         except Exception as error:
             cleanup_error = str(error)
-            update(status='quarantined', cleanupError=cleanup_error)
-        if lease is not None:
-            lease.close()
-        update(finished=time.time())
-        for sig, handler in old_handlers.items():
-            signal.signal(sig, handler)
+            update(status='quarantined', cleanupError=cleanup_error, residentRetained=True)
+            if lease is not None:
+                path = runtime_path(root, lease.slot)
+                if path.exists() and read_json(path).get('runId') == run_id:
+                    set_resident_state(root, lease.slot, run_id, 'quarantined', reason=cleanup_error)
+        finally:
+            if lease is not None:
+                lease.close()
+            update(finished=time.time())
+            for sig, handler in old_handlers.items():
+                signal.signal(sig, handler)
         print(str(receipt_path), flush=True)
         if cleanup_error:
             raise RuntimeError(cleanup_error)
