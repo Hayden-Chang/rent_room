@@ -28,7 +28,7 @@ npm run check
 
 原始日志在本任务 `apps/wechat/artifacts/swipe-header/`（before.log、after.log、build-before.log、build-after.log、check.log）；编译结果在 `artifacts/compile-result.json`。没有执行全量单测或 UI 套件。
 
-## 尚待 UI 验收
+## 初次提交时的 UI 证据限制（已补充下方截图）
 
 VM 测试和模板祖先断言验证逻辑与绑定范围，不是实际手势或像素证据。开发者工具 Stable 2.01.2510290 当前工程是另一个任务 `.worktrees/inline-address-map/apps/wechat/dist`，本轮仅只读查看，未切换/重启该会话，未改用户缓存或数据。本次版本暂无开发者工具截图和真机手势证据，因此 PR 为草稿、未达到合并门禁，未上传预览、体验版或发布。
 
@@ -45,3 +45,27 @@ VM 测试和模板祖先断言验证逻辑与绑定范围，不是实际手势�
 创建草稿 PR #5 后，主线前进到 cb03d735d990668aa412c8e0f703384e3cfb4c95（未回答分组折叠修复）。已无冲突合入任务分支，组合提交 faf66221ee047c63d28934b3e3cab52bd8005681。本 PR 对主线的业务 diff 未变；因主线改了页面使用的模型，重新构建并执行上述五个文件及新增主线的 `tests/unanswered-group-runtime.test.js`（直接调用本次修改的 fold/group 边界）：29/29 通过，官方编译再次通过。
 
 最终命令：`npm test -- tests/field-row-swipe-scope.test.js tests/field-row-swipe.test.js tests/field-row-placeholder.test.js tests/detail-filter.test.js tests/runtime.test.js tests/unanswered-group-runtime.test.js`，以及 `npm run build` / `npm run check`。日志 build-final.log、final.log、check-final.log 保存在同一证据目录。当前主 agent 已独立复查远端 PR diff、八文件范围、旧失败与新通过证据；之后仅补充此文档，没有改变源码、测试或配置。UI 与真机证据仍未取得，草稿保持未合并。
+
+
+## 实际截图验收与运行时修复
+
+2026-10-13 在本任务 dist 的微信开发者工具 Stable 2.01.2510290、基础库 3.17.3、iPhone 12/13 (Pro) 模拟器中验证。复用了本任务独立自动化端口 9437；其他工程窗口未关闭或重启。开发者工具本地缓存为共享环境，创建独立的“左滑标题验收 · 1013”房源作为样本；未修改已有房源。答案为“大于 1 分钟”，备注与测试缩略图归属于出热水速度 f62_1。数据、筛选与滚动位置由官方 SDK 准备，不能算作点击或手势证据。
+
+实际渲染发现 `selectAllComponents('field-row')` 返回空列表；添加组件 class 并使用 `.field-row` 后，运行时返回 6 个可见组件，修复页面级收起逻辑。新增回归在修复前失败，修复后六个受影响测试文件共 30/30 通过；构建和官方 WXML/WXSS 编译通过。日志位于 `apps/wechat/artifacts/swipe-header-ui/` 的 selector-before.log、build.log、tests.log、check.log。
+
+- 通过：原生鼠标在描述行左拖，运行时 actions=true、offset=-132，实际截图三个操作仅占标题行。
+- 通过：原生点击下方“30 秒内”，运行时 actions=false、offset=0，答案仍为“大于 1 分钟”，首次点击只收起菜单。
+- 通过：左滑前、展开后、点击收起后的答案、备注和缩略图矩形完全一致。标题/操作高度 44 CSS px；答案 top=272、height=44，备注 top=324、height=18，缩略图 top=350、height=44，横向均 left=44、width=314。
+- 未完成：右滑、答案区左滑及完整操作按钮链路的原生交互复核。多工程窗口切换以及原生拖动工具 noWindowsAvailable 中断了后续动作；失败尝试不计入通过证据。逻辑测试通过不能替代这些实际交互，也没有 iOS/Android 真机证据。
+
+实际左滑后的截图（未经合成）：
+
+![实际左滑：仅标题行展示三个操作](swipe-header-evidence/left-swipe.png)
+
+实际点击答案收起后的截图：
+
+![点击答案后收起，原答案保留](swipe-header-evidence/dismissed.png)
+
+完整工具窗口截图 native-left-drag.png、SDK 只读截图 04-native-left-swipe.png / 05-after-click-attempt.png 及对应 JSON 几何记录保存在上述本地证据目录。01-before/02-open/03-closed 属于直接调用处理函数后的真实渲染截图，仅用于布局对比，不计入原生手势证据。
+
+本轮仅补充组件选择器修复、回归与验收记录；未上传预览、体验版或发布。草稿 PR 保持未合并，截图待用户确认。

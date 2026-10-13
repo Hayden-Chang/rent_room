@@ -3,7 +3,7 @@ import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.
 Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',sheet:'',note:'',noteId:'',noteTitle:'',coach:0,coachTexts:['先填房源信息，方便区分和比较。','按房间或分类检查，点标题可展开或收起。','切换到询问签约，记录费用、承诺与合同条件。','左滑检查项，露出标记问题、备注和拍摄；右滑或点击其他位置收起，也可以长按检查项标题。'],hideCoach:false},
   onLoad(options){this.folds={};this.setData({id:options.id});watch(this);this.refresh();if(options.new&&service().store.get().settings.onboarding)this.setData({coach:1});},
   onShow(){if(this.data.id)this.refresh();},onUnload(){unwatch(this);},onHide(){this.dismissSwipe();},onPageScroll(){this.dismissSwipe();},
-  dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
+  dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
   checklistData(h,view){
     const key=JSON.stringify(view),folds=this.folds[key]||{};
     const sections=formView(h,view,folds).map(s=>({...s,rows:s.rows.map(r=>r.map?{...r,location:h.location||null,markers:h.location?[{id:1,...h.location}]:[]}:r)}));

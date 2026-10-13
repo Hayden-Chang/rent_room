@@ -83,3 +83,9 @@ it('navigation dismisses and switches in one tap, and hide/scroll dismiss withou
  for(const event of ['onPageScroll','onHide']){row.reveal();page[event]();expect(row.data.offset).toBe(0);}
  expect(JSON.stringify(row.data.field)).toBe(before);
 });
+it('outside dismissal selects actual custom components with a supported class selector',()=>{
+ const markup=fs.readFileSync('src/pages/detail/index.wxml','utf8');
+ const components=[...markup.matchAll(/<field-row\b([^>]+)>/g)];expect(components).toHaveLength(2);
+ for(const [,attrs] of components)expect(attrs).toMatch(/class="field-row"/);
+ expect(fs.readFileSync('src/pages/detail/index.js','utf8')).toContain("selectAllComponents?.('.field-row')");
+});
