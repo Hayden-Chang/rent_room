@@ -51,7 +51,7 @@ it('adds a field action on the existing row and prevents archived or duplicate n
  const events=[],c={...component.methods,data:{...component.data,field:{id:FIELD}},setData(v){Object.assign(this.data,v);},triggerEvent(n,d){events.push(d);}};
  component.observers['field.id'].call(c,FIELD);expect(c.data.speedTest).toBe(true);c.action({currentTarget:{dataset:{action:'speed-test'}}});expect(events[0]).toEqual({id:FIELD,action:'speed-test'});c.data.readonly=true;c.action({currentTarget:{dataset:{action:'speed-test'}}});expect(events).toHaveLength(1);
  const h=harness();let detail;const urls=[];h.wx.navigateTo=o=>urls.push(o.url);
- vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(o){detail=o;},wx:h.wx,getApp:()=>h.app,console});
+ vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(o){detail=o;},wx:h.wx,getApp:()=>h.app,console,setTimeout,clearTimeout});
  detail.data=structuredClone(detail.data);detail.setData=function(v){Object.assign(this.data,v);};detail.onLoad({id:h.id});detail.onShow();
  const event={detail:{id:FIELD,action:'speed-test'}};detail.action(event);detail.action(event);await settle();expect(urls).toEqual(['/pages/speed-test/index?id='+h.id]);detail.onShow();h.app.service.store.archive(h.id,true);detail.action(event);await settle();expect(urls).toHaveLength(1);detail.onUnload();
 });
