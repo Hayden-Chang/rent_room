@@ -69,3 +69,23 @@ VM 测试和模板祖先断言验证逻辑与绑定范围，不是实际手势�
 完整工具窗口截图 native-left-drag.png、SDK 只读截图 04-native-left-swipe.png / 05-after-click-attempt.png 及对应 JSON 几何记录保存在上述本地证据目录。01-before/02-open/03-closed 属于直接调用处理函数后的真实渲染截图，仅用于布局对比，不计入原生手势证据。
 
 本轮仅补充组件选择器修复、回归与验收记录；未上传预览、体验版或发布。草稿 PR 保持未合并，截图待用户确认。
+
+## 用户批准后的最终合入检查
+
+用户在看到实际截图和剩余手势验证限制后，明确授权“好的，并合入”。最终业务候选为 `69fb44720b4c7ea214084918e82b3aa39cd3c8a1`，基线 `9ae3a41faa1bba741428358e9eeae3aff5cb4721`。主线推进涉及分隔线、页面位置保留和根分组显示：三处文本冲突已手工整合，保留 `hideDivider`、滚动锚点、异步 tab 切换与当前标题左滑/组件 class 查询。未直接复用旧测试结果。
+
+重新构建后执行：
+
+```sh
+npm --prefix apps/wechat run build
+npm --prefix apps/wechat test -- tests/field-row-swipe-scope.test.js tests/field-row-swipe.test.js tests/field-row-placeholder.test.js tests/detail-filter.test.js tests/runtime.test.js tests/unanswered-group-runtime.test.js tests/detail-navigation.test.js tests/root-group-runtime.test.js tests/root-group-fold.test.js tests/group-visibility-audit.test.js
+npm --prefix apps/wechat run check
+```
+
+10 个文件、177 项通过；wcc 8 个 WXML / wcsc 6 个 WXSS 编译通过。前六个测试文件覆盖本 PR 的行为和直接页面调用；增加 detail-navigation 验证冲突涉及的异步切换，root-group-runtime/root-group-fold/group-visibility-audit 验证新主线模型输入及 fold/group 行为。未运行全量套件。导航测试 fixture 补齐真实组件已有的 data 属性；左滑导航测试适配异步完成，不删减断言。测试在提交前相同源文件树执行，候选提交只记录该树；本节追加仅为文档。
+
+主 agent 在推送后单独检查远端最终 diff：11 个文件，页面状态、分隔线行为保留；没有新增阻塞发现。候选 SHA 的 GitHub statuses 和 PR workflow runs 均为空，不能表述为远端 CI 已通过。
+
+本次重载任务开发者工具后，组件查询返回 6 个有效组件；补拍脚本阻塞于 SDK 截图，未产生新截图，不计入最终交互通过证据。已提交的实际截图来自 55a08d5；标题位移逻辑、44px 高度/132px 宽度、答案与附件祖先结构未变，整合只追加底部分隔线 class 与页面锚点/状态保留。右滑、答案区左滑及真机仍属已披露的人工验证限制，用户批准后按当前证据合入，不将失败截图尝试算作通过。
+
+日志：`apps/wechat/artifacts/swipe-header-ui/merge-tests.log`、`merge-check.log`、`merge-layout.log`。
