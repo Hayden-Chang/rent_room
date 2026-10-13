@@ -19,3 +19,9 @@
 
 .choice{font-weight:400}
 .field.hide-divider{border-bottom-color:transparent}
+
+/* Give free text the remaining row width; short values need a compact control. */
+.inline.text-field{grid-template-columns:auto minmax(0,1fr)}
+.inline.text-field .head{max-width:104px}
+.inline.number-field{grid-template-columns:minmax(0,1fr) 96px}
+.inline.number-field .input{text-align:right}
