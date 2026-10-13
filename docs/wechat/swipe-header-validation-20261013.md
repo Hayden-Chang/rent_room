@@ -39,3 +39,9 @@ VM 测试和模板祖先断言验证逻辑与绑定范围，不是实际手势�
 3. 从标题和三个操作区分别右滑；点击当前答案、另一个 item、分类、空白、拍摄按钮、导航，核对收起与首次点击规则。
 4. 点击三个操作确认只触发一次、归属正确；滚动和切页后菜单关闭；重开检查答案、问题标记、备注与媒体保留。
 5. iOS/Android 真机复核受影响手势，并由用户确认 UI 后再合入。
+
+## PR 最终复核
+
+创建草稿 PR #5 后，主线前进到 cb03d735d990668aa412c8e0f703384e3cfb4c95（未回答分组折叠修复）。已无冲突合入任务分支，组合提交 faf66221ee047c63d28934b3e3cab52bd8005681。本 PR 对主线的业务 diff 未变；因主线改了页面使用的模型，重新构建并执行上述五个文件及新增主线的 `tests/unanswered-group-runtime.test.js`（直接调用本次修改的 fold/group 边界）：29/29 通过，官方编译再次通过。
+
+最终命令：`npm test -- tests/field-row-swipe-scope.test.js tests/field-row-swipe.test.js tests/field-row-placeholder.test.js tests/detail-filter.test.js tests/runtime.test.js tests/unanswered-group-runtime.test.js`，以及 `npm run build` / `npm run check`。日志 build-final.log、final.log、check-final.log 保存在同一证据目录。当前主 agent 已独立复查远端 PR diff、八文件范围、旧失败与新通过证据；之后仅补充此文档，没有改变源码、测试或配置。UI 与真机证据仍未取得，草稿保持未合并。
