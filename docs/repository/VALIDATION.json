@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-13",
+  "files": 354,
+  "bytes": 8093950,
+  "credentials": {
+    "scan": "common token/private-key/credential-assignment patterns",
+    "findings": [],
+    "note": "Pattern scan, not a guarantee; no local credential files or old Git history imported"
+  },
+  "excludedPathsChecked": 13,
+  "sourcePathsNotIgnoredChecked": 8,
+  "miniProgram": {
+    "tests": 48,
+    "node": "24.21.0",
+    "build": true,
+    "officialWcc": 0,
+    "officialWcsc": 0,
+    "package": true
+  },
+  "htmlPrototype": {
+    "tests": 16,
+    "build": true,
+    "sourcePreserved": true
+  },
+  "webPrototype": {
+    "tests": 5,
+    "build": true
+  },
+  "assistantPrototype": {
+    "modelTests": 5,
+    "assistantAndHarnessTests": 9,
+    "serverTests": 2,
+    "build": true,
+    "liveAI": "not run"
+  },
+  "limitations": [
+    "Historical Web bundle size warnings (>500 kB); unchanged application code",
+    "No WeChat upload, review submission, deployment or live AI calls",
+    "Current data copied from disk; browser unsaved edits not exported"
+  ]
+}

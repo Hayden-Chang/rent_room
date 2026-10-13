@@ -1,0 +1,54 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/detail/index",
+    "pages/compare/index",
+    "pages/settings/index",
+    "pages/archive/index",
+    "pages/templates/index",
+    "pages/import/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "寻居 · 看房手记",
+    "navigationBarBackgroundColor": "#F5F7FB",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F5F7FB"
+  },
+  "tabBar": {
+    "color": "#667187",
+    "selectedColor": "#4D56DF",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/home/index",
+        "text": "房源",
+        "iconPath": "assets/icons/home-default.png",
+        "selectedIconPath": "assets/icons/home-selected.png"
+      },
+      {
+        "pagePath": "pages/compare/index",
+        "text": "对比",
+        "iconPath": "assets/icons/compare-default.png",
+        "selectedIconPath": "assets/icons/compare-selected.png"
+      },
+      {
+        "pagePath": "pages/settings/index",
+        "text": "设置",
+        "iconPath": "assets/icons/settings-default.png",
+        "selectedIconPath": "assets/icons/settings-selected.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "在你选择地图选点时，用于填写房源地址；也可手动输入"
+    }
+  },
+  "requiredPrivateInfos": [
+    "chooseLocation"
+  ],
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

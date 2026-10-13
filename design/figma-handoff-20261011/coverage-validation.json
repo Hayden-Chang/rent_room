@@ -1,0 +1,326 @@
+{
+  "checkedAt": "2026-10-11T07:36:20.219547+00:00",
+  "rawFields": 303,
+  "uniqueFieldIds": 303,
+  "categories": 13,
+  "mappedFields": 303,
+  "controlTypes": {
+    "address_map": 2,
+    "number": 30,
+    "single_select": 17,
+    "binary": 226,
+    "single_select_other": 13,
+    "inspection_result": 1,
+    "text": 12,
+    "multi_select": 1,
+    "permission": 1
+  },
+  "sourceHashMatches": true,
+  "boards": {
+    "structure": "145:38097",
+    "controls": "145:38208",
+    "conditions": "145:38385"
+  },
+  "controlCards": {
+    "binary": "145:38211",
+    "number": "145:38235",
+    "text": "145:38250",
+    "single_select": "145:38258",
+    "single_select_other": "145:38271",
+    "multi_select": "145:38289",
+    "inspection_result": "145:38301",
+    "permission": "145:38326",
+    "address_map": "145:38341"
+  },
+  "totals": {
+    "新建": {
+      "total": 202,
+      "done": 0,
+      "issues": 0,
+      "byCategory": {
+        "房源基本信息": {
+          "total": 12,
+          "done": 0,
+          "issues": 0
+        },
+        "周边与小区": {
+          "total": 30,
+          "done": 0,
+          "issues": 0
+        },
+        "通风与采光": {
+          "total": 8,
+          "done": 0,
+          "issues": 0
+        },
+        "隔音与噪音": {
+          "total": 6,
+          "done": 0,
+          "issues": 0
+        },
+        "墙面地面与门窗": {
+          "total": 27,
+          "done": 0,
+          "issues": 0
+        },
+        "卫生间": {
+          "total": 5,
+          "done": 0,
+          "issues": 0
+        },
+        "厨房与水路": {
+          "total": 15,
+          "done": 0,
+          "issues": 0
+        },
+        "卧室与家具收纳": {
+          "total": 13,
+          "done": 0,
+          "issues": 0
+        },
+        "家电": {
+          "total": 12,
+          "done": 0,
+          "issues": 0
+        },
+        "虫害鼠害": {
+          "total": 1,
+          "done": 0,
+          "issues": 0
+        },
+        "电路网络与隐私": {
+          "total": 15,
+          "done": 0,
+          "issues": 0
+        },
+        "费用与付款": {
+          "total": 21,
+          "done": 0,
+          "issues": 0
+        },
+        "身份与合同": {
+          "total": 37,
+          "done": 0,
+          "issues": 0
+        }
+      }
+    },
+    "已有": {
+      "total": 212,
+      "done": 86,
+      "issues": 3,
+      "byCategory": {
+        "房源基本信息": {
+          "total": 12,
+          "done": 12,
+          "issues": 0
+        },
+        "周边与小区": {
+          "total": 30,
+          "done": 29,
+          "issues": 0
+        },
+        "通风与采光": {
+          "total": 8,
+          "done": 8,
+          "issues": 0
+        },
+        "隔音与噪音": {
+          "total": 6,
+          "done": 6,
+          "issues": 0
+        },
+        "墙面地面与门窗": {
+          "total": 27,
+          "done": 25,
+          "issues": 1
+        },
+        "卫生间": {
+          "total": 5,
+          "done": 1,
+          "issues": 0
+        },
+        "厨房与水路": {
+          "total": 15,
+          "done": 0,
+          "issues": 0
+        },
+        "卧室与家具收纳": {
+          "total": 13,
+          "done": 0,
+          "issues": 0
+        },
+        "家电": {
+          "total": 22,
+          "done": 4,
+          "issues": 1
+        },
+        "虫害鼠害": {
+          "total": 1,
+          "done": 0,
+          "issues": 0
+        },
+        "电路网络与隐私": {
+          "total": 15,
+          "done": 0,
+          "issues": 0
+        },
+        "费用与付款": {
+          "total": 21,
+          "done": 1,
+          "issues": 1
+        },
+        "身份与合同": {
+          "total": 37,
+          "done": 0,
+          "issues": 0
+        }
+      }
+    },
+    "归档A": {
+      "total": 212,
+      "done": 122,
+      "issues": 2,
+      "byCategory": {
+        "房源基本信息": {
+          "total": 12,
+          "done": 12,
+          "issues": 0
+        },
+        "周边与小区": {
+          "total": 30,
+          "done": 29,
+          "issues": 0
+        },
+        "通风与采光": {
+          "total": 8,
+          "done": 8,
+          "issues": 0
+        },
+        "隔音与噪音": {
+          "total": 6,
+          "done": 6,
+          "issues": 0
+        },
+        "墙面地面与门窗": {
+          "total": 27,
+          "done": 25,
+          "issues": 1
+        },
+        "卫生间": {
+          "total": 5,
+          "done": 1,
+          "issues": 0
+        },
+        "厨房与水路": {
+          "total": 15,
+          "done": 13,
+          "issues": 0
+        },
+        "卧室与家具收纳": {
+          "total": 13,
+          "done": 5,
+          "issues": 0
+        },
+        "家电": {
+          "total": 22,
+          "done": 18,
+          "issues": 1
+        },
+        "虫害鼠害": {
+          "total": 1,
+          "done": 0,
+          "issues": 0
+        },
+        "电路网络与隐私": {
+          "total": 15,
+          "done": 5,
+          "issues": 0
+        },
+        "费用与付款": {
+          "total": 21,
+          "done": 0,
+          "issues": 0
+        },
+        "身份与合同": {
+          "total": 37,
+          "done": 0,
+          "issues": 0
+        }
+      }
+    },
+    "归档B": {
+      "total": 212,
+      "done": 96,
+      "issues": 1,
+      "byCategory": {
+        "房源基本信息": {
+          "total": 12,
+          "done": 12,
+          "issues": 0
+        },
+        "周边与小区": {
+          "total": 30,
+          "done": 29,
+          "issues": 0
+        },
+        "通风与采光": {
+          "total": 8,
+          "done": 8,
+          "issues": 0
+        },
+        "隔音与噪音": {
+          "total": 6,
+          "done": 6,
+          "issues": 0
+        },
+        "墙面地面与门窗": {
+          "total": 27,
+          "done": 25,
+          "issues": 0
+        },
+        "卫生间": {
+          "total": 5,
+          "done": 1,
+          "issues": 0
+        },
+        "厨房与水路": {
+          "total": 15,
+          "done": 11,
+          "issues": 0
+        },
+        "卧室与家具收纳": {
+          "total": 13,
+          "done": 0,
+          "issues": 0
+        },
+        "家电": {
+          "total": 22,
+          "done": 4,
+          "issues": 1
+        },
+        "虫害鼠害": {
+          "total": 1,
+          "done": 0,
+          "issues": 0
+        },
+        "电路网络与隐私": {
+          "total": 15,
+          "done": 0,
+          "issues": 0
+        },
+        "费用与付款": {
+          "total": 21,
+          "done": 0,
+          "issues": 0
+        },
+        "身份与合同": {
+          "total": 37,
+          "done": 0,
+          "issues": 0
+        }
+      }
+    }
+  },
+  "scope": "data and design coverage; no app runtime assertion"
+}
