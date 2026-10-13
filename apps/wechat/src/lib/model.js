@@ -1,3 +1,4 @@
+import {keepsLocation} from './places.js';
 import topics from './topics.json' with {type:'json'};
 import * as rules from './source-model.js';
 
@@ -106,7 +107,19 @@ export function updateAnswer(h,id,prop,value) {
   if(!['value','note','otherText','issueFlag'].includes(prop))throw Error('不支持的修改');
   if(prop==='value'&&f.type==='n'&&value!==''&&(!Number.isFinite(Number(value))||Number(value)<0))throw Error('请填写非负数字');
   h.answers[id]={...(h.answers[id]||{}),[prop]:value};
-  if(prop==='value'){rules.syncGroupField(h,houseTopics(h),id);if(id==='f1_1')h.address=value;}
+  if(prop==='value'){
+    rules.syncGroupField(h,houseTopics(h),id);
+    if(id==='f1_1'){
+      const base=h.locationAddress||h.address;
+      if(h.location&&!h.locationAnchor)h.locationAnchor=h.location;
+      h.locationAddress=base;
+      if(h.locationAnchor){
+        h.location=keepsLocation(value,base)?h.locationAnchor:null;
+        h.answers[MAP_ID]={...h.answers[MAP_ID],value:h.location?base:''};
+      }
+      h.address=value;
+    }
+  }
 }
 export function updateGroup(h,id,operation,value) {
   if(h.archived)throw Error('归档房源只读，请先还原');
@@ -136,7 +149,7 @@ export function validateState(state) {
     ids.add(h.id);
     if(h.templateTopics&&!rules.validTopics(h.templateTopics))throw Error('清单模板无效');
     if(h.extras&&(!Array.isArray(h.extras)||h.extras.length&&!rules.validTopics(h.extras)))throw Error('自定义检查项无效');
-    if(h.media&&(!Array.isArray(h.media)||h.media.some(m=>!m||typeof m.id!=='string'||!['image','video'].includes(m.type)||typeof m.path!=='string')))throw Error('影像数据无效');
+    if(h.media&&(!Array.isArray(h.media)||h.media.some(m=>!m||typeof m.id!=='string'||!['image','video'].includes(m.type)||typeof m.path!=='string'||m.caption!==undefined&&(typeof m.caption!=='string'||m.caption.length>10000))))throw Error('影像数据无效');
     if(h.issues&&(!Array.isArray(h.issues)||h.issues.some(i=>!i||typeof i.id!=='string'||typeof i.title!=='string')))throw Error('问题数据无效');
     if(h.groups&&(typeof h.groups!=='object'||Array.isArray(h.groups)))throw Error('分组数据无效');
     if(Object.values(h.groups||{}).some(g=>!g||typeof g!=='object'||Array.isArray(g)))throw Error('分组状态无效');

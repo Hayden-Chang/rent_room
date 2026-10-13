@@ -42,11 +42,11 @@
   },
   "permission": {
     "scope.userLocation": {
-      "desc": "在你选择地图选点时，用于填写房源地址；也可手动输入"
+      "desc": "点击定位时，用于查找房源附近地址；也可搜索或手动填写"
     }
   },
   "requiredPrivateInfos": [
-    "chooseLocation"
+    "getLocation"
   ],
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",

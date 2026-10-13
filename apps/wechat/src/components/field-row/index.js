@@ -2,12 +2,14 @@ const ACTION_WIDTH=132;
 const hasContent=value=>value!==undefined&&value!==null&&String(value).length>0;
 let activeRow=null;
 Component({
- properties:{field:Object,readonly:Boolean,hideDivider:Boolean},
+ properties:{field:Object,readonly:Boolean,hideDivider:Boolean,address:String,location:Object,anchor:String},
  data:{actions:false,offset:0,dragging:false,valueFocused:false,otherFocused:false,valueFilled:false,otherFilled:false},
  observers:{readonly(value){if(value)this.closeSwipe();},'field.id'(id){if(this.fieldId!==id){this.closeSwipe();this.setData({valueFocused:false,otherFocused:false});this.fieldId=id;}},'field.value'(value){this.setData({valueFilled:hasContent(value)});},'field.otherText'(value){this.setData({otherFilled:hasContent(value)});}},
  lifetimes:{detached(){if(activeRow===this)activeRow=null;}},
  methods:{
+  selectPlace(e){if(!this.data.readonly)this.triggerEvent('selectplace',e.detail);},
   start(e){
+   if(this.data.field.map)return;
    this.suppressTapUntil=0;this.dismissedTouch=!!(activeRow&&activeRow!==this);
    if(this.dismissedTouch)activeRow.closeSwipe();
    if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
@@ -44,6 +46,11 @@ Component({
   handleInputBlur(e){const key=e.currentTarget.dataset.input;this.setData({[key+'Focused']:false,[key+'Filled']:hasContent(e.detail.value)});},
   input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
   choose(e){if(this.consumeDismissal())return;if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
-  action(e){if(Date.now()<(this.suppressTapUntil||0))return;if(!e.currentTarget.dataset.tray&&this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
+  trayAction(e){
+   if(this.data.readonly||!this.data.actions||Date.now()<(this.suppressTapUntil||0))return;
+   const action=e.currentTarget.dataset.action;if(!['flag','note','media'].includes(action))return;
+   this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});
+  },
+  action(e){if(e.currentTarget.dataset.tray)return this.trayAction(e);if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
  }
 });

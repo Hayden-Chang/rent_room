@@ -51,3 +51,11 @@ VM/handler 测试只证明逻辑边界，不等于真实点击、手势或像素
 新增 `onboarding-icons.test.js` 解码页面实际引用的三张 PNG，与白底做 alpha 合成并计算对比度。修复前相机满足 3:1 对比度的像素比例为 0，按预期失败；换成原型素材后通过。PNG 解码使用固定 devDependency `pngjs@7.0.0`，不进入业务包。
 
 Node 24.21.0 执行 `vitest run tests/onboarding-icons.test.js tests/onboarding.test.js tests/onboarding-target.test.js`：13 项通过；官方 wcc 8 文件、wcsc 6 文件通过。原始失败和修复后日志位于 `apps/wechat/artifacts/onboarding/icon-fix/`。本轮仅改变引导媒体素材/样式与测试依赖，未改变 Page 生命周期、导航、筛选或持久化逻辑；相关既有测试证据保持等价。像素测试证明素材可见，不替代用户真机视觉确认。
+
+## 用户验收与主线整合（2026-10-13）
+
+用户在 `e82d55c` 的机器人 11 CI 预览码真机验收后明确表示“先把原来的 PR 合入，我验证了没问题”，批准引导 UI 与合并。之前的截图基础设施限制仍保留，不把用户验收说成自动化截图通过。
+
+合入前与 main `ce381b25f6a5da5773f1036c764383df792da81c` 整合：详情页三个文本冲突只涉及相邻 import/data、检查项标签属性、末尾样式。保留地图的 applyPlace/位置属性及事件、影像 mediaNoteId/备注样式，同时保留已验收 coach 标记、生命周期与样式；引导模块、素材与交互未改变。
+
+Node 24.21.0 重建后运行 `onboarding.test.js`、`onboarding-target.test.js`、`onboarding-icons.test.js`、`runtime.test.js`、`detail-navigation.test.js`、`detail-filter.test.js`、`media-caption.test.js`、`address-bindings.test.js`：8 文件 43 项通过。前三个覆盖引导，随后三个覆盖详情生命周期/导航/筛选，末两个覆盖冲突合并的媒体与地图绑定。官方 wcc 9 文件、wcsc 7 文件通过。没有运行全量测试或重新发布小程序。

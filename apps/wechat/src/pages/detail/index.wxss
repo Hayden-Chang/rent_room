@@ -47,3 +47,7 @@
 .coach-error{color:#bb4149;font-size:13px;line-height:20px;margin-top:4px}
 
 .coach-demo-actions image.coach-media-icon{width:22px;height:22px}
+.media-grid{align-items:start;row-gap:16px}
+.media-card{min-width:0}
+.media-caption,.media-caption:not([size=mini]){display:block;width:100%;min-height:44px;height:auto;padding:8px 2px;background:transparent;border-radius:0;color:#1c2638;font-size:13px;font-weight:400;line-height:20px;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all}
+.media-caption-add,.media-caption-add:not([size=mini]){color:#8d95a3;font-size:22px;text-align:center}

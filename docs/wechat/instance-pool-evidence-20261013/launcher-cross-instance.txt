@@ -1,0 +1,5 @@
+[LAUNCHER]2026/10/13 17:27:06 daemon.go:159: risidual Process number: 2
+[LAUNCHER]2026/10/13 17:27:06 daemon.go:165: Skip daemon process: 14244
+[LAUNCHER]2026/10/13 17:27:06 utils_mac.go:46: Start Kill Process: 71268
+[LAUNCHER]2026/10/13 17:27:06 utils_mac.go:48: Finish Kill Process: 71268
+[LAUNCHER]2026/10/13 17:27:06 daemon.go:175: Kill Process wechatwebdevtools Daemon success with pid 71268
