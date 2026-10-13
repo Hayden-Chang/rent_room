@@ -17,3 +17,6 @@
 .group{margin-top:8px}
 .group-inline .group-choice{font-weight:600}
 .field-branch{min-width:0}
+
+/* Preserve layout for measurement while hiding the intermediate scroll position. */
+.tab-restoring{visibility:hidden;pointer-events:none}

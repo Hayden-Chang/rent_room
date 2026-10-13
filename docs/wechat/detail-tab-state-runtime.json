@@ -1,0 +1,68 @@
+{
+  "head": "0a151c6",
+  "mode": "App-Service handler invocation with real WeChat WebView layout and screenshots; no pointer/gesture evidence",
+  "checks": [
+    {
+      "name": "deep checklist round trip",
+      "before": 1120,
+      "after": 1120,
+      "timingsIncludingHarnessMs": [
+        421,
+        725
+      ]
+    },
+    {
+      "name": "independent position 清单",
+      "top": 1120
+    },
+    {
+      "name": "independent position 影像",
+      "top": 250
+    },
+    {
+      "name": "independent position 问题",
+      "top": 400
+    },
+    {
+      "name": "independent position 总结",
+      "top": 0
+    },
+    {
+      "name": "phase search filters expansion preserved",
+      "top": 400
+    },
+    {
+      "name": "exit and re-enter resets view",
+      "top": 0
+    },
+    {
+      "name": "media association changes real row height without losing reading position",
+      "field": "21255282-3663-4abe-b7de-d91eeb3825ed",
+      "anchor": "category-通风与采光",
+      "beforeScroll": 1120,
+      "afterScroll": 1172,
+      "beforeAnchorTop": -24,
+      "afterAnchorTop": -24
+    },
+    {
+      "name": "rapid tab changes keep final checklist position",
+      "top": 1172
+    }
+  ],
+  "errors": [
+    {
+      "kind": "capture",
+      "message": "screenshot timeout"
+    },
+    {
+      "kind": "capture",
+      "message": "screenshot timeout"
+    },
+    {
+      "kind": "capture",
+      "message": "screenshot timeout"
+    }
+  ],
+  "status": "rendered-integration-passed",
+  "screenshots": "blocked: capture API timed out"
+}
