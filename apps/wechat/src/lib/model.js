@@ -9,9 +9,15 @@ export const fields = topics.flatMap(t=>t.fields);
 export const categories = [...new Set(topics.map(t=>t.category))];
 export const MAP_ID = fields.find(f=>f.label==='地图（和地址联动）').id;
 export const emptyState = () => ({version:2,houses:[],settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
-// Apply the new sink group controls to saved template snapshots as well as new houses.
-// Retain every source ID and saved answer; absence only hides the detail rows.
-export const houseTopics = h => [...(h.templateTopics||topics),...(h.extras||[])].map(t=>t.path?.some(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9')?{...t,path:t.path.map(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9'?{...p,aggregate:true,presence:true,detailsWithoutPresence:true}:p)}:t);
+const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83');
+// Apply current group controls to saved templates without rewriting their answers or snapshots.
+export const houseTopics = h => [...(h.templateTopics||topics),...(h.extras||[])].map(t=>{
+  if(t.path?.some(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9'))t={...t,path:t.path.map(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9'?{...p,aggregate:true,presence:true,detailsWithoutPresence:true}:p)};
+  if(t.path?.some(p=>p.id===installationGroup.id))t={...t,
+    title:t.title==='宽带条件'?installationGroup.title:t.title,
+    path:t.path.map(p=>p.id===installationGroup.id?{...p,title:installationGroup.title,visibleWhen:installationGroup.visibleWhen}:p)};
+  return t;
+});
 const normalTitle = title => title.endsWith('正常')?title:title+'正常';
 const resultLabel = value => ({'正常':'是','有问题':'否'}[value]||value);
 export function freshHouse(name,settings={}) {
@@ -72,15 +78,17 @@ export function formView(h,view={},folds={}) {
     const root={children:[],map:new Map()};
     for(const t of catTopics) {
       let p=root;
-      for(const g of (t.path||[]).slice(1)) {
-        if(!p.map.has(g.id)){const n={g,children:[],map:new Map()};p.map.set(g.id,n);p.children.push(n);}p=p.map.get(g.id);
+      const path=t.path||[],rootGroup=groups.has(path[0]?.id);
+      // A root with controls is an inspection group, not just the category label.
+      for(const g of path.slice(rootGroup?0:1)) {
+        if(!p.map.has(g.id)){const n={g,rootGroup:rootGroup&&g===path[0],children:[],map:new Map()};p.map.set(g.id,n);p.children.push(n);}p=p.map.get(g.id);
       }
       p.children.push({t});
     }
     const rows=[];
     function visit(n,depth=0) {
       if(n.t){for(const f of n.t.fields)if(rules.topicActive(n.t,h,detailVisibility)&&rules.fieldActive(f,h)&&!rules.isPermissionController(n.t,f)&&matches(h,n.t,f,view))rows.push({...fieldView(h,f),depth});return;}
-      const g=groups.get(n.g.id),expanded=folds[n.g.id]??!!filtered;
+      const g=groups.get(n.g.id),expanded=folds[n.g.id]??(n.rootGroup||!!filtered);
       if(filtered&&!entries.some(e=>(e.topic.path||[]).some(p=>p.id===n.g.id)))return;
       let options=[],selected='',skipped=false;
       if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?['正常','有问题','没有']:g.aggregate?['是','否']:[];}
@@ -141,7 +149,7 @@ export function validateState(state) {
     ids.add(h.id);
     if(h.templateTopics&&!rules.validTopics(h.templateTopics))throw Error('清单模板无效');
     if(h.extras&&(!Array.isArray(h.extras)||h.extras.length&&!rules.validTopics(h.extras)))throw Error('自定义检查项无效');
-    if(h.media&&(!Array.isArray(h.media)||h.media.some(m=>!m||typeof m.id!=='string'||!['image','video'].includes(m.type)||typeof m.path!=='string')))throw Error('影像数据无效');
+    if(h.media&&(!Array.isArray(h.media)||h.media.some(m=>!m||typeof m.id!=='string'||!['image','video'].includes(m.type)||typeof m.path!=='string'||m.caption!==undefined&&(typeof m.caption!=='string'||m.caption.length>10000))))throw Error('影像数据无效');
     if(h.issues&&(!Array.isArray(h.issues)||h.issues.some(i=>!i||typeof i.id!=='string'||typeof i.title!=='string')))throw Error('问题数据无效');
     if(h.groups&&(typeof h.groups!=='object'||Array.isArray(h.groups)))throw Error('分组数据无效');
     if(Object.values(h.groups||{}).some(g=>!g||typeof g!=='object'||Array.isArray(g)))throw Error('分组状态无效');

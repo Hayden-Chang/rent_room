@@ -4,7 +4,7 @@ import vm from 'node:vm';
 function component(name,extra={}){let spec;vm.runInNewContext(fs.readFileSync(`dist/components/${name}/index.js`,'utf8'),{Component:o=>spec=o,Date,setTimeout,clearTimeout,...extra});const c={...spec.methods,data:structuredClone(spec.data),setData(p){Object.assign(this.data,p);},triggerEvent:vi.fn()};return {c,spec};}
 it('wires selection through the field component and excludes map gestures from row swipes',()=>{
  const {c}=component('field-row');c.data.field={id:'map',map:true};c.start({touches:[{clientX:100,clientY:10}]});expect(c.gesture).toBeUndefined();const place={address:'深圳',location:{latitude:22,longitude:114}};c.selectPlace({detail:place});expect(c.triggerEvent).toHaveBeenCalledWith('selectplace',place);c.data.readonly=true;c.selectPlace({detail:place});expect(c.triggerEvent).toHaveBeenCalledTimes(1);
- const row=fs.readFileSync('dist/components/field-row/index.wxml','utf8'),page=fs.readFileSync('dist/pages/detail/index.wxml','utf8');expect(row).toContain('bindselect="selectPlace"');expect(page).toContain('bindselectplace="selectPlace"');expect(row).toContain('wx:if="{{!field.map}}" class="head"');
+ const row=fs.readFileSync('dist/components/field-row/index.wxml','utf8'),page=fs.readFileSync('dist/pages/detail/index.wxml','utf8');expect(row).toContain('bindselect="selectPlace"');expect(page).toContain('bindselectplace="selectPlace"');expect(row).toContain('wx:if="{{!field.map}}" class="swipe-shell');
 });
 it('handles native drag and zoom end shapes while ignoring automatic region updates',()=>{
  const {c}=component('address-picker');c.picker={move:vi.fn()};const center={latitude:22,longitude:114};

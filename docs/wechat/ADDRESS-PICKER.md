@@ -89,3 +89,12 @@
 - 重建后 `field-row-placeholder`、`field-row-swipe`、`address-bindings` 3 文件 15 项通过；官方 wcc 9 模板、wcsc 7 样式通过。仅低影响布局调整，复用上述相关行为测试，不新增只重复 CSS 实现的单测。日志：`apps/wechat/artifacts/field-width-tests.log`。
 - 按新约定通过只读公共入口提交三槽池，run ID `68d87e34faaf46f886c898379f0410c9`。第 1 槽的 `health-before.log` 连接 SDK 后等待 app/page 失败，布局回调尚未执行，槽位由 runner 隔离。证据：`/Volumes/mac2/codex-builds/wechat-instance-pool/runs/68d87e34faaf46f886c898379f0410c9/receipt.json`。未自行删锁、改池配置、重启或切回默认实例。
 - 该 run 背景提交为 `0d79305`，sourceStatus 记录两份布局文件的未提交修改，不能把快照称为干净 head 测试。后续只提交这两份已检查文件和本段记录，未重新修改布局。新布局实际截图、真机预览码及用户确认仍待实例池恢复后完成；此前二维码不包含本次布局调整。
+
+## 2026-10-13 主线集成与合并授权
+
+- 用户在已知新布局现场验证受阻后明确要求“合入到主线”。本次按该授权合并，实际截图仍标为未完成，不将合并授权或自动化测试当作 UI 验收通过。
+- 将 main `0fd8b416ff6b419ba0a97f296af86a6c3a99f676` 合入任务分支。解决 field-row 与 detail 的冲突，保留标题行左滑边界、首次点击收起、切页滚动位置、影像独立备注及地图地址同步。文字标签通常紧凑显示，展开操作时为三个按钮保留132px，避免紧凑地址标签裁掉操作入口。
+- Node 24 重建正式数据路径版本后，按地图、组件、模型/存储与主线冲突范围选择20份测试（未运行全量）：address-bindings、address-picker、places、detail-filter、field-row-placeholder、field-row-swipe、files、model、platform、runtime、unanswered-group-fold、unanswered-group-runtime、detail-navigation、field-row-swipe-scope、media-caption、root-group-fold、root-group-runtime、template-fold、broadband-installation、group-visibility-audit。255项全部通过，日志 `apps/wechat/artifacts/main-integration-tests.log`。
+- `node scripts/check.mjs`：wcc 9模板、wcsc 7样式均通过，产物1,025,051字节。当前产物未注入本地地图密钥；正式使用的构建仍须提供此前配置的浏览器端Key。
+- 实例池status返回三个槽均 `busy-or-quarantined`。保留前次失败证据，不接管、恢复或重启槽位，本次没有新的页面截图或手机预览码。
+- 主 agent 审查组合diff：变更保持在地图选址、权限恢复、输入布局及其测试文档范围，保留新主线功能；凭据、构建输出与测试数据不提交。此次授权范围为合并，不代表预览上传、体验版或正式发布。
