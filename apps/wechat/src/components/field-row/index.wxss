@@ -19,3 +19,9 @@
 
 .choice{font-weight:400}
 .field.hide-divider{border-bottom-color:transparent}
+
+/* Clip only same-line choices; retain their layout and selected values. */
+.inline .answer-options{overflow:hidden;min-width:0}
+.inline .choices{transition:transform 180ms ease-out;will-change:transform}
+.inline .choices.dragging{transition:none}
+.inline .options-retracted{pointer-events:none}
