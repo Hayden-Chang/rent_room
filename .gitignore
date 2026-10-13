@@ -54,3 +54,8 @@ Thumbs.db
 *.swo
 .idea/
 .vscode/
+
+# Local-only prototypes and design exports; retain the design entry point.
+/prototypes/
+/design/*
+!/design/README.md

@@ -1,9 +1,14 @@
-# 设计资料
+# 设计入口与说明
 
-- [Figma 主稿](https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-155)：可编辑页面、组件和交互以 Figma 为准。
-- [清单交付快照](figma-handoff-20261011/HANDOFF.md)：2026-10-11 的字段映射、关键截图及验证记录，是历史快照，不代表此后所有修改。
-- [视觉参考](reference-style.md)：参考产品的风格观察，不能直接作为本项目已确认规范。
-- [品牌素材](branding/)：已有头像方案和生成描述。
+- [Figma 主稿](https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-155)：可编辑页面、组件和交互。
 - [小程序设计核对记录](../apps/wechat/docs/figma-audit.json)。
+- [清单设计源](../apps/wechat/docs/source-tree.json)与[来源记录](../apps/wechat/docs/source-provenance.json)：小程序构建使用的版本。
+- [验证说明](../apps/wechat/docs/VALIDATION.md)：区分代码检查、编译、界面核对与真机验收。
 
-运行截图、Figma 结构校验、手机实测和云端设计同步是不同证据。可编辑主稿留在 Figma；代码仓库保留必要链接、字段源、交付说明和少量静态截图。全量节点备份和反复生成的过程文件留在原本地目录。
+## 维护约定
+
+正式设计在 Figma 维护；代码仓库保留必要设计链接、说明和应用本身需要的资源。修改时在 PR 中记录对应 Figma 页面以及有意保留的差异。
+
+本目录仅跟踪此 README。Figma 导出、交付快照、截图、视觉参考和品牌备选素材仅保留本地；`prototypes/` 同样不纳入 Git。新克隆无需这些文件即可构建小程序。
+
+Figma 结构校验、云端同步、运行截图和真机实测是不同证据，不能相互替代。
