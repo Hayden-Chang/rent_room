@@ -194,9 +194,10 @@ export function setGroupNotApplicable(h,g,value) {
   for(const state of Object.values(h.groups))delete state.bulkBefore;
 }
 
-export function groupAllowsDetails(g,h) {return !groupSkipped(g,h)&&(g.permissionFieldId?groupPermission(g,h)==='允许':!g.presence||groupAnswer(h,g.id).presence==='是'||g.detailsWithoutPresence&&groupAnswer(h,g.id).presence!=='否');}
+// Browsing unanswered details must not activate them for totals or bulk answers.
+export function groupAllowsDetails(g,h,{includeUnanswered=false}={}) {return !groupSkipped(g,h)&&(g.permissionFieldId?groupPermission(g,h)==='允许':!g.presence||groupAnswer(h,g.id).presence==='是'||(g.detailsWithoutPresence||includeUnanswered)&&groupAnswer(h,g.id).presence!=='否');}
 
-export function topicActive(t,h) {return topicAvailable(t,h)&&(t.path||[]).every(g=>groupAllowsDetails(g,h));}
+export function topicActive(t,h,options) {return topicAvailable(t,h)&&(t.path||[]).every(g=>groupAllowsDetails(g,h,options));}
 
 export function isPermissionController(t,f) {return (t.path||[]).some(g=>g.permissionFieldId===f.id);}
 

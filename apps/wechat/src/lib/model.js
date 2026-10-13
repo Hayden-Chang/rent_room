@@ -24,13 +24,13 @@ export function answer(h,f) {
   return h.answers[f.id]||{};
 }
 export function problem(f,a={}) {return typeof a.issueFlag==='boolean'?a.issueFlag:rules.isProblem(f,a);}
-export function activeEntries(h) {
+export function activeEntries(h,options) {
   const ts=houseTopics(h);
-  const list=ts.filter(t=>rules.topicActive(t,h)).flatMap(t=>t.fields.filter(f=>rules.fieldActive(f,h)&&!rules.isPermissionController(t,f)).map(field=>({topic:t,field})));
+  const list=ts.filter(t=>rules.topicActive(t,h,options)).flatMap(t=>t.fields.filter(f=>rules.fieldActive(f,h)&&!rules.isPermissionController(t,f)).map(field=>({topic:t,field})));
   for(const g of rules.inspectionGroups(ts).values()) {
     const t=g.topics.find(t=>rules.topicAvailable(t,h));if(!t)continue;
     const at=t.path.findIndex(p=>p.id===g.id);
-    if(!t.path.slice(0,at).every(p=>rules.groupAllowsDetails(p,h)))continue;
+    if(!t.path.slice(0,at).every(p=>rules.groupAllowsDetails(p,h,options)))continue;
     let f;
     if(rules.groupSkipped(g,h))f={id:'not_applicable_'+g.id,label:g.title,type:'s',options:['不涉及'],groupRole:'notApplicable',fact:true};
     else if(g.permissionFieldId)f={...g.fields.find(f=>f.id===g.permissionFieldId),groupRole:'permission'};
@@ -62,9 +62,10 @@ export function fieldView(h,f) {
 }
 export function formView(h,view={},folds={}) {
   const ts=houseTopics(h),groups=rules.inspectionGroups(ts),filtered=!!view.query||(view.filters||[]).length>0;
+  const detailVisibility={includeUnanswered:true};
   const result=[];
   for(const cat of [...new Set(ts.map(t=>t.category))]) {
-    const entries=activeEntries(h).filter(e=>e.topic.category===cat&&matches(h,e.topic,e.field,view));
+    const entries=activeEntries(h,detailVisibility).filter(e=>e.topic.category===cat&&matches(h,e.topic,e.field,view));
     const catTopics=ts.filter(t=>t.category===cat&&inPhase(t,view.phase)&&rules.topicAvailable(t,h));
     if(filtered&&!entries.length||!catTopics.length)continue;
     const root={children:[],map:new Map()};
@@ -77,13 +78,13 @@ export function formView(h,view={},folds={}) {
     }
     const rows=[];
     function visit(n,depth=0) {
-      if(n.t){for(const f of n.t.fields)if(rules.topicActive(n.t,h)&&rules.fieldActive(f,h)&&!rules.isPermissionController(n.t,f)&&matches(h,n.t,f,view))rows.push({...fieldView(h,f),depth});return;}
+      if(n.t){for(const f of n.t.fields)if(rules.topicActive(n.t,h,detailVisibility)&&rules.fieldActive(f,h)&&!rules.isPermissionController(n.t,f)&&matches(h,n.t,f,view))rows.push({...fieldView(h,f),depth});return;}
       const g=groups.get(n.g.id),expanded=folds[n.g.id]??!!filtered;
       if(filtered&&!entries.some(e=>(e.topic.path||[]).some(p=>p.id===n.g.id)))return;
       let options=[],selected='',skipped=false;
       if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?['正常','有问题','没有']:g.aggregate?['是','否']:[];}
       rows.push({kind:'group',key:'g-'+n.g.id,id:n.g.id,title:(g?.aggregate||g?.presence)&&!g.permissionFieldId?normalTitle(n.g.title):n.g.title,depth,expanded,skippable:!!g?.skippable,skipped,options:options.map(value=>({value,label:g?.presence?resultLabel(value):value,selected:value===selected}))});
-      if(expanded&&!skipped&&(!g||rules.groupAllowsDetails(g,h)))for(const child of n.children)visit(child,depth+1);
+      if(expanded&&!skipped&&(!g||rules.groupAllowsDetails(g,h,detailVisibility)))for(const child of n.children)visit(child,depth+1);
     }
     const expanded=folds[cat]??!!filtered;
     if(expanded)for(const n of root.children)visit(n);
