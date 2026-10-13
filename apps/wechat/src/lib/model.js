@@ -71,15 +71,17 @@ export function formView(h,view={},folds={}) {
     const root={children:[],map:new Map()};
     for(const t of catTopics) {
       let p=root;
-      for(const g of (t.path||[]).slice(1)) {
-        if(!p.map.has(g.id)){const n={g,children:[],map:new Map()};p.map.set(g.id,n);p.children.push(n);}p=p.map.get(g.id);
+      const path=t.path||[],rootGroup=groups.has(path[0]?.id);
+      // A root with controls is an inspection group, not just the category label.
+      for(const g of path.slice(rootGroup?0:1)) {
+        if(!p.map.has(g.id)){const n={g,rootGroup:rootGroup&&g===path[0],children:[],map:new Map()};p.map.set(g.id,n);p.children.push(n);}p=p.map.get(g.id);
       }
       p.children.push({t});
     }
     const rows=[];
     function visit(n,depth=0) {
       if(n.t){for(const f of n.t.fields)if(rules.topicActive(n.t,h,detailVisibility)&&rules.fieldActive(f,h)&&!rules.isPermissionController(n.t,f)&&matches(h,n.t,f,view))rows.push({...fieldView(h,f),depth});return;}
-      const g=groups.get(n.g.id),expanded=folds[n.g.id]??!!filtered;
+      const g=groups.get(n.g.id),expanded=folds[n.g.id]??(n.rootGroup||!!filtered);
       if(filtered&&!entries.some(e=>(e.topic.path||[]).some(p=>p.id===n.g.id)))return;
       let options=[],selected='',skipped=false;
       if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?['正常','有问题','没有']:g.aggregate?['是','否']:[];}
