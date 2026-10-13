@@ -44,16 +44,18 @@ it.each(template.map(t=>[t.id,t]))('%s exposes every eligible detail in its cate
  }
 });
 
-it('hides the empty broadband conditions heading until its prerequisite is met and preserves dormant data',()=>{
+it('preserves the existing broadband heading and conditional details without changing dormant data',()=>{
  const h=freshHouse('宽带条件'),id='bb080b15-a843-4478-a4c6-5453ec0a2ac6';
  updateAnswer(h,'f83_4','note','自装宽带备注');
  h.media.push({id:'broadband-photo',fieldId:'f83_4',type:'image',path:'/test/broadband.jpg'});
- expect(rows(h).some(r=>r.id==='topic_83')).toBe(false);
+ expect(rows(h).some(r=>r.id==='topic_83')).toBe(true);
+ expect(rows(h).some(r=>r.id==='f83_4')).toBe(false);
  updateGroup(h,id,'value','没有');
  expect(rows(h).find(r=>r.id==='topic_83')?.expanded).toBe(true);
  expect(rows(h).find(r=>r.id==='f83_4')).toMatchObject({note:'自装宽带备注',media:h.media});
  updateGroup(h,id,'value','没有');
- expect(rows(h).some(r=>r.id==='topic_83')).toBe(false);
+ expect(rows(h).some(r=>r.id==='topic_83')).toBe(true);
+ expect(rows(h).some(r=>r.id==='f83_4')).toBe(false);
  expect(h.answers.f83_4.note).toBe('自装宽带备注');expect(h.media).toHaveLength(1);
 });
 
