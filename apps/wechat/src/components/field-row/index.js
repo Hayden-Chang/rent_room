@@ -2,12 +2,14 @@ const ACTION_WIDTH=132;
 const hasContent=value=>value!==undefined&&value!==null&&String(value).length>0;
 let activeRow=null;
 Component({
- properties:{field:Object,readonly:Boolean,hideDivider:Boolean},
+ properties:{field:Object,readonly:Boolean,hideDivider:Boolean,address:String,location:Object,anchor:String},
  data:{actions:false,offset:0,dragging:false,valueFocused:false,otherFocused:false,valueFilled:false,otherFilled:false},
  observers:{readonly(value){if(value)this.closeSwipe();},'field.id'(id){if(this.fieldId!==id){this.closeSwipe();this.setData({valueFocused:false,otherFocused:false});this.fieldId=id;}},'field.value'(value){this.setData({valueFilled:hasContent(value)});},'field.otherText'(value){this.setData({otherFilled:hasContent(value)});}},
  lifetimes:{detached(){if(activeRow===this)activeRow=null;}},
  methods:{
+  selectPlace(e){if(!this.data.readonly)this.triggerEvent('selectplace',e.detail);},
   start(e){
+   if(this.data.field.map)return;
    this.suppressTapUntil=0;this.dismissedTouch=!!(activeRow&&activeRow!==this);
    if(this.dismissedTouch)activeRow.closeSwipe();
    if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
