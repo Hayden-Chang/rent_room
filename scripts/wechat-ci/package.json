@@ -1,0 +1,8 @@
+{
+  "name": "rent-room-wechat-ci",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "miniprogram-ci": "2.1.48"
+  }
+}
