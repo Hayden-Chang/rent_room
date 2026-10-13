@@ -8777,8 +8777,12 @@
           {
             "id": "topic_83",
             "kind": "group",
-            "title": "宽带条件",
+            "title": "宽带安装条件",
             "meta": {
+              "visibleWhen": {
+                "groupId": "bb080b15-a843-4478-a4c6-5453ec0a2ac6",
+                "presence": "否"
+              },
               "phase": "现场看房",
               "hint": "确认有无宽带、共享/独立、运营商、路由器位置及能否自装。",
               "sources": [

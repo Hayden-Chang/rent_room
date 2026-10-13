@@ -8,9 +8,15 @@ export const fields = topics.flatMap(t=>t.fields);
 export const categories = [...new Set(topics.map(t=>t.category))];
 export const MAP_ID = fields.find(f=>f.label==='地图（和地址联动）').id;
 export const emptyState = () => ({version:2,houses:[],settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
-// Apply the new sink group controls to saved template snapshots as well as new houses.
-// Retain every source ID and saved answer; absence only hides the detail rows.
-export const houseTopics = h => [...(h.templateTopics||topics),...(h.extras||[])].map(t=>t.path?.some(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9')?{...t,path:t.path.map(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9'?{...p,aggregate:true,presence:true,detailsWithoutPresence:true}:p)}:t);
+const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83');
+// Apply current group controls to saved templates without rewriting their answers or snapshots.
+export const houseTopics = h => [...(h.templateTopics||topics),...(h.extras||[])].map(t=>{
+  if(t.path?.some(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9'))t={...t,path:t.path.map(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9'?{...p,aggregate:true,presence:true,detailsWithoutPresence:true}:p)};
+  if(t.path?.some(p=>p.id===installationGroup.id))t={...t,
+    title:t.title==='宽带条件'?installationGroup.title:t.title,
+    path:t.path.map(p=>p.id===installationGroup.id?{...p,title:installationGroup.title,visibleWhen:installationGroup.visibleWhen}:p)};
+  return t;
+});
 const normalTitle = title => title.endsWith('正常')?title:title+'正常';
 const resultLabel = value => ({'正常':'是','有问题':'否'}[value]||value);
 export function freshHouse(name,settings={}) {
