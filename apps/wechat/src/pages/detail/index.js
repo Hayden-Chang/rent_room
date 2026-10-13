@@ -1,6 +1,6 @@
 import {stats,formView,houseTopics,rules,problem,activeEntries,answer,fieldView,MAP_ID,uid} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
-Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',note:'',noteId:'',noteTitle:'',coach:0,coachTexts:['先填房源信息，方便区分和比较。','按房间或分类检查，点标题可展开或收起。','切换到询问签约，记录费用、承诺与合同条件。','左滑检查项，露出标记问题、备注和拍摄；右滑或点击其他位置收起，也可以长按检查项标题。'],hideCoach:false},
+Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachTexts:['先填房源信息，方便区分和比较。','按房间或分类检查，点标题可展开或收起。','切换到询问签约，记录费用、承诺与合同条件。','左滑检查项，露出标记问题、备注和拍摄；右滑或点击其他位置收起，也可以长按检查项标题。'],hideCoach:false},
   onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id});watch(this);this.refresh();if(options.new&&service().store.get().settings.onboarding)this.setData({coach:1});},
   onShow(){if(this.data.id)this.refresh();},onUnload(){this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.dismissSwipe();},onPageScroll(){this.dismissSwipe();},
   dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
@@ -78,6 +78,16 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
     if(action==='map')await this.map();
   });},
   note(e){this.setData({note:e.detail.value});},saveNote(){attempt(()=>{service().store.answer(this.data.id,this.data.noteId,'note',this.data.note);this.close();this.refresh();});},close(){this.setData({sheet:''});},noop(){},
+  editMediaNote(e){
+    const h=service().store.house(this.data.id),media=h?.media.find(m=>m.id===e.currentTarget.dataset.id);
+    if(!media||h.archived)return;
+    this.setData({sheet:'mediaNote',mediaNoteId:media.id,note:media.caption||''});
+  },
+  saveMediaNote(){return attempt(()=>{
+    const caption=this.data.note.trim();if(caption.length>10000)throw Error('备注不能超过 10000 字');
+    service().store.edit(this.data.id,h=>{const media=h.media.find(m=>m.id===this.data.mediaNoteId);if(!media)throw Error('影像已移除');media.caption=caption;});
+    this.refresh();if(!service().store.status().error)this.close();
+  });},
   mediaFilter(e){const mediaType=e.currentTarget.dataset.value;if(mediaType===this.data.mediaType)return;const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}this.setData({mediaType,visibleMedia:h.media.filter(m=>mediaType==='all'||m.type===mediaType)});},
   capture(){if(this.dismissSwipe())return;attempt(async()=>{await service().chooseMedia(this.data.id);this.refresh();});},
   preview(e){attempt(()=>service().preview(this.data.visibleMedia,e.currentTarget.dataset.id));},
