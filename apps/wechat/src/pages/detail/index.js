@@ -4,16 +4,24 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   onLoad(options){this.folds={};this.setData({id:options.id});watch(this);this.refresh();if(options.new&&service().store.get().settings.onboarding)this.setData({coach:1});},
   onShow(){if(this.data.id)this.refresh();},onUnload(){unwatch(this);},onHide(){this.dismissSwipe();},onPageScroll(){this.dismissSwipe();},
   dismissSwipe(){for(const row of this.selectAllComponents?.('field-row')||[])row.closeSwipe();},
-  refresh(){const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
+  checklistData(h,view){
     const key=JSON.stringify(view),folds=this.folds[key]||{};
     const sections=formView(h,view,folds).map(s=>({...s,rows:s.rows.map(r=>r.map?{...r,location:h.location||null,markers:h.location?[{id:1,...h.location}]:[]}:r)}));
-    this.setData({house:h,filterOptions:this.data.filterChoices.map(label=>({label,selected:this.data.filters.includes(label)})),visibleMedia:h.media.filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),sections,stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]),saveError:service().store.status().error});
+    return {sections,filterOptions:this.data.filterChoices.map(label=>({label,selected:view.filters.includes(label)}))};
+  },
+  updateChecklist(patch){
+    const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}
+    const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters,...patch};
+    this.setData({...patch,...this.checklistData(h,view)});
+  },
+  refresh(){const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
+    this.setData({house:h,...this.checklistData(h,view),visibleMedia:h.media.filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]),saveError:service().store.status().error});
     wx.setNavigationBarTitle({title:h.name});
   },
   retry(){service().store.save();},
   fold(e){const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});const folds=this.folds[key]||={};const id=e.currentTarget.dataset.id,expanded=e.currentTarget.dataset.expanded;folds[id]=!expanded;this.refresh();},
-  phase(e){this.setData({phase:e.currentTarget.dataset.value});this.refresh();},search(e){this.setData({query:e.detail.value});this.refresh();},
-  toggleFilters(){this.setData({showFilters:!this.data.showFilters});},filter(e){const v=e.currentTarget.dataset.value;this.setData({filters:v==='全部'?[]:this.data.filters.includes(v)?this.data.filters.filter(x=>x!==v):[...this.data.filters,v]});this.refresh();},
+  phase(e){const phase=e.currentTarget.dataset.value;if(phase===this.data.phase)return;this.updateChecklist({phase});},search(e){const query=e.detail.value;if(query===this.data.query)return;this.updateChecklist({query});},
+  toggleFilters(){this.setData({showFilters:!this.data.showFilters});},filter(e){const v=e.currentTarget.dataset.value;if(v==='全部'&&!this.data.filters.length)return;this.updateChecklist({filters:v==='全部'?[]:this.data.filters.includes(v)?this.data.filters.filter(x=>x!==v):[...this.data.filters,v]});},
   tab(e){this.dismissSwipe();this.setData({tab:e.currentTarget.dataset.value});this.refresh();},
   answer(e){attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);this.setData({stats:stats(service().store.house(this.data.id))});});},
   choose(e){attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
@@ -25,7 +33,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
     if(action==='map')await this.map();
   });},
   note(e){this.setData({note:e.detail.value});},saveNote(){attempt(()=>{service().store.answer(this.data.id,this.data.noteId,'note',this.data.note);this.close();this.refresh();});},close(){this.setData({sheet:''});},noop(){},
-  mediaFilter(e){this.setData({mediaType:e.currentTarget.dataset.value});this.refresh();},
+  mediaFilter(e){const mediaType=e.currentTarget.dataset.value;if(mediaType===this.data.mediaType)return;const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}this.setData({mediaType,visibleMedia:h.media.filter(m=>mediaType==='all'||m.type===mediaType)});},
   capture(){attempt(async()=>{await service().chooseMedia(this.data.id);this.refresh();});},
   preview(e){attempt(()=>service().preview(this.data.visibleMedia,e.currentTarget.dataset.id));},
   mediaManage(e){attempt(async()=>{if(this.data.house.archived)return;const id=e.currentTarget.dataset.id,res=await service().api('showActionSheet',{itemList:['关联到检查项','取消关联','移除影像']});if(res.tapIndex===0){this.setData({sheet:'link',linkMediaId:id,linkQuery:'',linkFields:houseTopics(this.data.house).flatMap(t=>t.fields).map(f=>({id:f.id,label:f.label}))});}if(res.tapIndex===1)service().store.edit(this.data.id,h=>h.media.find(m=>m.id===id).fieldId='');if(res.tapIndex===2&&await confirm('移除影像','将从房源中移除。原备份不受影响。'))service().store.edit(this.data.id,h=>h.media=h.media.filter(m=>m.id!==id));this.refresh();});},
