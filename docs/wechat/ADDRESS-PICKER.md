@@ -36,3 +36,11 @@
 构建和官方 wcc/wcsc 检查成功。测试采用 Node 24.19.0。组件/VM 测试不等同真实手势验收。
 
 开发者工具 Stable 2.01.2510290、基础库 3.17.3：已打开独立工程，观察到隔离存储的空首页。官方测试 SDK 0.12.1 可以连接并读取路由，但页面数据调用曾超时；桌面截图与 AX 状态曾不一致。本记录不宣称完整 UI、GPS、键盘或拖图缩放已验收。真机 iOS/Android 和用户 UI 确认是合并/发布前的剩余项；本次未上传体验版、提审或发布。
+
+### 集成验证记录
+
+- 实现 SHA：`7690c47b9845c7154006c277ad89bc0828d7d442`；基线：`cb03d735d990668aa412c8e0f703384e3cfb4c95`。与主线合并时保留筛选按钮 `hover-class` 和本次地址事件绑定。验证时工作树干净；后续仅追加本段文档，不影响源码、构建或测试。
+- 正式配置重新构建后，12 个相关测试文件共 79 项通过，官方 wcc 9 个模板、wcsc 7 个样式通过，包体 1,012,193 字节。完整日志：`apps/wechat/artifacts/address-tests-production.log`、`compile-result.json`。
+- 选择命令：`node node_modules/vitest/vitest.mjs run tests/address-bindings.test.js tests/address-picker.test.js tests/places.test.js tests/detail-filter.test.js tests/field-row-placeholder.test.js tests/field-row-swipe.test.js tests/files.test.js tests/model.test.js tests/platform.test.js tests/runtime.test.js tests/unanswered-group-fold.test.js tests/unanswered-group-runtime.test.js`。主线新增加的 detail-filter 与 unanswered-group 用例覆盖本次冲突处理后的页面绑定/模型组合；未运行无关措辞测试。
+- 保留失败证据：`address-tests-final.log` 的 8 项失败使用了 rebase 前的旧 dist；重建后 `address-tests-integrated.log` 仅 runtime 固定 `/user/xunju/state.json` 断言失败，原因是当时构建为隔离测试目录。恢复正式构建目录后上述 79 项全部通过，未改弱断言。
+- 最后一次重新打开本任务工程后，官方 SDK 仍在读取页面前超时；当前开发者工具前台属于其他任务，未操作该窗口。实际 UI 截图、搜索选择交互、拖图缩放及真机定位未取得有效验收证据，PR 保持草稿、不可合并。
