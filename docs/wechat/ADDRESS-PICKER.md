@@ -98,3 +98,6 @@
 - `node scripts/check.mjs`：wcc 9模板、wcsc 7样式均通过，产物1,025,051字节。当前产物未注入本地地图密钥；正式使用的构建仍须提供此前配置的浏览器端Key。
 - 实例池status返回三个槽均 `busy-or-quarantined`。保留前次失败证据，不接管、恢复或重启槽位，本次没有新的页面截图或手机预览码。
 - 主 agent 审查组合diff：变更保持在地图选址、权限恢复、输入布局及其测试文档范围，保留新主线功能；凭据、构建输出与测试数据不提交。此次授权范围为合并，不代表预览上传、体验版或正式发布。
+
+- 合并请求期间 main 前进至 `e1c9d3a120bc45e505fb5f7705aa035ea4571ad8`（PR #14），GitHub 首次合并返回冲突，未合并。再次集成后保留 `trayAction` 专用按钮入口和同行选项收起样式。组合新增差异仅为PR #14原有5个文件；地图、坐标、存储逻辑与上一轮255项测试版本一致。
+- 对最终组件组合重新构建，重跑 address-bindings/address-picker/field-row-placeholder/field-row-swipe/field-row-swipe-scope/field-row-inline-actions/detail-navigation：7份54项通过（`apps/wechat/artifacts/main-integration-final-tests.log`）；官方wcc 9模板、wcsc 7样式通过，产物1,026,033字节。其余上一轮测试按未变代码保留证据，没有重复运行全量。
