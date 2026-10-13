@@ -1,0 +1,715 @@
+{
+  "date": "2026-10-11",
+  "baseline": "Figma实时导出52状态；HTML字段模型；微信开发者工具iPhone12/13(Pro)，390×844，界面78%缩放。",
+  "limits": "未完成52状态逐像素验收。全部Figma稿已审阅；有实图的页做了视觉对照，其余结合实现核对。动态数据不同、原生标题栏与字体栅格化不同，未提供像素差异百分比。",
+  "screens": [
+    {
+      "number": 1,
+      "name": "01 / 我的房源",
+      "figmaId": "106:149",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-149",
+      "feasibility": "可以一致",
+      "status": "部分修正、开发者工具已看",
+      "difference": "首页移除多余搜索和筛选行；卡片174×286、间距10、悬浮添加52。仍有原生标题栏，数据照片不同。",
+      "runtime": "home-after"
+    },
+    {
+      "number": 2,
+      "name": "02 / 首次使用",
+      "figmaId": "106:151",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-151",
+      "feasibility": "可以一致",
+      "status": "部分修正、未运行验收",
+      "difference": "已换原始空状态插画；文字、按钮与垂直布局仍需按稿调整。未清空用户数据制造空状态。",
+      "runtime": ""
+    },
+    {
+      "number": 3,
+      "name": "03 / 清单 · 新增后",
+      "figmaId": "107:2386",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-2386",
+      "feasibility": "可以一致",
+      "status": "部分修正、未独立验收",
+      "difference": "连续完整表单和默认折叠保留；修正按钮默认宽度、56高分类头、相机及导航。进度、筛选、标题栏仍不同。",
+      "runtime": ""
+    },
+    {
+      "number": 4,
+      "name": "04 / 清单 · 分组概览",
+      "figmaId": "106:155",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-155",
+      "feasibility": "可以一致",
+      "status": "部分修正、开发者工具已看",
+      "difference": "分类折叠结构接近；分类内容以HTML为准，进度卡和筛选布局还未完全对齐。",
+      "runtime": "checklist-after"
+    },
+    {
+      "number": 5,
+      "name": "05 / 清单 · 展开检查项",
+      "figmaId": "106:157",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-157",
+      "feasibility": "可以一致",
+      "status": "部分修正、基本信息已看，其余待验收",
+      "difference": "行内控件修正为44高触控区与紧凑行距；复杂多选、层级组、输入与展开状态需逐类验收。",
+      "runtime": "checklist-expanded-after"
+    },
+    {
+      "number": 6,
+      "name": "06 / 清单 · 左滑操作",
+      "figmaId": "106:159",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-159",
+      "feasibility": "可以一致",
+      "status": "侧滑交互已完成、模拟器已验证",
+      "difference": "已移除三个点；左滑整行露出标记问题、备注、拍摄，支持右滑和点击其他位置收起。模拟器已验证左滑、右滑及对应检查项备注；尚未完成真机手势及整屏逐像素验收。",
+      "runtime": "field-swipe-after"
+    },
+    {
+      "number": 7,
+      "name": "07 / 编辑备注",
+      "figmaId": "106:161",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-161",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现为备注底部弹层；Figma为完整编辑页、关联影像和固定保存按钮。",
+      "runtime": ""
+    },
+    {
+      "number": 8,
+      "name": "08 / 清单 · 下拉筛选",
+      "figmaId": "106:163",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-163",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现有筛选为按钮组，原稿为分区下拉/多条件面板；位置、控件、文案不同。",
+      "runtime": ""
+    },
+    {
+      "number": 9,
+      "name": "09 / 房源影像",
+      "figmaId": "106:165",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-165",
+      "feasibility": "可以一致",
+      "status": "部分修正、未完整验收",
+      "difference": "新增全部/照片/视频过滤，三列网格和白色相机按钮；缺少同数据实图集验收与缩略图细节。",
+      "runtime": "media-after"
+    },
+    {
+      "number": 10,
+      "name": "10 / 查看照片",
+      "figmaId": "106:167",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-167",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现调用微信原生预览；自定义图片查看器可还原设计中的顶栏、关联信息及底部动作。",
+      "runtime": ""
+    },
+    {
+      "number": 11,
+      "name": "11 / 拍摄与相册",
+      "figmaId": "106:169",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-169",
+      "feasibility": "部分可以一致",
+      "status": "未完成",
+      "difference": "拍摄入口可做成稿中的自定义菜单；实际调用系统相机和相册后的界面不由页面样式控制。",
+      "runtime": ""
+    },
+    {
+      "number": 12,
+      "name": "12 / 房源问题",
+      "figmaId": "106:171",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-171",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现为检查项控件和手工问题列表；原稿是问题卡片、分类标签、备注和悬浮新建。",
+      "runtime": "issues-after"
+    },
+    {
+      "number": 13,
+      "name": "13 / 新建问题",
+      "figmaId": "106:173",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-173",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现是原生文字输入框；原稿为完整新建问题页，分类与影像等布局尚缺。",
+      "runtime": ""
+    },
+    {
+      "number": 14,
+      "name": "14 / 看房总结",
+      "figmaId": "106:175",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-175",
+      "feasibility": "可以一致",
+      "status": "部分修正、开发者工具已看",
+      "difference": "三段意向52高、选中紫底44高、备注白底200高已改；原生标题栏缺少设计中的租金/区域摘要。",
+      "runtime": "summary-after"
+    },
+    {
+      "number": 15,
+      "name": "15 / 选择对比房源",
+      "figmaId": "106:177",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-177",
+      "feasibility": "可以一致",
+      "status": "部分修正、开发者工具已看",
+      "difference": "已改双列照片卡、28勾选框/44触控区、选中描边和底部52高按钮；标题栏和动态内容仍不同。",
+      "runtime": "compare-selected-after"
+    },
+    {
+      "number": 16,
+      "name": "16 / 房源属性对比",
+      "figmaId": "106:179",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-179",
+      "feasibility": "可以一致",
+      "status": "部分修正、开发者工具已看",
+      "difference": "已改屏宽表格、浅紫表头、黄色差异行和底部返回；原生开关、属性顺序及底部主导航不同。通勤未实现。",
+      "runtime": "table-after"
+    },
+    {
+      "number": 17,
+      "name": "17 / 设置",
+      "figmaId": "106:181",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-181",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现是本地版说明与备份列表；原稿是个人卡片和分组图标列表。账号会员按确认范围暂缓，其他行可按稿重排。",
+      "runtime": "settings-after"
+    },
+    {
+      "number": 18,
+      "name": "18 / 上班地点",
+      "figmaId": "106:183",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-183",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现是原生输入弹窗；原稿有单独地点页、搜索和位置卡片。",
+      "runtime": ""
+    },
+    {
+      "number": 19,
+      "name": "19 / 检查模板",
+      "figmaId": "106:185",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-185",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现为完整/自定义与字段编辑器；原稿为精简/详细选择卡。需要精简字段定义，不能只改标签假装实现。",
+      "runtime": ""
+    },
+    {
+      "number": 20,
+      "name": "20 / 会员 · 未开通",
+      "figmaId": "106:187",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-187",
+      "feasibility": "可以一致",
+      "status": "按已确认范围暂缓",
+      "difference": "会员未开通页未实现；当前免费核心版，非技术限制。",
+      "runtime": ""
+    },
+    {
+      "number": 21,
+      "name": "21 / 归档房源",
+      "figmaId": "106:189",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-189",
+      "feasibility": "可以一致",
+      "status": "部分修正、未运行验收",
+      "difference": "已复用双列照片卡；长按菜单和空状态仍未对齐。不归档用户记录来制造截图。",
+      "runtime": ""
+    },
+    {
+      "number": 22,
+      "name": "23 / 权限管理",
+      "figmaId": "106:193",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-193",
+      "feasibility": "部分可以一致",
+      "status": "未完成",
+      "difference": "可还原应用内权限说明页；真正的系统授权弹窗不能用自定义页面代替。",
+      "runtime": ""
+    },
+    {
+      "number": 23,
+      "name": "24a / 新增引导 · 房源",
+      "figmaId": "107:2833",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-2833",
+      "feasibility": "可以一致",
+      "status": "未完成、原稿存在旧版布局",
+      "difference": "现为通用底部引导弹层，缺少目标区域高亮、箭头与步骤布局；底层应使用最新连续清单。",
+      "runtime": ""
+    },
+    {
+      "number": 24,
+      "name": "24b / 新增引导 · 现场",
+      "figmaId": "107:2926",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-2926",
+      "feasibility": "可以一致",
+      "status": "未完成、原稿存在旧版布局",
+      "difference": "现场检查引导需要目标锚点和高亮遮罩，现通用弹层不一致。",
+      "runtime": ""
+    },
+    {
+      "number": 25,
+      "name": "24c / 新增引导 · 询问签约",
+      "figmaId": "107:3019",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-3019",
+      "feasibility": "可以一致",
+      "status": "未完成、原稿存在旧版布局",
+      "difference": "询问签约引导需要正确锚点和高亮，现通用弹层不一致。",
+      "runtime": ""
+    },
+    {
+      "number": 26,
+      "name": "24d / 新增引导 · 左滑检查项",
+      "figmaId": "107:3112",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-3112",
+      "feasibility": "可以一致",
+      "status": "未完成、原稿存在旧版布局",
+      "difference": "左滑教学缺少行内演示和指引，现仅文字说明。",
+      "runtime": ""
+    },
+    {
+      "number": 27,
+      "name": "25 / 个人账号",
+      "figmaId": "106:197",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-197",
+      "feasibility": "可以一致",
+      "status": "按已确认范围暂缓",
+      "difference": "账号页面未实现；当前本地免登录范围，非技术限制。",
+      "runtime": ""
+    },
+    {
+      "number": 28,
+      "name": "26 / 清单 · 末尾与总结",
+      "figmaId": "106:199",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-199",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "目前总结只能从底部Tab进入，缺少清单末尾设计中的总结入口。",
+      "runtime": ""
+    },
+    {
+      "number": 29,
+      "name": "27 / 房源长按菜单",
+      "figmaId": "106:201",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-201",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现为微信原生重命名/归档/导出菜单；单房源导出与完整备份已保留，菜单外观仍需自定义。",
+      "runtime": ""
+    },
+    {
+      "number": 30,
+      "name": "28 / 导入预览",
+      "figmaId": "106:203",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-203",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "导入预览功能存在，卡片、警告、固定底栏与稿不同，需同文件样例验收。",
+      "runtime": ""
+    },
+    {
+      "number": 31,
+      "name": "29 / 房源地址选点",
+      "figmaId": "106:205",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-205",
+      "feasibility": "部分可以一致",
+      "status": "未完成",
+      "difference": "现为wx.chooseLocation系统选点；可自建地图选点页面，地图底图/地理数据不会与静态稿逐像素固定。",
+      "runtime": ""
+    },
+    {
+      "number": 32,
+      "name": "30 / 只看差异",
+      "figmaId": "106:207",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-207",
+      "feasibility": "可以一致",
+      "status": "部分修正、未完整验收",
+      "difference": "只看差异逻辑已覆盖测试，表格宽度/高亮已改；开关样式、行序、主导航仍不同。",
+      "runtime": ""
+    },
+    {
+      "number": 33,
+      "name": "31 / 清单详情 · 归档只读",
+      "figmaId": "106:209",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-209",
+      "feasibility": "可以一致",
+      "status": "部分修正、未运行验收",
+      "difference": "依照已确认要求复用最新详情只读；Figma该状态仍为旧清单，不能同时匹配新旧两套布局。",
+      "runtime": ""
+    },
+    {
+      "number": 34,
+      "name": "32 / 彻底删除确认",
+      "figmaId": "106:211",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-211",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "目前使用微信showModal；可自定义还原原稿删除弹窗。未执行删除验收。",
+      "runtime": ""
+    },
+    {
+      "number": 35,
+      "name": "33 / 精简模板预览",
+      "figmaId": "106:213",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-213",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "精简模板尚无固定字段集合；现自定义模板不等于Figma精简模板。",
+      "runtime": ""
+    },
+    {
+      "number": 36,
+      "name": "34 / 保存失败与恢复",
+      "figmaId": "106:215",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-215",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "保存失败有错误条和重试，缺少原稿完整恢复状态和弹层；未在用户数据上注入写入故障。",
+      "runtime": ""
+    },
+    {
+      "number": 37,
+      "name": "35 / 查看视频",
+      "figmaId": "106:217",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-217",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现为微信媒体预览，需自建视频查看页才能控制信息栏/按钮；视频解码与系统全屏控件有平台差异。",
+      "runtime": ""
+    },
+    {
+      "number": 38,
+      "name": "36 / 导出 Excel",
+      "figmaId": "106:219",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-219",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "Excel实际导出已实现；原稿的自定义导出菜单/进度/成功展示尚不同，微信分享面板由系统控制。",
+      "runtime": ""
+    },
+    {
+      "number": 39,
+      "name": "37 / 通勤时间",
+      "figmaId": "106:221",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-221",
+      "feasibility": "可以一致",
+      "status": "按已确认范围暂缓",
+      "difference": "通勤页未实现；路线数据与定位服务另需接入。非界面无法实现。",
+      "runtime": ""
+    },
+    {
+      "number": 40,
+      "name": "38 / 清单 · 筛选已收起",
+      "figmaId": "106:223",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-223",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "筛选可收起，但搜索、筛选入口与阶段选择器仍与稿不同。",
+      "runtime": ""
+    },
+    {
+      "number": 41,
+      "name": "39 / 选择对比 · 还差一套",
+      "figmaId": "106:1873",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-1873",
+      "feasibility": "可以一致",
+      "status": "部分修正、未完整验收",
+      "difference": "底部不足两套的禁用提示已改；单选状态未保存最终运行截图。",
+      "runtime": ""
+    },
+    {
+      "number": 42,
+      "name": "40 / 选择对比 · 另一套",
+      "figmaId": "106:1979",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-1979",
+      "feasibility": "可以一致",
+      "status": "部分修正、未完整验收",
+      "difference": "复用选择卡样式与多选逻辑；此特定组合未独立截图。",
+      "runtime": ""
+    },
+    {
+      "number": 43,
+      "name": "41 / 选择对比 · 未选择",
+      "figmaId": "106:2035",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-2035",
+      "feasibility": "可以一致",
+      "status": "部分修正、开发者工具已看",
+      "difference": "未选择状态与禁用底部按钮已渲染；顶部原生标题栏仍不同。",
+      "runtime": "compare-after"
+    },
+    {
+      "number": 44,
+      "name": "42 / 会员 · 已开通",
+      "figmaId": "107:2567",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-2567",
+      "feasibility": "可以一致",
+      "status": "按已确认范围暂缓",
+      "difference": "会员已开通状态未实现，不提供虚假的购买或权益。",
+      "runtime": ""
+    },
+    {
+      "number": 45,
+      "name": "43 / 归档 · 长按菜单",
+      "figmaId": "107:2673",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-2673",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "归档菜单仍为微信原生ActionSheet；可做成稿中的还原/删除菜单。",
+      "runtime": ""
+    },
+    {
+      "number": 46,
+      "name": "44 / 归档 · 另一套菜单",
+      "figmaId": "107:2704",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-2704",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "另一房源复用同一归档菜单；无独立还原截图。",
+      "runtime": ""
+    },
+    {
+      "number": 47,
+      "name": "45 / 清单详情 · 归档只读 · 另一套",
+      "figmaId": "107:2735",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-2735",
+      "feasibility": "可以一致",
+      "status": "部分修正、未运行验收",
+      "difference": "另一归档只读状态复用详情；同样遵守最新连续表单而非旧稿。",
+      "runtime": ""
+    },
+    {
+      "number": 48,
+      "name": "46 / 删除确认 · 另一套",
+      "figmaId": "107:2759",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-2759",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "第二种删除确认仍为原生Modal；可统一自定义实现。",
+      "runtime": ""
+    },
+    {
+      "number": 49,
+      "name": "47 / 引导 · 左滑演示前",
+      "figmaId": "107:3291",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-3291",
+      "feasibility": "可以一致",
+      "status": "未完成、原稿存在旧版布局",
+      "difference": "左滑引导演示前状态未实现，只存在文字步骤。",
+      "runtime": ""
+    },
+    {
+      "number": 50,
+      "name": "48 / 引导 · 不再自动显示",
+      "figmaId": "107:3383",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-3383",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "不再显示的设置逻辑已实现，指引页开关、底栏、高亮和定位未还原。",
+      "runtime": ""
+    },
+    {
+      "number": 51,
+      "name": "49 / 三套房源对比",
+      "figmaId": "107:18237",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-18237",
+      "feasibility": "可以一致",
+      "status": "部分修正、未运行验收",
+      "difference": "三列数据现可在屏宽内排版；实际三房源截图未验收。属性、表头和系统栏差异同两房对比。",
+      "runtime": ""
+    },
+    {
+      "number": 52,
+      "name": "50 / 三套对比 · 只看差异",
+      "figmaId": "107:18350",
+      "url": "https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=107-18350",
+      "feasibility": "可以一致",
+      "status": "部分修正、未运行验收",
+      "difference": "三房差异计算已有模型测试；需三房同数据截图，不能套用两房证据宣称完成。",
+      "runtime": ""
+    }
+  ],
+  "components": [
+    {
+      "name": "添加房源悬浮按钮",
+      "feasibility": "可以一致",
+      "status": "尺寸、颜色、位置已修正并验证",
+      "difference": "52×52，半径26，右16/底16，Figma原始加号；整页仍有微信标题栏。"
+    },
+    {
+      "name": "主导航图标",
+      "feasibility": "可以一致",
+      "status": "原始资源替换已完成",
+      "difference": "房源、对比、设置的默认/选中图标采用Figma导出PNG；原生Tab栏高度与字体仍待自定义。"
+    },
+    {
+      "name": "详情导航图标",
+      "feasibility": "可以一致",
+      "status": "原始资源替换已完成",
+      "difference": "清单、影像、问题、总结八种状态使用Figma资源。"
+    },
+    {
+      "name": "空状态插画",
+      "feasibility": "可以一致",
+      "status": "资源替换完成；排版未验收",
+      "difference": "已用166×152原图，尚无运行空态截图。"
+    },
+    {
+      "name": "默认按钮撑宽",
+      "feasibility": "可以一致",
+      "status": "已修复并验证",
+      "difference": "工具栏与三段选择不再受184px默认宽度影响；组件内部改为class选择器。"
+    },
+    {
+      "name": "房源卡片",
+      "feasibility": "可以一致",
+      "status": "部分完成",
+      "difference": "174×286、142封面、16圆角、10列间距已改；占位封面、状态徽章及长文本仍需细调。"
+    },
+    {
+      "name": "总结意向选择器",
+      "feasibility": "可以一致",
+      "status": "部分完成",
+      "difference": "52外框、44选项、14/10圆角已还原；字体粗细和空选择状态仍需同数据验收。"
+    },
+    {
+      "name": "总结备注输入框",
+      "feasibility": "可以一致",
+      "status": "部分完成",
+      "difference": "白底200高、16圆角已改；描边和文字样式仍需进一步对齐。"
+    },
+    {
+      "name": "悬浮相机",
+      "feasibility": "可以一致",
+      "status": "样式修正并验证",
+      "difference": "白底52、紫色Figma相机、右16；回顶44与间距12。"
+    },
+    {
+      "name": "分类折叠标题",
+      "feasibility": "可以一致",
+      "status": "部分完成",
+      "difference": "移除旧圆圈、56高；字体、计数、异常标签需同数据对齐。"
+    },
+    {
+      "name": "检查项行与输入控件",
+      "feasibility": "可以一致",
+      "status": "部分完成",
+      "difference": "紧凑行距与44高控件已修；所有303字段类型并未逐项截图验收。"
+    },
+    {
+      "name": "阶段切换/搜索/筛选",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现为胶囊按钮与工具栏，原稿的分段条和筛选面板未还原。"
+    },
+    {
+      "name": "行内左滑操作",
+      "feasibility": "可以一致",
+      "status": "侧滑交互已完成、模拟器已验证",
+      "difference": "已移除三个点；左滑整行露出标记问题、备注、拍摄，支持右滑和点击其他位置收起。模拟器已验证左滑、右滑及对应检查项备注；尚未完成真机手势及整屏逐像素验收。"
+    },
+    {
+      "name": "备注编辑页",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "底部弹层须改为完整编辑页，补关联影像与固定保存。"
+    },
+    {
+      "name": "影像分类按钮",
+      "feasibility": "可以一致",
+      "status": "新增完成；图片状态未验收",
+      "difference": "全部/照片/视频过滤通过运行模型测试；真实影像网格未逐像素验收。"
+    },
+    {
+      "name": "问题卡片与新建页",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "现用表单行/原生输入框，需要自定义卡片与编辑页。"
+    },
+    {
+      "name": "对比选择卡片",
+      "feasibility": "可以一致",
+      "status": "部分完成",
+      "difference": "双列、28勾选框、44触控区、紫色描边与固定CTA已验证；整屏标题栏有差异。"
+    },
+    {
+      "name": "对比表格",
+      "feasibility": "可以一致",
+      "status": "部分完成",
+      "difference": "屏宽列、浅紫表头、黄底差异行已验证；原生开关、字段顺序、底部主导航待改。"
+    },
+    {
+      "name": "归档卡片",
+      "feasibility": "可以一致",
+      "status": "代码已修；待运行验收",
+      "difference": "复用房源照片卡，未更改用户房源归档状态。"
+    },
+    {
+      "name": "长按管理/删除弹窗",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "目前使用原生ActionSheet/Modal，自定义即可控制外观，不是平台无法实现。"
+    },
+    {
+      "name": "设置列表",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "需按稿重排分组、补图标；本地备份功能需保留。"
+    },
+    {
+      "name": "精简/详细模板",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "当前完整/自定义不等于原稿两种预设，精简字段集合待定义。"
+    },
+    {
+      "name": "引导高亮与箭头",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "当前文字弹层需重做锚点遮罩；部分稿底层页面已过时。"
+    },
+    {
+      "name": "导入/导出/保存恢复",
+      "feasibility": "可以一致",
+      "status": "功能已有；视觉未完成",
+      "difference": "目前已有实际功能，但对应面板、进度、空态与错误页没有还原。"
+    },
+    {
+      "name": "顶部业务导航栏",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "可用custom导航还原返回、租金、区域等摘要；当前仍是原生标题。"
+    },
+    {
+      "name": "微信胶囊与系统状态信息",
+      "feasibility": "无法保证与无胶囊稿整屏一致",
+      "status": "平台界面差异",
+      "difference": "当前稿为通用移动端设计，小程序运行有微信胶囊、系统时间/电量/安全区；不能承诺整屏零差异。"
+    },
+    {
+      "name": "系统授权/键盘/相册",
+      "feasibility": "无法用页面样式统一",
+      "status": "平台界面差异",
+      "difference": "权限说明可自定义；真正授权、输入法和系统选择器由系统控制。"
+    },
+    {
+      "name": "图片/视频预览器",
+      "feasibility": "可以一致",
+      "status": "未完成",
+      "difference": "当前调用原生媒体预览；可改自定义查看页，系统全屏部分另论。"
+    },
+    {
+      "name": "地图选点",
+      "feasibility": "部分可以一致",
+      "status": "未完成",
+      "difference": "可自建搜索与底栏；真实底图、地理数据与静态设计图不保证一致。"
+    },
+    {
+      "name": "账号/会员/通勤",
+      "feasibility": "可以实现",
+      "status": "按已确认范围暂缓",
+      "difference": "当前版本范围不包含这些功能，不能标为技术无法一致。"
+    },
+    {
+      "name": "跨设备字体与抗锯齿",
+      "feasibility": "无法保证每像素一致",
+      "status": "渲染条件差异",
+      "difference": "相同尺寸、字重和颜色可对齐；不同系统字体、DPR和渲染器仍会有像素差。"
+    }
+  ]
+}

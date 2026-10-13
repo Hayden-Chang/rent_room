@@ -1,0 +1,61 @@
+# Dependencies and generated builds (all apps)
+node_modules/
+dist/
+build/
+.next/
+.vinext/
+out/
+coverage/
+artifacts/
+playwright-report/
+test-results/
+*.tsbuildinfo
+__pycache__/
+*.py[cod]
+
+# Credentials and machine-local configuration
+.env
+.env.*
+!.env.example
+!.env.sample
+*.key
+*.pem
+*.p12
+*.pfx
+*.private.json
+project.private.config.json
+commute-config.json
+backup-config.json
+
+# Runtime records, snapshots, local backups and automation state
+.data/
+source-history/
+recovered-backups/
+.nodepilot/
+.agents/
+.codex/
+.sites-runtime/
+.playwright-cli/
+.worktrees/
+/output/
+/outputs/
+/rent_home/
+prototypes/checklist/output/
+prototypes/checklist/backups/
+prototypes/checklist/recovered/*.html
+
+# Logs and editor / OS state
+*.log
+*.log.*
+*.pid
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Local-only prototypes and design exports; retain the design entry point.
+/prototypes/
+/design/*
+!/design/README.md

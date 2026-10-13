@@ -1,0 +1,549 @@
+{
+  "date": "2026-10-13",
+  "note": "Checksums describe currently tracked imported files before documented adjustments. Prototypes and design exports are excluded from the current tree but retained locally and in earlier remote commits.",
+  "gitSources": {
+    "miniprogram-wechat": "aaf318a237f50b3b64537a708bb5d0b0895ecf43"
+  },
+  "files": [
+    {
+      "source": "miniprogram-wechat/.gitignore",
+      "destination": "apps/wechat/.gitignore",
+      "sha256": "16a49edef3bcfc063ee963c1f9a23804cec798d62ccc59e14e64d135f3cbcc3a"
+    },
+    {
+      "source": "miniprogram-wechat/README.md",
+      "destination": "apps/wechat/README.md",
+      "sha256": "c77899af5128b123e9bfb354d98723d28a4287ed55a7beeb6cd2f298749d5f80"
+    },
+    {
+      "source": "miniprogram-wechat/docs/VALIDATION.md",
+      "destination": "docs/wechat/VALIDATION.md",
+      "sha256": "2b2ecb1ed0d609eb695719648bd9205e405a78940ed3143afe1ff022276ef38e"
+    },
+    {
+      "source": "miniprogram-wechat/docs/figma-assets.json",
+      "destination": "docs/wechat/figma-assets.json",
+      "sha256": "1ea71a80a4ced530385435c314be63d765ae1ea706eacc7300f97949946e86bf"
+    },
+    {
+      "source": "miniprogram-wechat/docs/figma-audit.json",
+      "destination": "docs/wechat/figma-audit.json",
+      "sha256": "abc5fc5526d104757a8b886eceee5f81747fa883b1668fe5ad594a5a61420146"
+    },
+    {
+      "source": "miniprogram-wechat/docs/source-provenance.json",
+      "destination": "apps/wechat/data/source-provenance.json",
+      "sha256": "b690a629ad4888008b1ff2166d9f5cece2348bd3ef11f3fc946f4605d25d5af4"
+    },
+    {
+      "source": "miniprogram-wechat/docs/source-tree.json",
+      "destination": "apps/wechat/data/source-tree.json",
+      "sha256": "1cecc1ca51d7b0753756b09605d345b90981fea5dc7e0c31a21dd7b7a1093112"
+    },
+    {
+      "source": "miniprogram-wechat/package-lock.json",
+      "destination": "apps/wechat/package-lock.json",
+      "sha256": "1e810391011909cc116fe68040c502b9b1adba430680112a5ef40fc1a056517b"
+    },
+    {
+      "source": "miniprogram-wechat/package.json",
+      "destination": "apps/wechat/package.json",
+      "sha256": "69d2bd152a4d03755d87044f813950f84971d299c616b9e1e3d9db975f019f42"
+    },
+    {
+      "source": "miniprogram-wechat/scripts/build.mjs",
+      "destination": "apps/wechat/scripts/build.mjs",
+      "sha256": "4ef8accdd686b0101b9ae0a594ace2f67ac7b945594f83780b2ad5288c14bfe9"
+    },
+    {
+      "source": "miniprogram-wechat/scripts/check.mjs",
+      "destination": "apps/wechat/scripts/check.mjs",
+      "sha256": "bbbb2cd3297f75a07be70db692d49ec563454044e4f787514936f365f5479c2f"
+    },
+    {
+      "source": "miniprogram-wechat/scripts/package.mjs",
+      "destination": "apps/wechat/scripts/package.mjs",
+      "sha256": "63330bb8dd43b1afa701051da539752426ad750da875c680a38fe3710991ce20"
+    },
+    {
+      "source": "miniprogram-wechat/scripts/source-core.mjs",
+      "destination": "apps/wechat/scripts/source-core.mjs",
+      "sha256": "8fc970d0d786ed1a67e3370cb5843b6cea557aa519ee69fac55c5cc3cc2bdb41"
+    },
+    {
+      "source": "miniprogram-wechat/src/app.js",
+      "destination": "apps/wechat/src/app.js",
+      "sha256": "0b4f29fe95ea96578513fbc698cf99ed1364056de26b0b62ebd9e225f504e7d7"
+    },
+    {
+      "source": "miniprogram-wechat/src/app.json",
+      "destination": "apps/wechat/src/app.json",
+      "sha256": "25690fb3a92ffb03301f9382c0808f7e0e78b6725d294c21f4ef65a497a397c2"
+    },
+    {
+      "source": "miniprogram-wechat/src/app.wxss",
+      "destination": "apps/wechat/src/app.wxss",
+      "sha256": "b10ae908a703ee4abbe11c6b8352df91f56127c1a97a954ca30acf0f59f0e845"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/LUCIDE-LICENSE.txt",
+      "destination": "apps/wechat/src/assets/icons/LUCIDE-LICENSE.txt",
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/camera.png",
+      "destination": "apps/wechat/src/assets/icons/camera.png",
+      "sha256": "7a2143d8a6cfe9ac9674db59dc0c32cfe918cae8700b168327b49c4e02aaaf97"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/camera.svg",
+      "destination": "apps/wechat/src/assets/icons/camera.svg",
+      "sha256": "3fe717455ef7a6b86917897adcea72314cb1d970523eb489abc6518dc4a06011"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/checklist-default.png",
+      "destination": "apps/wechat/src/assets/icons/checklist-default.png",
+      "sha256": "71ba00cc08a749c7e7647f02d8ad2e17b01868032bc6e27b7a2c243d25299887"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/checklist-default.svg",
+      "destination": "apps/wechat/src/assets/icons/checklist-default.svg",
+      "sha256": "699c4387f5626bf7cea936584e64a79e06a8bea9f6a878079c0573cc27b5689d"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/checklist-selected.png",
+      "destination": "apps/wechat/src/assets/icons/checklist-selected.png",
+      "sha256": "67c4c24db8f10769fe5f29cdec3ac83b362ec2d6ae4b80fde90df5b2ce2b054c"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/checklist-selected.svg",
+      "destination": "apps/wechat/src/assets/icons/checklist-selected.svg",
+      "sha256": "4daeca7a431a59c7635e296e4628d0192f36ceceec02203ad9733ab13487fa8d"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/compare-default.png",
+      "destination": "apps/wechat/src/assets/icons/compare-default.png",
+      "sha256": "7d391e516a295347b2268188299e651dd9c7af1fbadb75a497d22a9710b81908"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/compare-default.svg",
+      "destination": "apps/wechat/src/assets/icons/compare-default.svg",
+      "sha256": "9df778c27bea1b1c15637dbdd35f58ac039c622b5fbf18a584e7cc7066ef3c0a"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/compare-selected.png",
+      "destination": "apps/wechat/src/assets/icons/compare-selected.png",
+      "sha256": "7216a3e3ea29faa4bbb05a2bbcd7d580731c7b38dd9402aa5f51fba3a0b00ba0"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/compare-selected.svg",
+      "destination": "apps/wechat/src/assets/icons/compare-selected.svg",
+      "sha256": "7936cdd2618b094273ef8d239a25ba22aea61e4142ec86fcf4bf64224e2b6825"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/empty-art.png",
+      "destination": "apps/wechat/src/assets/icons/empty-art.png",
+      "sha256": "1c1fa708edbc0e797e7cf74051d536314b033546091e529fc4f42ef4cc4aa093"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/home-default.png",
+      "destination": "apps/wechat/src/assets/icons/home-default.png",
+      "sha256": "e64cfd2a6058ca1cf4b56d92e69ce217249a783856c53af8ed088fb38f7f9192"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/home-default.svg",
+      "destination": "apps/wechat/src/assets/icons/home-default.svg",
+      "sha256": "021295a58a06fd6a920fc74a54c69ba91fed5b2722ce4d8e765adabab4121c21"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/home-selected.png",
+      "destination": "apps/wechat/src/assets/icons/home-selected.png",
+      "sha256": "4e571126c6c8b17c7a060d24d999d8addcec06af895fd5f9a7ae37e66c869634"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/home-selected.svg",
+      "destination": "apps/wechat/src/assets/icons/home-selected.svg",
+      "sha256": "35c15a7337bdd8a0b313672337cef57f2007233d6e3d128278a5f31794f3f5e2"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/issues-default.png",
+      "destination": "apps/wechat/src/assets/icons/issues-default.png",
+      "sha256": "86655319429e148b2e00b2204d38ff6f0bb6a966eb978107efcfd047685fbd0c"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/issues-default.svg",
+      "destination": "apps/wechat/src/assets/icons/issues-default.svg",
+      "sha256": "cea373f37e6c824492d31b226f17d81c4d9679e8e4f9cf53e58035b5919fda1c"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/issues-selected.png",
+      "destination": "apps/wechat/src/assets/icons/issues-selected.png",
+      "sha256": "3ab1d4c400a2939695a36f91ea4b3a31e147051941c7e7b779fd4a73cca02f24"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/issues-selected.svg",
+      "destination": "apps/wechat/src/assets/icons/issues-selected.svg",
+      "sha256": "305f3ade80bb3a13aecc5172a9d399ab603cbc9a858205662e63f699107a1626"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/media-default.png",
+      "destination": "apps/wechat/src/assets/icons/media-default.png",
+      "sha256": "67a001a4a6423edb6ca52894c459cea9d014864b1ebfefe9fb16d46885c2a28a"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/media-default.svg",
+      "destination": "apps/wechat/src/assets/icons/media-default.svg",
+      "sha256": "0e2fbcb7fe7ab95237b718e331d665f45660cdf9e956f395a946b2df2dd11b9c"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/media-selected.png",
+      "destination": "apps/wechat/src/assets/icons/media-selected.png",
+      "sha256": "a1b52626cb6aecd8418f9cd8e6a41975107ec5c813b5ea98fb5dec92a24d9cbb"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/media-selected.svg",
+      "destination": "apps/wechat/src/assets/icons/media-selected.svg",
+      "sha256": "4a3a2825303847d3462d23c01bc15682c936c99c871d6bbd4b5683c0d3ebff91"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/plus.png",
+      "destination": "apps/wechat/src/assets/icons/plus.png",
+      "sha256": "854cb0d21412cc156b9dc32bd12013bd28dff8c370af69b2dcd1fb274df6e2f8"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/settings-default.png",
+      "destination": "apps/wechat/src/assets/icons/settings-default.png",
+      "sha256": "176ab3b96e71847da333bb84c75602853a52fd2fbb2fcf85a2c7944cb872559f"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/settings-default.svg",
+      "destination": "apps/wechat/src/assets/icons/settings-default.svg",
+      "sha256": "f785788efcee3ffd342745787a6a7b69cf7761a5e125dee7fd36dd2c18b40e8b"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/settings-selected.png",
+      "destination": "apps/wechat/src/assets/icons/settings-selected.png",
+      "sha256": "4cc00e9362f70ecdc0f4ddddc20cc52538cf28b7d5c80f3d188126bd8574448f"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/settings-selected.svg",
+      "destination": "apps/wechat/src/assets/icons/settings-selected.svg",
+      "sha256": "bb39ac9016f0f99b84cd88e18a79028350f9469658e4181d085453c89f11aeaf"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/summary-default.png",
+      "destination": "apps/wechat/src/assets/icons/summary-default.png",
+      "sha256": "89d3909aa9a2e30e54a635298f2371372a0a7716b3bd80f0fe6091a44039a80d"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/summary-default.svg",
+      "destination": "apps/wechat/src/assets/icons/summary-default.svg",
+      "sha256": "75d854003c933b789a21e1a91eed774fa97ba5591e1e50e0c01d42d2e8e04641"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/summary-selected.png",
+      "destination": "apps/wechat/src/assets/icons/summary-selected.png",
+      "sha256": "5ef191bc1152c750334a0ac22f9d295591a3e3eb82f410475a922192e30860a1"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/summary-selected.svg",
+      "destination": "apps/wechat/src/assets/icons/summary-selected.svg",
+      "sha256": "0274e757bd5b1ad19a521e9a17c8ec06b7a76704d2945973a7a770ce45810b60"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/swipe-camera.png",
+      "destination": "apps/wechat/src/assets/icons/swipe-camera.png",
+      "sha256": "ae224741fc3879ba67266da88698df3a1ed428369fa508ace310f33ae653b960"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/swipe-camera.svg",
+      "destination": "apps/wechat/src/assets/icons/swipe-camera.svg",
+      "sha256": "3fe717455ef7a6b86917897adcea72314cb1d970523eb489abc6518dc4a06011"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/swipe-issue-active.png",
+      "destination": "apps/wechat/src/assets/icons/swipe-issue-active.png",
+      "sha256": "b1b0c8727dedf788ff8351d684d113145a972e5c2bc5d027f27ecf16298e45cb"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/swipe-issue-active.svg",
+      "destination": "apps/wechat/src/assets/icons/swipe-issue-active.svg",
+      "sha256": "f65eec4495ac730aed00c9aacf6a38585f4e009a6b103440c1762badbbb26fd9"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/swipe-issue.png",
+      "destination": "apps/wechat/src/assets/icons/swipe-issue.png",
+      "sha256": "1b64fd0e4c40c2002e4b3cbf0593f7895969f29f5a23b3af2a852da45aa02950"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/swipe-issue.svg",
+      "destination": "apps/wechat/src/assets/icons/swipe-issue.svg",
+      "sha256": "08d0e88df2e231a68ba26b0357a8733aa234f207d8408dbc0df6e957bb2b9b1a"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/swipe-note.png",
+      "destination": "apps/wechat/src/assets/icons/swipe-note.png",
+      "sha256": "3b1be98a5674d47aa528b8a7d7f35cec7c137a4b387852710b0edcf49aaf13cd"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/swipe-note.svg",
+      "destination": "apps/wechat/src/assets/icons/swipe-note.svg",
+      "sha256": "0274e757bd5b1ad19a521e9a17c8ec06b7a76704d2945973a7a770ce45810b60"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/up.png",
+      "destination": "apps/wechat/src/assets/icons/up.png",
+      "sha256": "be30f3c3be22a6681aa02ca9f537fe220e55cac2e5d1c15e53dd545eac33fdf4"
+    },
+    {
+      "source": "miniprogram-wechat/src/assets/icons/up.svg",
+      "destination": "apps/wechat/src/assets/icons/up.svg",
+      "sha256": "8ab750f26a6e53b6aadb628a81d85c7baa238233636c10859bbb9806c48c6f96"
+    },
+    {
+      "source": "miniprogram-wechat/src/components/field-row/index.js",
+      "destination": "apps/wechat/src/components/field-row/index.js",
+      "sha256": "69da01b1857366bae0c62c93c44c995bfb7adc0b3caf44ffadea36a142b2b1e0"
+    },
+    {
+      "source": "miniprogram-wechat/src/components/field-row/index.json",
+      "destination": "apps/wechat/src/components/field-row/index.json",
+      "sha256": "6bcc2e9e536384851fcfbdd823aee8ae4331243636adc4a656a64a44d9cf9318"
+    },
+    {
+      "source": "miniprogram-wechat/src/components/field-row/index.wxml",
+      "destination": "apps/wechat/src/components/field-row/index.wxml",
+      "sha256": "4049bde7ba3b4a5ab0dbd695d466bd5049790353b27b23b7250b082d18cf421d"
+    },
+    {
+      "source": "miniprogram-wechat/src/components/field-row/index.wxss",
+      "destination": "apps/wechat/src/components/field-row/index.wxss",
+      "sha256": "17f608f0d314807a973b60094381a5b7e3de614a256d9f20210aa6d93efcacd4"
+    },
+    {
+      "source": "miniprogram-wechat/src/lib/files.js",
+      "destination": "apps/wechat/src/lib/files.js",
+      "sha256": "7ff461e0edede0eedd780d3aeb9a89c77fb1526b2bdf82a9183eb1eed1c5ef95"
+    },
+    {
+      "source": "miniprogram-wechat/src/lib/model.js",
+      "destination": "apps/wechat/src/lib/model.js",
+      "sha256": "5d0c11b3a40c3ba4100016341f5ac8f7eda7bd9b195097627bee3fa5f68024ca"
+    },
+    {
+      "source": "miniprogram-wechat/src/lib/platform.js",
+      "destination": "apps/wechat/src/lib/platform.js",
+      "sha256": "53543a4ded0cc99e708d883d98899a693089511c8ecea020b6219cbfe81499c5"
+    },
+    {
+      "source": "miniprogram-wechat/src/lib/source-model.js",
+      "destination": "apps/wechat/src/lib/source-model.js",
+      "sha256": "bf3054727124167b4c4b470462d41aae928f5bd4e7cfa18d173b6815a9c3d728"
+    },
+    {
+      "source": "miniprogram-wechat/src/lib/store.js",
+      "destination": "apps/wechat/src/lib/store.js",
+      "sha256": "9ec41b24fc290055b4cb88a4bf0aac1b8cf0149e4bf392c262744b36e7507b64"
+    },
+    {
+      "source": "miniprogram-wechat/src/lib/topics.json",
+      "destination": "apps/wechat/src/lib/topics.json",
+      "sha256": "0040e8b47bda486d0e091adc6a57b0ccf458cee29aa5a1a8fca6a12f632c40c6"
+    },
+    {
+      "source": "miniprogram-wechat/src/lib/ui.js",
+      "destination": "apps/wechat/src/lib/ui.js",
+      "sha256": "925ad4a988fe245961fd205ebe532dc51474506c3e087d8c59ecdb32aad37c81"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/archive/index.js",
+      "destination": "apps/wechat/src/pages/archive/index.js",
+      "sha256": "3953b4a0f2e6e775f04600c2125220e7dc108c3c52e379728533cccc56d37b19"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/archive/index.json",
+      "destination": "apps/wechat/src/pages/archive/index.json",
+      "sha256": "191b781ec3bc2531d82360efd52776f18dd56c110584cb72d7f5cb58059f3a05"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/archive/index.wxml",
+      "destination": "apps/wechat/src/pages/archive/index.wxml",
+      "sha256": "0dc3a59e432f4c5ec5dce3f5689d53e205d820438537ff6fb7178c2a7aedf474"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/archive/index.wxss",
+      "destination": "apps/wechat/src/pages/archive/index.wxss",
+      "sha256": "2462eb206415afd6c2cd5be73972dc63cf556953b7e2ffaccfc42b06ee2d39ac"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/compare/index.js",
+      "destination": "apps/wechat/src/pages/compare/index.js",
+      "sha256": "33dbcc4621c842fa5eb371f33644d89a539932c48fe1fe070b2c4b95302a97d5"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/compare/index.json",
+      "destination": "apps/wechat/src/pages/compare/index.json",
+      "sha256": "c0859f1764367e325a87e52d8a677445eabec1a0e63e50751cc7a8e630b1c992"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/compare/index.wxml",
+      "destination": "apps/wechat/src/pages/compare/index.wxml",
+      "sha256": "b67c36a4cea4d9fa1bbb0410419c7725256a72fb8afe2de923bb2fb6658e5f2f"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/compare/index.wxss",
+      "destination": "apps/wechat/src/pages/compare/index.wxss",
+      "sha256": "2dadf52509a137b91cc0cdd91af67fa6b3cab0db324f84e2d7bffc7286e41f76"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/detail/index.js",
+      "destination": "apps/wechat/src/pages/detail/index.js",
+      "sha256": "9423c59619fb2a39c3680de1b28dc30c100beffab144b4e452e2072b22cee3d2"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/detail/index.json",
+      "destination": "apps/wechat/src/pages/detail/index.json",
+      "sha256": "d76d625424a90d4796cff756b45e8a3680cc99262728b5d5f512543573fb5b68"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/detail/index.wxml",
+      "destination": "apps/wechat/src/pages/detail/index.wxml",
+      "sha256": "006a41bec0eee624daead1a9fcc7d1c59ae4bddac7518e9710711a61e364f151"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/detail/index.wxss",
+      "destination": "apps/wechat/src/pages/detail/index.wxss",
+      "sha256": "34c1cfd773d61bb1cf149d3c294076364a5e1d4121907e471cef78ac8186cc62"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/home/index.js",
+      "destination": "apps/wechat/src/pages/home/index.js",
+      "sha256": "e5e5e758f480c3668e282275137ce174adc3e6ff71800f04ca98a5de77102478"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/home/index.json",
+      "destination": "apps/wechat/src/pages/home/index.json",
+      "sha256": "0a16299517be576b67e70d82759dab699daed592347b29730bb880ef456122a9"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/home/index.wxml",
+      "destination": "apps/wechat/src/pages/home/index.wxml",
+      "sha256": "1532699ddc48525ab430814d343730b181c1b454f6e9226be4ebd6527422fa54"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/home/index.wxss",
+      "destination": "apps/wechat/src/pages/home/index.wxss",
+      "sha256": "ad9466350212637986ef3392661dc412a38f2b5d3c5fb3a1c9421eaed471771e"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/import/index.js",
+      "destination": "apps/wechat/src/pages/import/index.js",
+      "sha256": "247011cdc89e8d7242921e4678118135a2de561b2138d6a4aa53626e8bd9de87"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/import/index.json",
+      "destination": "apps/wechat/src/pages/import/index.json",
+      "sha256": "08733be7f66a038dd8b44ab854ea628753acb31f9c9a210945e125103a0c3766"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/import/index.wxml",
+      "destination": "apps/wechat/src/pages/import/index.wxml",
+      "sha256": "da4118088b892a835956ac3e033b23e2405d724bad92806b73eaa56a4fc2be59"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/settings/index.js",
+      "destination": "apps/wechat/src/pages/settings/index.js",
+      "sha256": "9254fc476a9a0bcb0ddadf96165d1ab155017665d00dfafd245ae73b753158c1"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/settings/index.json",
+      "destination": "apps/wechat/src/pages/settings/index.json",
+      "sha256": "af8fdab091ed5bcccaf6012fbce4fa768a7e6e66f1d26023f6a93b51e004cdb0"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/settings/index.wxml",
+      "destination": "apps/wechat/src/pages/settings/index.wxml",
+      "sha256": "64877d9ce6a9fe9b3defe0f38b88c14bbc9b2961d7bc76545843eac83355c489"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/templates/index.js",
+      "destination": "apps/wechat/src/pages/templates/index.js",
+      "sha256": "c6ea8d0de1c22019336d603b759e32e75174bdcaa211a6633df3c6290e97d566"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/templates/index.json",
+      "destination": "apps/wechat/src/pages/templates/index.json",
+      "sha256": "54ab09a535079ea41a5af703ef289cdfe9b08a3457d74c7b0a47fd9e3d0bef0f"
+    },
+    {
+      "source": "miniprogram-wechat/src/pages/templates/index.wxml",
+      "destination": "apps/wechat/src/pages/templates/index.wxml",
+      "sha256": "5e38846e79b2e752de8007cf069c5de156fb9757f41f547d48d1c7501ce0f1e8"
+    },
+    {
+      "source": "miniprogram-wechat/src/sitemap.json",
+      "destination": "apps/wechat/src/sitemap.json",
+      "sha256": "549f3524af2e86ba0ec6e11a5b979d327a5930c970ab3ba35da52fc9a5d692df"
+    },
+    {
+      "source": "miniprogram-wechat/tests/field-row-placeholder.test.js",
+      "destination": "apps/wechat/tests/field-row-placeholder.test.js",
+      "sha256": "86c1af7fca4b08b987def67c1ce208aa53b9a3ddd8eb21431446b41c51daccd9"
+    },
+    {
+      "source": "miniprogram-wechat/tests/field-row-swipe.test.js",
+      "destination": "apps/wechat/tests/field-row-swipe.test.js",
+      "sha256": "462bb58c3c0588a7df012609c3f8631a2a198851cd56a46d5d634b1c00c2daab"
+    },
+    {
+      "source": "miniprogram-wechat/tests/files.test.js",
+      "destination": "apps/wechat/tests/files.test.js",
+      "sha256": "bcedd218dba214467cfe0cd5c0ed315109600d1f5cd28118ced18652384bb7fb"
+    },
+    {
+      "source": "miniprogram-wechat/tests/inspection-wording.test.js",
+      "destination": "apps/wechat/tests/inspection-wording.test.js",
+      "sha256": "10728b38932676df0c502fe1d45838ab0719ef9084db2f8ca1507798e3f57325"
+    },
+    {
+      "source": "miniprogram-wechat/tests/model.test.js",
+      "destination": "apps/wechat/tests/model.test.js",
+      "sha256": "d32277bc46118390f84cb5fce58d1ce7f30c3f0f224138b2ffda46d2d094dc8b"
+    },
+    {
+      "source": "miniprogram-wechat/tests/platform.test.js",
+      "destination": "apps/wechat/tests/platform.test.js",
+      "sha256": "6684925866028f9d8de281437044827b417427e5e49ce22b2f2f002f600d8767"
+    },
+    {
+      "source": "miniprogram-wechat/tests/runtime.test.js",
+      "destination": "apps/wechat/tests/runtime.test.js",
+      "sha256": "77c0876c6edd72c1c7b572d39e460c81677947aaf1d92e92d901525b57e70a4e"
+    },
+    {
+      "source": "miniprogram-wechat/docs/guide-audit-20261012.json",
+      "destination": "docs/wechat/guide-audit-20261012.json",
+      "sha256": "c33489aa139fb23babfb1fb6381b4de10e8c98cea796417c916dceb237d4d4da"
+    },
+    {
+      "source": "miniprogram-wechat/docs/settings-audit-20261012.json",
+      "destination": "docs/wechat/settings-audit-20261012.json",
+      "sha256": "4323cf55a32e80a7b751cbd5349a7fa109042ed691033bbb1c9d70288dfc7294"
+    },
+    {
+      "source": "租房看房助手-产品设计文档.md",
+      "destination": "docs/product/产品设计.md",
+      "sha256": "f0db33f6cfce5064e3288d4b76583568de106b2c6b9ede44df5cc5917d4e43ee"
+    },
+    {
+      "source": "租房看房图片文字提取.md",
+      "destination": "docs/research/图片文字提取.md",
+      "sha256": "b6d182544ec67e5079faa96015f730b7b339079939ef92f5744f0a21d47936d9"
+    },
+    {
+      "source": "租房看房避坑与自检完全指南.md",
+      "destination": "docs/research/看房指南.md",
+      "sha256": "c0df267bcb152712015ac53a757e4deadbbb172fbd58dc4acb9fede77ec44339"
+    }
+  ]
+}

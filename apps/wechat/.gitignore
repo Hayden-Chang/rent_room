@@ -1,0 +1,11 @@
+node_modules/
+dist/
+artifacts/
+*.private.json
+.env*
+*.key
+*.pem
+
+# Safe configuration templates may be versioned.
+!.env.example
+!.env.sample

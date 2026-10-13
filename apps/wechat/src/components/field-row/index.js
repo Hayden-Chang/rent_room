@@ -1,0 +1,45 @@
+const ACTION_WIDTH=180;
+const hasContent=value=>value!==undefined&&value!==null&&String(value).length>0;
+let activeRow=null;
+Component({
+ properties:{field:Object,readonly:Boolean},
+ data:{actions:false,offset:0,dragging:false,valueFocused:false,otherFocused:false,valueFilled:false,otherFilled:false},
+ observers:{readonly(value){if(value)this.closeSwipe();},'field.id'(id){if(this.fieldId!==id){this.closeSwipe();this.setData({valueFocused:false,otherFocused:false});this.fieldId=id;}},'field.value'(value){this.setData({valueFilled:hasContent(value)});},'field.otherText'(value){this.setData({otherFilled:hasContent(value)});}},
+ lifetimes:{detached(){if(activeRow===this)activeRow=null;}},
+ methods:{
+  start(e){
+   if(activeRow&&activeRow!==this)activeRow.closeSwipe();
+   if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
+   const p=e.touches[0];this.gesture={x:p.clientX,y:p.clientY,base:this.data.offset,axis:'',dx:0};
+  },
+  move(e){
+   const g=this.gesture;if(!g||this.data.readonly)return;
+   if(e.touches.length!==1){this.cancel();return;}
+   const p=e.touches[0],dx=p.clientX-g.x,dy=p.clientY-g.y;g.dx=dx;
+   if(!g.axis){if(Math.max(Math.abs(dx),Math.abs(dy))<8)return;g.axis=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';}
+   if(g.axis!=='x')return;
+   activeRow=this;this.setData({dragging:true,offset:Math.max(-ACTION_WIDTH,Math.min(0,g.base+dx))});
+  },
+  end(e){
+   const g=this.gesture;if(!g)return;
+   // Some devices coalesce a quick flick into start/end without a move event.
+   if(!g.axis&&e.changedTouches?.length)this.move({touches:e.changedTouches});
+   if(g.axis==='x'){
+    this.suppressTapUntil=Date.now()+250;
+    const open=g.dx<-36?true:g.dx>36?false:g.base<0;
+    if(open)this.reveal();else this.closeSwipe();
+   }else this.setData({dragging:false});
+   this.gesture=null;
+  },
+  cancel(){this.closeSwipe();},
+  reveal(){if(this.data.readonly)return;if(activeRow&&activeRow!==this)activeRow.closeSwipe();activeRow=this;this.setData({actions:true,offset:-ACTION_WIDTH,dragging:false});},
+  closeSwipe(){this.gesture=null;if(activeRow===this)activeRow=null;if(this.data.offset||this.data.actions||this.data.dragging)this.setData({actions:false,offset:0,dragging:false});},
+  noop(){},
+  emit(prop,value){if(!this.data.readonly)this.triggerEvent('answer',{id:this.data.field.id,prop,value});},
+  handleInputFocus(e){this.setData({[e.currentTarget.dataset.input+'Focused']:true});},
+  handleInputBlur(e){const key=e.currentTarget.dataset.input;this.setData({[key+'Focused']:false,[key+'Filled']:hasContent(e.detail.value)});},
+  input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
+  choose(e){if(this.data.actions||Date.now()<(this.suppressTapUntil||0)){this.closeSwipe();return;}if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
+  action(e){const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
+ }
+});

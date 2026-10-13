@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-13",
+  "credentials": {
+    "scan": "common token/private-key/credential-assignment patterns",
+    "findings": [],
+    "note": "Pattern scan, not a guarantee; no local credential files or old Git history imported"
+  },
+  "miniProgram": {
+    "tests": 48,
+    "node": "24.21.0",
+    "build": true,
+    "officialWcc": 0,
+    "officialWcsc": 0,
+    "package": true
+  },
+  "limitations": [
+    "No WeChat upload, review submission, deployment or live AI calls",
+    "Current data copied from disk; browser unsaved edits not exported"
+  ],
+  "initialImportValidation": {
+    "files": 354,
+    "bytes": 8093950,
+    "excludedPathsChecked": 13,
+    "sourcePathsNotIgnoredChecked": 8,
+    "htmlPrototype": {
+      "tests": 16,
+      "build": true,
+      "sourcePreserved": true
+    },
+    "webPrototype": {
+      "tests": 5,
+      "build": true
+    },
+    "assistantPrototype": {
+      "modelTests": 5,
+      "assistantAndHarnessTests": 9,
+      "serverTests": 2,
+      "build": true,
+      "liveAI": "not run"
+    },
+    "note": "Historical checks before prototypes and design exports were removed from the tracked tree; these are not current repository contents."
+  },
+  "trackingChange": {
+    "removedFromIndex": 239,
+    "allRemovedFilesRetainedLocally": true,
+    "prototypeTrackedFiles": 0,
+    "designTrackedFiles": [
+      "design/README.md"
+    ],
+    "ignoreRulesChecked": 10,
+    "applicationFilesChanged": false,
+    "trackedOnlyBuild": "passed",
+    "officialWcc": 0,
+    "officialWcsc": 0
+  },
+  "documentLayout": {
+    "documents": "docs/wechat",
+    "buildData": "apps/wechat/data",
+    "sourceDataByteIdentical": true,
+    "updatedReferencesChecked": true,
+    "node": "24.21.0",
+    "testsPassed": 48,
+    "build": true,
+    "officialWcc": 0,
+    "officialWcsc": 0,
+    "package": true
+  }
+}

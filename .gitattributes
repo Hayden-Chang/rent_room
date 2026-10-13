@@ -1,0 +1,9 @@
+# Normalize source line endings across platforms.
+* text=auto
+*.sh text eol=lf
+*.csv text eol=lf
+# Markdown uses trailing spaces for explicit line breaks.
+*.md whitespace=-blank-at-eol
+*.png binary
+*.jpg binary
+*.jpeg binary
