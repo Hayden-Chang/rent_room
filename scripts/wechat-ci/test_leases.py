@@ -1,4 +1,5 @@
 import concurrent.futures
+import contextlib
 import json
 import multiprocessing
 from pathlib import Path
@@ -47,11 +48,46 @@ class LeaseTests(unittest.TestCase):
             self.assertEqual(second['expiresAt'], 100 + 2 * TTL)
             self.assertNotEqual(first['id'], second['id'])
 
-    def test_all_29_slots_then_fail_never_use_1(self):
+    def test_full_pool_cycles_twice_in_allocation_order_never_use_1(self):
         self.assertEqual([allocate((self.root, str(i))) for i in range(29)], list(range(2, 31)))
-        with self.assertRaisesRegex(RuntimeError, 'All preview'):
-            allocate((self.root, 'overflow'))
+        for cycle in range(2):
+            numbers = [allocate((self.root, f'cycle-{cycle}-{i}')) for i in range(29)]
+            self.assertEqual(numbers, list(range(2, 31)))
         self.assertEqual(len(status(self.root, APPID, now=101)), 29)
+
+    def test_full_pool_skips_uploading_oldest_and_records_replacement(self):
+        with preview_lease(self.root, APPID, 'oldest', now=100):
+            for i in range(28):
+                allocate((self.root, str(i)))
+            old = status(self.root, APPID, now=100)[1]
+            with preview_lease(self.root, APPID, 'overflow', now=101) as new:
+                self.assertEqual(new['robot'], 3)
+                self.assertEqual(new['replacedLease']['id'], old['id'])
+                self.assertEqual(new['expiresAt'], 101 + TTL)
+            # The displaced task must allocate anew, never reuse its old lease identity.
+            with preview_lease(self.root, APPID, old['owner'], now=102) as retried:
+                self.assertEqual(retried['robot'], 4)
+                self.assertNotEqual(retried['id'], old['id'])
+
+    def test_full_pool_with_every_upload_inflight_fails_without_stealing(self):
+        with contextlib.ExitStack() as uploads:
+            for i in range(29):
+                uploads.enter_context(preview_lease(self.root, APPID, str(i), now=100))
+            before = status(self.root, APPID, now=100)
+            with self.assertRaisesRegex(RuntimeError, 'uploading'):
+                allocate((self.root, 'overflow'))
+            self.assertEqual(status(self.root, APPID, now=100), before)
+
+    def test_expired_slot_precedes_recycling_and_existing_owner_keeps_lease(self):
+        for i in range(29):
+            with preview_lease(self.root, APPID, str(i), now=100 + i):
+                pass
+        with preview_lease(self.root, APPID, '28', now=200) as existing:
+            self.assertEqual(existing['robot'], 30)
+            self.assertEqual(existing['expiresAt'], 128 + TTL)
+        with preview_lease(self.root, APPID, 'new', now=100 + TTL) as new:
+            self.assertEqual(new['robot'], 2)
+            self.assertNotIn('replacedLease', new)
 
     def test_multiprocess_allocation_is_unique(self):
         with concurrent.futures.ProcessPoolExecutor(max_workers=8, mp_context=multiprocessing.get_context('spawn')) as pool:
@@ -164,6 +200,17 @@ class RunnerTests(unittest.TestCase):
         receipt = next(self.root.rglob('receipt.json'))
         self.assertFalse(json.loads(receipt.read_text())['success'])
         self.assertEqual(execute(parser().parse_args(self.arguments), self.root, self.sdk)['robot'], 2)
+
+    def test_cli_reports_the_lease_replaced_by_full_pool_recycling(self):
+        for i in range(29):
+            with preview_lease(self.root, APPID, f'initial-{i}'):
+                pass
+        old = status(self.root, APPID)[0]
+        result = execute(parser().parse_args(self.arguments), self.root, self.sdk)
+        self.assertEqual(result['robot'], 2)
+        self.assertEqual(result['replacedLease']['id'], old['id'])
+        receipt = json.loads(Path(result['receipt']).read_text())
+        self.assertEqual(receipt['lease']['replacedLease'], result['replacedLease'])
 
     def test_snapshot_rejects_credentials_symlinks_and_changes(self):
         secret = self.project / 'private.key'

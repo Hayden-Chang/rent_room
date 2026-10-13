@@ -61,7 +61,7 @@ npm run package
 
 ### CI 预览与机器人编号
 
-生成真机预览码使用 [scripts/wechat-ci/README.md](../../scripts/wechat-ci/README.md) 的统一入口。先在本任务构建 dist，再由 runner 冻结、自动领用 2～30 号上传；编号首次分配后 24 小时到期，重复预览不续期。它独立于开发者工具实例池，不启动本地 UI。
+生成真机预览码使用 [scripts/wechat-ci/README.md](../../scripts/wechat-ci/README.md) 的统一入口。先在本任务构建 dist，再由 runner 冻结、自动领用 2～30 号上传；编号首次分配后 24 小时到期，重复预览不续期；满额时按最早分配顺序循环复用并跳过正在上传的编号，旧租约可提前失效。它独立于开发者工具实例池，不启动本地 UI。
 
 机器人 1 只用于用户明确授权的正式版更新，不能用于普通预览。固定 SDK 2.1.48；机器默认共享注册表、密钥路径、失败日志及安全边界见 runner 文档。修改 runner 时仅运行 `scripts/wechat-ci/test_leases.py` 和 `sdk.test.cjs` 中新增/受影响测试；不因基础设施修改重跑无关应用测试。现场证据见 [CI_ROBOT_LEASES.md](CI_ROBOT_LEASES.md)。
 

@@ -92,18 +92,23 @@ def preview_lease(root, appid, owner, now=None):
             if not own or own not in active:
                 used = {x['robot'] for x in active}
                 selected = None
-                for robot in range(2, 31):
-                    if robot in used:
-                        continue
+                # Free/expired slots first, then recycle oldest idle leases.
+                # Stable sorting keeps allocation order when timestamps are equal.
+                candidates = [n for n in range(2, 31) if n not in used]
+                candidates += [x['robot'] for x in sorted(active, key=lambda x: x['allocatedAt'])]
+                for robot in candidates:
                     try:
                         operation_fd = held.enter_context(lock(directory / f'robot-{robot}.lock', False))
                     except BlockingIOError:
                         continue
                     selected = {'id': uuid.uuid4().hex, 'owner': owner, 'robot': robot,
                                 'allocatedAt': timestamp, 'expiresAt': timestamp + TTL}
+                    replaced = next((x for x in active if x['robot'] == robot), None)
+                    if replaced:
+                        selected['replacedLease'] = {k: replaced[k] for k in ('id', 'owner', 'robot', 'expiresAt')}
                     break
                 if selected is None:
-                    raise RuntimeError('All preview robots 2-30 are leased or busy; wait for expiry')
+                    raise RuntimeError('All preview robots 2-30 are uploading; retry after an upload completes')
                 # Keep expired rows for busy robots so their owner cannot start twice.
                 state['leases'] = [x for x in state['leases']
                                    if x['robot'] != selected['robot'] and x['owner'] != owner]

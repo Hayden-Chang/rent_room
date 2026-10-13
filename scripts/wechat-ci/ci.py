@@ -130,6 +130,7 @@ def execute(args, root=DEFAULT_ROOT, sdk=run_sdk):
         (run / 'request.json').unlink(missing_ok=True)
     return {'success': True, 'robot': receipt['lease']['robot'],
             'expiresAt': receipt['lease'].get('expiresAt'), 'receipt': str(run / 'receipt.json'),
+            'replacedLease': receipt['lease'].get('replacedLease'),
             'qrcode': str(run / 'qrcode.jpg') if not production else None}
 
 
