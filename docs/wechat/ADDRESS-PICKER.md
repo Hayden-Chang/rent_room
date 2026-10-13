@@ -44,3 +44,14 @@
 - 选择命令：`node node_modules/vitest/vitest.mjs run tests/address-bindings.test.js tests/address-picker.test.js tests/places.test.js tests/detail-filter.test.js tests/field-row-placeholder.test.js tests/field-row-swipe.test.js tests/files.test.js tests/model.test.js tests/platform.test.js tests/runtime.test.js tests/unanswered-group-fold.test.js tests/unanswered-group-runtime.test.js`。主线新增加的 detail-filter 与 unanswered-group 用例覆盖本次冲突处理后的页面绑定/模型组合；未运行无关措辞测试。
 - 保留失败证据：`address-tests-final.log` 的 8 项失败使用了 rebase 前的旧 dist；重建后 `address-tests-integrated.log` 仅 runtime 固定 `/user/xunju/state.json` 断言失败，原因是当时构建为隔离测试目录。恢复正式构建目录后上述 79 项全部通过，未改弱断言。
 - 最后一次重新打开本任务工程后，官方 SDK 仍在读取页面前超时；当前开发者工具前台属于其他任务，未操作该窗口。实际 UI 截图、搜索选择交互、拖图缩放及真机定位未取得有效验收证据，PR 保持草稿、不可合并。
+
+### 2026-10-13 局部加载排查补充
+
+用户要求保留其他工程窗口，不重启整个开发者工具。当前源码保持 `f4817db07e377e9b14a4034a39c7780006359d49`，仅补充诊断文档。
+
+- App 逻辑层能够进入 detail，但嵌入模拟器的实际画面仍白屏；官方 SDK Page.data 和元素接口持续超时。相同 AppID/基础库的最小两页诊断工程也出现 appLaunch timeout，不能归因地图业务代码。
+- 只关闭并重开本工程、完整重建隔离测试包、reset-fileutils、清理本工程 compile 缓存后，分离本工程模拟器恢复了实际画面。已通过实际点击进入测试房源并展开地图区域。截图：`apps/wechat/artifacts/address-picker-rendered.png`。其他工程未关闭或重启；最小诊断工程已关闭。底层根因尚未完全确定，记录为局部恢复方案。
+- 新的确定阻碍：在小程序 App 运行时通过真实 wx.request 查询深圳公开地点，搜索返回 `request:fail url not in domain list`；附近查询也失败。未绕过域名校验。证据：`apps/wechat/artifacts/runtime-places.json`。
+- 需在小程序后台将 `https://api.tianditu.gov.cn` 加入 request 合法域名，再刷新开发者工具的项目配置后继续。浏览器安全策略禁止本会话访问微信公众平台，因此该后台操作已交由用户完成。
+- 定位曾以深圳公开地点固定坐标做测试前置，已调用 restoreWxMethod 恢复。尚未完成搜索输入、候选点击、拖图、缩放及真机定位验收；截图仅证明展开状态已绘制。
+- 本地 dist 当前为 `xunju-test-inline-address` 隔离测试包，不能当作正式发布产物。没有修改用户已有房源；测试房源只存在隔离目录。PR 继续保留草稿，不合并或发布。
