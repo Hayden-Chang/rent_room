@@ -55,3 +55,10 @@
 - 需在小程序后台将 `https://api.tianditu.gov.cn` 加入 request 合法域名，再刷新开发者工具的项目配置后继续。浏览器安全策略禁止本会话访问微信公众平台，因此该后台操作已交由用户完成。
 - 定位曾以深圳公开地点固定坐标做测试前置，已调用 restoreWxMethod 恢复。尚未完成搜索输入、候选点击、拖图、缩放及真机定位验收；截图仅证明展开状态已绘制。
 - 本地 dist 当前为 `xunju-test-inline-address` 隔离测试包，不能当作正式发布产物。没有修改用户已有房源；测试房源只存在隔离目录。PR 继续保留草稿，不合并或发布。
+
+### 2026-10-13 域名刷新与 Key 类型诊断
+
+- 用户完成 request 合法域名配置后，在本工程详情 → Project Settings → Domain Name 刷新，已读到 `https://api.tianditu.gov.cn`。本工程旧调试连接在重载后失效，改用空闲独立端口恢复；没有重启共享开发者工具或关闭其他任务工程。
+- 更新后的真实 `wx.request` 已越过微信域名检查，但天地图返回 HTTP 403，响应 `msg: 权限类型错误`。用户随后确认现有 Key 为“服务器端”，选择另建“浏览器端”应用再验证直连；尚待新 Key 的本地文件路径。不能将旧的命令行查询成功视为小程序调用成功。证据：`apps/wechat/artifacts/request-diagnostics.json`、`runtime-places.json`（均不含密钥）。
+- 界面输入对照中，普通检查项搜索可粘贴并筛选，地址搜索框未能获得焦点。移除地址组件外层多余 `catchtouchstart/move/end`，继续由 field-row 的 map 分支排除左滑手势。这项修正的真实输入复验尚未完成：当前模拟器再次出现逻辑层已导航、实际画面未同步及 `__subPageFrameEndTime__` 为空的基础库错误。不能标记交互验收通过。
+- 修正后重建隔离包，address-bindings、address-picker、field-row-swipe、places 共 28 项测试通过；官方 wcc 9 模板、wcsc 7 样式通过。GPS 固定公开坐标的 mock 已恢复。搜索候选选择、拖图、缩放与重载保持仍待真实交互验证；PR 保持草稿。
