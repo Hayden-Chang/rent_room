@@ -43,3 +43,7 @@
 
 - [Apple 网络响应能力说明](https://support.apple.com/zh-cn/101942)
 - [iNetSpeed-CLI 端点资料](https://github.com/nxtrace/iNetSpeed-CLI)
+
+## PR 复核修复
+
+新增后台恢复回归测试，先证明保存失败后转入后台会清空待保存结果（预期 done，实际 save-error）；改为只取消仍在准备或测速中的请求，保存失败结果保留到重试或退出页面。修复前日志为 `artifacts/network-speed/save-background-before.log`。最终七文件共 44 项通过，官方 wcc 9 / wcsc 7 文件通过；没有真实 UI 或真机通过证据。

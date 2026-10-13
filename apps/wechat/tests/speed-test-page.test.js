@@ -55,3 +55,8 @@ it('adds a field action on the existing row and prevents archived or duplicate n
  detail.data=structuredClone(detail.data);detail.setData=function(v){Object.assign(this.data,v);};detail.onLoad({id:h.id});detail.onShow();
  const event={detail:{id:FIELD,action:'speed-test'}};detail.action(event);detail.action(event);await settle();expect(urls).toEqual(['/pages/speed-test/index?id='+h.id]);detail.onShow();h.app.service.store.archive(h.id,true);detail.action(event);await settle();expect(urls).toHaveLength(1);detail.onUnload();
 });
+it('keeps a failed-save result available after returning from background',async()=>{
+ const h=harness();h.open();await settle();h.failDisk(true);for(let i=0;i<8;i++)await h.response();
+ h.page.onHide();h.failDisk(false);h.page.saveResult();
+ expect(h.page.data.state).toBe('done');expect(h.reload().answers[FIELD].value).toBe('8.39');expect(h.requests).toHaveLength(8);
+});

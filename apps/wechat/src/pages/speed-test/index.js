@@ -4,7 +4,7 @@ import {service} from '../../lib/ui.js';
 Page({
   data:{state:'preparing',speed:'—',progress:0,used:'0',message:'正在检查网络…'},
   onLoad(options){this.houseId=options.id;this.active=true;this.run=0;this.networkChanged=()=>{if(this.testing)this.cancel();};wx.onNetworkStatusChange?.(this.networkChanged);this.start();},
-  onHide(){this.cancel();},
+  onHide(){if(this.testing)this.cancel();},
   onUnload(){this.active=false;this.cancel();wx.offNetworkStatusChange?.(this.networkChanged);},
   validHouse(){
     const h=service().store.house(this.houseId);
