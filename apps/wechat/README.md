@@ -44,13 +44,13 @@ npm run package
 
 `check` 使用已安装微信开发者工具的官方 `wcc` / `wcsc`。默认安装位置位于 `/Volumes/mac2/application/wechatwebdevtools.app`；其他电脑请通过环境变量 `WECHAT_COMPILER_DIR` 指向工具内 `node_modules/wcc-exec`。
 
-测试映射和验收边界见 `docs/VALIDATION.md`。发行包输出 `artifacts/xunju-wechat-preview.zip`。
+测试映射和验收边界见 [根目录验证说明](../../docs/wechat/VALIDATION.md)。发行包输出 `artifacts/xunju-wechat-preview.zip`。
 
 ## 设计来源与交付状态
 
 - HTML 原型：http://127.0.0.1:8876/recovered-checklist.html
 - Figma：https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-155
-- 原始树、SHA-256 与来源记录：`docs/source-tree.json`、`docs/source-provenance.json`。
+- 原始树、SHA-256 与来源记录：`data/source-tree.json`、`data/source-provenance.json`。
 - 颜色、导航与折叠行为根据已读取的 Figma 节点和最新交互记录实现。相机/回顶部 SVG 复用原 Figma 生成脚本；导航图标使用现有原型依赖中的 Lucide（许可证随包附带）。Figma 图标导出超时，因此不宣称逐像素一致。
 - 当前交付为可运行的本地验收版本。尚未完成 iOS/Android 真机相机、相册、选点及性能验收，也没有提交审核或发布。
 - 仓库已归入 `Hayden-Chang/rent_room`，源码路径为 `apps/wechat`。通过工作分支和 PR 交付；GitHub 上传不代表小程序已上线。

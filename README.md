@@ -7,6 +7,7 @@
 | 路径 | 用途 |
 | --- | --- |
 | [apps/wechat](apps/wechat/README.md) | 微信小程序源码、测试、构建脚本与清单源数据 |
+| [docs/wechat](docs/wechat/VALIDATION.md) | 小程序验证记录、Figma 核对与交互审计 |
 | [docs/product](docs/product/产品设计.md) | 产品设计文档 |
 | [docs/research](docs/research/看房指南.md) | 看房研究、素材文字整理 |
 | [design](design/README.md) | Figma 入口和必要设计说明 |
@@ -25,7 +26,7 @@ npm run check
 npm run package
 ```
 
-微信开发者工具导入 `apps/wechat/dist`。`check` 需要本机官方 `wcc` / `wcsc`，可用 `WECHAT_COMPILER_DIR` 指定所在目录；其他命令不依赖微信开发者工具。产物位于 `dist/` 和 `artifacts/`，不提交到 Git。
+微信开发者工具导入 `apps/wechat/dist`。`check` 需要本机官方 `wcc` / `wcsc`，可用 `WECHAT_COMPILER_DIR` 指定所在目录；其他命令不依赖微信开发者工具。产物位于 `dist/` 和 `artifacts/`，不提交到 Git。清单源数据和来源校验位于 `apps/wechat/data/`；说明与审计统一放在根目录 `docs/wechat/`。
 
 AppID 属于公开工程标识；AppSecret、服务端 API 密钥和本地数据不进入仓库。小程序当前使用本地存储，GitHub 上传不等于小程序审核、发布或云同步。
 

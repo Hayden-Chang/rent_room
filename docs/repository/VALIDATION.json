@@ -52,5 +52,17 @@
     "trackedOnlyBuild": "passed",
     "officialWcc": 0,
     "officialWcsc": 0
+  },
+  "documentLayout": {
+    "documents": "docs/wechat",
+    "buildData": "apps/wechat/data",
+    "sourceDataByteIdentical": true,
+    "updatedReferencesChecked": true,
+    "node": "24.21.0",
+    "testsPassed": 48,
+    "build": true,
+    "officialWcc": 0,
+    "officialWcsc": 0,
+    "package": true
   }
 }

@@ -17,27 +17,27 @@
     },
     {
       "source": "miniprogram-wechat/docs/VALIDATION.md",
-      "destination": "apps/wechat/docs/VALIDATION.md",
+      "destination": "docs/wechat/VALIDATION.md",
       "sha256": "2b2ecb1ed0d609eb695719648bd9205e405a78940ed3143afe1ff022276ef38e"
     },
     {
       "source": "miniprogram-wechat/docs/figma-assets.json",
-      "destination": "apps/wechat/docs/figma-assets.json",
+      "destination": "docs/wechat/figma-assets.json",
       "sha256": "1ea71a80a4ced530385435c314be63d765ae1ea706eacc7300f97949946e86bf"
     },
     {
       "source": "miniprogram-wechat/docs/figma-audit.json",
-      "destination": "apps/wechat/docs/figma-audit.json",
+      "destination": "docs/wechat/figma-audit.json",
       "sha256": "abc5fc5526d104757a8b886eceee5f81747fa883b1668fe5ad594a5a61420146"
     },
     {
       "source": "miniprogram-wechat/docs/source-provenance.json",
-      "destination": "apps/wechat/docs/source-provenance.json",
+      "destination": "apps/wechat/data/source-provenance.json",
       "sha256": "b690a629ad4888008b1ff2166d9f5cece2348bd3ef11f3fc946f4605d25d5af4"
     },
     {
       "source": "miniprogram-wechat/docs/source-tree.json",
-      "destination": "apps/wechat/docs/source-tree.json",
+      "destination": "apps/wechat/data/source-tree.json",
       "sha256": "1cecc1ca51d7b0753756b09605d345b90981fea5dc7e0c31a21dd7b7a1093112"
     },
     {
@@ -522,12 +522,12 @@
     },
     {
       "source": "miniprogram-wechat/docs/guide-audit-20261012.json",
-      "destination": "apps/wechat/docs/guide-audit-20261012.json",
+      "destination": "docs/wechat/guide-audit-20261012.json",
       "sha256": "c33489aa139fb23babfb1fb6381b4de10e8c98cea796417c916dceb237d4d4da"
     },
     {
       "source": "miniprogram-wechat/docs/settings-audit-20261012.json",
-      "destination": "apps/wechat/docs/settings-audit-20261012.json",
+      "destination": "docs/wechat/settings-audit-20261012.json",
       "sha256": "4323cf55a32e80a7b751cbd5349a7fa109042ed691033bbb1c9d70288dfc7294"
     },
     {

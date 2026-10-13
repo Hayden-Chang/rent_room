@@ -1,9 +1,9 @@
 # 设计入口与说明
 
 - [Figma 主稿](https://www.figma.com/design/IcJzmxGcnzi4icPgrdBjYA/Untitled?node-id=106-155)：可编辑页面、组件和交互。
-- [小程序设计核对记录](../apps/wechat/docs/figma-audit.json)。
-- [清单设计源](../apps/wechat/docs/source-tree.json)与[来源记录](../apps/wechat/docs/source-provenance.json)：小程序构建使用的版本。
-- [验证说明](../apps/wechat/docs/VALIDATION.md)：区分代码检查、编译、界面核对与真机验收。
+- [小程序设计核对记录](../docs/wechat/figma-audit.json)。
+- [清单设计源](../apps/wechat/data/source-tree.json)与[来源记录](../apps/wechat/data/source-provenance.json)：小程序构建使用的版本。
+- [验证说明](../docs/wechat/VALIDATION.md)：区分代码检查、编译、界面核对与真机验收。
 
 ## 维护约定
 

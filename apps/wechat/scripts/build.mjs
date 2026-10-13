@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {build} from 'esbuild';
 import {toTopics, validTree} from './source-core.mjs';
-const source=JSON.parse(await fs.readFile('docs/source-tree.json','utf8'));
+const source=JSON.parse(await fs.readFile('data/source-tree.json','utf8'));
 if(!validTree(source.tree))throw Error('Invalid source tree');
 const topics=toTopics(source.tree);
 await fs.writeFile('src/lib/topics.json',JSON.stringify(topics));

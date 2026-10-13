@@ -7,6 +7,7 @@
 | 路径 | 内容与策略 |
 | --- | --- |
 | apps/wechat/ | 原 miniprogram-wechat 的源码、测试、锁文件、构建脚本、清单源和运行资源 |
+| docs/wechat/ | 小程序验证、Figma 核对与交互审计文档 |
 | docs/product/ | 产品设计文档 |
 | docs/research/ | 研究资料；原 README 与看房指南重复，保留单份 |
 | docs/repository/ | 目录说明、导入来源和验证记录 |
@@ -14,7 +15,7 @@
 | prototypes/ | 本地原型，整个目录忽略 |
 | design/ 其他内容 | 本地截图、设计导出、交付快照、视觉参考和品牌素材，全部忽略 |
 
-现有本地工程和 Git 历史未删除或移动。移出 Git 索引的原型与设计文件仍保留在本地；新克隆不会包含它们。小程序构建不依赖这些目录。来源校验清单见 [import-manifest.json](import-manifest.json)，只列当前纳入版本管理的导入文件。
+现有本地工程和 Git 历史未删除或移动。移出 Git 索引的原型与设计文件仍保留在本地；新克隆不会包含它们。小程序构建不依赖这些目录。文档统一放在根目录 `docs/`，构建读取的清单源和来源校验文件放在 `apps/wechat/data/`，不再保留 `apps/wechat/docs/`。来源校验清单见 [import-manifest.json](import-manifest.json)，只列当前纳入版本管理的导入文件。
 
 ## 忽略规则
 
