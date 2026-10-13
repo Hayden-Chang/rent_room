@@ -54,3 +54,16 @@ npm run package
 - 颜色、导航与折叠行为根据已读取的 Figma 节点和最新交互记录实现。相机/回顶部 SVG 复用原 Figma 生成脚本；导航图标使用现有原型依赖中的 Lucide（许可证随包附带）。Figma 图标导出超时，因此不宣称逐像素一致。
 - 当前交付为可运行的本地验收版本。尚未完成 iOS/Android 真机相机、相册、选点及性能验收，也没有提交审核或发布。
 - 仓库已归入 `Hayden-Chang/rent_room`，源码路径为 `apps/wechat`。通过工作分支和 PR 交付；GitHub 上传不代表小程序已上线。
+
+## 地点查询构建配置
+
+预览包需要天地图**浏览器端** Key。构建依次读取 `TIANDITU_KEY`、`TIANDITU_KEY_FILE` 指定的纯文本文件、应用目录 `.env.tianditu-browser-key`、本机共享文件 `~/.config/rent-room/tianditu-browser-key`。本机共享文件可供新 worktree 自动使用，建议权限0600；不得提交Key或配置文件，也不要使用服务器端Key。
+
+缺少配置、指定文件不可读或文件为空时，构建在清理旧产物前失败。仅不验证地图网络的离线测试可显式设置 `WECHAT_ALLOW_MISSING_MAP_KEY=1`；这种产物不用于地图验收或发布。构建日志不打印Key，构建包中的客户端Key仍可被提取，须在服务平台配置适用限制。
+
+```sh
+TIANDITU_KEY_FILE=/本机私密目录/tianditu-browser-key npm run build
+npm run check
+```
+
+生成预览码仍使用仓库统一的 `scripts/wechat-ci/ci.py preview`。代码版本和构建配置需要同时核对，上传成功不能证明地图查询配置正确。
