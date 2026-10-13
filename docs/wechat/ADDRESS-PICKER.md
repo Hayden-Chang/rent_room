@@ -62,3 +62,14 @@
 - 更新后的真实 `wx.request` 已越过微信域名检查，但天地图返回 HTTP 403，响应 `msg: 权限类型错误`。用户随后确认现有 Key 为“服务器端”，选择另建“浏览器端”应用再验证直连；尚待新 Key 的本地文件路径。不能将旧的命令行查询成功视为小程序调用成功。证据：`apps/wechat/artifacts/request-diagnostics.json`、`runtime-places.json`（均不含密钥）。
 - 界面输入对照中，普通检查项搜索可粘贴并筛选，地址搜索框未能获得焦点。移除地址组件外层多余 `catchtouchstart/move/end`，继续由 field-row 的 map 分支排除左滑手势。这项修正的真实输入复验尚未完成：当前模拟器再次出现逻辑层已导航、实际画面未同步及 `__subPageFrameEndTime__` 为空的基础库错误。不能标记交互验收通过。
 - 修正后重建隔离包，address-bindings、address-picker、field-row-swipe、places 共 28 项测试通过；官方 wcc 9 模板、wcsc 7 样式通过。GPS 固定公开坐标的 mock 已恢复。搜索候选选择、拖图、缩放与重载保持仍待真实交互验证；PR 保持草稿。
+
+### 2026-10-13 浏览器 Key 接入及实际交互复验
+
+验证源码为 `b4da13dd6bb34bb8b08c1da70aa763a714e06c30`，执行前工作树干净；本段仅补充证据。新的浏览器端 Key 保存在忽略的本地文件（权限 0600），未进入 Git 或报告。继续开启域名校验，未使用请求头或证书绕过。
+
+- 真实小程序 `wx.request` 返回 HTTP 200、`status.infocode=1000`，普通搜索 8 条；应用地点服务返回深圳公开地点附近关键词结果 6 条、逆解析与附近候选 11 条。证据：`apps/wechat/artifacts/request-browser-diagnostics.json`、`runtime-places.json`。此前服务器端 Key 的 403 已解决。
+- 开发者工具 Stable 2.01.2510290、官方 automator 0.12.1。本工程通过私有本地配置使用基础库 3.15.2 后，Page.data 与元素接口恢复；其间原共享运行时端口自行消失，随后仅重新打开本任务工程，因此不能将恢复唯一归因于基础库版本。未主动重启整个工具或关闭其他任务工程。源码默认基础库仍为 3.17.3，尚无该默认版本完整交互通过的证据。
+- 官方 SDK 输入搜索词、点击真实搜索结果：6 条候选，选中后同时写入地址和坐标，清空搜索并隐藏候选；reLaunch 后持久化内容一致。没有直接调用业务 handler 或 setData 代替操作。证据：`address-ui-result.json`、`address-search-ui.png`。
+- 点击定位、点击“使用”：只将 GPS 固定为深圳公开地点，地点服务仍为真实请求。出现 11 条候选，使用前原地址保持，使用后地址及坐标更新、候选收起。证据：`map-location-ui.json`、`map-gps-candidates.png`、`map-gps-used.png`；最后两张截图已目视检查。固定定位 mock 已恢复，之后出现的真实定位授权弹窗已取消，未采集用户实际位置。首次候选等待 15 秒超时，诊断重试通过，不隐去首次失败。
+- 桌面 CUA 的地图坐标拖动反复返回 `noWindowsAvailable`；官方 SDK 的触摸序列没有改变实际地图中心，因此拖动与缩放仍未验收。原生点击/粘贴也未改变搜索框值，不能用 SDK input 的成功替代键盘焦点验证。地图 SDK tap 后路由仍为 detail，但真机手势仍是剩余门禁。
+- `map-gps-used.png` 显示真实底图、单个中心点和下方已填地址。当前仅开发者工具部分流程通过；iOS/Android 真机 GPS、键盘、拖动、缩放以及用户 UI 确认仍待验收。PR 保持草稿，未合并、上传或发布。所有测试记录只写入 `xunju-test-inline-address` 隔离目录，原有房源数据未修改。
