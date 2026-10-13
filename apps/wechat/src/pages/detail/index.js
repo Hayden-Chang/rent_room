@@ -1,9 +1,10 @@
 import {applyPlace} from '../../lib/places.js';
-import {stats,formView,houseTopics,rules,problem,activeEntries,answer,fieldView,MAP_ID,uid} from '../../lib/model.js';
+import {coachSteps,coachMethods} from '../../lib/onboarding.js';
+import {stats,formView,houseTopics,rules,problem,activeEntries,answer,fieldView,MAP_ID,uid,freshHouse} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
-Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachTexts:['先填房源信息，方便区分和比较。','按房间或分类检查，点标题可展开或收起。','切换到询问签约，记录费用、承诺与合同条件。','左滑检查项，露出标记问题、备注和拍摄；右滑或点击其他位置收起，也可以长按检查项标题。'],hideCoach:false},
-  onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id});watch(this);this.refresh();if(options.new&&service().store.get().settings.onboarding)this.setData({coach:1});},
-  onShow(){if(this.data.id)this.refresh();},onUnload(){this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.dismissSwipe();},onPageScroll(){this.dismissSwipe();},
+Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
+  onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;if(options.guide&&!options.id)this.guideHouse=freshHouse('用户引导');this.setData({id:options.id||'',coach:options.guide||options.new&&service().store.get().settings.onboarding?1:0});watch(this);this.refresh();},
+  onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){this.coachHidden=false;if(this.data.id||this.guideHouse)this.refresh();if(this.data.coach)this.coachLayout();},onUnload(){this.clearCoachTimer();this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.clearCoachTimer();this.dismissSwipe();},onPageScroll(){this.dismissSwipe();},
   dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
   checklistData(h,view){
     const key=JSON.stringify(view),folds=this.folds[key]||{};
@@ -15,7 +16,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
     const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters,...patch};
     this.setData({...patch,...this.checklistData(h,view)});
   },
-  refresh(patch={},done){const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
+  refresh(patch={},done){const h=this.guideHouse||service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
     this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:h.media.filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]),saveError:service().store.status().error},done);
     wx.setNavigationBarTitle({title:h.name});
   },
@@ -102,5 +103,5 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   custom(){if(this.dismissSwipe())return;attempt(async()=>{const label=await prompt('自定义检查项','例如：次卧空调制冷正常');if(!label)return;const id=uid();service().store.edit(this.data.id,h=>h.extras.push({id,title:label,category:'自定义检查',phase:'现场看房',path:[],fields:[{id:id+'_0',label,type:'y',options:['是','否'],badValue:'否'}]}));this.refresh();});},
   export(){attempt(async()=>{const r=await service().api('showActionSheet',{itemList:['导出 Excel 记录','备份本房源（含影像）']});wx.showLoading({title:'正在生成',mask:true});try{await service().exportFile(r.tapIndex===0?'excel':'backup',this.data.id);}finally{wx.hideLoading();}});},
   top(){this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
-  coachNext(){if(this.data.coach<4)this.setData({coach:this.data.coach+1});else{if(this.data.hideCoach)service().store.change(s=>s.settings.onboarding=false);this.setData({coach:0});}},hideCoach(e){this.setData({hideCoach:e.detail.value});},
+  ...coachMethods,
 });
