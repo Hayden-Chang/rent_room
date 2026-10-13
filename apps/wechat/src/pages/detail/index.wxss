@@ -45,3 +45,5 @@
 .coach-demo-actions-open{transform:translateX(0)}
 .coach-demo-action{width:44px;height:44px;display:flex;align-items:center;justify-content:center}.coach-demo-actions image{width:26px;height:26px}
 .coach-error{color:#bb4149;font-size:13px;line-height:20px;margin-top:4px}
+
+.coach-demo-actions image.coach-media-icon{width:22px;height:22px}

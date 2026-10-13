@@ -34,7 +34,7 @@
    <view class="coach-pointer" style="left:{{coachPointer.left}}px;top:{{coachPointer.top}}px;height:{{coachPointer.height}}px"/>
    <view wx:if="{{coach===4}}" class="coach-demo" style="left:{{coachRect.left}}px;top:{{coachRect.top}}px;width:{{coachRect.width}}px" catchtouchstart="coachTouchStart" catchtouchend="coachTouchEnd">
     <view class="coach-demo-label {{coachSwiped?'coach-demo-open':''}}">{{coachField.label}}</view>
-    <view class="coach-demo-actions {{coachSwiped?'coach-demo-actions-open':''}}"><view class="coach-demo-action" aria-label="标记问题"><image src="/assets/icons/swipe-issue.png"/></view><view class="coach-demo-action" aria-label="备注"><image src="/assets/icons/swipe-note.png"/></view><view class="coach-demo-action" aria-label="影像"><image src="/assets/icons/swipe-camera.png"/></view></view>
+    <view class="coach-demo-actions {{coachSwiped?'coach-demo-actions-open':''}}"><view class="coach-demo-action" aria-label="标记问题"><image src="/assets/icons/swipe-issue.png"/></view><view class="coach-demo-action" aria-label="备注"><image src="/assets/icons/swipe-note.png"/></view><view class="coach-demo-action" aria-label="影像"><image class="coach-media-icon" src="/assets/icons/coach-media.png"/></view></view>
    </view>
   </block>
   <view class="coach-card {{coach===4?'coach-card-last':''}}" style="top:{{coachCardTop}}px">

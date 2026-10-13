@@ -43,3 +43,11 @@ VM/handler 测试只证明逻辑边界，不等于真实点击、手势或像素
 上述 run 的原始 receipt、health/test 日志保留在本机 `/Volumes/mac2/codex-builds/wechat-instance-pool/runs/<runId>/`；该目录含私有运行 profile，不上传整目录。Figma 原型导出位于本任务 `apps/wechat/artifacts/onboarding/figma/`，不是应用运行截图。
 
 结论：逻辑及官方编译通过，真实视觉、点击/拖动、安全区与大字体验收未完成，禁止宣称 merge-ready。尚未合并或发布。自动审批拒绝把源码推送到 `Hayden-Chang/rent_room`，明确要求用户授权该外部目的地后才能推送并创建 PR；没有改用其他方式绕过。
+
+## 真机反馈：末步相机图标不可见
+
+用户在扫码验收后指出第 4 步少一枚图标。根因是引导复用了实际左滑菜单的白色 `swipe-camera.png`，而演示行背景是白色；菜单中的该图标原本显示在紫色按钮上。实时 Figma `161:66589` 的相机图形为 `#667187`、22×22。直接从子节点 `I161:66589;161:5748` 导出 3× PNG，新增仅供引导使用的 `coach-media.png`，保留实际左滑菜单图标及行为。
+
+新增 `onboarding-icons.test.js` 解码页面实际引用的三张 PNG，与白底做 alpha 合成并计算对比度。修复前相机满足 3:1 对比度的像素比例为 0，按预期失败；换成原型素材后通过。PNG 解码使用固定 devDependency `pngjs@7.0.0`，不进入业务包。
+
+Node 24.21.0 执行 `vitest run tests/onboarding-icons.test.js tests/onboarding.test.js tests/onboarding-target.test.js`：13 项通过；官方 wcc 8 文件、wcsc 6 文件通过。原始失败和修复后日志位于 `apps/wechat/artifacts/onboarding/icon-fix/`。本轮仅改变引导媒体素材/样式与测试依赖，未改变 Page 生命周期、导航、筛选或持久化逻辑；相关既有测试证据保持等价。像素测试证明素材可见，不替代用户真机视觉确认。
