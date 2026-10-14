@@ -1,6 +1,6 @@
 import {zipSync,unzipSync,strToU8,strFromU8} from 'fflate';
 import {XMLParser} from 'fast-xml-parser';
-import {clone,validateState,prepareImport,fields,topics,freshHouse,houseTopics,rules,problem,MAP_ID} from './model.js';
+import {clone,validateState,prepareImport,topics,freshHouse,houseTopics,rules,problem,MAP_ID,annotationEntries,checklistTargets} from './model.js';
 
 export const MAX_BYTES=50*1024*1024;
 function boundedZip(bytes) {
@@ -42,7 +42,7 @@ export function writeWorkbook(rows) {
 }
 export function exportExcel(houses,template=false) {
   const rows=[headers];
-  for(const h of houses)for(const t of houseTopics(h))for(const f of t.fields){const a=h.answers[f.id]||{};rows.push(['1',template?'house-1':h.id,template?'请填写房源名称':h.name,f.id,t.category,f.label,Array.isArray(a.value)?JSON.stringify(a.value):a.value??'',a.note||'',typeof a.issueFlag==='boolean'?String(a.issueFlag):'',a.otherText||'',(h.media||[]).filter(m=>m.fieldId===f.id).map(m=>m.id+(m.type==='video'?'.mp4':'.jpg')).join('、')]);}
+  for(const h of houses)for(const {topic:t,field:f} of [...houseTopics(h).flatMap(t=>t.fields.map(field=>({topic:t,field}))),...annotationEntries(h)]){if(f.annotation&&(template||!h.answers[f.id]&&!(h.media||[]).some(m=>m.fieldId===f.id)))continue;const a=h.answers[f.id]||{};rows.push(['1',template?'house-1':h.id,template?'请填写房源名称':h.name,f.id,t.category,f.label,Array.isArray(a.value)?JSON.stringify(a.value):a.value??'',a.note||'',typeof a.issueFlag==='boolean'?String(a.issueFlag):'',a.otherText||'',(h.media||[]).filter(m=>m.fieldId===f.id).map(m=>m.id+(m.type==='video'?'.mp4':'.jpg')).join('、')]);}
   return writeWorkbook(rows);
 }
 const array=x=>x===undefined?[]:Array.isArray(x)?x:[x];
@@ -60,9 +60,9 @@ export function readExcel(bytes) {
     if(!row.some(Boolean))continue;
     const [version,id,name,fieldId,,label,value='',note='',flag='',otherText='']=row;
     if(version!=='1'||!id||!name)throw Error('缺少格式版本、房源编号或名称');
-    const f=fields.find(f=>f.id===fieldId);if(!f)throw Error('未知字段：'+(label||fieldId));
     if(!houses.has(id))houses.set(id,freshHouse(name));
-    const h=houses.get(id);if(h.answers[fieldId])throw Error('同一房源有重复字段：'+f.label);
+    const h=houses.get(id),f=checklistTargets(h).find(f=>f.id===fieldId);if(!f)throw Error('未知字段：'+(label||fieldId));
+    if(f.annotation&&(value||otherText))throw Error('父级节点不能填写结果');if(h.answers[fieldId])throw Error('同一房源有重复字段：'+f.label);
     let parsed=value;
     if(f.multiple&&value){try{parsed=JSON.parse(value);}catch{throw Error(f.label+'请使用 JSON 数组格式');}if(!Array.isArray(parsed))throw Error(f.label+'多选格式错误');}
     const options=rules.choiceOptions(f);

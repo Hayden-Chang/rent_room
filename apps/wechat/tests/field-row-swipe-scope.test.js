@@ -90,7 +90,7 @@ it('navigation dismisses and switches in one tap, and hide/scroll dismiss withou
 });
 it('outside dismissal selects actual custom components with a supported class selector',()=>{
  const markup=fs.readFileSync('src/pages/detail/index.wxml','utf8');
- const components=[...markup.matchAll(/<field-row\b([^>]+)>/g)];expect(components).toHaveLength(2);
+ const components=[...markup.matchAll(/<field-row\b([^>]+)>/g)];expect(components).toHaveLength(4);
  for(const [,attrs] of components)expect(attrs).toMatch(/class="field-row"/);
  expect(fs.readFileSync('src/pages/detail/index.js','utf8')).toContain("selectAllComponents?.('.field-row')");
 });

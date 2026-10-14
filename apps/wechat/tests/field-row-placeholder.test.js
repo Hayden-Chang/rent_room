@@ -7,11 +7,11 @@ function field(value='',otherText=''){
  const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'area',type:'n',value,otherText}},events:[],setData(v){Object.assign(this.data,v);},triggerEvent(name,detail){this.events.push({name,detail});}};
  for(const [prop,v] of [['field.value',value],['field.otherText',otherText]])spec.observers?.[prop]?.call(c,v);
  return {c,placeholder(which='value'){
-  const tag=markup.match(which==='value'?/<input wx:else\b[^>]+>/:/<input wx:if="\{\{field.other\}\}"[^>]+>/)[0];
+  const tag=markup.match(which==='value'?/<input wx:elif="\{\{!field.heading&&!field.map\}\}"[^>]+>/:/<input wx:if="\{\{field.other\}\}"[^>]+>/)[0];
   const p=tag.match(/placeholder="([^"]*)"/)[1];
   return p.startsWith('{{')?vm.runInNewContext(p.slice(2,-2),c.data):p;
  },send(event,value='',which='value'){
-  const tag=markup.match(which==='value'?/<input wx:else\b[^>]+>/:/<input wx:if="\{\{field.other\}\}"[^>]+>/)[0];
+  const tag=markup.match(which==='value'?/<input wx:elif="\{\{!field.heading&&!field.map\}\}"[^>]+>/:/<input wx:if="\{\{field.other\}\}"[^>]+>/)[0];
   const handler=tag.match(new RegExp('bind'+event+'="([^"]+)"'))?.[1];
   if(handler)c[handler]({detail:{value},currentTarget:{dataset:{input:which}}});
  }};
