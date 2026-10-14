@@ -56,3 +56,13 @@ WECHAT_NODE=/本机/Node24/node python3 scripts/wechat-pool/pool.py --root /Volu
 在 `05be493` 上修改详情WXML/WXSS和UI脚本后，重新运行上述 build/check，以及 `issue-editor`、`detail-navigation`、`media-caption`、`runtime` 四个测试文件：35项通过，日志 `apps/wechat/artifacts/issue-floating-button.log`；官方wcc 11模板、wcsc 9样式通过，9页面、1254246字节。业务处理、媒体、存储和数据格式未修改，其余测试复用上一候选证据。此次低影响布局调整没有新增镜像实现的测试。
 
 共享实例池维护通知要求暂缓GUI/SDK测试，本次未使用旧runner启动实例；没有新增实际截图或触摸通过证据。按钮位置待扫码查看，前一版已确认的范围不重复请求批准。保持草稿PR，未合入或发布。
+
+## 2026-10-14 最终验收与主线整合
+
+用户查看 `15e8a34` 对应预览后明确反馈「看了，没问题，合入吧」，确认本次右下角按钮并授权合入。此前表单和直接预览也已确认；这记录为用户验收，不声称新增GUI自动化或Android通过证据。按当前明确授权继续合入，保留工具池维护导致UI脚本未执行的证据限制。
+
+合入前主线前进至 `a7a08b631a1d5fc34bb82dcf2962179f7dc83210`（清单整行左滑、快速短甩及备注键盘避让）。仅详情WXSS尾部追加样式发生文本冲突，解决方式是同时保留问题预览样式和主线note-sheet样式。详情JS/WXML自动组合经审查保留两边逻辑，独立问题页、问题数据规则和已批准的新建按钮行为不变。
+
+组合后从 apps/wechat 重新构建并运行官方检查：9页面、1257678字节，wcc 11模板/wcsc 9样式通过。增量Vitest选择 issue-editor、platform、files、runtime、media-caption、detail-navigation、speed-test-page，以及交叉边界 note-keyboard、field-row-swipe、field-row-events、field-row-swipe-scope，共128项通过；另 model 的 durable store and migrations 8项通过、12项未选。共136项通过，未跑全量。日志为 `artifacts/issue-merge-final.log` 与 `artifacts/issue-merge-store.log`。
+
+本次增加选择的理由：主线更改同一详情页的滚动关闭与备注键盘状态，组件手势事件路由会影响问题列表中的field-row；测试覆盖这些直接消费者，保证组合没有丢失主线行为。新建/编辑/预览的GUI脚本仍因实例池维护未执行，不把VM测试或用户验收记成自动化成功。主 agent 最终审查无阻断发现，用户已确认范围不重复索要批准；仅合入代码，不上传正式版。

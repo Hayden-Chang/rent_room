@@ -13,18 +13,23 @@ function nodes(path){
  return out;
 }
 const has=(n,c)=>(n.attrs.class||'').split(' ').includes(c);
-it('moves and reveals actions only within the description, keeping answers and attachments outside',()=>{
+it('keeps all primary answers inside one full-row gesture scope without catching native touchstart',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
  const label=all.find(n=>has(n,'label')),tray=all.find(n=>has(n,'swipe-tray'));
  const shell=all.find(n=>has(n,'swipe-shell'));
  expect(label.parents).toContain(shell);expect(tray.parents).toContain(shell);
- const content=all.filter(n=>['choices','input','note','thumbs'].some(c=>has(n,c))||['picker','map'].includes(n.tag));
- expect(content.length).toBeGreaterThan(5);
- for(const n of content){
-  expect(n.parents.some(p=>has(p,'swipe-shell'))).toBe(false);
-  expect([n,...n.parents].some(p=>p.attrs.style?.includes('translate3d'))).toBe(false);
-  expect([n,...n.parents].some(p=>p.attrs.bindtouchstart==='start'||p.attrs.catchtouchstart==='start')).toBe(false);
+ expect(label.parents.some(p=>p.attrs.style?.includes('translate'))).toBe(false);
+ expect(tray.attrs.style).toContain('132+offset');
+ const answers=all.filter(n=>has(n,'choices')||n.tag==='picker'||n.tag==='input'&&!has(n,'other'));
+ expect(answers.length).toBeGreaterThan(2);
+ for(const n of answers)expect(n.parents).toContain(shell);
+ expect(shell.attrs.bindtouchstart).toBe('start');
+ for(const n of answers){
+  expect([n,...n.parents].some(p=>p.attrs.catchtouchstart)).toBe(false);
  }
+ const attachments=all.filter(n=>['note','thumbs','other'].some(c=>has(n,c))||n.tag==='address-picker');
+ expect(attachments.length).toBeGreaterThan(2);
+ for(const n of attachments)expect(n.parents).not.toContain(shell);
 });
 it('right-swipe handling includes the exposed action buttons',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
@@ -61,7 +66,7 @@ it('the first group answer tap closes the open menu and preserves the answer',()
  page.selectAllComponents=()=>[row];page.group({currentTarget:{dataset:{id:'g',op:'value',value:'否'}}});
  expect(row.data.actions).toBe(false);expect(mutations).toBe(0);
 });
-it('answer-area touch dismisses once, never starts a drag, and permits the next choice',()=>{
+it('attachment-area touch dismisses once, never starts a drag, and permits the next choice',()=>{
  const create=rows(),a=create('a'),b=create('b');a.reveal();b.bodyStart();
  expect(a.data.actions).toBe(false);expect(b.gesture).toBeUndefined();
  b.choose({currentTarget:{dataset:{value:'否'}}});expect(b.events).toEqual([]);
@@ -77,7 +82,7 @@ it('the gesture-ending tap leaves the menu open, while a fresh title tap closes 
  c.start(point(30));c.end(point(30));c.tapHead();expect(c.data.actions).toBe(false);
 });
 it('navigation dismisses and switches in one tap, and hide/scroll dismiss without changing field content',async()=>{
- let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;},wx:{hideKeyboard(){},pageScrollTo({complete}){complete();}},setTimeout,clearTimeout});
+ let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;},setTimeout,clearTimeout,wx:{hideKeyboard(){},pageScrollTo({complete}){complete();}}});
  const row=rows()('a'),before=JSON.stringify(row.data.field);page.selectAllComponents=()=>[row];page.setData=(v,cb)=>{Object.assign(page.data,v);cb?.();};page.refresh=(v,cb)=>page.setData(v,cb);page.tabPositions={};page.measureTab=async()=>({scrollTop:0,rows:[]});
  row.reveal();await page.tab({currentTarget:{dataset:{value:'影像'}}});expect(row.data.actions).toBe(false);expect(page.data.tab).toBe('影像');
  for(const event of ['onPageScroll','onHide']){row.reveal();page[event]();expect(row.data.offset).toBe(0);}
@@ -88,4 +93,14 @@ it('outside dismissal selects actual custom components with a supported class se
  const components=[...markup.matchAll(/<field-row\b([^>]+)>/g)];expect(components).toHaveLength(2);
  for(const [,attrs] of components)expect(attrs).toMatch(/class="field-row"/);
  expect(fs.readFileSync('src/pages/detail/index.js','utf8')).toContain("selectAllComponents?.('.field-row')");
+});
+
+it('page scroll noise does not cancel an undecided or horizontal gesture, but a new vertical scroll dismisses',()=>{
+ let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;}});
+ const c=rows()('a');page.selectAllComponents=()=>[c];
+ c.start(point(250));page.onPageScroll();expect(c.gesture).toBeTruthy();
+ c.move(point(200));page.onPageScroll();expect(c.gesture?.axis).toBe('x');
+ c.end(point(200));page.onPageScroll();expect(c.data.actions).toBe(true);
+ c.start(point(250));c.move({touches:[{clientX:248,clientY:100}]});
+ page.onPageScroll();expect(c.data.actions).toBe(false);expect(c.gesture).toBeNull();
 });

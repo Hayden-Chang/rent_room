@@ -1,5 +1,7 @@
 import {SPEED_FIELD_ID} from '../../lib/speed-test.js';
 const ACTION_WIDTH=132;
+const TOUCH_SLOP=8,SWIPE_DISTANCE=20,FLICK_SPEED=0.3,VELOCITY_WINDOW=100;
+const touchTime=e=>Number.isFinite(e.timeStamp)?e.timeStamp:Date.now();
 const hasContent=value=>value!==undefined&&value!==null&&String(value).length>0;
 let activeRow=null;
 Component({
@@ -14,30 +16,55 @@ Component({
    this.suppressTapUntil=0;this.dismissedTouch=!!(activeRow&&activeRow!==this);
    if(this.dismissedTouch)activeRow.closeSwipe();
    if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
-   const p=e.touches[0];this.gesture={x:p.clientX,y:p.clientY,base:this.data.offset,axis:'',dx:0};
+   const p=e.touches[0],dataset=e.currentTarget?.dataset||{};
+   this.gesture={x:p.clientX,y:p.clientY,base:this.data.offset,axis:'',dx:0,startedAt:Date.now(),samples:[{x:p.clientX,at:touchTime(e)}],trayAction:this.data.actions&&dataset.tray?dataset.action:null};
   },
   move(e){
    const g=this.gesture;if(!g||this.data.readonly)return;
    if(e.touches.length!==1){this.cancel();return;}
    const p=e.touches[0],dx=p.clientX-g.x,dy=p.clientY-g.y;g.dx=dx;
-   if(!g.axis){if(Math.max(Math.abs(dx),Math.abs(dy))<8)return;g.axis=Math.abs(dx)>Math.abs(dy)*1.2?'x':'y';}
+   const at=touchTime(e);
+   g.samples=g.samples.filter(p=>at-p.at<=VELOCITY_WINDOW);
+   g.samples.push({x:p.clientX,at});
+   if(!g.axis){
+    const ax=Math.abs(dx),ay=Math.abs(dy);if(Math.max(ax,ay)<TOUCH_SLOP)return;
+    // Wait through an ambiguous diagonal start; only lock a clear direction.
+    if(ax>ay*1.2)g.axis='x';else if(ay>ax*1.2)g.axis='y';
+   }
    if(g.axis!=='x')return;
    activeRow=this;this.setData({dragging:true,offset:Math.max(-ACTION_WIDTH,Math.min(0,g.base+dx))});
   },
   end(e){
    const g=this.gesture;if(!g)return;
-   // Some devices coalesce a quick flick into start/end without a move event.
-   if(!g.axis&&e.changedTouches?.length)this.move({touches:e.changedTouches});
+   // Include release coordinates/time even when the last move was coalesced.
+   if(e.changedTouches?.length)this.move({touches:e.changedTouches,timeStamp:e.timeStamp});
+   if(this.gesture!==g)return;
+   const p=e.changedTouches?.length===1?e.changedTouches[0]:null;
+   const shortTrayTouch=g.trayAction&&!g.axis&&p&&Math.max(Math.abs(p.clientX-g.x),Math.abs(p.clientY-g.y))<TOUCH_SLOP&&Date.now()-g.startedAt<350;
    if(g.axis==='x'){
     this.suppressTapUntil=Date.now()+250;
-    const open=g.dx<-36?true:g.dx>36?false:g.base<0;
+    const first=g.samples[0],last=g.samples[g.samples.length-1],elapsed=last.at-first.at;
+    // Recent velocity admits short flicks, expires after a pause and respects reversals.
+    const velocity=p&&elapsed>0?(last.x-first.x)/elapsed:0;
+    const flick=Math.abs(g.dx)>=TOUCH_SLOP&&Math.abs(velocity)>=FLICK_SPEED;
+    const open=flick?velocity<0:g.dx<=-SWIPE_DISTANCE?true:g.dx>=SWIPE_DISTANCE?false:g.base<0;
     if(open)this.reveal();else this.closeSwipe();
    }else this.setData({dragging:false});
    this.gesture=null;
+   // Phone traces can contain start/end without a native tap. Only a fresh,
+   // stationary short touch on an already exposed action may activate here.
+   if(shortTrayTouch)this.trayAction({currentTarget:{dataset:{action:g.trayAction}}});
+   // Ignore a later synthetic tap, including after the row is reopened.
+   if(g.trayAction)this.suppressTapUntil=Date.now()+350;
   },
   cancel(){this.closeSwipe();},
   reveal(){if(this.data.readonly)return;if(activeRow&&activeRow!==this)activeRow.closeSwipe();activeRow=this;this.setData({actions:true,offset:-ACTION_WIDTH,dragging:false});},
   closeSwipe(){this.gesture=null;if(activeRow===this)activeRow=null;if(this.data.offset||this.data.actions||this.data.dragging)this.setData({actions:false,offset:0,dragging:false});},
+  closeOnScroll(){
+   // Native scroll notifications can lag behind touchmove and touchend.
+   // A fresh vertical gesture clears tap suppression in start and dismisses normally.
+   if(this.gesture?this.gesture.axis==='y':Date.now()>=(this.suppressTapUntil||0))this.closeSwipe();
+  },
   bodyStart(){this.suppressTapUntil=0;this.dismissedTouch=!!activeRow;if(activeRow)activeRow.closeSwipe();},
   consumeDismissal(){const dismissed=this.dismissedTouch||this.data.actions||Date.now()<(this.suppressTapUntil||0);this.dismissedTouch=false;if(dismissed)this.closeSwipe();return dismissed;},
   tapHead(){if(Date.now()>=(this.suppressTapUntil||0))this.closeSwipe();},
@@ -46,7 +73,7 @@ Component({
   handleInputFocus(e){if(activeRow)activeRow.closeSwipe();this.setData({[e.currentTarget.dataset.input+'Focused']:true});},
   handleInputBlur(e){const key=e.currentTarget.dataset.input;this.setData({[key+'Focused']:false,[key+'Filled']:hasContent(e.detail.value)});},
   input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
-  choose(e){if(this.consumeDismissal())return;if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
+  choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
   trayAction(e){
    if(this.data.readonly||!this.data.actions||Date.now()<(this.suppressTapUntil||0))return;
    const action=e.currentTarget.dataset.action;if(!['flag','note','media'].includes(action))return;
