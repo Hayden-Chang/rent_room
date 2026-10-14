@@ -2,6 +2,7 @@ import {createPlaces} from './places.js';
 import {createStore} from './store.js';
 import {uid,clone,prepareImport,emptyState,freshHouse} from './model.js';
 import {makeBackup,readBackup,readExcel,exportExcel,MAX_BYTES} from './files.js';
+import {writeIssue} from './issues.js';
 
 export function createPlatform(wx) {
   const fs=wx.getFileSystemManager(),root=wx.env.USER_DATA_PATH+'/'+(typeof __TEST_DATA_ROOT__==='undefined'?'xunju':__TEST_DATA_ROOT__),current=root+'/state.json',previous=root+'/previous.json';
@@ -15,13 +16,26 @@ export function createPlatform(wx) {
   const store=createStore(adapter);
   const api=(name,args={})=>new Promise((resolve,reject)=>wx[name]({...args,success:resolve,fail:reject}));
   async function chooseMedia(houseId,fieldId='') {
+    const saved=await stageIssueMedia(houseId,fieldId);
+    try{store.edit(houseId,h=>h.media.push(...saved));}
+    catch(error){discardIssueMedia(saved);throw error;}
+  }
+  async function stageIssueMedia(houseId,fieldId='') {
+    if(!store.house(houseId))throw Error('房源不存在');
     if(store.house(houseId)?.archived)throw Error('归档房源只读');
     const res=await api('chooseMedia',{count:9,mediaType:['image','video'],sourceType:['album','camera'],maxDuration:60,sizeType:['compressed']});
     const saved=[];
     try{
       for(const item of res.tempFiles){if(item.size>MAX_BYTES)throw Error('单个影像不能超过 50 MB');const id=uid(),type=item.fileType==='video'?'video':'image',path=root+'/media/'+id+(type==='video'?'.mp4':'.jpg');fs.copyFileSync(item.tempFilePath,path);saved.push({id,type,path,fieldId,size:item.size||0,duration:item.duration||0,createdAt:new Date().toISOString()});}
-      store.edit(houseId,h=>h.media.push(...saved));
+      return saved;
     }catch(e){for(const m of saved)if(!store.house(houseId)?.media.some(x=>x.id===m.id))try{fs.unlinkSync(m.path);}catch{}throw e;}
+  }
+  function discardIssueMedia(media) {
+    for(const item of media)if(item.path.startsWith(root+'/media/')&&!store.get().houses.some(h=>h.media.some(m=>m.path===item.path)))try{fs.unlinkSync(item.path);}catch{}
+  }
+  function saveIssue(houseId,id,draft,isNew) {
+    for(const item of draft.media)if(!exists(item.path))throw Error('影像文件已不可用，请移除后重新选择');
+    store.edit(houseId,h=>writeIssue(h,id,draft,isNew),true);
   }
   async function exportFile(kind,houseId) {
     if(store.status().blocked)throw Error('当前记录读取失败，请先恢复后再导出');
@@ -54,7 +68,7 @@ export function createPlatform(wx) {
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,api,places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,exportFile,selectImport,commitImport,removeHouse,root,
+  return {store,api,places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }

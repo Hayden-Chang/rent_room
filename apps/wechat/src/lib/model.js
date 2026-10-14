@@ -150,7 +150,8 @@ export function validateState(state) {
     if(h.templateTopics&&!rules.validTopics(h.templateTopics))throw Error('清单模板无效');
     if(h.extras&&(!Array.isArray(h.extras)||h.extras.length&&!rules.validTopics(h.extras)))throw Error('自定义检查项无效');
     if(h.media&&(!Array.isArray(h.media)||h.media.some(m=>!m||typeof m.id!=='string'||!['image','video'].includes(m.type)||typeof m.path!=='string'||m.caption!==undefined&&(typeof m.caption!=='string'||m.caption.length>10000))))throw Error('影像数据无效');
-    if(h.issues&&(!Array.isArray(h.issues)||h.issues.some(i=>!i||typeof i.id!=='string'||typeof i.title!=='string')))throw Error('问题数据无效');
+    if(h.issues&&(!Array.isArray(h.issues)||h.issues.some(i=>!i||typeof i.id!=='string'||typeof i.title!=='string'||i.note!==undefined&&(typeof i.note!=='string'||i.note.length>10000))))throw Error('问题数据无效');
+    if((h.media||[]).some(m=>m.issueId!==undefined&&(typeof m.issueId!=='string'||m.issueId&&!h.issues?.some(i=>i.id===m.issueId))))throw Error('影像所属问题无效');
     if(h.groups&&(typeof h.groups!=='object'||Array.isArray(h.groups)))throw Error('分组数据无效');
     if(Object.values(h.groups||{}).some(g=>!g||typeof g!=='object'||Array.isArray(g)))throw Error('分组状态无效');
     if(['address','summary','decision'].some(k=>h[k]!==undefined&&typeof h[k]!=='string'))throw Error('房源文字数据无效');

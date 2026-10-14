@@ -1,4 +1,5 @@
 import {SPEED_FIELD_ID} from '../../lib/speed-test.js';
+import {mediaWithIssues} from '../../lib/issues.js';
 import {applyPlace} from '../../lib/places.js';
 import {coachSteps,coachMethods} from '../../lib/onboarding.js';
 import {stats,formView,houseTopics,rules,problem,activeEntries,answer,fieldView,MAP_ID,uid,freshHouse} from '../../lib/model.js';
@@ -18,7 +19,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
     this.setData({...patch,...this.checklistData(h,view)});
   },
   refresh(patch={},done){const h=this.guideHouse||service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
-    this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:h.media.filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]),saveError:service().store.status().error},done);
+    this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:mediaWithIssues(h).filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]).map(i=>({...i,mediaCount:h.media.filter(m=>m.issueId===i.id).length})),saveError:service().store.status().error},done);
     wx.setNavigationBarTitle({title:h.name});
   },
   retry(){service().store.save();},
@@ -91,14 +92,15 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
     service().store.edit(this.data.id,h=>{const media=h.media.find(m=>m.id===this.data.mediaNoteId);if(!media)throw Error('影像已移除');media.caption=caption;});
     this.refresh();if(!service().store.status().error)this.close();
   });},
-  mediaFilter(e){const mediaType=e.currentTarget.dataset.value;if(mediaType===this.data.mediaType)return;const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}this.setData({mediaType,visibleMedia:h.media.filter(m=>mediaType==='all'||m.type===mediaType)});},
+  mediaFilter(e){const mediaType=e.currentTarget.dataset.value;if(mediaType===this.data.mediaType)return;const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}this.setData({mediaType,visibleMedia:mediaWithIssues(h).filter(m=>mediaType==='all'||m.type===mediaType)});},
   capture(){if(this.dismissSwipe())return;attempt(async()=>{await service().chooseMedia(this.data.id);this.refresh();});},
   preview(e){attempt(()=>service().preview(this.data.visibleMedia,e.currentTarget.dataset.id));},
-  mediaManage(e){attempt(async()=>{if(this.data.house.archived)return;const id=e.currentTarget.dataset.id,res=await service().api('showActionSheet',{itemList:['关联到检查项','取消关联','移除影像']});if(res.tapIndex===0){this.setData({sheet:'link',linkMediaId:id,linkQuery:'',linkFields:houseTopics(this.data.house).flatMap(t=>t.fields).map(f=>({id:f.id,label:f.label}))});}if(res.tapIndex===1)service().store.edit(this.data.id,h=>h.media.find(m=>m.id===id).fieldId='');if(res.tapIndex===2&&await confirm('移除影像','将从房源中移除。原备份不受影响。'))service().store.edit(this.data.id,h=>h.media=h.media.filter(m=>m.id!==id));this.refresh();});},
+  mediaManage(e){attempt(async()=>{if(this.data.house.archived)return;const id=e.currentTarget.dataset.id,media=this.data.house.media.find(m=>m.id===id);if(media?.issueId){this.openIssue({currentTarget:{dataset:{id:media.issueId}}});return;}const res=await service().api('showActionSheet',{itemList:['关联到检查项','取消关联','移除影像']});if(res.tapIndex===0){this.setData({sheet:'link',linkMediaId:id,linkQuery:'',linkFields:houseTopics(this.data.house).flatMap(t=>t.fields).map(f=>({id:f.id,label:f.label}))});}if(res.tapIndex===1)service().store.edit(this.data.id,h=>h.media.find(m=>m.id===id).fieldId='');if(res.tapIndex===2&&await confirm('移除影像','将从房源中移除。原备份不受影响。'))service().store.edit(this.data.id,h=>h.media=h.media.filter(m=>m.id!==id));this.refresh();});},
   linkSearch(e){const q=e.detail.value;this.setData({linkQuery:q,linkFields:houseTopics(this.data.house).flatMap(t=>t.fields).filter(f=>f.label.includes(q)).map(f=>({id:f.id,label:f.label}))});},
   linkMedia(e){attempt(()=>{service().store.edit(this.data.id,h=>h.media.find(m=>m.id===this.data.linkMediaId).fieldId=e.currentTarget.dataset.id);this.close();this.refresh();});},
   selectPlace(e){attempt(()=>{service().store.edit(this.data.id,h=>applyPlace(h,e.detail,MAP_ID));this.refresh();});},
-  addIssue(){if(this.dismissSwipe())return;attempt(async()=>{const title=await prompt('新建问题','描述需要跟进的问题');if(title)service().store.edit(this.data.id,h=>h.issues.push({id:uid(),title,resolved:false}));this.refresh();});},
+  addIssue(){if(this.dismissSwipe()||this.data.house.archived)return;attempt(()=>service().api('navigateTo',{url:'/pages/issue/index?id='+encodeURIComponent(this.data.id)}));},
+  openIssue(e){if(this.dismissSwipe())return;attempt(()=>service().api('navigateTo',{url:'/pages/issue/index?id='+encodeURIComponent(this.data.id)+'&issueId='+encodeURIComponent(e.currentTarget.dataset.id)}));},
   resolve(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>{const i=h.issues.find(i=>i.id===e.currentTarget.dataset.id);i.resolved=!i.resolved;});this.refresh();});},
   decision(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>h.decision=e.currentTarget.dataset.value);this.refresh();});},
   summary(e){attempt(()=>service().store.edit(this.data.id,h=>h.summary=e.detail.value));},
