@@ -50,7 +50,7 @@ const variants=[
     await page.screenshot({path:path.join(out,`${width}-${opened?'open':'closed'}.png`),fullPage:true});
     for(const b of boxes){try{
      assert(b.label.left>=b.field.left-1,`${b.name}: label clipped off the left edge`);
-     if(opened){const inset=b.name==='issue'?8:0;assert(Math.abs(b.tray.right-(b.field.right-inset))<1,`${b.name}: actions are not at the full row trailing edge`);assert(b.label.right<=b.tray.left+1,`${b.name}: actions overlap the label`);assert.deepEqual(b.buttons,[44,44,44]);}
+     if(opened){const inset=b.name==='issue'?8:0;assert(Math.abs(b.tray.right-(b.field.right-inset))<1,`${b.name}: actions are not at the full row trailing edge`);assert(b.label.right<=b.tray.left+1,`${b.name}: actions overlap the label`);assert.deepEqual(b.buttons,[44,44,44]);assert(b.tray.left>=b.shell.left&&b.tray.right<=b.shell.right+1&&b.tray.top>=b.shell.top&&b.tray.bottom<=b.shell.bottom+1,`${b.name}: action targets must stay inside their gesture container`);}
     }catch(e){failures.push({width,opened,message:e.message});}}
     results.push({width,opened,boxes});
    }

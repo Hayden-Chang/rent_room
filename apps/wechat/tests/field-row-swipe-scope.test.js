@@ -13,20 +13,19 @@ function nodes(path){
  return out;
 }
 const has=(n,c)=>(n.attrs.class||'').split(' ').includes(c);
-it('keeps the title stationary and answer gestures outside the swipe surface',()=>{
+it('keeps the title stationary with answers in the swipe surface and attachments outside',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
  const label=all.find(n=>has(n,'label')),tray=all.find(n=>has(n,'swipe-tray'));
  const shell=all.find(n=>has(n,'swipe-shell'));
  expect(label.parents).toContain(shell);expect(tray.parents).toContain(shell);
  expect(label.parents.some(p=>p.attrs.style?.includes('translate'))).toBe(false);
  expect(tray.attrs.style).toContain('132+offset');
- const content=all.filter(n=>['choices','input','note','thumbs'].some(c=>has(n,c))||['picker','map'].includes(n.tag));
- expect(content.length).toBeGreaterThan(5);
- for(const n of content){
-  expect(n.parents.some(p=>has(p,'swipe-shell'))).toBe(false);
-  expect([n,...n.parents].some(p=>p.attrs.style?.includes('translate3d'))).toBe(false);
-  expect([n,...n.parents].some(p=>p.attrs.bindtouchstart==='start'||p.attrs.catchtouchstart==='start')).toBe(false);
- }
+ const answers=all.filter(n=>has(n,'choices')||n.tag==='picker'||n.tag==='input'&&!has(n,'other'));
+ expect(answers.length).toBeGreaterThan(2);
+ for(const n of answers)expect(n.parents).toContain(shell);
+ const attachments=all.filter(n=>['note','thumbs','other'].some(c=>has(n,c))||n.tag==='address-picker');
+ expect(attachments.length).toBeGreaterThan(2);
+ for(const n of attachments)expect(n.parents).not.toContain(shell);
 });
 it('right-swipe handling includes the exposed action buttons',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
@@ -63,7 +62,7 @@ it('the first group answer tap closes the open menu and preserves the answer',()
  page.selectAllComponents=()=>[row];page.group({currentTarget:{dataset:{id:'g',op:'value',value:'否'}}});
  expect(row.data.actions).toBe(false);expect(mutations).toBe(0);
 });
-it('answer-area touch dismisses once, never starts a drag, and permits the next choice',()=>{
+it('attachment-area touch dismisses once, never starts a drag, and permits the next choice',()=>{
  const create=rows(),a=create('a'),b=create('b');a.reveal();b.bodyStart();
  expect(a.data.actions).toBe(false);expect(b.gesture).toBeUndefined();
  b.choose({currentTarget:{dataset:{value:'否'}}});expect(b.events).toEqual([]);

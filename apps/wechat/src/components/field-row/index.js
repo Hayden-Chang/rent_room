@@ -45,7 +45,7 @@ Component({
   handleInputFocus(e){if(activeRow)activeRow.closeSwipe();this.setData({[e.currentTarget.dataset.input+'Focused']:true});},
   handleInputBlur(e){const key=e.currentTarget.dataset.input;this.setData({[key+'Focused']:false,[key+'Filled']:hasContent(e.detail.value)});},
   input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
-  choose(e){if(this.consumeDismissal())return;if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
+  choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
   trayAction(e){
    if(this.data.readonly||!this.data.actions||Date.now()<(this.suppressTapUntil||0))return;
    const action=e.currentTarget.dataset.action;if(!['flag','note','media'].includes(action))return;
