@@ -10,7 +10,7 @@ function fixture(){
  const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'floor',inline:true,value:'是'},readonly:false},events:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){this.events.push({name,detail});}};
  const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
  function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
- const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass));
+ const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass)&&(klass!=='choice'||!n.attrs.class.includes(' skip ')));
  function dispatch(target,type,x=100,y=50,extra={}){
   const caught=[],path=[...target.parents,target];
   const resolve=value=>value?.startsWith('{{')?vm.runInNewContext(value.slice(2,-2),c.data):value;
@@ -145,4 +145,22 @@ it('the merged speed-test button taps normally and swipes with the full row',()=
  expect(c.events).toEqual([{name:'action',detail:{id:'floor',action:'speed-test'}}]);
  c.events=[];dispatch(button,'touchstart',250);dispatch(button,'touchmove',225);dispatch(button,'touchend',225);dispatch(button,'tap',225);
  expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
+});
+
+it.each(['category','group'])('%s heading swipes, folds only on a fresh title tap, and keeps controls separate',heading=>{
+ const {c,find,dispatch}=fixture();c.data.field={...c.data.field,heading,foldId:'parent',expanded:false};
+ const label=find('label');dispatch(label,'touchstart',250);dispatch(label,'touchmove',225);dispatch(label,'touchend',225);dispatch(label,'tap',225);
+ expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
+ dispatch(label,'touchstart');dispatch(label,'touchend');dispatch(label,'tap');expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
+ dispatch(label,'touchstart');dispatch(label,'touchend');dispatch(label,'tap');expect(c.events).toEqual([{name:'fold',detail:{id:'parent',expanded:false}}]);
+ c.events=[];const choice=find('choice');dispatch(choice,'touchstart');dispatch(choice,'touchend');dispatch(choice,'tap');
+ expect(c.events).toEqual([{name:'group',detail:{id:'parent',op:'value',value:'否'}}]);
+ c.events=[];const skip=find('skip');dispatch(skip,'touchstart');dispatch(skip,'touchend');dispatch(skip,'tap');
+ expect(c.events).toEqual([{name:'group',detail:{id:'parent',op:'skip'}}]);
+});
+it('the map header swipes while map dragging remains outside the recognizer',()=>{
+ const {c,find,findTag,dispatch}=fixture();c.data.field.map=true;
+ dispatch(find('label'),'touchstart',250);dispatch(find('label'),'touchmove',225);dispatch(find('label'),'touchend',225);expect(c.data.actions).toBe(true);
+ const map=findTag('address-picker');dispatch(map,'touchstart',250);dispatch(map,'touchmove',150);dispatch(map,'touchend',150);
+ expect(c.data.actions).toBe(false);expect(c.gesture).toBeFalsy();expect(c.events).toEqual([]);
 });

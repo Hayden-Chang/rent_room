@@ -29,6 +29,11 @@ function render(nodes,scope){
 }
 function state(field,opened){let spec;vm.runInNewContext(fs.readFileSync(base+'/index.js','utf8'),{Component:s=>spec=s,Date});const c={...spec.methods,data:{...structuredClone(spec.data),field,speedTest:field.name==='speed',readonly:false,hideDivider:false},setData:p=>Object.assign(c.data,p)};if(opened)c.reveal();return c.data;}
 const variants=[
+ {name:'category',inline:true,heading:'category',label:'房源基本信息',stats:{done:2,total:12,issues:1},expanded:false},
+ {name:'group',inline:true,heading:'group',label:'墙面与天花板',expanded:false},
+ {name:'presence',inline:true,heading:'group',label:'电梯正常',options:['是','否','没有'],expanded:true},
+ {name:'skippable',inline:true,heading:'group',label:'停车充电正常',skippable:true,options:['是','否'],expanded:false},
+ {name:'map',map:true,inline:false,label:'地图（和地址联动）'},
  {name:'binary',inline:true,label:'非顶楼',options:['是','否']},
  {name:'ternary',inline:true,label:'电梯正常',options:['是','否','没有']},
  {name:'speed',inline:true,label:'实测网速',type:'n',value:88},
@@ -46,7 +51,7 @@ const variants=[
    for(const opened of [false,true]){
     const html=`<style>body{margin:16px;font-family:Arial}button{border:0;box-sizing:border-box}span{display:inline}img{object-fit:contain}${fs.readFileSync(base+'/index.wxss','utf8')}*{transition:none!important}</style>`+variants.map(f=>`<section data-case="${f.name}">${render(tree,state(f,opened))}</section>`).join('');
     const file=path.join(out,`${width}-${opened?'open':'closed'}.html`);fs.writeFileSync(file,html);await page.goto('file://'+file);
-    for(const f of variants){const row=page.locator(`[data-case="${f.name}"]`);assert.equal(await row.locator('.choice').count(),f.options.length);assert.equal(await row.locator('input').count(),f.options.length?0:1);}
+    for(const f of variants){const row=page.locator(`[data-case="${f.name}"]`);assert.equal(await row.locator('.choice').count(),f.options.length+(f.skippable?1:0));assert.equal(await row.locator('input').count(),f.options.length||f.heading||f.map?0:1);}
     const boxes=await page.locator('section').evaluateAll(rows=>rows.map(row=>{const rect=s=>{const r=row.querySelector(s).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};return {name:row.dataset.case,field:rect('.field'),label:rect('.label'),tray:rect('.swipe-tray'),shell:rect('.swipe-shell'),speed:row.querySelector('.speed-entry')?{entry:rect('.speed-entry'),input:rect('.speed-entry .input'),trigger:rect('.speed-trigger')}:null,buttons:[...row.querySelectorAll('.swipe-action')].map(b=>b.getBoundingClientRect().width)};}));
     await page.screenshot({path:path.join(out,`${width}-${opened?'open':'closed'}.png`),fullPage:true});
     for(const b of boxes){try{
@@ -59,5 +64,5 @@ const variants=[
   }
   for(const width of [320,390,430]){const closed=results.find(r=>r.width===width&&!r.opened),opened=results.find(r=>r.width===width&&r.opened);for(let i=0;i<variants.length;i++)assert.equal(opened.boxes[i].field.height,closed.boxes[i].field.height,'opening must not expand the row');}
  }finally{await browser.close();}
- fs.writeFileSync(path.join(out,'geometry.json'),JSON.stringify({results,failures},null,2));assert.deepEqual(failures,[]);console.log('48 component layout states passed: title visibility, trailing alignment, 44px targets, stable row height.');
+ fs.writeFileSync(path.join(out,'geometry.json'),JSON.stringify({results,failures},null,2));assert.deepEqual(failures,[]);console.log('78 component layout states passed: title visibility, trailing alignment, 44px targets, stable row height.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

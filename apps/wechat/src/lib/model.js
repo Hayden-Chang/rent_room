@@ -30,7 +30,7 @@ export function answer(h,f) {
   if(f.groupRole&&f.groupRole!=='permission')return {value:rules.groupAnswer(h,f.groupId)[f.groupRole]||''};
   return h.answers[f.id]||{};
 }
-export function problem(f,a={}) {return typeof a.issueFlag==='boolean'?a.issueFlag:rules.isProblem(f,a);}
+export function problem(f,a={}) {return typeof a.issueFlag==='boolean'?a.issueFlag:f.annotation?!!f.inheritedIssue:rules.isProblem(f,a);}
 export function activeEntries(h,options) {
   const ts=houseTopics(h);
   const list=ts.filter(t=>rules.topicActive(t,h,options)).flatMap(t=>t.fields.filter(f=>rules.fieldActive(f,h)&&!rules.isPermissionController(t,f)).map(field=>({topic:t,field})));
@@ -47,9 +47,35 @@ export function activeEntries(h,options) {
   }
   return list;
 }
+// Parent annotations use stable namespaced IDs and never become child answers.
+export function annotationEntries(h,ts=houseTopics(h)) {
+  const nodes=new Map(),groups=rules.inspectionGroups(ts);
+  for(const t of ts){
+    const catId='node:category:'+t.category;
+    if(!nodes.has(catId))nodes.set(catId,{topic:t,field:{id:catId,label:t.category,type:'t',fact:true,annotation:'category',foldId:t.category}});
+    const path=t.path||[];
+    for(const g of path.slice(groups.has(path[0]?.id)?0:1)){
+      const id='node:group:'+g.id;
+      if(!nodes.has(id))nodes.set(id,{topic:t,field:{id,label:g.title,type:'t',fact:true,annotation:'group',foldId:g.id}});
+    }
+  }
+  return [...nodes.values()];
+}
+export const checklistTargets=h=>[...houseTopics(h).flatMap(t=>t.fields),...annotationEntries(h).map(e=>e.field)];
+export function issueEntries(h) {
+  const nodes=annotationEntries(h),byId=new Map(nodes.map(e=>[e.field.id,e])),issues=new Map();
+  for(const e of activeEntries(h)){
+    if(!problem(e.field,answer(h,e.field)))continue;
+    const parent=e.field.groupRole&&e.field.groupRole!=='permission'?byId.get('node:group:'+e.field.groupId):null;
+    const item=parent?{...parent,field:{...parent.field,inheritedIssue:true}}:e;
+    if(problem(item.field,answer(h,item.field)))issues.set(item.field.id,item);
+  }
+  for(const e of nodes)if(problem(e.field,answer(h,e.field))&&!issues.has(e.field.id))issues.set(e.field.id,e);
+  return [...issues.values()];
+}
 export function stats(h,category) {
   const entries=activeEntries(h).filter(e=>!category||e.topic.category===category);
-  return {total:entries.length,done:entries.filter(e=>rules.fieldRecorded(e.field,answer(h,e.field))).length,issues:entries.filter(e=>problem(e.field,answer(h,e.field))).length+(category?0:(h.issues||[]).filter(i=>!i.resolved).length)};
+  return {total:entries.length,done:entries.filter(e=>rules.fieldRecorded(e.field,answer(h,e.field))).length,issues:issueEntries(h).filter(e=>!category||e.topic.category===category).length+(category?0:(h.issues||[]).filter(i=>!i.resolved).length)};
 }
 export function inPhase(t,phase) {
   if(!phase||phase==='全部')return true;
@@ -61,18 +87,19 @@ export function matches(h,t,f,view={}) {
   if(!inPhase(t,view.phase))return false;
   if(view.query&&!`${t.category} ${t.title} ${f.label} ${value} ${a.note||''}`.toLowerCase().includes(view.query.toLowerCase()))return false;
   const filters=view.filters||[];
-  return !filters.length||filters.some(s=>({未记录:!rules.fieldRecorded(f,a),已记录:rules.fieldRecorded(f,a),有问题:problem(f,a),有备注:!!a.note,有影像:(h.media||[]).some(m=>m.fieldId===f.id)})[s]);
+  return !filters.length||filters.some(s=>({未记录:!f.annotation&&!rules.fieldRecorded(f,a),已记录:!f.annotation&&rules.fieldRecorded(f,a),有问题:problem(f,a),有备注:!!a.note,有影像:(h.media||[]).some(m=>m.fieldId===f.id)})[s]);
 }
 export function fieldView(h,f) {
   const a=answer(h,f);
-  return {...f,label:rules.isInspectionResult(f)?normalTitle(f.label):f.label,kind:'field',key:'f-'+f.id,value:rules.fieldValue(f,a),display:rules.fieldDisplayValue(f,a),note:a.note||'',photoRef:a.photo||'',otherText:a.otherText||'',other:rules.otherChoiceSelected(f,a),options:rules.choiceOptions(f).map(v=>({value:v,label:rules.isInspectionResult(f)?resultLabel(v):v,selected:rules.choiceSelected(f,a,v)})),problem:problem(f,a),media:(h.media||[]).filter(m=>m.fieldId===f.id),thumbnails:(h.media||[]).filter(m=>m.fieldId===f.id).slice(0,3),map:f.id===MAP_ID,inline:f.id!==MAP_ID&&(!rules.choiceOptions(f).length||rules.compactChoices(f)||['y','c','a'].includes(f.type))};
+  return {...f,heading:f.annotation||'',label:rules.isInspectionResult(f)?normalTitle(f.label):f.label,kind:'field',key:'f-'+f.id,value:rules.fieldValue(f,a),display:rules.fieldDisplayValue(f,a),note:a.note||'',photoRef:a.photo||'',otherText:a.otherText||'',other:rules.otherChoiceSelected(f,a),options:rules.choiceOptions(f).map(v=>({value:v,label:rules.isInspectionResult(f)?resultLabel(v):v,selected:rules.choiceSelected(f,a,v)})),problem:problem(f,a),media:(h.media||[]).filter(m=>m.fieldId===f.id),thumbnails:(h.media||[]).filter(m=>m.fieldId===f.id).slice(0,3),map:f.id===MAP_ID,inline:f.id!==MAP_ID&&(!rules.choiceOptions(f).length||rules.compactChoices(f)||['y','c','a'].includes(f.type))};
 }
 export function formView(h,view={},folds={}) {
   const ts=houseTopics(h),groups=rules.inspectionGroups(ts),filtered=!!view.query||(view.filters||[]).length>0;
-  const detailVisibility={includeUnanswered:true};
+  const issueIds=new Set(issueEntries(h).map(e=>e.field.id));
+  const detailVisibility={includeUnanswered:true},nodes=annotationEntries(h,ts).map(e=>({...e,field:{...e.field,inheritedIssue:issueIds.has(e.field.id)}})),nodeById=new Map(nodes.map(e=>[e.field.id,e.field]));
   const result=[];
   for(const cat of [...new Set(ts.map(t=>t.category))]) {
-    const entries=activeEntries(h,detailVisibility).filter(e=>e.topic.category===cat&&matches(h,e.topic,e.field,view));
+    const entries=[...activeEntries(h,detailVisibility),...nodes].filter(e=>e.topic.category===cat&&matches(h,e.topic,e.field,view));
     const catTopics=ts.filter(t=>t.category===cat&&inPhase(t,view.phase)&&rules.topicAvailable(t,h));
     if(filtered&&!entries.length||!catTopics.length)continue;
     const root={children:[],map:new Map()};
@@ -92,18 +119,23 @@ export function formView(h,view={},folds={}) {
       if(filtered&&!entries.some(e=>(e.topic.path||[]).some(p=>p.id===n.g.id)))return;
       let options=[],selected='',skipped=false;
       if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?['正常','有问题','没有']:g.aggregate?['是','否']:[];}
-      rows.push({kind:'group',key:'g-'+n.g.id,id:n.g.id,title:(g?.aggregate||g?.presence)&&!g.permissionFieldId?normalTitle(n.g.title):n.g.title,depth,expanded,skippable:!!g?.skippable,skipped,options:options.map(value=>({value,label:g?.presence?resultLabel(value):value,selected:value===selected}))});
+      const title=(g?.aggregate||g?.presence)&&!g.permissionFieldId?normalTitle(n.g.title):n.g.title;
+      const choices=options.map(value=>({value,label:g?.presence?resultLabel(value):value,selected:value===selected}));
+      const swipe={...fieldView(h,nodeById.get('node:group:'+n.g.id)),label:title,expanded,skippable:!!g?.skippable,skipped,options:skipped?[]:choices};
+      rows.push({kind:'group',key:'g-'+n.g.id,id:n.g.id,title,depth,expanded,skippable:!!g?.skippable,skipped,options:choices,swipe});
       if(expanded&&!skipped&&(!g||rules.groupAllowsDetails(g,h,detailVisibility)))for(const child of n.children)visit(child,depth+1);
     }
     const expanded=folds[cat]??!!filtered;
     if(expanded)for(const n of root.children)visit(n);
-    result.push({id:'cat-'+result.length,title:cat,expanded,rows,stats:stats(h,cat)});
+    const summary=stats(h,cat),header={...fieldView(h,nodeById.get('node:category:'+cat)),expanded,stats:summary};
+    result.push({id:'cat-'+result.length,title:cat,expanded,rows,stats:summary,header});
   }
   return result;
 }
 export function updateAnswer(h,id,prop,value) {
   if(h.archived)throw Error('归档房源只读，请先还原');
-  const f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===id);if(!f)throw Error('检查项不存在');
+  const f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查项不存在');
+  if(f.annotation&&!['note','issueFlag'].includes(prop))throw Error('父级节点只保存备注与问题标记');
   if(!['value','note','otherText','issueFlag'].includes(prop))throw Error('不支持的修改');
   if(prop==='value'&&f.type==='n'&&value!==''&&(!Number.isFinite(Number(value))||Number(value)<0))throw Error('请填写非负数字');
   h.answers[id]={...(h.answers[id]||{}),[prop]:value};

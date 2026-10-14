@@ -12,7 +12,6 @@ Component({
  methods:{
   selectPlace(e){if(!this.data.readonly)this.triggerEvent('selectplace',e.detail);},
   start(e){
-   if(this.data.field.map)return;
    this.suppressTapUntil=0;this.dismissedTouch=!!(activeRow&&activeRow!==this);
    if(this.dismissedTouch)activeRow.closeSwipe();
    if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
@@ -67,13 +66,18 @@ Component({
   },
   bodyStart(){this.suppressTapUntil=0;this.dismissedTouch=!!activeRow;if(activeRow)activeRow.closeSwipe();},
   consumeDismissal(){const dismissed=this.dismissedTouch||this.data.actions||Date.now()<(this.suppressTapUntil||0);this.dismissedTouch=false;if(dismissed)this.closeSwipe();return dismissed;},
-  tapHead(){if(Date.now()>=(this.suppressTapUntil||0))this.closeSwipe();},
+  tapHead(){
+   if(Date.now()<(this.suppressTapUntil||0))return;
+   if(this.data.field.heading){if(this.consumeDismissal())return;this.triggerEvent('fold',{id:this.data.field.foldId,expanded:!!this.data.field.expanded});}
+   else this.closeSwipe();
+  },
+  skip(){if(Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal()||this.data.readonly)return;this.triggerEvent('group',{id:this.data.field.foldId,op:'skip'});},
   noop(){},
   emit(prop,value){if(!this.data.readonly)this.triggerEvent('answer',{id:this.data.field.id,prop,value});},
   handleInputFocus(e){if(activeRow)activeRow.closeSwipe();this.setData({[e.currentTarget.dataset.input+'Focused']:true});},
   handleInputBlur(e){const key=e.currentTarget.dataset.input;this.setData({[key+'Focused']:false,[key+'Filled']:hasContent(e.detail.value)});},
   input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
-  choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly)this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});},
+  choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly){if(this.data.field.heading)this.triggerEvent('group',{id:this.data.field.foldId,op:'value',value:e.currentTarget.dataset.value});else this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});}},
   trayAction(e){
    if(this.data.readonly||!this.data.actions||Date.now()<(this.suppressTapUntil||0))return;
    const action=e.currentTarget.dataset.action;if(!['flag','note','media'].includes(action))return;
