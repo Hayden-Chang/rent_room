@@ -248,6 +248,10 @@ class PoolTests(unittest.TestCase):
         archive = app / 'Contents/Resources/package.nw/core.wxvpkg'
         archive.parent.mkdir(parents=True)
         archive.write_bytes(b'version-checked-fixture')
+        pool.write_json(archive.parent / 'package.json', {
+            'version': pool.VERSION, 'inject_js_start': 'vendor.js',
+            'window': {'title': 'fixture', 'focus': True}})
+        (archive.parent / 'vendor.js').write_text('globalThis.vendorLoaded = true;')
         for name in ('WeappPlugin', 'WeappVendor'):
             (self.root / 'assets' / name).mkdir(parents=True)
         pool.write_json(self.root / 'seed/hash_key_map_2.json', {})
@@ -260,6 +264,53 @@ class PoolTests(unittest.TestCase):
         pool.write_json(src / 'project.config.json', {'appid': 'fixture-app', 'libVersion': '3.17.3'})
         (src / 'app.js').write_text('App({})')
         return slot, src
+
+    def test_background_policy_is_applied_before_process_launch(self):
+        slot, src = self.resident_fixture()
+        pool.snapshot(src, self.root / 'slots/1/project')
+        package = Path(slot['app']) / 'Contents/Resources/package.nw'
+        with patch.object(pool.subprocess, 'Popen') as spawn, \
+                patch.object(pool, 'free_ports'), \
+                patch.object(pool, 'process_identity', return_value='fixture identity'):
+            spawn.return_value.pid = 123
+            def before_spawn(args, **kwargs):
+                self.assertFalse(pool.read_json(package / 'package.json')['window']['focus'],
+                                 'The first window must not request foreground activation')
+                self.assertEqual(kwargs['env']['WECHAT_POOL_BACKGROUND'], '1')
+                self.assertFalse(pool.read_json(package / 'package.json')['window']['show'])
+                self.assertIn(b'win.focus = () => {}', (package / 'pool-background.cjs').read_bytes())
+                return spawn.return_value
+            spawn.side_effect = before_spawn
+            pool.ensure_runtime(self.root, slot, 'background-regression')
+            spawn.assert_called_once()
+
+    def test_background_startup_preserves_vendor_script_and_is_idempotent(self):
+        slot, _ = self.resident_fixture()
+        package = Path(slot['app']) / 'Contents/Resources/package.nw'
+        original = (package / 'vendor.js').read_bytes()
+        pool.configure_background(slot['app'])
+        once = (package / 'pool-background.cjs').read_bytes()
+        self.assertTrue(once.endswith(original))
+        self.assertEqual((package / 'vendor.js').read_bytes(), original)
+        self.assertEqual(pool.read_json(package / 'package.json')['inject_js_start'], 'pool-background.cjs')
+        self.assertFalse(pool.read_json(package / 'package.json')['window']['focus'])
+        self.assertEqual(pool.read_json(package / 'package.json')['window']['title'], 'fixture')
+        pool.configure_background(slot['app'])
+        self.assertEqual((package / 'pool-background.cjs').read_bytes(), once)
+
+    def test_background_startup_refuses_unknown_edits_and_outside_paths(self):
+        slot, _ = self.resident_fixture()
+        package = Path(slot['app']) / 'Contents/Resources/package.nw'
+        manifest = pool.read_json(package / 'package.json')
+        pool.write_json(package / 'package.json', dict(manifest, inject_js_start='../outside.js'))
+        with self.assertRaisesRegex(RuntimeError, 'inside the pool'):
+            pool.configure_background(slot['app'])
+        pool.write_json(package / 'package.json', manifest)
+        pool.configure_background(slot['app'])
+        (package / 'pool-background.cjs').write_text('unexpected edit')
+        with self.assertRaisesRegex(RuntimeError, 'resource changed'):
+            pool.configure_background(slot['app'])
+        self.assertEqual((package / 'pool-background.cjs').read_text(), 'unexpected edit')
 
     def test_two_jobs_reuse_one_live_process_and_release_the_lease(self):
         slot, src = self.resident_fixture()
@@ -282,6 +333,8 @@ class PoolTests(unittest.TestCase):
                 second = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', 'pass'], 0))
                 self.assertEqual(len(launched), 1, 'Reuse must not spawn a second tool')
                 self.assertEqual(first['runtimePid'], second['runtimePid'])
+                self.assertEqual(pool.read_json(pool.runtime_path(self.root, slot))['backgroundPolicy'],
+                                 pool.BACKGROUND_POLICY)
                 self.assertFalse(first['runtimeReused'])
                 self.assertTrue(second['runtimeReused'])
                 self.assertEqual(first['residentState'], 'idle')
@@ -295,6 +348,14 @@ class PoolTests(unittest.TestCase):
                 lease = pool.try_slot(self.root.resolve(), slot)
                 self.assertIsNotNone(lease, 'Resident must not hold the job lease forever')
                 lease.close()
+                state = pool.read_json(pool.runtime_path(self.root, slot))
+                state.pop('backgroundPolicy')
+                pool.write_json(pool.runtime_path(self.root, slot), state)
+                migrated = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', 'pass'], 0))
+                again = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', 'pass'], 0))
+                self.assertTrue(migrated['projectInitialized'])
+                self.assertNotEqual(migrated['runtimePid'], first['runtimePid'])
+                self.assertEqual(again['runtimePid'], migrated['runtimePid'])
         finally:
             for child in launched:
                 child.kill()

@@ -1,0 +1,762 @@
+{
+  "verified": {
+    "began": 1791950592.0392058,
+    "finished": 1791950669.4148018,
+    "sampleCount": 877,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.012,
+        "asn": "ASN:0x0-0x58e58e:",
+        "info": "\"pid\"=32937\n\"CFBundleIdentifier\"=\"com.openai.codex\""
+      },
+      {
+        "elapsed": 1.84,
+        "asn": "ASN:0x0-0x8aa8aa:",
+        "info": "\"pid\"=47590\n\"CFBundleIdentifier\"=\"com.tencent.webplusdevtools\""
+      },
+      {
+        "elapsed": 24.123,
+        "asn": "ASN:0x0-0x8ab8ab:",
+        "info": "\"pid\"=48067\n\"CFBundleIdentifier\"=[ NULL ]"
+      },
+      {
+        "elapsed": 24.403,
+        "asn": "ASN:0x0-0x8aa8aa:",
+        "info": "\"pid\"=47590\n\"CFBundleIdentifier\"=\"com.tencent.webplusdevtools\""
+      }
+    ],
+    "errors": [],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "receipts": [
+      {
+        "runId": "6eeed5d3e9474ced98ca7139b8d72358",
+        "status": "passed",
+        "runtimePid": 47590,
+        "runtimeReused": false,
+        "residentState": "idle",
+        "runnerHash": "05c6cf57111c130aa421eebe48481b68c7cd0bd1cbc761964ac9cea16d47472e",
+        "error": null
+      },
+      {
+        "runId": "d69ca8b2b5b24b80bf278df50e3a4a6f",
+        "status": "passed",
+        "runtimePid": 47590,
+        "runtimeReused": true,
+        "residentState": "idle",
+        "runnerHash": "05c6cf57111c130aa421eebe48481b68c7cd0bd1cbc761964ac9cea16d47472e",
+        "error": null
+      }
+    ]
+  },
+  "hidden-verified": {
+    "began": 1791950776.985556,
+    "finished": 1791950854.526793,
+    "sampleCount": 873,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.017,
+        "asn": "ASN:0x0-0x6f86f8:",
+        "info": "\"pid\"=56399\n\"CFBundleIdentifier\"=\"com.google.Chrome\""
+      },
+      {
+        "elapsed": 7.757,
+        "asn": "ASN:0x0-0x8ac8ac:",
+        "info": "\"pid\"=49489\n\"CFBundleIdentifier\"=\"com.tencent.webplusdevtools\""
+      }
+    ],
+    "errors": [],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "receipts": [
+      {
+        "runId": "eba99b34ca504bb380944783a5b4a69c",
+        "status": "passed",
+        "runtimePid": 49489,
+        "runtimeReused": false,
+        "residentState": "idle",
+        "runnerHash": "2577fe3718f5ad9cf62835c8d767c84387a27fe1ab9996c8d48292fcb8d57b15",
+        "error": null
+      },
+      {
+        "runId": "22150f9fb3a0440daf2cd2b7fb30a3d2",
+        "status": "passed",
+        "runtimePid": 49489,
+        "runtimeReused": true,
+        "residentState": "idle",
+        "runnerHash": "2577fe3718f5ad9cf62835c8d767c84387a27fe1ab9996c8d48292fcb8d57b15",
+        "error": null
+      }
+    ]
+  },
+  "dedicated-verified": {
+    "began": 1791951054.496211,
+    "finished": 1791951132.380988,
+    "sampleCount": 857,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.012,
+        "asn": "ASN:0x0-0x6f86f8:",
+        "info": "\"pid\"=56399\n\"CFBundleIdentifier\"=\"com.google.Chrome\""
+      },
+      {
+        "elapsed": 6.845,
+        "asn": "ASN:0x0-0x8af8af:",
+        "info": "\"pid\"=51523\n\"CFBundleIdentifier\"=\"com.tencent.webplusdevtools\""
+      }
+    ],
+    "errors": [],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "receipts": [
+      {
+        "runId": "62d0afb9dab24f29921a0276b81ecf83",
+        "status": "passed",
+        "runtimePid": 51523,
+        "runtimeReused": false,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      },
+      {
+        "runId": "e48834cd8aae4d13b6a4e03106a41e6b",
+        "status": "passed",
+        "runtimePid": 51523,
+        "runtimeReused": true,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      }
+    ]
+  },
+  "all-handles-verified": {
+    "began": 1791951331.804994,
+    "finished": 1791951409.789827,
+    "sampleCount": 859,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.012,
+        "asn": "ASN:0x0-0x6f86f8:",
+        "info": "\"pid\"=56399\n\"CFBundleIdentifier\"=\"com.google.Chrome\""
+      },
+      {
+        "elapsed": 7.413,
+        "asn": "ASN:0x0-0x8b18b1:",
+        "info": "\"pid\"=53572\n\"CFBundleIdentifier\"=\"com.tencent.webplusdevtools\""
+      }
+    ],
+    "errors": [],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "receipts": [
+      {
+        "runId": "1cf95daa331449dfac0c7dc5d0741882",
+        "status": "passed",
+        "runtimePid": 53572,
+        "runtimeReused": false,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      },
+      {
+        "runId": "001a7effd3b1477a9b0929479da33d9d",
+        "status": "passed",
+        "runtimePid": 53572,
+        "runtimeReused": true,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      }
+    ]
+  },
+  "context-verified": {
+    "began": 1791951490.638068,
+    "finished": 1791951566.936266,
+    "sampleCount": 843,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.012,
+        "asn": "ASN:0x0-0x6f86f8:",
+        "info": "\"pid\"=56399\n\"CFBundleIdentifier\"=\"com.google.Chrome\""
+      },
+      {
+        "elapsed": 7.038,
+        "asn": "ASN:0x0-0x8b38b3:",
+        "info": "\"pid\"=55382\n\"CFBundleIdentifier\"=\"com.tencent.webplusdevtools\""
+      }
+    ],
+    "errors": [],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "receipts": [
+      {
+        "runId": "a745fe625a1342b2989326e400ac5756",
+        "status": "passed",
+        "runtimePid": 55382,
+        "runtimeReused": false,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      },
+      {
+        "runId": "3191d88d202b467eaf75a7f857c23f51",
+        "status": "passed",
+        "runtimePid": 55382,
+        "runtimeReused": true,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      }
+    ]
+  },
+  "native-verified": {
+    "began": 1791951661.4805472,
+    "finished": 1791951662.5847979,
+    "sampleCount": 11,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.012,
+        "asn": "ASN:0x0-0x6f86f8:",
+        "info": "\"pid\"=56399\n\"CFBundleIdentifier\"=\"com.google.Chrome\""
+      }
+    ],
+    "errors": [],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "receipts": [],
+    "failedRuns": [
+      {
+        "runId": "ca6338fb8e6046e195bf62f8ee173d01",
+        "status": "failed",
+        "runtimePid": null,
+        "error": "Native launch failed: The application /private/tmp/wechat-background-20261014/slots/1/Wechat.app cannot be opened for an unexpected reason, error=Error Domain=RBSRequestErrorDomain Code=5 \"Launch failed.\" UserInfo={NSLocalizedFailureReason=Launch failed., NSUnderlyingError=0xa58c542a0 {Error Domain=NSPOSIXErrorDomain Code=163 \"Unknown error: 163\" UserInfo={NSLocalizedDescription=Launchd job spawn failed}}}\n"
+      }
+    ]
+  },
+  "native-registered-verified": {
+    "began": 1791951764.720146,
+    "finished": 1791951815.4345422,
+    "sampleCount": 529,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.012,
+        "asn": "ASN:0x0-0x6f86f8:",
+        "info": "\"pid\"=56399\n\"CFBundleIdentifier\"=\"com.google.Chrome\""
+      },
+      {
+        "elapsed": 1.732,
+        "asn": "ASN:0x0-0x7d07d:",
+        "info": "\"pid\"=3511\n\"CFBundleIdentifier\"=\"com.apple.UserNotificationCenter\""
+      },
+      {
+        "elapsed": 16.019,
+        "asn": "ASN:0x0-0x3003:",
+        "info": "\"pid\"=444\n\"CFBundleIdentifier\"=\"com.apple.loginwindow\""
+      }
+    ],
+    "errors": [],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "receipts": [],
+    "failedRuns": [
+      {
+        "runId": "c8488cad94cb456fa052f1002c87fa1f",
+        "status": "failed",
+        "runtimePid": 57185,
+        "error": "IDE and internal service were not both ready"
+      }
+    ]
+  },
+  "native-unlocked-verified": {
+    "began": 1791958224.63605,
+    "finished": 1791958328.431681,
+    "sampleCount": 1112,
+    "targetIntervalSeconds": 0.075,
+    "prototypeNativeLaunch": true,
+    "events": [
+      {
+        "elapsed": 0.021,
+        "asn": "ASN:0x0-0x81f81f:",
+        "info": "\"pid\"=116\n\"CFBundleIdentifier\"=\"notion.id\""
+      },
+      {
+        "elapsed": 9.835,
+        "asn": "ASN:0x0-0x8d58d5:",
+        "info": "\"pid\"=66454\n\"CFBundleIdentifier\"=\"local.codex.wechatpool.backgrounddiagnostic\""
+      }
+    ],
+    "errors": [],
+    "receipts": [
+      {
+        "runId": "e11a39cd43e744829cf2ac1de88a2497",
+        "status": "passed",
+        "runtimePid": 66454,
+        "runtimeReused": false,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      },
+      {
+        "runId": "ae6c1e54484643e1892b80708d3b0fad",
+        "status": "passed",
+        "runtimePid": 66454,
+        "runtimeReused": true,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      }
+    ],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ]
+  },
+  "restore-verified": {
+    "began": 1791958550.675837,
+    "finished": 1791958602.9692879,
+    "sampleCount": 584,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.01,
+        "asn": "ASN:0x0-0x81f81f:",
+        "info": "\"pid\"=116\n\"CFBundleIdentifier\"=\"notion.id\""
+      }
+    ],
+    "errors": [],
+    "receipts": [
+      {
+        "runId": "1b67ea87303b477f88e3415c70a0adbf",
+        "status": "failed",
+        "runtimePid": 70766,
+        "runtimeReused": false,
+        "residentState": "quarantined",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": "Command '['node', '/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-background/scripts/wechat-pool/health.cjs']' returned non-zero exit status 1."
+      }
+    ],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ]
+  },
+  "inactive-verified": {
+    "began": 1791958679.617882,
+    "finished": 1791958754.297371,
+    "sampleCount": 860,
+    "targetIntervalSeconds": 0.075,
+    "events": [
+      {
+        "elapsed": 0.013,
+        "asn": "ASN:0x0-0x58e58e:",
+        "info": "\"pid\"=32937\n\"CFBundleIdentifier\"=\"com.openai.codex\""
+      }
+    ],
+    "errors": [],
+    "receipts": [
+      {
+        "runId": "41c730c8efd247668daadff606d15444",
+        "status": "passed",
+        "runtimePid": 72151,
+        "runtimeReused": false,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      },
+      {
+        "runId": "26ad1ee579904aa99893730d1e29b0b3",
+        "status": "passed",
+        "runtimePid": 72151,
+        "runtimeReused": true,
+        "residentState": "idle",
+        "runnerHash": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+        "error": null
+      }
+    ],
+    "productionBefore": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ],
+    "productionAfter": [
+      {
+        "slot": "1",
+        "pid": 35433,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "2",
+        "pid": 30348,
+        "matching": true,
+        "state": "idle"
+      },
+      {
+        "slot": "3",
+        "pid": 31087,
+        "matching": true,
+        "state": "idle"
+      }
+    ]
+  }
+}

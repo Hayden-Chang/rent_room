@@ -19,6 +19,7 @@ import uuid
 
 VERSION = '2.01.2510290'
 CAPACITY = 3
+BACKGROUND_POLICY = 'hidden-v1'
 DIRS = ('WeappCode WeappLog WeappPureSimulatorCache WeappTheming WeappEditor '
         'WeNativeModules WeappRemote WeappSimulator WeappMiniApp WeappHybird '
         'WeappAITemplateCache WeappPluginData WeappMiniCode WebdebuggerVendor '
@@ -438,6 +439,7 @@ def ensure_runtime(root, slot, run_id):
         for name in ('WeappPlugin', 'WeappVendor'):
             shutil.copytree(root / 'assets' / name, profile / name)
     register_project(profile, root / 'slots' / slot['id'] / 'project')
+    configure_background(app)
     args = [str(app / 'Contents/MacOS/wechatdevtools'), str(package), '--cli',
             '--enable-service-port', '--ide-http-port', str(slot['ports']['ide']),
             '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows',
@@ -449,12 +451,45 @@ def ensure_runtime(root, slot, run_id):
         # Resident lifetime exceeds the lease. Inheriting lease.fd would keep
         # the slot locked forever after the first job returns it.
         proc = subprocess.Popen(args, stdout=log, stderr=log, stdin=subprocess.DEVNULL,
-                                start_new_session=True, close_fds=True)
-    state.update(pid=proc.pid, identity=process_identity(proc.pid))
+                                start_new_session=True, close_fds=True,
+                                env=dict(os.environ, WECHAT_POOL_BACKGROUND='1'))
+    state.update(pid=proc.pid, identity=process_identity(proc.pid),
+                 backgroundPolicy=BACKGROUND_POLICY)
     write_json(state_path, state)
     if not state['identity']:
         raise RuntimeError('Cannot identify newly started resident')
     return state, False
+
+
+def configure_background(app):
+    """Patch only a stopped pool copy; retain original resources for recovery."""
+    package = Path(app) / 'Contents/Resources/package.nw'
+    manifest_path = package / 'package.json'
+    original_path = manifest_path.with_name('package.json.pool-foreground')
+    original = original_path.read_bytes() if original_path.exists() else manifest_path.read_bytes()
+    manifest = json.loads(original)
+    if manifest.get('version') != VERSION:
+        raise RuntimeError('Unsupported background window manifest version')
+    relative = Path(manifest['inject_js_start'])
+    if relative.is_absolute() or '..' in relative.parts:
+        raise RuntimeError('Injection script must stay inside the pool copy')
+    vendor = (package / relative).read_bytes()
+    # Existing vendor paths can resolve from core.wxvpkg ahead of disk edits.
+    # A distinct resource path ensures the document-start policy is executed.
+    inject = package / 'pool-background.cjs'
+    manifest.setdefault('window', {})['focus'] = False
+    manifest['window']['show'] = False
+    manifest['inject_js_start'] = inject.name
+    desired_manifest = json.dumps(manifest, ensure_ascii=False).encode()
+    desired_inject = Path(__file__).with_name('background.cjs').read_bytes() + b'\n' + vendor
+    # Refuse unexpected edits instead of repeatedly wrapping or overwriting them.
+    if (manifest_path.read_bytes() not in (original, desired_manifest) or
+            (inject.exists() and inject.read_bytes() != desired_inject)):
+        raise RuntimeError('Background resource changed; explicit maintenance required')
+    if not original_path.exists():
+        original_path.write_bytes(original)
+    inject.write_bytes(desired_inject)
+    manifest_path.write_bytes(desired_manifest)
 
 
 def project_metadata(profile, project):
@@ -510,9 +545,9 @@ def metadata_matches(state, project):
 
 
 def bootstrap_project(root, slot, run_id, state, project):
-    # A reused process caches the old AppID/library. Only a configuration change
-    # needs a scoped restart; ordinary jobs keep the same project identity/PID.
-    if metadata_matches(state, project):
+    # A legacy idle resident adopts quiet startup once under its own lease.
+    # Ordinary quiet jobs keep the same project identity and PID.
+    if metadata_matches(state, project) and state.get('backgroundPolicy') == BACKGROUND_POLICY:
         return state, False
     current = read_json(runtime_path(root, slot))
     if current.get('runId') != run_id or current.get('identity') != state['identity']:

@@ -1,0 +1,13 @@
+{
+  "scripts/wechat-pool/make-fixture.py": "8929600b2a2ad78811f3fcf9b690bee411ffbe96dab59cb0d68f872fae6fad4e",
+  "scripts/wechat-pool/pool.py": "fa92c225f8faedd8b67cdd65d414a3a3b008836374e73fd430253a40c475b080",
+  "scripts/wechat-pool/test_pool.py": "bf0794f079c13d811564c72fbba6ad844482db5f0be664c0317fb6e97500496c",
+  "scripts/wechat-pool/background.cjs": "ad7c011e7b0286402bf738cb625d9bb99143192b6437dd705b1b60323bb23e79",
+  "scripts/wechat-pool/background.test.cjs": "116b0290d205ed963196528e8633479d038d57ef9dcfa4719848cc3a6a6f47b4",
+  "scripts/wechat-pool/health.cjs": "78525a3b49546f4c686aae50c6046303812f9547c1dc113b5e7275ddb41265cf",
+  "scripts/wechat-pool/health.test.cjs": "1577726d5160cf58da9a5dec6d00ebc289b99f761866b6a0fc9c6d1ef7279f4f",
+  "scripts/wechat-pool/reset-data.cjs": "618d57e6f94c0b496f2a8240ad4c9015026e06f9249091b704f6e93da684f2ae",
+  "scripts/wechat-pool/reset-data.test.cjs": "496926a2d6aa987b6d1c903cbca6cb83870020baecf5c9586934a262ed2f79a0",
+  "scripts/wechat-pool/smoke.cjs": "cd3dc6a8604ae2469ad8badd6ad264a2bffd250448383fabf014c9cf5948b069",
+  "scripts/wechat-pool/package-lock.json": "3b7724eccbd5e7572f50994539198332c2ade2579a7ea77db4c2c97dd6935a2c"
+}

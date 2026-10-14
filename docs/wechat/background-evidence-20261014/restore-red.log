@@ -1,0 +1,30 @@
+✖ restoring a project window cannot reactivate hidden automation (2.228125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 89.914417
+
+✖ failing tests:
+
+test at background.test.cjs:68:1
+✖ restoring a project window cannot reactivate hidden automation (2.228125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  8 !== 0
+  
+      at TestContext.<anonymous> (/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-background/scripts/wechat-pool/background.test.cjs:75:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 8,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,24 @@
+test_background_policy_is_applied_before_process_launch (test_pool.PoolTests) ... FAIL
+
+======================================================================
+FAIL: test_background_policy_is_applied_before_process_launch (test_pool.PoolTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/tmp/wechat-background-red/test_pool.py", line 283, in test_background_policy_is_applied_before_process_launch
+    pool.ensure_runtime(self.root, slot, 'background-regression')
+  File "/private/tmp/wechat-background-red/pool.py", line 451, in ensure_runtime
+    proc = subprocess.Popen(args, stdout=log, stderr=log, stdin=subprocess.DEVNULL,
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1093, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1097, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1158, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/private/tmp/wechat-background-red/test_pool.py", line 277, in before_spawn
+    self.assertFalse(pool.read_json(package / 'package.json')['window']['focus'],
+AssertionError: True is not false : The first window must not request foreground activation
+
+----------------------------------------------------------------------
+Ran 1 test in 0.015s
+
+FAILED (failures=1)
