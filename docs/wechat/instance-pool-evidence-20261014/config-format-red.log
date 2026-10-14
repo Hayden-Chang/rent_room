@@ -1,0 +1,15 @@
+F
+======================================================================
+FAIL: test_tool_json_formatting_is_allowed_but_config_changes_are_detected (test_pool.PoolTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-pool-recovery/scripts/wechat-pool/test_pool.py", line 33, in test_tool_json_formatting_is_allowed_but_config_changes_are_detected
+    self.assertEqual(pool.inventory(self.root), before, 'IDE formatting must not invalidate identical project inputs')
+AssertionError: {'pro[16 chars]': 'c82bceb49d514e911df6b1f319e65769f756c33fa8[19 chars]52a'} != {'pro[16 chars]': 'cebbe5034a7c5fcf76c6e5eeaaa92bf1ae88720272[19 chars]707'}
+- {'project.config.json': 'c82bceb49d514e911df6b1f319e65769f756c33fa8151417b3771d26f195452a'}
++ {'project.config.json': 'cebbe5034a7c5fcf76c6e5eeaaa92bf1ae88720272410531a8b7acf395660707'} : IDE formatting must not invalidate identical project inputs
+
+----------------------------------------------------------------------
+Ran 1 test in 0.003s
+
+FAILED (failures=1)

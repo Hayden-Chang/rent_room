@@ -1,0 +1,24 @@
+/private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmpr8d2_4mf/runs/df27ee1a6b3342ea9d2e4b4eeed992c0/receipt.json
+F
+======================================================================
+FAIL: test_project_preparation_is_serialized_but_callback_is_not (test_pool.PoolTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-pool-recovery/scripts/wechat-pool/test_pool.py", line 340, in test_project_preparation_is_serialized_but_callback_is_not
+    result = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', callback], 0))
+  File "/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-pool-recovery/scripts/wechat-pool/pool.py", line 638, in run
+    sdk_check('health.cjs', env, lease, run_dir / 'health-before.log')
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1093, in __call__
+    return self._mock_call(*args, **kwargs)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1097, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/unittest/mock.py", line 1158, in _execute_mock_call
+    result = effect(*args, **kwargs)
+  File "/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-pool-recovery/scripts/wechat-pool/test_pool.py", line 331, in probe
+    pool.fcntl.flock(guard, pool.fcntl.LOCK_EX | pool.fcntl.LOCK_NB)
+AssertionError: BlockingIOError not raised : Another cold start must wait until project preparation finishes
+
+----------------------------------------------------------------------
+Ran 1 test in 0.058s
+
+FAILED (failures=1)

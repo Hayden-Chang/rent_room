@@ -1,0 +1,13 @@
+Slot 1 PID 29670, 2026-10-14 11:31:40 local; original failed run 0fd7a57e71fe44e7a1b44eaa2b504cea.
+Received signal 11 SEGV_ACCERR 000000000130
+ [0x00010f256350]
+ [0x00010f1b9bec]
+ [0x00010f2561dc]
+ [0x0001810af744]
+ [0x00010f213f3c]
+ [0x00010f213f3c]
+ [0x00010f226098]
+ [0x00010f225df8]
+ [0x00010f267b9c]
+ [0x00010f2623
+Remaining helper PID 29692 was scoped-maintained only after parent/controller exit and exclusive slot lock. Failure receipt preserved.

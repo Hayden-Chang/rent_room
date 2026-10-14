@@ -1,0 +1,26 @@
+/private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmp6w_3su63/runs/b676550e20754df7b64017858f7ee857/receipt.json
+/private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmp6w_3su63/runs/6b2e6e0294d8474e9a2f48723775d429/receipt.json
+F
+======================================================================
+FAIL: test_new_project_metadata_is_loaded_before_health_check (test_pool.PoolTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-pool-recovery/scripts/wechat-pool/test_pool.py", line 382, in test_new_project_metadata_is_loaded_before_health_check
+    self.assertEqual(loaded, [True], 'Register metadata before the first renderer is started')
+AssertionError: Lists differ: [False, True] != [True]
+
+First differing element 0:
+False
+True
+
+First list contains 1 additional elements.
+First extra element 1:
+True
+
+- [False, True]
++ [True] : Register metadata before the first renderer is started
+
+----------------------------------------------------------------------
+Ran 1 test in 0.804s
+
+FAILED (failures=1)

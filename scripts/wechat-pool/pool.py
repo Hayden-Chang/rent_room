@@ -65,7 +65,7 @@ def profile_processes(profile):
 
 
 def stop_profile_helpers(profile):
-    # Chromium children can outlive the parent. Match the unique run profile,
+    # Chromium children can outlive the parent. Match this leased slot profile,
     # never the shared helper name or installation used by other agents.
     owned = {pid: process_identity(pid) for pid in profile_processes(profile)}
     for pid, identity in owned.items():
@@ -153,7 +153,12 @@ def inventory(directory):
         if path.is_symlink():
             raise ValueError('Snapshot refuses symlinks: ' + str(path))
         if path.is_file() and path.name != 'project.private.config.json':
-            result[str(path.relative_to(directory))] = hashlib.sha256(path.read_bytes()).hexdigest()
+            data = path.read_bytes()
+            if path == directory / 'project.config.json':
+                # DevTools rewrites this file's indentation on first import.
+                # Values remain protected; formatting is not a source change.
+                data = json.dumps(json.loads(data), sort_keys=True, separators=(',', ':')).encode()
+            result[str(path.relative_to(directory))] = hashlib.sha256(data).hexdigest()
     return result
 
 
@@ -285,6 +290,13 @@ def matching_runtime(state):
                 process_identity(state['pid']) == state['identity'])
 
 
+def stopped_resident(state):
+    """A closed tool is recoverable only after both controller and helpers exit."""
+    return (not (state.get('pid') and alive(state['pid']))
+            and not (state.get('ownerPid') and alive(state['ownerPid']))
+            and not profile_processes(state['profile']))
+
+
 def try_slot(root, slot):
     path = Path(root) / 'slots' / slot['id']
     fd = os.open(path / 'lease.lock', os.O_CREAT | os.O_RDWR, 0o600)
@@ -298,14 +310,18 @@ def try_slot(root, slot):
         if state_path.exists():
             previous = read_json(state_path)
             resident = previous.get('lifecycle') == 'resident-v1'
-            if resident and (previous.get('state') != 'idle' or
-                             previous.get('profile') != str(slot_profile(root, slot))):
+            if resident and (previous.get('profile') != str(slot_profile(root, slot)) or
+                             (previous.get('state') != 'idle' and not stopped_resident(previous))):
                 os.close(fd)
                 return None
             if matching_runtime(previous):
                 if not resident:  # Never adopt another agent's legacy run.
                     os.close(fd)
                     return None
+            elif previous.get('pid') and alive(previous['pid']):
+                # A changed command/start identity is not proof of process exit.
+                os.close(fd)
+                return None
             elif previous.get('profile') and profile_processes(previous['profile']):
                 os.close(fd)
                 return None
@@ -396,13 +412,20 @@ def ensure_runtime(root, slot, run_id):
         state = dict(previous, state='leased', runId=run_id, ownerPid=os.getpid())
         write_json(state_path, state)
         return state, True
-    if previous.get('lifecycle') == 'resident-v1' and previous.get('state') != 'idle':
+    if previous.get('pid') and alive(previous['pid']):
+        raise RuntimeError('Recorded PID is alive with a different identity; refusing to replace it')
+    if (previous.get('lifecycle') == 'resident-v1' and previous.get('state') != 'idle'
+            and not stopped_resident(previous)):
         raise RuntimeError('Resident requires explicit recovery')
     if previous.get('profile') and profile_processes(previous['profile']):
         raise RuntimeError('Previous runtime still has helpers; refusing to replace it')
     if profile.exists() and previous.get('lifecycle') != 'resident-v1':
         raise RuntimeError('Refusing to adopt an unregistered persistent profile')
     free_ports(list(slot['ports'].values()))
+    if previous:
+        # Keep the failed lease and its original receipt; never silently erase it.
+        archive = root / 'runs' / run_id / 'runtime-history' / (uuid.uuid4().hex + '.json')
+        write_json(archive, previous)
     state = {'lifecycle': 'resident-v1', 'state': 'leased', 'runId': run_id,
              'ownerPid': os.getpid(), 'profile': str(profile)}
     # Persist ownership before boot. A crash during boot quarantines the slot.
@@ -414,8 +437,11 @@ def ensure_runtime(root, slot, run_id):
         seed_preferences(root / 'seed', profile / 'WeappLocalData', slot['ports']['ide'])
         for name in ('WeappPlugin', 'WeappVendor'):
             shutil.copytree(root / 'assets' / name, profile / name)
+    register_project(profile, root / 'slots' / slot['id'] / 'project')
     args = [str(app / 'Contents/MacOS/wechatdevtools'), str(package), '--cli',
             '--enable-service-port', '--ide-http-port', str(slot['ports']['ide']),
+            '--disable-background-timer-throttling', '--disable-backgrounding-occluded-windows',
+            '--disable-renderer-backgrounding', '--disable-raf-throttling',
             '--user-data-dir=' + str(profile), '--package-dir=' + str(package),
             '-load-extension=' + str(profile / 'WeappPlugin'),
             '--custom-devtools-frontend=' + (profile / 'WeappPlugin/inspector').as_uri()]
@@ -429,6 +455,93 @@ def ensure_runtime(root, slot, run_id):
     if not state['identity']:
         raise RuntimeError('Cannot identify newly started resident')
     return state, False
+
+
+def project_metadata(profile, project):
+    key = hashlib.md5(('project2_' + str(project)).encode()).hexdigest()
+    path = Path(profile) / 'WeappLocalData' / ('localstorage_' + key + '.json')
+    try:
+        return read_json(path)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def register_project(profile, project):
+    """Register only this slot's built config before NW creates its first window."""
+    project = Path(project)
+    config = read_json(project / 'project.config.json')
+    if not config.get('appid') or not config.get('libVersion'):
+        raise ValueError('Pool projects require explicit appid and libVersion')
+    local = Path(profile) / 'WeappLocalData'
+    name = 'project2_' + str(project)
+    key = hashlib.md5(name.encode()).hexdigest()
+    record = dict(project_metadata(profile, project), **config)
+    record.update(projectid=str(project), projectpath=str(project),
+                  originLibVersion=config['libVersion'])
+    # Public project.config uses miniprogram; this pinned NW version stores weapp.
+    if record.get('compileType', 'miniprogram') == 'miniprogram':
+        record['compileType'] = 'weapp'
+    write_json(local / ('localstorage_' + key + '.json'), record)
+    mapping_path = local / 'hash_key_map_2.json'
+    mapping = read_json(mapping_path)
+    mapping[key] = name
+    write_json(mapping_path, mapping)
+
+
+def prepare_project(root, slot, run_dir):
+    """Use one IDE project identity per slot, retaining immutable per-run inputs."""
+    work = Path(root) / 'slots' / slot['id'] / 'project'
+    staged = work.with_name('project-' + Path(run_dir).name)
+    snapshot(Path(run_dir) / 'project', staged)
+    if work.exists():
+        if work.is_symlink():
+            raise RuntimeError('Refusing a symlink at the slot project path')
+        work.rename(Path(run_dir) / 'previous-project')
+    staged.rename(work)
+    return work
+
+
+def metadata_matches(state, project):
+    expected = read_json(Path(project) / 'project.config.json')
+    if not expected.get('appid') or not expected.get('libVersion'):
+        raise ValueError('Pool projects require explicit appid and libVersion')
+    actual = project_metadata(state['profile'], project)
+    return all(actual.get(k) == expected[k] for k in ('appid', 'libVersion'))
+
+
+def bootstrap_project(root, slot, run_id, state, project):
+    # A reused process caches the old AppID/library. Only a configuration change
+    # needs a scoped restart; ordinary jobs keep the same project identity/PID.
+    if metadata_matches(state, project):
+        return state, False
+    current = read_json(runtime_path(root, slot))
+    if current.get('runId') != run_id or current.get('identity') != state['identity']:
+        raise RuntimeError('Lease owner changed during project initialization')
+    if not matching_runtime(state) or os.getpgid(state['pid']) != state['pid']:
+        raise RuntimeError('Cannot verify own resident process group')
+    os.killpg(state['pid'], signal.SIGTERM)
+    deadline = time.monotonic() + 5
+    while matching_runtime(state) and time.monotonic() < deadline:
+        time.sleep(0.1)
+    if matching_runtime(state):
+        os.killpg(state['pid'], signal.SIGKILL)
+    stop_profile_helpers(state['profile'])
+    deadline = time.monotonic() + 5
+    while True:
+        try:
+            os.waitpid(state['pid'], os.WNOHANG)
+        except ChildProcessError:
+            pass  # A resident reused from an earlier runner is not our child.
+        if not alive(state['pid']):
+            break
+        if time.monotonic() >= deadline:
+            raise RuntimeError('Bootstrap process did not exit; refusing replacement')
+        time.sleep(0.1)
+    # The caller holds the slot's kernel lease throughout this configuration boot.
+    write_json(runtime_path(root, slot), dict(state, state='idle', ownerPid=None, runId=None))
+    state, _ = ensure_runtime(root, slot, run_id)
+    wait_ready(slot, state)
+    return state, True
 
 
 def wait_ready(slot, state, timeout=50):
@@ -503,6 +616,7 @@ def run(root, project, command, wait_seconds=300, test_seconds=120):
     lease = child = state = None
     child_identity = None
     project_ready = False
+    work_project = None
     env = None
     def update(**kwargs):
         receipt.update(kwargs, heartbeat=time.time())
@@ -527,27 +641,36 @@ def run(root, project, command, wait_seconds=300, test_seconds=120):
         update(status='queued')
         lease = acquire(root, cfg, run_id, wait_seconds, lambda: update(status='queued'))
         slot = lease.slot
+        work_project = prepare_project(root, slot, run_dir)
         update(status='starting', slot=slot['id'], ports=slot['ports'],
-               queueFinished=time.time(), profile=str(slot_profile(root, slot)))
-        state, reused = ensure_runtime(root, slot, run_id)
-        update(runtimePid=state['pid'], runtimeReused=reused)
-        wait_ready(slot, state)
+               queueFinished=time.time(), profile=str(slot_profile(root, slot)),
+               projectPath=str(work_project))
         env = dict(os.environ, WECHAT_WS_ENDPOINT='ws://127.0.0.1:%d' % slot['ports']['auto'],
-                   WECHAT_PROJECT_PATH=str(run_dir / 'project'), WECHAT_RUN_ID=run_id,
+                   WECHAT_PROJECT_PATH=str(work_project), WECHAT_RUN_ID=run_id,
                    WECHAT_ARTIFACT_DIR=str(run_dir), WECHAT_SLOT_ID=slot['id'])
-        update(status='preparing-project')
-        http(slot, 'auto', run_dir / 'project')
-        sdk_check('health.cjs', env, lease, run_dir / 'health-before.log')
-        sdk_check('reset-data.cjs', env, lease, run_dir / 'reset-before.log')
-        # Reopen the project after clearing storage so App globals are also new.
-        # This closes one project window, not the long-lived tool process.
-        close_project(slot, run_dir / 'project')
-        http(slot, 'auto', run_dir / 'project')
-        sdk_check('health.cjs', env, lease, run_dir / 'health.log')
-        project_ready = True
+        # Cold starts refresh the same account ticket. Do not allow another
+        # project import to invalidate it halfway through preparation. Release
+        # this gate before user callbacks so the three simulators run in parallel.
+        with (root / 'preparation.lock').open('a') as preparation:
+            fcntl.flock(preparation, fcntl.LOCK_EX)
+            state, reused = ensure_runtime(root, slot, run_id)
+            update(runtimePid=state['pid'], runtimeReused=reused)
+            wait_ready(slot, state)
+            state, initialized = bootstrap_project(root, slot, run_id, state, work_project)
+            update(runtimePid=state['pid'], projectInitialized=initialized,
+                   runtimeReused=reused and not initialized)
+            update(status='preparing-project')
+            http(slot, 'auto', work_project)
+            sdk_check('health.cjs', env, lease, run_dir / 'health-before.log')
+            sdk_check('reset-data.cjs', env, lease, run_dir / 'reset-before.log')
+            # Reopen after clearing storage so App globals are also new.
+            close_project(slot, work_project)
+            http(slot, 'auto', work_project)
+            sdk_check('health.cjs', env, lease, run_dir / 'health.log')
+            project_ready = True
         update(status='running', testStarted=time.time())
         with (run_dir / 'test.log').open('w') as log:
-            child = subprocess.Popen(command, cwd=run_dir / 'project', env=env, stdout=log,
+            child = subprocess.Popen(command, cwd=work_project, env=env, stdout=log,
                                      stderr=subprocess.STDOUT, start_new_session=True,
                                      pass_fds=(lease.fd,))
             child_identity = process_identity(child.pid)
@@ -559,7 +682,7 @@ def run(root, project, command, wait_seconds=300, test_seconds=120):
                 time.sleep(0.25)
         if child.returncode:
             raise RuntimeError('Callback failed with exit %s; see test.log' % child.returncode)
-        executed = hashlib.sha256(json.dumps(inventory(run_dir / 'project'), sort_keys=True).encode()).hexdigest()
+        executed = hashlib.sha256(json.dumps(inventory(work_project), sort_keys=True).encode()).hexdigest()
         if executed != receipt['snapshotHash']:
             raise RuntimeError('Frozen project changed during execution')
         update(status='passed', testFinished=time.time())
@@ -573,7 +696,7 @@ def run(root, project, command, wait_seconds=300, test_seconds=120):
                 stop_owned(child, child_identity)
             if lease is not None:
                 if project_ready:
-                    return_resident(root, lease.slot, run_id, run_dir / 'project', env, lease, run_dir)
+                    return_resident(root, lease.slot, run_id, work_project, env, lease, run_dir)
                     update(residentState='idle', residentRetained=True)
                 else:
                     path = runtime_path(root, lease.slot)
@@ -614,7 +737,7 @@ def main():
     execute.add_argument('--wait', type=float, default=300)
     execute.add_argument('--timeout', type=float, default=120)
     execute.add_argument('--experimental', action='store_true',
-                         help='Acknowledge that cold-start qualification is incomplete')
+                         help='Compatibility flag for earlier pool commands')
     execute.add_argument('command', nargs=argparse.REMAINDER)
     sub.add_parser('status')
     args = parser.parse_args()
@@ -634,8 +757,6 @@ def main():
                 lease.close()
         print(json.dumps(result))
     else:
-        if not args.experimental:
-            parser.error('Cold-start qualification is incomplete; diagnostic runs require --experimental')
         command = args.command[1:] if args.command[:1] == ['--'] else args.command
         if not command:
             parser.error('run needs -- followed by a test command')

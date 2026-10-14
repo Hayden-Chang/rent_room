@@ -1,0 +1,63 @@
+{
+  "A": {
+    "runId": "25577f31d4114037990b13f7577e49ee",
+    "started": 1791948428.275188,
+    "status": "running",
+    "slot": "1",
+    "ports": {
+      "ide": 19651,
+      "auto": 19751,
+      "internal": 32161,
+      "fallback": 33261
+    },
+    "runtimePid": 29670,
+    "runtimeReused": false,
+    "projectInitialized": false,
+    "runnerHash": "d71002c0811286219f9747c3c52857d10b509d04f100858edbb34ce61d441692",
+    "snapshotHash": "2f83d02d05bcdba1b36e806e37738a198c03040c9c3ec5efa4c5eea37057375a",
+    "testStarted": 1791948468.451096
+  },
+  "C": {
+    "runId": "d4a850624a674536b5932978fde1ac01",
+    "started": 1791948428.328901,
+    "status": "running",
+    "slot": "3",
+    "ports": {
+      "ide": 19653,
+      "auto": 19753,
+      "internal": 32163,
+      "fallback": 33263
+    },
+    "runtimePid": 31087,
+    "runtimeReused": false,
+    "projectInitialized": false,
+    "runnerHash": "d71002c0811286219f9747c3c52857d10b509d04f100858edbb34ce61d441692",
+    "snapshotHash": "1a362912be5b6fe0db728567da851fea7c805f13085996fdfb14e51de2733024",
+    "testStarted": 1791948551.391587
+  },
+  "D": {
+    "runId": "94f62e405e5c490cbbbf7ffa4bc962d0",
+    "started": 1791948555.769281,
+    "status": "queued",
+    "runnerHash": "d71002c0811286219f9747c3c52857d10b509d04f100858edbb34ce61d441692",
+    "snapshotHash": "a3777b575251902302653ee532b37c97a31bab475640beaea78b83f842a8b8b9"
+  },
+  "B": {
+    "runId": "280501ca570948d7ab7ab244c31b1a5f",
+    "started": 1791948428.307698,
+    "status": "running",
+    "slot": "2",
+    "ports": {
+      "ide": 19652,
+      "auto": 19752,
+      "internal": 32162,
+      "fallback": 33262
+    },
+    "runtimePid": 30348,
+    "runtimeReused": false,
+    "projectInitialized": false,
+    "runnerHash": "d71002c0811286219f9747c3c52857d10b509d04f100858edbb34ce61d441692",
+    "snapshotHash": "cfbd2f844fcb7a687d2f0cfaf25db0eecb50a017638141bc53d7ff4bf10319fd",
+    "testStarted": 1791948513.96844
+  }
+}

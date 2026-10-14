@@ -1,0 +1,25 @@
+test_tool_json_formatting_is_allowed_but_config_changes_are_detected (test_pool.PoolTests) ... ok
+test_snapshot_freezes_code_and_excludes_personal_config (test_pool.PoolTests) ... ok
+test_snapshot_rejects_symlink_and_concurrent_edit (test_pool.PoolTests) ... ok
+test_closed_quarantined_resident_can_be_leased_again (test_pool.PoolTests) ... ok
+test_dead_tool_with_live_controller_is_not_reclaimed (test_pool.PoolTests) ... ok
+test_live_pid_with_changed_identity_is_never_reclaimed (test_pool.PoolTests) ... ok
+test_new_project_metadata_is_loaded_before_health_check (test_pool.PoolTests) ... /private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmpbzra67n3/runs/42c6140fe3ac4c14a68c2334f063b90c/receipt.json
+/private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmpbzra67n3/runs/95d5e0d0fc0043c0be8fc8f81309cb0d/receipt.json
+/private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmpbzra67n3/runs/632a8d19101c4aff85ff650221cc3f48/receipt.json
+ok
+test_two_jobs_reuse_one_live_process_and_release_the_lease (test_pool.PoolTests) ... /private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmpqtrtrxml/runs/50de02f983a240919fb8de42503a0827/receipt.json
+/private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmpqtrtrxml/runs/ec27897013e94e409f83001ebc94e10f/receipt.json
+ok
+test_project_preparation_is_serialized_but_callback_is_not (test_pool.PoolTests) ... /private/var/folders/nc/5fvn6b0113v527kbp38h9dgm0000gn/T/tmptei3ognu/runs/aaa051e858fe430997790bc8d4495b17/receipt.json
+ok
+test_controller_crash_does_not_reassign_a_leased_resident (test_pool.PoolTests) ... ok
+test_live_orphan_quarantines_only_its_slot (test_pool.PoolTests) ... ok
+test_child_keeps_lease_if_supervisor_releases_descriptor (test_pool.PoolTests) ... ok
+test_three_concurrent_owners_and_fourth_waiter (test_pool.PoolTests) ... ok
+test_return_failure_quarantines_resident_without_killing_it (test_pool.PoolTests) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 4.985s
+
+OK
