@@ -12,19 +12,26 @@ function fixture(){
  function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
  const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass));
  function dispatch(target,type,x=100,y=50,extra={}){
+  const caught=[];
   for(const n of [target,...target.parents.toReversed()]){
    const handler=n.attrs['catch'+type]||n.attrs['bind'+type];if(!handler)continue;
    const dataset=Object.fromEntries(Object.entries(n.attrs).filter(([k])=>k.startsWith('data-')).map(([k,v])=>[k.slice(5),v==='{{item.value}}'?'否':v]));
    c[handler]({touches:type==='touchend'?[]:[{clientX:x,clientY:y}],changedTouches:[{clientX:x,clientY:y}],currentTarget:{dataset},...extra});
-   if(n.attrs['catch'+type])break;
+   if(n.attrs['catch'+type]){caught.push(handler);break;}
   }
+  return caught;
  }
- return {c,find,dispatch,advance:ms=>{now+=ms;}};
+ return {c,find,dispatch,findTag:tag=>nodes.find(n=>n.tag===tag),advance:ms=>{now+=ms;}};
 }
 it('swiping from an answer option opens the row without selecting that option',()=>{
  const {c,find,dispatch}=fixture(),choice=find('choice');
  dispatch(choice,'touchstart',280);dispatch(choice,'touchmove',180);dispatch(choice,'touchend',180);dispatch(choice,'tap',180);
  expect(c.data.actions).toBe(true);expect(c.data.offset).toBe(-132);expect(c.events).toEqual([]);expect(c.data.field.value).toBe('是');
+});
+it('the title still opens actions without putting native input in the gesture path',()=>{
+ const {c,find,dispatch}=fixture(),title=find('label');
+ dispatch(title,'touchstart',220);dispatch(title,'touchmove',100);dispatch(title,'touchend',100);dispatch(title,'tap');
+ expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
 });
 it.each(['flag','note-action','media-action'])('an exposed %s button routes its tap once, without the field dismissing first',klass=>{
  const {c,find,dispatch}=fixture(),choice=find('choice'),button=find(klass);
@@ -74,4 +81,17 @@ it('a new explicit touch can activate another action immediately after a complet
   c.reveal();const button=find(klass);dispatch(button,'touchstart');dispatch(button,'touchend');dispatch(button,'tap');
  }
  expect(c.events.map(e=>e.detail.action)).toEqual(['flag','note','media']);
+});
+it.each(['t','n','d'])('native %s entry receives an uncaught touch without starting the row gesture',type=>{
+ const {c,findTag,dispatch}=fixture();c.data.field.type=type;
+ const control=findTag(type==='d'?'picker':'input');
+ expect(dispatch(control,'touchstart',250)).toEqual([]);
+ expect(c.gesture).toBeFalsy();
+ dispatch(control,'touchmove',140);dispatch(control,'touchend',140);
+ expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
+});
+it('touching native input dismisses an exposed row without consuming native focus or changing its answer',()=>{
+ const {c,findTag,dispatch}=fixture(),input=findTag('input');c.reveal();
+ expect(dispatch(input,'touchstart')).toEqual([]);expect(c.data.actions).toBe(false);
+ dispatch(input,'touchend');expect(c.gesture).toBeFalsy();expect(c.events).toEqual([]);
 });

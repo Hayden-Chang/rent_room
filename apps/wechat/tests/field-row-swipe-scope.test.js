@@ -13,7 +13,7 @@ function nodes(path){
  return out;
 }
 const has=(n,c)=>(n.attrs.class||'').split(' ').includes(c);
-it('keeps the title stationary with answers in the swipe surface and attachments outside',()=>{
+it('keeps full-width action geometry while native inputs have no ancestor swipe handlers',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
  const label=all.find(n=>has(n,'label')),tray=all.find(n=>has(n,'swipe-tray'));
  const shell=all.find(n=>has(n,'swipe-shell'));
@@ -23,6 +23,9 @@ it('keeps the title stationary with answers in the swipe surface and attachments
  const answers=all.filter(n=>has(n,'choices')||n.tag==='picker'||n.tag==='input'&&!has(n,'other'));
  expect(answers.length).toBeGreaterThan(2);
  for(const n of answers)expect(n.parents).toContain(shell);
+ for(const n of all.filter(n=>n.tag==='input'||n.tag==='picker')){
+  expect([n,...n.parents].some(p=>p.attrs.catchtouchstart==='start'||p.attrs.bindtouchstart==='start')).toBe(false);
+ }
  const attachments=all.filter(n=>['note','thumbs','other'].some(c=>has(n,c))||n.tag==='address-picker');
  expect(attachments.length).toBeGreaterThan(2);
  for(const n of attachments)expect(n.parents).not.toContain(shell);

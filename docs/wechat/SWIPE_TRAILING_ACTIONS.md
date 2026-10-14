@@ -73,3 +73,13 @@ NODE_PATH=/path/to/test-tools/node_modules PLAYWRIGHT_EXECUTABLE_PATH=/path/to/c
 回归 `note-keyboard.test.js` 从真实 WXML 绑定派发键盘高度事件；旧包 6 项失败，其中两种备注的弹层 bottom 在键盘高度为 300 时仍为 0。`note-sheet-layout.cjs` 将真实模板/CSS 渲染为浏览器 DOM，模拟键盘边界：320×480、390×756、430×844，检查项/影像备注、键盘打开/收起共 12 状态；旧包全部 6 个键盘打开状态输入框被遮挡，修复版 12 状态通过。该适配器不模拟微信原生输入框或真实键盘事件。
 
 增量选择：键盘状态与绑定 `note-keyboard.test.js`；备注保存/取消/重载 `media-caption.test.js`；左滑进入备注及保存 `field-row-inline-actions.test.js`；页面隐藏与导航 `field-row-swipe-scope.test.js`。共 4 文件 31 项通过，官方 wcc 9 / wcsc 7 通过。没有修改 field-row，复用已通过的按钮回归与用户真机确认。证据在 `artifacts/note-keyboard-before/` 和 `artifacts/note-keyboard-fixed/`，新备注避让待手机复验。
+
+## 2026-10-14 手动输入不弹键盘
+
+用户确认 `1d233a3` 备注输入框不再遮挡，但地址等手动输入框点击后键盘完全不弹；地址搜索框可用。源码差异与该反馈吻合：地址搜索组件在 swipe-shell 外；手动文本、数值、日期控件位于有 catchtouchstart 的左滑祖先中。没有取得新的原生 focus 事件日志，故仍将左滑触摸拦截视为待真机确认的原因，不能宣称已测得微信底层聚焦行为。
+
+保留 swipe-shell 作为整行布局、操作按钮定位与裁剪边界，将手势监听移到标题、选项区和操作托盘。原生 input/picker 仍在相同显示位置，但触摸路径不再经过左滑 start/move/end；文字选择、输入和日期选择交还原生控件。其他输入与地图的事件路径不变。标题和右侧选项均可左滑，托盘右滑和三按钮短按继续使用已确认的处理逻辑，备注键盘避让保持不变。
+
+`field-row-events.test.js` 新增文本/数值/日期触摸路径及输入时收起菜单回归：旧版 4 项均因 touchstart 被 start 捕获失败，新版通过；新增标题模板事件路径检查，既有选项、操作按钮、取消和误触检查继续通过。`field-row-swipe-scope.test.js` 增加原生控件祖先无手势监听约束。同前述 6 个 field-row 相关文件共 57 项通过，官方 wcc 9 / wcsc 7 通过。模板只移动事件属性，没有改 DOM 层级、条件或 CSS，复用既有几何结果；不重跑未变化的备注布局测试。
+
+证据保存在 `artifacts/native-entry-before/` 与 `artifacts/native-entry-fixed/`。上述为 WXML 事件路由及 handler 验证，不证明真机键盘弹出；需新预览验证地址文本、面积数值、日期选择及已确认的按钮/备注体验。
