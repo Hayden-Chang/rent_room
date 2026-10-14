@@ -59,9 +59,19 @@ npm run package
 
 ## 页面、真机与交付证据
 
+### CI 预览与机器人编号
+
+生成真机预览码使用 [scripts/wechat-ci/README.md](../../scripts/wechat-ci/README.md) 的统一入口。先在本任务构建 dist，再由 runner 冻结、自动领用 2～30 号上传；编号首次分配后 24 小时到期，重复预览不续期；满额时按最早分配顺序循环复用并跳过正在上传的编号，旧租约可提前失效。它独立于开发者工具实例池，不启动本地 UI。
+
+机器人 1 只用于用户明确授权的正式版更新，不能用于普通预览。固定 SDK 2.1.48；机器默认共享注册表、密钥路径、失败日志及安全边界见 runner 文档。修改 runner 时仅运行 `scripts/wechat-ci/test_leases.py` 和 `sdk.test.cjs` 中新增/受影响测试；不因基础设施修改重跑无关应用测试。现场证据见 [CI_ROBOT_LEASES.md](CI_ROBOT_LEASES.md)。
+
 - 关键页面流程使用真实点击、输入、滑动和导航，等待目标元素或状态；断言可见结果与实际业务状态。保存流程需重开核对，媒体备份需核对实际文件内容。
 - UI 变更展示当前提交的实际截图；真机覆盖受影响的相机/相册、权限拒绝与恢复、键盘、文件和手势。涉及连续切页时记录设备、数据量、计时方式及结果。
 - 预览码生成、扫码运行、体验版上传、提审与发布分别验证，并标明尚需用户操作或尚未取得证据的阶段。
 - PR 记录 head SHA、命令和结果、截图/日志路径、mock 边界与未验证项；合并前由主 agent 审查最终 head 和适用门禁。原始输出可作为本地或 CI 附件保留，验证摘要放 `docs/wechat/`。
 - 微信双实例及池化实验见 [现场报告](INSTANCE_POOL_VALIDATION.md) 和 [实验 runner](../../scripts/wechat-pool/README.md)。租约、FIFO、源码 receipt 与常驻归还复用已实现，但首次启动和常驻连续复用尚未通过微信现场验收；用户已授权三槽常驻池作为 session 间协调入口，使用 `--experimental` 并如实记录每次实际结果，不能视为 E2E 已验收。仓库仍没有已验收的统一 npm E2E 命令、官方 Skills/MCP 或 MiniTest 接入契约。
 - 接入上述能力时，先用隔离测试项目验证，再在本文件登记真实命令、版本、授权前置条件、会话/数据隔离和证据路径。采用 Skills/MCP 时读取实际安装版本的说明与 schema，不能凭旧文档猜工具参数。
+
+### 地图配置（2026-10-13）
+
+`build` 在生成文件前检查地点查询Key；读取优先级和本机共享路径见 [应用说明](../../apps/wechat/README.md#地点查询构建配置)。新 worktree 不能仅凭构建/上传成功断言地图可用。改动构建配置时运行 `tests/map-build-config.test.js`；运行时回归选 `tests/runtime.test.js` 和 `tests/places.test.js`。离线测试可显式使用 `WECHAT_ALLOW_MISSING_MAP_KEY=1`，不得将该产物用于真实地图验收。
