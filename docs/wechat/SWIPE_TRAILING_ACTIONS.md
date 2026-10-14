@@ -63,3 +63,13 @@ NODE_PATH=/path/to/test-tools/node_modules PLAYWRIGHT_EXECUTABLE_PATH=/path/to/c
 `field-row-events.test.js` 按真实 WXML 路由重放 start/end、不主动补发 tap：旧版三个按钮均未产生 action，3 项失败、15 项通过；失败日志 `artifacts/swipe-touchend-before/events.log`。修复后覆盖上述边界、重复 tap 和连续操作；同前述 6 个相关文件共 52 项通过。官方 wcc 9 / wcsc 7 通过。源码布局和样式未变，复用 `7ef7809` 的 42 状态几何证据，不将其视作手机交互验证。
 
 用户原始截图、测试及编译结果保存在 `artifacts/swipe-touchend-fixed/`。临时诊断构建代码从工作树移除，生成新普通预览前检查包中不存在诊断面板或记录器。原始诊断源码、构建补丁与冻结包保留在忽略的 `artifacts/swipe-diagnostic/`，没有进入 PR。工具池仍无可用槽位；待新预览的三按钮真机复验、UI 批准后再判断是否可合入。
+
+## 2026-10-14 按钮真机确认与备注键盘遮挡
+
+用户对 `0bb0f8d` 预览反馈「很好，这个已经修复了」，确认本轮三按钮问题解决；随后提供新截图，显示备注输入框下半部及操作区被 iPhone 键盘遮挡。该确认仅覆盖按钮修复，不代表新备注改动已经验收或授权合入。
+
+原备注弹层固定在屏幕底部，textarea 未声明 fixed、仍使用默认页面上推，也没有按键盘高度定位整个面板。现在检查项备注和影像备注均声明 `fixed=true`、`adjust-position=false`，通过 focus/keyboardheightchange 的实际高度设置弹层底部；小屏上收缩输入区，标题和 44px 按钮保留。`hold-keyboard=true` 避免点击保存时先失焦收键盘导致按钮移位；关闭时主动收键盘并归零高度，页面隐藏时只归零高度、不丢弃草稿，关闭后迟到的事件不影响其他弹层。参考 Tencent textarea 对这些原生属性的说明：https://github.com/Tencent/tdesign-miniprogram/blob/develop/packages/components/textarea/props.ts 。
+
+回归 `note-keyboard.test.js` 从真实 WXML 绑定派发键盘高度事件；旧包 6 项失败，其中两种备注的弹层 bottom 在键盘高度为 300 时仍为 0。`note-sheet-layout.cjs` 将真实模板/CSS 渲染为浏览器 DOM，模拟键盘边界：320×480、390×756、430×844，检查项/影像备注、键盘打开/收起共 12 状态；旧包全部 6 个键盘打开状态输入框被遮挡，修复版 12 状态通过。该适配器不模拟微信原生输入框或真实键盘事件。
+
+增量选择：键盘状态与绑定 `note-keyboard.test.js`；备注保存/取消/重载 `media-caption.test.js`；左滑进入备注及保存 `field-row-inline-actions.test.js`；页面隐藏与导航 `field-row-swipe-scope.test.js`。共 4 文件 31 项通过，官方 wcc 9 / wcsc 7 通过。没有修改 field-row，复用已通过的按钮回归与用户真机确认。证据在 `artifacts/note-keyboard-before/` 和 `artifacts/note-keyboard-fixed/`，新备注避让待手机复验。

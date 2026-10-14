@@ -51,3 +51,11 @@
 .media-card{min-width:0}
 .media-caption,.media-caption:not([size=mini]){display:block;width:100%;min-height:44px;height:auto;padding:8px 2px;background:transparent;border-radius:0;color:#1c2638;font-size:13px;font-weight:400;line-height:20px;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-all}
 .media-caption-add,.media-caption-add:not([size=mini]){color:#8d95a3;font-size:22px;text-align:center}
+
+/* The mask ends above the keyboard; shrink the editor before hiding actions. */
+.note-sheet{display:flex;flex-direction:column;max-height:calc(100% - 12px)}
+.note-sheet .subtitle,.note-sheet .row{flex-shrink:0}
+.note-sheet textarea{height:160px;min-height:48px;flex:1 1 160px}
+.note-sheet.keyboard-open{padding:12px 20px 8px}
+.note-sheet.keyboard-open .subtitle{margin-bottom:12px}
+.note-sheet.keyboard-open .row{margin-top:12px}
