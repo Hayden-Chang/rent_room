@@ -10,6 +10,7 @@
 
 1. `wechatwebdevtools` 外层启动器在退出路径中按通用进程名清理 Daemon，可能误伤另一安装的守护进程。runner 只直接启动副本的 `Contents/MacOS/wechatdevtools`，不运行外层启动器、`open` 或可能自动拉起启动器的厂商 CLI。
 2. 内部 MiniCode 服务固定使用 `32123`，失败只回退到 `33233`；原实例加两个副本会卡住。初始化只对池内副本的 `core.wxvpkg` 做两处等长端口替换，校验匹配次数、保存原文件和前后 SHA-256。原安装保持不变。版本变化必须重新验证，不自动打猜测性补丁。
+3. 项目初始化的 `restore()` 会在 macOS 激活工具，即使已经禁用 `focus()`。runner 给池副本增加独立 document-start 入口，保留原厂脚本，首窗隐藏、项目窗以 `focus:false/show:true` 创建，抑制 `show/focus/restore/requestAttention`，同时覆盖窗口枚举和独立 Node 上下文。完全隐藏项目窗会导致模拟器初始化超时，所以后台运行指不抢前台，窗口仍可在后台渲染。真实冷启动、同 PID 复用、SDK 截图及前台采样见[后台启动验收](../../docs/wechat/BACKGROUND_STARTUP.md)。
 
 不能对池内 App 使用 Finder/Open 或通用 `cua.getApp(path)` 来启动，因为它们可能重新执行外层启动器。SDK 通过明确的 `WECHAT_WS_ENDPOINT` 连接；禁止 `automator.launch()` 和厂商 `cli` fallback。
 
@@ -84,6 +85,7 @@ try {
 - 原子 allocator 锁只覆盖分配；每槽使用内核文件锁。等待者不占运行槽。
 - 回调继承租约描述符，常驻工具进程不继承租约，避免归还后仍锁住槽位。监督进程崩溃后，`leased` 状态也阻止其他任务接管；不按 TTL 抢占。
 - 正常归还只清理该任务小程序数据、关闭该任务项目并释放租约。工具进程、登录配置和插件资源保留，没有空闲自动退出机制。receipt 记录 `runtimePid`、`runtimeReused` 和 `residentState`。
+- 后台策略只写入已停止的池内副本，不修改原安装、系统安全设置或签名。未知版本、脚本路径越界或资源出现未知改动时失败并隔离。旧版常驻进程在下一次取得独占租约后迁移一次；随后继续同 PID 复用。更新 runner 链接本身不重启任何实例。
 - 测试失败或回调超时时，仅停止本任务仍运行的回调进程组；清理和关闭项目成功后仍可归还常驻实例。PID 与启动身份不符时拒绝操作。
 - 工具启动、数据清理、项目关闭或进程身份检查失败时，槽位标记 `quarantined`，保留进程及日志供排查，不自动杀掉或交给下一任务。工具、原控制器及该 profile 子进程全部退出后，下一次领用可以自动恢复，并把旧 runtime 原样存入新 run 的 `runtime-history/`；原失败 receipt 保留。任一相关进程仍活着则继续隔离，不自动杀进程。实际发生过工具原生 `SIGSEGV` 留下孤儿子进程；这种情况需要统一维护者在核实任务已结束、持有该槽锁后处理。
 - 旧版按任务启动的活实例不接管、不迁移、不停止。`busy-or-quarantined` 可能表示现有租约、旧版实例或待排查槽位，应检查 `runtime.json` 和 receipt。
