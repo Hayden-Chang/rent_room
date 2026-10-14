@@ -2,7 +2,7 @@ import {startSpeedTest,SPEED_FIELD_ID} from '../../lib/speed-test.js';
 import {houseTopics,updateAnswer} from '../../lib/model.js';
 import {service} from '../../lib/ui.js';
 Page({
-  data:{state:'preparing',speed:'—',progress:0,used:'0',message:'正在检查网络…'},
+  data:{state:'preparing',speed:'—',progress:0,message:'正在检查网络…'},
   onLoad(options){this.houseId=options.id;this.active=true;this.run=0;this.networkChanged=()=>{if(this.testing)this.cancel();};wx.onNetworkStatusChange?.(this.networkChanged);this.start();},
   onHide(){if(this.testing)this.cancel();},
   onUnload(){this.active=false;this.cancel();wx.offNetworkStatusChange?.(this.networkChanged);},
@@ -14,20 +14,23 @@ Page({
   async start(){
     if(this.testing||!this.active)return;
     const run=++this.run;this.testing=true;this.result=null;
-    this.setData({state:'preparing',speed:'—',progress:0,used:'0',message:'正在检查网络…'});
+    this.setData({state:'preparing',speed:'—',progress:0,message:'正在检查网络…'});
     try {
       this.previous=this.validHouse().answers[SPEED_FIELD_ID]?.value;
       const {networkType}=await service().api('getNetworkType');
       if(run!==this.run||!this.active)return;
       if(networkType==='none')throw Error('当前无网络，请连接 Wi-Fi 后重试');
+      const {confirm:connected}=await service().api('showModal',{title:'是否已连接 Wi-Fi？',content:'请确认连接的是房源 Wi-Fi。测速约需 8–15 秒，最多使用 64 MiB 流量，完成后自动回填。',confirmText:'是',cancelText:'否'});
+      if(run!==this.run||!this.active)return;
+      if(!connected){this.back();return;}
       if(networkType!=='wifi'){
         const {confirm}=await service().api('showModal',{title:'使用当前网络测速？',content:'本次最多下载约 64 MiB 数据，可能消耗移动流量。建议连接房源 Wi-Fi 后测试。',confirmText:'开始测速',cancelText:'暂不测试'});
         if(run!==this.run||!this.active)return;
-        if(!confirm){this.cancel();return;}
+        if(!confirm){this.back();return;}
       }
       this.setData({state:'testing',message:'正在测量下载速度…'});
       this.test=startSpeedTest(wx,p=>{
-        if(run===this.run&&this.active)this.setData({speed:p.mbps.toFixed(2),progress:Math.round(p.progress),used:(p.bytes/1024/1024).toFixed(1)});
+        if(run===this.run&&this.active)this.setData({speed:p.mbps.toFixed(2),progress:Math.round(p.progress)});
       });
       const result=await this.test.promise;
       if(run!==this.run||!this.active)return;

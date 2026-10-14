@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 const FIELD='d244dc92-351e-4f3c-8738-45295fec9ff9';
 const settle=async()=>{for(let i=0;i<80;i++)await Promise.resolve();};
-function harness({network='wifi',confirm=true,diskFailure=false}={}){
+function harness({network='wifi',confirm=true,deferModal=false,diskFailure=false}={}){
  const disk=new Map(),requests=[],modals=[],back=[],toasts=[];let app,page,time=0,networkListener;
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync(p,v){if(diskFailure)throw Error('disk full');disk.set(p,v);},copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),
- getNetworkType(o){o.success({networkType:network});},showModal(o){modals.push(o);o.success({confirm});},navigateBack(o){back.push(o);o?.success?.();},showToast(o){toasts.push(o);},setNavigationBarTitle(){},
+ getNetworkType(o){o.success({networkType:network});},showModal(o){modals.push(o);if(!deferModal)o.success({confirm});},navigateBack(o){back.push(o);o?.success?.();},showToast(o){toasts.push(o);},setNavigationBarTitle(){},
  onNetworkStatusChange(fn){networkListener=fn;},offNetworkStatusChange(fn){if(fn===networkListener)networkListener=null;},
  request(o){const r={o,aborted:false,callback:null};requests.push(r);return {onHeadersReceived(fn){r.callback=fn;},abort(){r.aborted=true;o.fail({errMsg:'abort'});}};}
  };
@@ -18,7 +18,7 @@ function harness({network='wifi',confirm=true,diskFailure=false}={}){
  async function response({fail=false}={}){const r=requests.at(-1);if(fail){r.o.fail({errMsg:'timeout'});}else{time+=1000;const [a,b]=r.o.header.Range.slice(6).split('-').map(Number),header={'content-range':`bytes ${a}-${b}/4294967296`,'content-length':String(b-a+1)};r.callback({header});r.o.success({statusCode:206,header,data:new ArrayBuffer(b-a+1)});}await settle();}
  return {app,id,requests,back,modals,toasts,open,response,wx,disk,get page(){return page;},failDisk(v){diskFailure=v;},changeNetwork(){networkListener?.({networkType:'4g'});},reload(){vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();return app.service.store.house(id);}};
 }
-it('automatically measures, fills only speed, and persists it across reload',async()=>{
+it('measures after confirmation, fills only speed, and persists it across reload',async()=>{
  const h=harness();h.open();await settle();for(let i=0;i<8;i++)await h.response();
  expect(h.page.data.state).toBe('done');expect(h.back).toHaveLength(1);
  const house=h.reload();expect(house.answers[FIELD]).toEqual({value:'8.39',note:'保留备注',issueFlag:true});expect(house.media[0].id).toBe('photo');
@@ -32,7 +32,34 @@ it('preserves the original answer after failure, cancellation, hiding, unloading
 });
 it('asks before cellular traffic, handles refusal and offline without sending bytes',async()=>{
  for(const network of ['4g','none']){const h=harness({network,confirm:false});h.open();await settle();expect(h.requests).toHaveLength(0);expect(h.app.service.store.house(h.id).answers[FIELD].value).toBe('25');expect(h.page.data.state).toBe(network==='none'?'error':'cancelled');}
- const h=harness({network:'4g'});h.open();await settle();expect(h.modals).toHaveLength(1);expect(h.requests).toHaveLength(1);h.page.cancel();await settle();
+ const h=harness({network:'4g'});h.open();await settle();expect(h.modals).toHaveLength(2);expect(h.requests).toHaveLength(1);h.page.cancel();await settle();
+});
+it('waits for an explicit Wi-Fi yes before downloading, including on retry',async()=>{
+ const h=harness({deferModal:true});h.open();await settle();
+ expect(h.modals).toHaveLength(1);expect(h.modals[0]).toMatchObject({title:'是否已连接 Wi-Fi？',confirmText:'是',cancelText:'否'});expect(h.requests).toHaveLength(0);
+ h.page.start();await settle();expect(h.modals).toHaveLength(1);
+ h.modals[0].success({confirm:true});await settle();expect(h.requests).toHaveLength(1);
+ await h.response({fail:true});h.page.start();await settle();expect(h.modals).toHaveLength(2);expect(h.requests).toHaveLength(1);
+ h.modals[1].success({confirm:true});await settle();expect(h.requests).toHaveLength(2);h.page.cancel();await settle();
+});
+it('returns on Wi-Fi no without downloading or changing the stored answer',async()=>{
+ const h=harness({confirm:false});h.open();await settle();expect(h.requests).toHaveLength(0);expect(h.back).toHaveLength(1);
+ expect(h.reload().answers[FIELD]).toEqual({value:'25',note:'保留备注',issueFlag:true});
+});
+it('ignores a late confirmation after hiding, unloading or leaving the page',async()=>{
+ for(const action of ['onHide','onUnload','back']){
+  const h=harness({deferModal:true});h.open();await settle();h.page[action]();h.modals[0].success({confirm:true});await settle();
+  expect(h.requests).toHaveLength(0);expect(h.reload().answers[FIELD].value).toBe('25');
+ }
+});
+it('still requires cellular consent when Wi-Fi is confirmed but the detected network differs',async()=>{
+ const h=harness({network:'4g',deferModal:true});h.open();await settle();h.modals[0].success({confirm:true});await settle();
+ expect(h.modals[1].title).toBe('使用当前网络测速？');expect(h.requests).toHaveLength(0);
+ h.modals[1].success({confirm:false});await settle();expect(h.requests).toHaveLength(0);expect(h.back).toHaveLength(1);expect(h.reload().answers[FIELD].value).toBe('25');
+});
+it('the single cancel action aborts the download and returns without overwriting the answer',async()=>{
+ const h=harness();h.open();await settle();h.page.back();await settle();
+ expect(h.requests[0].aborted).toBe(true);expect(h.back).toHaveLength(1);expect(h.reload().answers[FIELD].value).toBe('25');
 });
 it('rolls back failed persistence and retries saving without another measurement',async()=>{
  const h=harness();h.open();await settle();h.failDisk(true);for(let i=0;i<8;i++)await h.response();

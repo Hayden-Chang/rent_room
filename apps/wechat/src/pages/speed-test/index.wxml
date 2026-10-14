@@ -1,15 +1,13 @@
 <view class="speed-page">
  <view class="speed-card">
   <text class="speed-title">下载速度</text>
-  <view class="speed-value">{{speed}}<text class="speed-unit"> Mbps</text></view>
+  <view class="speed-value">{{speed}}<text class="speed-unit">Mbps</text></view>
   <progress percent="{{progress}}" stroke-width="6" activeColor="#4D56DF" backgroundColor="#eceeff" border-radius="6"/>
-  <view class="speed-message" aria-live="polite">{{message}}</view>
-  <view class="speed-traffic">已下载 {{used}} MiB · 单次最多约 64 MiB</view>
+  <view wx:if="{{state!=='testing'&&state!=='preparing'}}" class="speed-message" aria-live="polite">{{message}}</view>
+  <view class="speed-actions">
+   <button wx:if="{{state==='testing'||state==='preparing'}}" class="speed-button speed-cancel" bindtap="back">取消</button>
+   <button wx:elif="{{state==='save-error'}}" class="speed-button speed-retry" bindtap="saveResult">重试保存</button>
+   <button wx:elif="{{state!=='done'}}" class="speed-button speed-retry" bindtap="start">重新测速</button>
+  </view>
  </view>
- <view class="speed-help">请连接房源 Wi-Fi，测速时暂停其他下载。通常需要 8–15 秒，完成后自动回填到清单，仍可手动修改。</view>
- <view class="speed-help">测速节点：Apple CDN。结果反映当前设备到该节点的下载速度，可能受到 Wi-Fi、运营商线路及代理影响。</view>
- <button wx:if="{{state==='testing'||state==='preparing'}}" class="speed-button secondary" bindtap="cancel">取消测速</button>
- <button wx:elif="{{state==='save-error'}}" class="speed-button" bindtap="saveResult">重试保存结果</button>
- <button wx:elif="{{state!=='done'}}" class="speed-button" bindtap="start">重新测速</button>
- <button class="speed-button secondary" bindtap="back">返回清单</button>
 </view>
