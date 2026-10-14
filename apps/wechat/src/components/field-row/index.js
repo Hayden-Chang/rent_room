@@ -13,7 +13,8 @@ Component({
    this.suppressTapUntil=0;this.dismissedTouch=!!(activeRow&&activeRow!==this);
    if(this.dismissedTouch)activeRow.closeSwipe();
    if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
-   const p=e.touches[0];this.gesture={x:p.clientX,y:p.clientY,base:this.data.offset,axis:'',dx:0};
+   const p=e.touches[0],dataset=e.currentTarget?.dataset||{};
+   this.gesture={x:p.clientX,y:p.clientY,base:this.data.offset,axis:'',dx:0,startedAt:Date.now(),trayAction:this.data.actions&&dataset.tray?dataset.action:null};
   },
   move(e){
    const g=this.gesture;if(!g||this.data.readonly)return;
@@ -27,12 +28,19 @@ Component({
    const g=this.gesture;if(!g)return;
    // Some devices coalesce a quick flick into start/end without a move event.
    if(!g.axis&&e.changedTouches?.length)this.move({touches:e.changedTouches});
+   const p=e.changedTouches?.length===1?e.changedTouches[0]:null;
+   const shortTrayTouch=g.trayAction&&!g.axis&&p&&Math.max(Math.abs(p.clientX-g.x),Math.abs(p.clientY-g.y))<8&&Date.now()-g.startedAt<350;
    if(g.axis==='x'){
     this.suppressTapUntil=Date.now()+250;
     const open=g.dx<-36?true:g.dx>36?false:g.base<0;
     if(open)this.reveal();else this.closeSwipe();
    }else this.setData({dragging:false});
    this.gesture=null;
+   // Phone traces can contain start/end without a native tap. Only a fresh,
+   // stationary short touch on an already exposed action may activate here.
+   if(shortTrayTouch)this.trayAction({currentTarget:{dataset:{action:g.trayAction}}});
+   // Ignore a later synthetic tap, including after the row is reopened.
+   if(g.trayAction)this.suppressTapUntil=Date.now()+350;
   },
   cancel(){this.closeSwipe();},
   reveal(){if(this.data.readonly)return;if(activeRow&&activeRow!==this)activeRow.closeSwipe();activeRow=this;this.setData({actions:true,offset:-ACTION_WIDTH,dragging:false});},

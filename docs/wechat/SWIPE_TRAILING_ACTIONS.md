@@ -49,3 +49,17 @@ NODE_PATH=/path/to/test-tools/node_modules PLAYWRIGHT_EXECUTABLE_PATH=/path/to/c
 新增 `field-row-events.test.js` 按真实 WXML 的 bind/catch 冒泡关系路由触摸和点击。旧版 5 项中 4 项失败，原因是从选项起手没有打开菜单；修复后全部通过。布局回归增加了操作按钮完整包含在手势父容器内的断言，旧版失败，修复版 42 状态通过。相关 Vitest 共 6 文件 38 项通过，官方 wcc 9 文件、wcsc 7 文件通过。源码与测试影响映射沿用上表，增加 WXML 事件路由层；未运行无关全量测试。
 
 失败证据在 `artifacts/swipe-touch-before/`，通过证据在 `artifacts/swipe-touch-fixed/`。上述路由测试仍是组件模拟，几何仍是浏览器渲染；尚不能宣称手机上的三个按钮已经验收通过。统一开发者工具池仍为三个 quarantined 槽位，使用新手机预览继续验收。
+
+## 2026-10-14 真机无 tap 的触摸证据与修复
+
+用户复验 `7ef7809` 时，三个按钮点击后菜单均保持展开。诊断预览 `1014-D1` 保持业务逻辑不变，包装事件方法并延迟显示记录。手机截图的 11–22 条记录显示 flag、note、media 各自进入 start/end；始终为 A1（展开）、O-132、D0（未拖动）、S0（无点击等待），没有进入 trayAction。由此确认触摸命中按钮且该次操作没有送达 tap handler；不能把其进一步归因于某个微信内核缺陷。此前测试主动派发了 tap，遗漏了手机上的实际事件序列。
+
+参考腾讯 TDesign 与 Vant Weapp 的 swipe-cell 源码核对手势与操作事件分离，微信官方事件文档本次无法直接获取；上游源码并未证明本项目的原生 tap 缺失原因：
+- https://github.com/Tencent/tdesign-miniprogram/blob/develop/packages/components/swipe-cell/swipe-cell.wxml
+- https://github.com/youzan/vant-weapp/blob/dev/packages/swipe-cell/index.ts
+
+修复只针对已观测序列：在已展开的操作按钮上开始单指触摸，位移小于 8px、时间小于 350ms 且没有被识别为拖动时，touchend 直接进入原有 action 分发。滑动、长按、多指、取消、只读和未展开状态均不触发；抑制该次随后可能到达的 tap，新的明确触摸立即解除抑制。没有触摸事件的辅助功能 tap 仍使用原有入口。操作数据与页面媒体调用不变，但 wx.chooseMedia 从 touchend 唤起仍须真机验证。
+
+`field-row-events.test.js` 按真实 WXML 路由重放 start/end、不主动补发 tap：旧版三个按钮均未产生 action，3 项失败、15 项通过；失败日志 `artifacts/swipe-touchend-before/events.log`。修复后覆盖上述边界、重复 tap 和连续操作；同前述 6 个相关文件共 52 项通过。官方 wcc 9 / wcsc 7 通过。源码布局和样式未变，复用 `7ef7809` 的 42 状态几何证据，不将其视作手机交互验证。
+
+用户原始截图、测试及编译结果保存在 `artifacts/swipe-touchend-fixed/`。临时诊断构建代码从工作树移除，生成新普通预览前检查包中不存在诊断面板或记录器。原始诊断源码、构建补丁与冻结包保留在忽略的 `artifacts/swipe-diagnostic/`，没有进入 PR。工具池仍无可用槽位；待新预览的三按钮真机复验、UI 批准后再判断是否可合入。
