@@ -1,0 +1,29 @@
+<view class="page issue-editor" style="padding-bottom:{{keyboardHeight + 110}}px">
+ <view wx:if="{{readonly}}" class="readonly">房源已归档，问题只读</view>
+ <view class="card">
+  <view class="editor-label"><text>标题</text><text class="required">必填</text></view>
+  <input class="issue-title {{titleError?'invalid':''}}" value="{{title}}" placeholder="例如：卧室窗户关不严" maxlength="200" disabled="{{readonly}}" bindinput="inputTitle" bindkeyboardheightchange="keyboard" cursor-spacing="100"/>
+  <view wx:if="{{titleError}}" class="validation">{{titleError}}</view>
+  <view class="editor-label note-label"><text>备注</text><text class="muted">选填</text></view>
+  <textarea class="issue-note" value="{{note}}" placeholder="补充问题详情、需要确认或跟进的事项…" maxlength="10000" auto-height disabled="{{readonly}}" bindinput="inputNote" bindkeyboardheightchange="keyboard" cursor-spacing="100" show-confirm-bar="{{false}}"/>
+ </view>
+ <view class="card">
+  <view class="editor-label"><text>影像</text><text class="muted">选填 · 照片或视频</text></view>
+  <view wx:if="{{!media.length && readonly}}" class="muted">未添加影像</view>
+  <view class="issue-media-grid">
+   <view wx:for="{{media}}" wx:key="id" class="issue-media {{item.type==='video'?'issue-media-video':''}}">
+    <view wx:if="{{item.type==='image'}}" class="issue-preview" data-id="{{item.id}}" bindtap="preview" aria-label="预览影像">
+     <image src="{{item.path}}" mode="aspectFill"/>
+    </view>
+    <video wx:else class="issue-video-player" src="{{item.path}}" controls show-center-play-btn autoplay="{{false}}" object-fit="contain" enable-progress-gesture="{{false}}"/>
+    <button wx:if="{{!readonly}}" class="remove-media" data-id="{{item.id}}" bindtap="removeMedia" disabled="{{saving}}">移除</button>
+   </view>
+  </view>
+  <button wx:if="{{!readonly}}" class="add-media soft" bindtap="addMedia" loading="{{selecting}}" disabled="{{selecting||saving}}">＋ 添加照片 / 视频</button>
+ </view>
+ <view wx:if="{{error}}" class="error">{{error}}</view>
+ <view class="editor-actions {{keyboardHeight?'keyboard-open':''}}" style="bottom:{{keyboardHeight}}px">
+  <button class="cancel-issue" bindtap="cancel" disabled="{{selecting||saving}}">{{readonly?'返回':'取消'}}</button>
+  <button wx:if="{{!readonly}}" class="save-issue primary" bindtap="save" loading="{{saving}}" disabled="{{selecting||saving}}">保存问题</button>
+ </view>
+</view>
