@@ -12,12 +12,20 @@ function fixture(){
  function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
  const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass));
  function dispatch(target,type,x=100,y=50,extra={}){
-  const caught=[];
-  for(const n of [target,...target.parents.toReversed()]){
-   const handler=n.attrs['catch'+type]||n.attrs['bind'+type];if(!handler)continue;
+  const caught=[],path=[...target.parents,target];
+  const resolve=value=>value?.startsWith('{{')?vm.runInNewContext(value.slice(2,-2),c.data):value;
+  const invoke=(n,handler)=>{
    const dataset=Object.fromEntries(Object.entries(n.attrs).filter(([k])=>k.startsWith('data-')).map(([k,v])=>[k.slice(5),v==='{{item.value}}'?'否':v]));
    c[handler]({touches:type==='touchend'?[]:[{clientX:x,clientY:y}],changedTouches:[{clientX:x,clientY:y}],currentTarget:{dataset},...extra});
-   if(n.attrs['catch'+type]){caught.push(handler);break;}
+  };
+  for(const n of path){
+   const handler=resolve(n.attrs['capture-bind:'+type]);if(handler)invoke(n,handler);
+  }
+  for(const n of path.toReversed()){
+   const catchHandler=resolve(n.attrs['catch'+type]);
+   const handler=catchHandler||resolve(n.attrs['bind'+type]);if(!handler)continue;
+   invoke(n,handler);
+   if(catchHandler){caught.push(handler);break;}
   }
   return caught;
  }
@@ -114,4 +122,19 @@ it('attachment touch dismisses the row and remains outside the swipe recognizer'
  expect(c.data.actions).toBe(false);expect(c.gesture).toBeFalsy();
  dispatch(find('note'),'touchmove',140);dispatch(find('note'),'touchend',140);
  expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
+});
+
+it.each(['label','choice','input'])('a short deliberate swipe from %s opens the menu without selecting an answer',klass=>{
+ const {c,find,findTag,dispatch}=fixture(),target=klass==='input'?findTag('input'):find(klass);
+ dispatch(target,'touchstart',250,50);dispatch(target,'touchmove',225,52);dispatch(target,'touchend',225,52);dispatch(target,'tap',225,52);
+ expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
+});
+it('horizontal dragging catches subsequent moves while native touchstart remains unconsumed',()=>{
+ const {c,findTag,dispatch}=fixture(),input=findTag('input');
+ expect(dispatch(input,'touchstart',250)).toEqual([]);
+ dispatch(input,'touchmove',235,52);
+ expect(dispatch(input,'touchmove',220,53)).toEqual(['noop']);
+ dispatch(input,'touchend',220,53);expect(c.data.actions).toBe(true);
+ dispatch(input,'touchstart',250,50);
+ expect(dispatch(input,'touchmove',249,90)).toEqual([]);
 });

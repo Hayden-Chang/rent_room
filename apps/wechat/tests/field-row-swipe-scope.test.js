@@ -94,3 +94,13 @@ it('outside dismissal selects actual custom components with a supported class se
  for(const [,attrs] of components)expect(attrs).toMatch(/class="field-row"/);
  expect(fs.readFileSync('src/pages/detail/index.js','utf8')).toContain("selectAllComponents?.('.field-row')");
 });
+
+it('page scroll noise does not cancel an undecided or horizontal gesture, but a new vertical scroll dismisses',()=>{
+ let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;}});
+ const c=rows()('a');page.selectAllComponents=()=>[c];
+ c.start(point(250));page.onPageScroll();expect(c.gesture).toBeTruthy();
+ c.move(point(200));page.onPageScroll();expect(c.gesture?.axis).toBe('x');
+ c.end(point(200));page.onPageScroll();expect(c.data.actions).toBe(true);
+ c.start(point(250));c.move({touches:[{clientX:248,clientY:100}]});
+ page.onPageScroll();expect(c.data.actions).toBe(false);expect(c.gesture).toBeNull();
+});

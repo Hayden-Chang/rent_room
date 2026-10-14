@@ -97,3 +97,27 @@ NODE_PATH=/path/to/test-tools/node_modules PLAYWRIGHT_EXECUTABLE_PATH=/path/to/c
 替换错误约束后，`71e4385` 的事件/范围测试 4 项失败、33 项通过，失败覆盖文本/数值/日期框起手左滑及完整祖先绑定。修复后相关 6 文件共 59 项通过，包括输入框起手滑动、短按后聚焦/输入事件处理、纵向滚动、附件区隔离、选项点击、三按钮无 tap 序列与去重。测试中的 focus/input 仍由夹具派发，不代表原生键盘已弹出。官方 wcc 9 / wcsc 7 通过，构建差异只有 field-row/index.wxml；不重跑未改变的布局和备注键盘逻辑测试，复用既有证据。
 
 证据：`apps/wechat/artifacts/full-row-native-before/tests.log`、`apps/wechat/artifacts/full-row-native-fixed/`。当前三槽池查询均为 busy-or-quarantined，没有抢占实例或新开发者工具截图。真机仍需验证：直接在地址/数值填写框内部左滑打开三按钮；轻点输入能填写；是/否轻点选择、左滑不改答案；三按钮与备注键盘避让保持可用。本轮待手机验收，不合入或正式发布。
+
+## 2026-10-14 短距离与快速甩动手感
+
+用户反馈 `0b1560c` 左滑常常只动一点就收回，并明确要求短距离的快速左甩也应展开。源码检查发现：展开/收起必须超过 36px；达到 8px 后，只要横向位移没有超过纵向的 1.2 倍就永久锁成纵向；已锁横向时 touchend 不更新最后坐标；页面 onPageScroll 无条件 closeSwipe 会清掉正在识别的手势。以上是可重放的失败路径，不代表已经录得用户手机的全部事件原因。
+
+参考 Vant Weapp 的捕获阶段方向识别与条件 catchtouchmove，以及 TDesign 等待方向明确的做法：保留整行 bindtouchstart，move 改为 capture-bind 并仅在已识别横向拖动时捕获后续 move。方向不明确时继续观察，明确纵向后不切换为横向。页面滚动不打断未定向/横向手势，松手后沿用 250ms 的点击抑制窗口忽略滞后的滚动通知；新的触摸立即解除抑制，纵向滚动、页面隐藏和显式外部收起仍可关闭菜单。
+
+普通拖动阈值从 36px 调为 20px。快速甩动依据最近 100ms 内的坐标与触摸时间计算横向速度，超过等于 0.3px/ms 且净位移至少 8px，按速度方向展开或收起；这满足用户所说的加速后短甩，不以整次按住时长平均，也不直接用噪声较大的二阶加速度。快划后停住会丢弃过期速度，快速反向收手按末段方向处理。touchend 总是纳入最终坐标，适应缺失最后 move 的短划。点击与三个按钮的短触分发保留。
+
+研究来源（2026-10-14 读取开发分支源码；用于实现模式参考，并非本项目基础库原生行为证明）：
+- https://github.com/youzan/vant-weapp/blob/dev/packages/swipe-cell/index.wxml
+- https://github.com/youzan/vant-weapp/blob/dev/packages/mixins/touch.ts
+- https://github.com/Tencent/tdesign-miniprogram/blob/develop/packages/components/swipe-cell/swipe-cell.wxs
+- https://github.com/ionic-team/ionic-framework/blob/main/core/src/components/item-sliding/item-sliding.tsx （距离之外依据 velocityX 判断快速甩动，0.3 速度阈值）
+
+新增复现覆盖短拖、斜向起手、松手坐标、滚动取消及速度路径：旧包 13 失败 / 46 通过。修复后的 8 文件增量共 89 项通过；涵盖 12px/25ms 短甩、同距慢拖、长按后末段加速、快划后暂停、微小抖动、纵向快划、反向短甩、反向收手、原生输入路径、三按钮去重及备注键盘状态。事件夹具增加捕获阶段和条件 catch 路由，但不能证明原生事件时序及手感。首轮有 8 项导航检查因旧组件替身缺少新增 closeOnScroll 方法失败，保留原始日志；补齐替身接口后，所有原导航断言均执行通过，没有修改产品导航策略或跳过断言。
+
+增量映射：组件识别器/事件绑定 → field-row-swipe、field-row-events、field-row-swipe-scope；共享按钮/输入方法 → field-row-inline-actions、field-row-placeholder、address-bindings；页面滚动/生命周期 → detail-navigation、note-keyboard。官方 wcc 9 / wcsc 7 通过。CSS、布局、原生输入属性及备注模板未变，复用此前几何证据。失败与通过日志在 `apps/wechat/artifacts/swipe-feel-before/`、`apps/wechat/artifacts/swipe-feel-fixed/`。真机短划手感与键盘仍待新预览确认。
+
+本轮工具池曾返回 2 号槽位 idle，遂通过 runner 领用冻结包并准备 SDK 元素触摸检查；run `9bbecaa9f5084ffd895a1c631b619848` 在 health-before 阶段失败，回调未执行，没有本次截图或 SDK 交互结果。失败 receipt 与 health-before 日志保存在 swipe-feel-fixed；未重置或绕过隔离槽位。与 `0b1560c` 预览逐文件对比仅三个产物改变：field-row/index.js、field-row/index.wxml、pages/detail/index.js，确认布局和备注模板等复用依据。
+
+## 2026-10-14 手机验收与合入授权
+
+用户试用 run `c9af82c6c0754e7897316c6e2fa6f4eb` 后明确反馈「没问题了，可以合入」。该预览是 `0b1560c` 上的未提交修复快照，已逐文件确认本地业务构建与手机预览一致。此反馈记录为整行点击/滑动、短甩手感及此前修复的用户验收和合入授权；并非新增 Android 或开发者工具自动化通过证据。随后提交修复，并在合入前检查最新主线组合与最终 PR head。
