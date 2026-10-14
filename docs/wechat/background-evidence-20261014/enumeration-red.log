@@ -1,0 +1,39 @@
+✖ enumerated windows cannot reactivate the app through fresh window handles (3.374125ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 89.53675
+
+✖ failing tests:
+
+test at background.test.cjs:46:1
+✖ enumerated windows cannot reactivate the app through fresh window handles (3.374125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   'show',
+  +   'focus',
+  +   'attention',
+  +   'show',
+  +   'focus',
+  +   'attention'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (/private/tmp/wechat-background-enumeration-red/background.test.cjs:52:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'show', 'focus', 'attention', 'show', 'focus', 'attention' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

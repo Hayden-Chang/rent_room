@@ -1,0 +1,7 @@
+smoke: connect
+smoke: read initial storage
+smoke: write storage and file
+smoke: relaunch
+smoke: read persisted state
+smoke: screenshot
+{"before":{"slot":"background-inactive-cold","value":""},"after":{"slot":"background-inactive-cold","count":"41c730c8efd247668daadff606d15444","stored":"41c730c8efd247668daadff606d15444","file":"41c730c8efd247668daadff606d15444"},"slot":"1","endpoint":"ws://127.0.0.1:19963"}
