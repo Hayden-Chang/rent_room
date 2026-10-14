@@ -48,3 +48,11 @@ WECHAT_NODE=/本机/Node24/node python3 scripts/wechat-pool/pool.py --root /Volu
 修改后重建，`issue-editor`、`detail-navigation`、`media-caption`、`runtime` 共35项通过，日志 `issue-inline-preview.log`；覆盖全部附件归属、点击选中项、无跨问题串图、归档可预览及模板的事件绑定。官方wcc 11模板、wcsc 9样式通过，9页面、1254071字节。上一轮其余测试的对应数据/平台/store/测速源码与测试未改，复用原有证据，不重跑无影响项。测试是VM/模板检查，不能替代实际视频解码和点击操作。
 
 再次检查实例池，3槽仍busy-or-quarantined；本次未重试同一不可用入口。真实照片显示、内嵌视频播放/全屏、预览区域点击与软键盘仍需手机验收。保持草稿PR。
+
+## 2026-10-14 追加：右下角新建问题按钮
+
+用户已明确确认前一版问题表单及下方图片/视频预览“没问题”。本次仅将问题页标题行的新建入口移至右下角，沿用新建影像的52px圆形按钮、阴影、安全区间距，并使用现有紫色加号图标；归档房源仍隐藏新建入口。UI脚本同步使用稳定的 `.add-issue-button` 选择器。
+
+在 `05be493` 上修改详情WXML/WXSS和UI脚本后，重新运行上述 build/check，以及 `issue-editor`、`detail-navigation`、`media-caption`、`runtime` 四个测试文件：35项通过，日志 `apps/wechat/artifacts/issue-floating-button.log`；官方wcc 11模板、wcsc 9样式通过，9页面、1254246字节。业务处理、媒体、存储和数据格式未修改，其余测试复用上一候选证据。此次低影响布局调整没有新增镜像实现的测试。
+
+共享实例池维护通知要求暂缓GUI/SDK测试，本次未使用旧runner启动实例；没有新增实际截图或触摸通过证据。按钮位置待扫码查看，前一版已确认的范围不重复请求批准。保持草稿PR，未合入或发布。

@@ -18,8 +18,8 @@ const timer = setTimeout(() => { console.error('Issue UI test timed out'); proce
     let page = await mini.reLaunch(route);
     await page.waitFor('.detail-tabs');
     await (await page.$('.detail-tabs button[data-value="问题"]')).tap();
-    await page.waitFor('.section-title button');
-    await (await page.$('.section-title button')).tap();
+    await page.waitFor('.add-issue-button');
+    await (await page.$('.add-issue-button')).tap();
     page = await current('pages/issue/index');
     await page.waitFor('.issue-title');
     await mini.screenshot({path: path.join(process.env.WECHAT_ARTIFACT_DIR, 'issue-empty.png')});
