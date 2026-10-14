@@ -22,3 +22,9 @@
 - 未设置Key环境变量的普通build确认共享配置进入dist，值不输出。官方wcc 9模板、wcsc 7样式通过。
 - 用Node的fetch直接访问浏览器端Key接口返回HTTP403；这是非微信运行时的调用，不能替代微信wx.request成功证据，未加请求头绕过。日志 `apps/wechat/artifacts/built-map-network.log` 同时保留旧包复现证据。
 - 实例池三槽均busy-or-quarantined，未接管/重启。修复预览包仍需iPhone点击定位，检查附近条目及“使用”地址回填。预览上传成功不代表此现场验收已通过。
+
+## 2026-10-14 搜索框样式追加修正
+
+用户在修复版预览反馈“搜索地址，更快填写”框外有灰色阴影。源码外层search-bar使用灰色圆角底，内部input未显式清除背景与边框。现改为外层白底单层细边框、内层透明无边框，无阴影，保持44px点击高度。仅改WXSS；未改搜索、定位、地址回填和配置逻辑。
+
+Node 24重建后address-bindings/address-picker共19项通过，官方wcc 9模板/wcsc 7样式通过。此前构建配置测试证据适用于未改逻辑。池status三槽仍busy-or-quarantined，未获取开发者工具实际截图，将新版预览交用户iPhone验收，尚未合入。
