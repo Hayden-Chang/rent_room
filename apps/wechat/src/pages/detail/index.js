@@ -19,7 +19,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
     this.setData({...patch,...this.checklistData(h,view)});
   },
   refresh(patch={},done){const h=this.guideHouse||service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
-    this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:mediaWithIssues(h).filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]).map(i=>({...i,mediaCount:h.media.filter(m=>m.issueId===i.id).length})),saveError:service().store.status().error},done);
+    this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:mediaWithIssues(h).filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:activeEntries(h).filter(e=>problem(e.field,answer(h,e.field))).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]).map(i=>({...i,media:h.media.filter(m=>m.issueId===i.id),mediaCount:h.media.filter(m=>m.issueId===i.id).length})),saveError:service().store.status().error},done);
     wx.setNavigationBarTitle({title:h.name});
   },
   retry(){service().store.save();},
@@ -100,6 +100,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   linkMedia(e){attempt(()=>{service().store.edit(this.data.id,h=>h.media.find(m=>m.id===this.data.linkMediaId).fieldId=e.currentTarget.dataset.id);this.close();this.refresh();});},
   selectPlace(e){attempt(()=>{service().store.edit(this.data.id,h=>applyPlace(h,e.detail,MAP_ID));this.refresh();});},
   addIssue(){if(this.dismissSwipe()||this.data.house.archived)return;attempt(()=>service().api('navigateTo',{url:'/pages/issue/index?id='+encodeURIComponent(this.data.id)}));},
+  previewIssueMedia(e){return attempt(()=>{const h=service().store.house(this.data.id),{issueId,id}=e.currentTarget.dataset;const media=h.media.filter(m=>m.issueId===issueId);if(media.some(m=>m.id===id))return service().preview(media,id);});},
   openIssue(e){if(this.dismissSwipe())return;attempt(()=>service().api('navigateTo',{url:'/pages/issue/index?id='+encodeURIComponent(this.data.id)+'&issueId='+encodeURIComponent(e.currentTarget.dataset.id)}));},
   resolve(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>{const i=h.issues.find(i=>i.id===e.currentTarget.dataset.id);i.resolved=!i.resolved;});this.refresh();});},
   decision(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>h.decision=e.currentTarget.dataset.value);this.refresh();});},

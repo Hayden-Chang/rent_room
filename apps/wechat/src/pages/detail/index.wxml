@@ -25,6 +25,12 @@
   <block wx:if="{{tab==='问题'}}"><view class="row between section-title"><text>需要关注 · {{stats.issues}}</text><button wx:if="{{!house.archived}}" class="soft" bindtap="addIssue">＋ 新问题</button></view><view wx:if="{{!issueRows.length&&!manualIssues.length}}" class="empty"><view class="subtitle">目前没有标记的问题</view>未检查的项目仍需继续查看。</view><view wx:for="{{issueRows}}" wx:key="id" class="card"><text class="muted">{{item.category}}</text><field-row class="field-row" field="{{item}}" readonly="{{house.archived||item.groupRole}}" address="{{house.address}}" location="{{house.location}}" anchor="{{house.locationAddress}}" bindselectplace="selectPlace" bindanswer="answer" bindchoose="choose" bindaction="action"/></view><view wx:for="{{manualIssues}}" wx:key="id" class="card manual-issue" data-id="{{item.id}}" bindtap="openIssue">
    <view class="row"><text class="grow manual-title">{{item.title}}</text><button disabled="{{house.archived}}" class="{{item.resolved?'soft':'danger'}}" data-id="{{item.id}}" catchtap="resolve">{{item.resolved?'已解决':'待跟进'}}</button></view>
    <text wx:if="{{item.note}}" class="manual-note">{{item.note}}</text>
+   <view wx:if="{{item.media.length}}" class="manual-media-grid" catchtap="noop">
+    <view wx:for="{{item.media}}" wx:for-item="media" wx:key="id" class="manual-media {{media.type==='video'?'manual-media-video':''}}">
+     <image wx:if="{{media.type==='image'}}" class="manual-photo" src="{{media.path}}" mode="aspectFill" data-issue-id="{{item.id}}" data-id="{{media.id}}" catchtap="previewIssueMedia" aria-label="预览问题照片"/>
+     <video wx:else class="manual-video" src="{{media.path}}" controls show-center-play-btn autoplay="{{false}}" object-fit="contain" enable-progress-gesture="{{false}}" catchtap="noop"/>
+    </view>
+   </view>
    <view class="manual-meta"><text wx:if="{{item.mediaCount}}">{{item.mediaCount}} 个影像 · </text>{{house.archived?'查看详情':'查看 / 编辑'}} ›</view>
   </view></block>
   <block wx:if="{{tab==='总结'}}"><view class="summary-label">当前意向</view><view class="decision-segment"><button wx:for="{{['考虑租住','继续比较','放弃']}}" wx:key="*this" class="{{house.decision===item?'decision-active':''}}" disabled="{{house.archived}}" data-value="{{item}}" bindtap="decision">{{item==='放弃'?'放弃这套':item}}</button></view><view class="summary-label note-label">备注</view><textarea class="summary-note" value="{{house.summary}}" maxlength="10000" placeholder="记录下你对这套房源的整体感受…" disabled="{{house.archived}}" bindinput="summary"/><view wx:if="{{saveError}}" class="error">尚未保存，请重试</view></block>

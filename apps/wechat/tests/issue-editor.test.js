@@ -75,6 +75,17 @@ describe('issue form and transactional media',()=>{
   const p=s.load('detail');expect(p.data.manualIssues[0]).toMatchObject({note:'完整备注',mediaCount:1});expect(p.data.visibleMedia[0].issueTitle).toBe('漏水');p.mediaFilter({currentTarget:{dataset:{value:'image'}}});expect(p.data.visibleMedia[0].issueTitle).toBe('漏水');
   p.addIssue();p.openIssue(event('old'));expect(s.routes[0]).toBe('/pages/issue/index?id='+s.id);expect(s.routes[1]).toContain('issueId=old');await p.mediaManage(event('photo'));expect(s.routes[2]).toContain('issueId=old');p.resolve(event('old'));expect(s.service.store.house(s.id).issues[0].resolved).toBe(true);p.onUnload();
  });
+ it('exposes every issue attachment inline and previews only that issue at the selected image',async()=>{
+  const s=setup();s.service.store.edit(s.id,h=>{h.issues=[{id:'a',title:'漏水',resolved:false},{id:'b',title:'门锁',resolved:false}];h.media=[{id:'photo1',type:'image',path:'/one',issueId:'a'},{id:'video',type:'video',path:'/clip',issueId:'a'},{id:'photo2',type:'image',path:'/two',issueId:'a'},{id:'other',type:'image',path:'/other',issueId:'b'},{id:'field',type:'image',path:'/field',fieldId:'f1_1'}];});
+  const p=s.load('detail');expect(p.data.manualIssues[0].media.map(m=>m.id)).toEqual(['photo1','video','photo2']);expect(p.data.manualIssues[1].media.map(m=>m.id)).toEqual(['other']);
+  await p.previewIssueMedia({currentTarget:{dataset:{issueId:'a',id:'photo2'}}});expect(s.previews.at(-1).sources.map(m=>m.url)).toEqual(['/one','/clip','/two']);expect(s.previews.at(-1).current).toBe(2);expect(s.routes).toEqual([]);
+  s.service.store.archive(s.id,true);p.refresh();await p.previewIssueMedia({currentTarget:{dataset:{issueId:'a',id:'photo1'}}});expect(s.previews.at(-1).current).toBe(0);p.onUnload();
+ });
+ it('binds inline photo previews without opening the editor and renders video players in both views',()=>{
+  const detail=fs.readFileSync('src/pages/detail/index.wxml','utf8'),editor=fs.readFileSync('src/pages/issue/index.wxml','utf8');
+  expect(detail).toMatch(/wx:for="{{item.media}}"/);expect(detail).toContain('catchtap="previewIssueMedia"');expect(detail).toContain('data-issue-id="{{item.id}}"');expect(detail).toMatch(/<video[^>]*src="{{media.path}}"/);
+  expect(editor).toMatch(/<video[^>]*src="{{item.path}}"/);expect(detail.indexOf('class="manual-note"')).toBeLessThan(detail.indexOf('class="manual-media-grid"'));
+ });
  it('keeps archived issue view read-only and supports viewing its media',async()=>{
   const s=setup();s.service.store.edit(s.id,h=>h.issues=[{id:'old',title:'只读',resolved:false}]);s.service.store.archive(s.id,true);const p=s.load('issue',{id:s.id,issueId:'old'});expect(p.data.readonly).toBe(true);title(p,'修改');note(p,'修改');await p.addMedia();await p.save();expect(p.data.title).toBe('只读');expect(s.reload().store.house(s.id).issues[0].title).toBe('只读');
  });

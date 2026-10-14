@@ -11,11 +11,11 @@
   <view class="editor-label"><text>影像</text><text class="muted">选填 · 照片或视频</text></view>
   <view wx:if="{{!media.length && readonly}}" class="muted">未添加影像</view>
   <view class="issue-media-grid">
-   <view wx:for="{{media}}" wx:key="id" class="issue-media">
-    <view class="issue-preview" data-id="{{item.id}}" bindtap="preview" aria-label="预览影像">
-     <image wx:if="{{item.type==='image'}}" src="{{item.path}}" mode="aspectFill"/>
-     <view wx:else class="issue-video">▶<text>视频 {{item.duration||0}}s</text></view>
+   <view wx:for="{{media}}" wx:key="id" class="issue-media {{item.type==='video'?'issue-media-video':''}}">
+    <view wx:if="{{item.type==='image'}}" class="issue-preview" data-id="{{item.id}}" bindtap="preview" aria-label="预览影像">
+     <image src="{{item.path}}" mode="aspectFill"/>
     </view>
+    <video wx:else class="issue-video-player" src="{{item.path}}" controls show-center-play-btn autoplay="{{false}}" object-fit="contain" enable-progress-gesture="{{false}}"/>
     <button wx:if="{{!readonly}}" class="remove-media" data-id="{{item.id}}" bindtap="removeMedia" disabled="{{saving}}">移除</button>
    </view>
   </view>

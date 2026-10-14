@@ -38,3 +38,13 @@ WECHAT_NODE=/本机/Node24/node python3 scripts/wechat-pool/pool.py --root /Volu
 2026-10-14本次实际调用等待后失败：`No free slot; active/orphan instances were not stopped`。三个槽位为busy-or-quarantined。receipt为 `d7adf99fb5034c78be47805d57f5ffbd`；摘要日志 `apps/wechat/artifacts/issue-pool-attempt.log`。回调未启动，无UI通过/截图证据；没有接管、清理或重启别的任务实例。
 
 真机待验证：系统返回/侧滑确认，软键盘与底部保存按钮，拍照/视频/相册、权限拒绝、保存后重开预览、ZIP恢复。预览码由统一CI租约入口生成，不能代替上述验证。PR保持草稿，UI未经用户确认不得合入或发布。
+
+## 2026-10-14 追加：问题下方直接预览
+
+按手机验收反馈，问题列表在标题/完整备注下方直接显示全部关联附件：照片缩略图点击打开该问题的媒体预览，视频为内嵌原生播放器（不自动播放）。新建/编辑页的视频也改为内嵌播放器。预览区阻止点击冒泡，避免打开问题编辑；归档问题保留只读预览。没有改变媒体文件、关联、存储或ZIP格式。
+
+新增2项回归在旧版本失败：列表无媒体数组、模板无直接预览区域。最初从仓库根运行导致路径错误的记录为 `issue-preview-wrong-cwd.log`，不算回归证据；在正确应用目录运行的行为失败证据为 `issue-preview-before.log`。
+
+修改后重建，`issue-editor`、`detail-navigation`、`media-caption`、`runtime` 共35项通过，日志 `issue-inline-preview.log`；覆盖全部附件归属、点击选中项、无跨问题串图、归档可预览及模板的事件绑定。官方wcc 11模板、wcsc 9样式通过，9页面、1254071字节。上一轮其余测试的对应数据/平台/store/测速源码与测试未改，复用原有证据，不重跑无影响项。测试是VM/模板检查，不能替代实际视频解码和点击操作。
+
+再次检查实例池，3槽仍busy-or-quarantined；本次未重试同一不可用入口。真实照片显示、内嵌视频播放/全屏、预览区域点击与软键盘仍需手机验收。保持草稿PR。
