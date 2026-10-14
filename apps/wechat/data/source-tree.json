@@ -795,8 +795,9 @@
               ],
               "inspection": {
                 "skippable": true,
-                "presence": false,
-                "aggregate": false
+                "presence": true,
+                "aggregate": true,
+                "detailsWithoutPresence": true
               }
             },
             "children": [
@@ -884,8 +885,9 @@
               ],
               "inspection": {
                 "skippable": true,
-                "presence": false,
-                "aggregate": false
+                "presence": true,
+                "aggregate": true,
+                "detailsWithoutPresence": true
               }
             },
             "children": [

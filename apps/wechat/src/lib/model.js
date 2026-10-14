@@ -12,7 +12,8 @@ export const emptyState = () => ({version:2,houses:[],settings:{template:'完整
 const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83');
 // Apply current group controls to saved templates without rewriting their answers or snapshots.
 export const houseTopics = h => [...(h.templateTopics||topics),...(h.extras||[])].map(t=>{
-  if(t.path?.some(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9'))t={...t,path:t.path.map(p=>p.id==='90bf172a-1c92-41e3-9369-c64f5935e7d9'?{...p,aggregate:true,presence:true,detailsWithoutPresence:true}:p)};
+  const normalGroups=['90bf172a-1c92-41e3-9369-c64f5935e7d9','topic_10','topic_11'];
+  if(t.path?.some(p=>normalGroups.includes(p.id)))t={...t,path:t.path.map(p=>normalGroups.includes(p.id)?{...p,aggregate:true,presence:true,detailsWithoutPresence:true}:p)};
   if(t.path?.some(p=>p.id===installationGroup.id))t={...t,
     title:t.title==='宽带条件'?installationGroup.title:t.title,
     path:t.path.map(p=>p.id===installationGroup.id?{...p,title:installationGroup.title,visibleWhen:installationGroup.visibleWhen}:p)};
