@@ -1,0 +1,67 @@
+{
+  "C": {
+    "runId": "5cbfdbfb0c4b4a01aaa145ee3eb183d7",
+    "started": 1791948680.384539,
+    "finished": 1791948988.6942458,
+    "status": "passed",
+    "slot": "3",
+    "ports": {
+      "ide": 19653,
+      "auto": 19753,
+      "internal": 32163,
+      "fallback": 33263
+    },
+    "runtimePid": 31087,
+    "runtimeReused": true,
+    "projectInitialized": false,
+    "runnerHash": "d71002c0811286219f9747c3c52857d10b509d04f100858edbb34ce61d441692",
+    "snapshotHash": "1a362912be5b6fe0db728567da851fea7c805f13085996fdfb14e51de2733024",
+    "residentState": "idle",
+    "residentRetained": true,
+    "testStarted": 1791948977.50988,
+    "testFinished": 1791948982.156157
+  },
+  "A": {
+    "runId": "0fd7a57e71fe44e7a1b44eaa2b504cea",
+    "started": 1791948680.338806,
+    "finished": 1791948919.99281,
+    "status": "failed",
+    "slot": "1",
+    "ports": {
+      "ide": 19651,
+      "auto": 19751,
+      "internal": 32161,
+      "fallback": 33261
+    },
+    "runtimePid": 29670,
+    "runtimeReused": true,
+    "projectInitialized": false,
+    "runnerHash": "d71002c0811286219f9747c3c52857d10b509d04f100858edbb34ce61d441692",
+    "snapshotHash": "2f83d02d05bcdba1b36e806e37738a198c03040c9c3ec5efa4c5eea37057375a",
+    "residentState": "quarantined",
+    "residentRetained": true,
+    "error": "HTTP Error 303: The HTTP server returned a redirect error that would lead to an infinite loop.\nThe last 30x error message was:\nSee Other"
+  },
+  "B": {
+    "runId": "f6d2846cdb874fbf886858f16d22f284",
+    "started": 1791948680.3540869,
+    "finished": 1791948958.8638139,
+    "status": "passed",
+    "slot": "2",
+    "ports": {
+      "ide": 19652,
+      "auto": 19752,
+      "internal": 32162,
+      "fallback": 33262
+    },
+    "runtimePid": 30348,
+    "runtimeReused": true,
+    "projectInitialized": false,
+    "runnerHash": "d71002c0811286219f9747c3c52857d10b509d04f100858edbb34ce61d441692",
+    "snapshotHash": "cfbd2f844fcb7a687d2f0cfaf25db0eecb50a017638141bc53d7ff4bf10319fd",
+    "residentState": "idle",
+    "residentRetained": true,
+    "testStarted": 1791948947.684629,
+    "testFinished": 1791948952.240829
+  }
+}

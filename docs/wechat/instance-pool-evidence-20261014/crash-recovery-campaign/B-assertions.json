@@ -1,0 +1,14 @@
+{
+  "before": {
+    "slot": "B",
+    "value": ""
+  },
+  "after": {
+    "slot": "B",
+    "count": "d8a840c8b61940c2a76f1eafaec0ff28",
+    "stored": "d8a840c8b61940c2a76f1eafaec0ff28",
+    "file": "d8a840c8b61940c2a76f1eafaec0ff28"
+  },
+  "slot": "3",
+  "endpoint": "ws://127.0.0.1:19753"
+}

@@ -1,0 +1,29 @@
+✖ reconnects when the app context reload drops an in-flight readiness request (47.269667ms)
+✔ an empty page stack never counts as a healthy application (25.368541ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 189.640833
+
+✖ failing tests:
+
+test at scripts/wechat-pool/health.test.cjs:35:1
+✖ reconnects when the app context reload drops an in-flight readiness request (47.269667ms)
+  AssertionError [ERR_ASSERTION]: A dropped request must not consume the whole health deadline
+  
+  1 !== undefined
+  
+      at TestContext.<anonymous> (/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-pool-recovery/scripts/wechat-pool/health.test.cjs:38:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

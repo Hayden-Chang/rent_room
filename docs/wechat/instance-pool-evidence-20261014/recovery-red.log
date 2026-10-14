@@ -1,0 +1,14 @@
+test_closed_quarantined_resident_can_be_leased_again (test_pool.PoolTests) ... FAIL
+
+======================================================================
+FAIL: test_closed_quarantined_resident_can_be_leased_again (test_pool.PoolTests)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-pool-recovery/scripts/wechat-pool/test_pool.py", line 338, in test_closed_quarantined_resident_can_be_leased_again
+    self.assertIsNotNone(lease, 'Closing an unused failed instance must not leave a permanent dead slot')
+AssertionError: unexpectedly None : Closing an unused failed instance must not leave a permanent dead slot
+
+----------------------------------------------------------------------
+Ran 1 test in 0.005s
+
+FAILED (failures=1)

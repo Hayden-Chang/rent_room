@@ -1,0 +1,11 @@
+✔ reconnects when the app context reload drops an in-flight readiness request (10.007ms)
+✔ an empty page stack never counts as a healthy application (39.247792ms)
+✔ waits for the simulator render channel even when the app service is ready (8.957792ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 919.114791

@@ -1,0 +1,30 @@
+✔ reconnects when the app context reload drops an in-flight readiness request (6.898875ms)
+✔ an empty page stack never counts as a healthy application (24.88325ms)
+✖ waits for the simulator render channel even when the app service is ready (1.213708ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 2
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 122.2215
+
+✖ failing tests:
+
+test at scripts/wechat-pool/health.test.cjs:51:1
+✖ waits for the simulator render channel even when the app service is ready (1.213708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 2
+  
+      at TestContext.<anonymous> (/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/wechat-pool-recovery/scripts/wechat-pool/health.test.cjs:54:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
