@@ -27,10 +27,11 @@ function render(nodes,scope){
  }
  return html;
 }
-function state(field,opened){let spec;vm.runInNewContext(fs.readFileSync(base+'/index.js','utf8'),{Component:s=>spec=s,Date});const c={...spec.methods,data:{...structuredClone(spec.data),field,readonly:false,hideDivider:false},setData:p=>Object.assign(c.data,p)};if(opened)c.reveal();return c.data;}
+function state(field,opened){let spec;vm.runInNewContext(fs.readFileSync(base+'/index.js','utf8'),{Component:s=>spec=s,Date});const c={...spec.methods,data:{...structuredClone(spec.data),field,speedTest:field.name==='speed',readonly:false,hideDivider:false},setData:p=>Object.assign(c.data,p)};if(opened)c.reveal();return c.data;}
 const variants=[
  {name:'binary',inline:true,label:'非顶楼',options:['是','否']},
  {name:'ternary',inline:true,label:'电梯正常',options:['是','否','没有']},
+ {name:'speed',inline:true,label:'实测网速',type:'n',value:88},
  {name:'number',inline:true,label:'面积（㎡）',type:'n',value:36},
  {name:'text',inline:true,label:'地址补充',type:'t',value:'A座'},
  {name:'long',inline:true,label:'窗户开合和密封正常',options:['是','否','没有']},
@@ -46,10 +47,11 @@ const variants=[
     const html=`<style>body{margin:16px;font-family:Arial}button{border:0;box-sizing:border-box}span{display:inline}img{object-fit:contain}${fs.readFileSync(base+'/index.wxss','utf8')}*{transition:none!important}</style>`+variants.map(f=>`<section data-case="${f.name}">${render(tree,state(f,opened))}</section>`).join('');
     const file=path.join(out,`${width}-${opened?'open':'closed'}.html`);fs.writeFileSync(file,html);await page.goto('file://'+file);
     for(const f of variants){const row=page.locator(`[data-case="${f.name}"]`);assert.equal(await row.locator('.choice').count(),f.options.length);assert.equal(await row.locator('input').count(),f.options.length?0:1);}
-    const boxes=await page.locator('section').evaluateAll(rows=>rows.map(row=>{const rect=s=>{const r=row.querySelector(s).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};return {name:row.dataset.case,field:rect('.field'),label:rect('.label'),tray:rect('.swipe-tray'),shell:rect('.swipe-shell'),buttons:[...row.querySelectorAll('.swipe-action')].map(b=>b.getBoundingClientRect().width)};}));
+    const boxes=await page.locator('section').evaluateAll(rows=>rows.map(row=>{const rect=s=>{const r=row.querySelector(s).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};return {name:row.dataset.case,field:rect('.field'),label:rect('.label'),tray:rect('.swipe-tray'),shell:rect('.swipe-shell'),speed:row.querySelector('.speed-entry')?{entry:rect('.speed-entry'),input:rect('.speed-entry .input'),trigger:rect('.speed-trigger')}:null,buttons:[...row.querySelectorAll('.swipe-action')].map(b=>b.getBoundingClientRect().width)};}));
     await page.screenshot({path:path.join(out,`${width}-${opened?'open':'closed'}.png`),fullPage:true});
     for(const b of boxes){try{
      assert(b.label.left>=b.field.left-1,`${b.name}: label clipped off the left edge`);
+     if(b.speed){assert(b.speed.input.width>=40,'speed input remains usable');assert(b.speed.trigger.right<=b.shell.right+1,'speed button fits the row');assert(b.speed.entry.left>=b.label.right,'speed controls do not overlap title');}
      if(opened){const inset=b.name==='issue'?8:0;assert(Math.abs(b.tray.right-(b.field.right-inset))<1,`${b.name}: actions are not at the full row trailing edge`);assert(b.label.right<=b.tray.left+1,`${b.name}: actions overlap the label`);assert.deepEqual(b.buttons,[44,44,44]);assert(b.tray.left>=b.shell.left&&b.tray.right<=b.shell.right+1&&b.tray.top>=b.shell.top&&b.tray.bottom<=b.shell.bottom+1,`${b.name}: action targets must stay inside their gesture container`);}
     }catch(e){failures.push({width,opened,message:e.message});}}
     results.push({width,opened,boxes});
@@ -57,5 +59,5 @@ const variants=[
   }
   for(const width of [320,390,430]){const closed=results.find(r=>r.width===width&&!r.opened),opened=results.find(r=>r.width===width&&r.opened);for(let i=0;i<variants.length;i++)assert.equal(opened.boxes[i].field.height,closed.boxes[i].field.height,'opening must not expand the row');}
  }finally{await browser.close();}
- fs.writeFileSync(path.join(out,'geometry.json'),JSON.stringify({results,failures},null,2));assert.deepEqual(failures,[]);console.log('42 component layout states passed: title visibility, trailing alignment, 44px targets, stable row height.');
+ fs.writeFileSync(path.join(out,'geometry.json'),JSON.stringify({results,failures},null,2));assert.deepEqual(failures,[]);console.log('48 component layout states passed: title visibility, trailing alignment, 44px targets, stable row height.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

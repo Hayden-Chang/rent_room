@@ -29,7 +29,7 @@ function fixture(){
   }
   return caught;
  }
- return {c,find,dispatch,findTag:tag=>nodes.find(n=>n.tag===tag),advance:ms=>{now+=ms;}};
+ return {c,find,dispatch,findTag:tag=>nodes.find(n=>n.tag===tag&&!n.parents.some(p=>(p.attrs.class||'').split(' ').includes('speed-entry'))),advance:ms=>{now+=ms;}};
 }
 it('swiping from an answer option opens the row without selecting that option',()=>{
  const {c,find,dispatch}=fixture(),choice=find('choice');
@@ -137,4 +137,12 @@ it('horizontal dragging catches subsequent moves while native touchstart remains
  dispatch(input,'touchend',220,53);expect(c.data.actions).toBe(true);
  dispatch(input,'touchstart',250,50);
  expect(dispatch(input,'touchmove',249,90)).toEqual([]);
+});
+
+it('the merged speed-test button taps normally and swipes with the full row',()=>{
+ const {c,find,dispatch}=fixture(),button=find('speed-trigger');c.data.speedTest=true;
+ dispatch(button,'touchstart');dispatch(button,'touchend');dispatch(button,'tap');
+ expect(c.events).toEqual([{name:'action',detail:{id:'floor',action:'speed-test'}}]);
+ c.events=[];dispatch(button,'touchstart',250);dispatch(button,'touchmove',225);dispatch(button,'touchend',225);dispatch(button,'tap',225);
+ expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
 });

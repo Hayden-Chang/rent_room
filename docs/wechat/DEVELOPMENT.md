@@ -71,3 +71,7 @@ npm run package
 - PR 记录 head SHA、命令和结果、截图/日志路径、mock 边界与未验证项；合并前由主 agent 审查最终 head 和适用门禁。原始输出可作为本地或 CI 附件保留，验证摘要放 `docs/wechat/`。
 - 微信双实例及池化实验见 [现场报告](INSTANCE_POOL_VALIDATION.md) 和 [实验 runner](../../scripts/wechat-pool/README.md)。租约、FIFO、源码 receipt 与常驻归还复用已实现，但首次启动和常驻连续复用尚未通过微信现场验收；用户已授权三槽常驻池作为 session 间协调入口，使用 `--experimental` 并如实记录每次实际结果，不能视为 E2E 已验收。仓库仍没有已验收的统一 npm E2E 命令、官方 Skills/MCP 或 MiniTest 接入契约。
 - 接入上述能力时，先用隔离测试项目验证，再在本文件登记真实命令、版本、授权前置条件、会话/数据隔离和证据路径。采用 Skills/MCP 时读取实际安装版本的说明与 schema，不能凭旧文档猜工具参数。
+
+### 地图配置（2026-10-13）
+
+`build` 在生成文件前检查地点查询Key；读取优先级和本机共享路径见 [应用说明](../../apps/wechat/README.md#地点查询构建配置)。新 worktree 不能仅凭构建/上传成功断言地图可用。改动构建配置时运行 `tests/map-build-config.test.js`；运行时回归选 `tests/runtime.test.js` 和 `tests/places.test.js`。离线测试可显式使用 `WECHAT_ALLOW_MISSING_MAP_KEY=1`，不得将该产物用于真实地图验收。
