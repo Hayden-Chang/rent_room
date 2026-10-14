@@ -28,7 +28,7 @@ it('swiping from an answer option opens the row without selecting that option',(
  dispatch(choice,'touchstart',280);dispatch(choice,'touchmove',180);dispatch(choice,'touchend',180);dispatch(choice,'tap',180);
  expect(c.data.actions).toBe(true);expect(c.data.offset).toBe(-132);expect(c.events).toEqual([]);expect(c.data.field.value).toBe('是');
 });
-it('the title still opens actions without putting native input in the gesture path',()=>{
+it('the title opens actions through the same full-row gesture path',()=>{
  const {c,find,dispatch}=fixture(),title=find('label');
  dispatch(title,'touchstart',220);dispatch(title,'touchmove',100);dispatch(title,'touchend',100);dispatch(title,'tap');
  expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
@@ -82,16 +82,36 @@ it('a new explicit touch can activate another action immediately after a complet
  }
  expect(c.events.map(e=>e.detail.action)).toEqual(['flag','note','media']);
 });
-it.each(['t','n','d'])('native %s entry receives an uncaught touch without starting the row gesture',type=>{
+it.each(['t','n','d'])('swiping from native %s entry opens actions without consuming touchstart or changing the answer',type=>{
  const {c,findTag,dispatch}=fixture();c.data.field.type=type;
  const control=findTag(type==='d'?'picker':'input');
  expect(dispatch(control,'touchstart',250)).toEqual([]);
- expect(c.gesture).toBeFalsy();
- dispatch(control,'touchmove',140);dispatch(control,'touchend',140);
+ expect(c.gesture).toBeTruthy();
+ dispatch(control,'touchmove',140);dispatch(control,'touchend',140);dispatch(control,'tap',140);
+ expect(c.data.actions).toBe(true);expect(c.data.offset).toBe(-132);
+ expect(c.events).toEqual([]);expect(c.data.field.value).toBe('是');
+});
+it('a short input touch leaves native focus available and accepts the entered value',()=>{
+ const {c,findTag,dispatch}=fixture(),input=findTag('input');
+ expect(dispatch(input,'touchstart')).toEqual([]);
+ dispatch(input,'touchend');dispatch(input,'tap');
+ // Focus/input are supplied by the native component; this does not simulate a keyboard.
+ dispatch(input,'focus',100,50,{detail:{}});
+ expect(c.data.valueFocused).toBe(true);expect(c.data.actions).toBe(false);
+ dispatch(input,'input',100,50,{detail:{value:'测试地址 101 室'}});
+ expect(c.events).toEqual([{name:'answer',detail:{id:'floor',prop:'value',value:'测试地址 101 室'}}]);
+});
+it('vertical movement on input stays available to page scrolling without opening actions',()=>{
+ const {c,findTag,dispatch}=fixture(),input=findTag('input');
+ expect(dispatch(input,'touchstart')).toEqual([]);
+ expect(dispatch(input,'touchmove',95,150)).toEqual([]);
+ dispatch(input,'touchend',95,150);
  expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
 });
-it('touching native input dismisses an exposed row without consuming native focus or changing its answer',()=>{
- const {c,findTag,dispatch}=fixture(),input=findTag('input');c.reveal();
- expect(dispatch(input,'touchstart')).toEqual([]);expect(c.data.actions).toBe(false);
- dispatch(input,'touchend');expect(c.gesture).toBeFalsy();expect(c.events).toEqual([]);
+it('attachment touch dismisses the row and remains outside the swipe recognizer',()=>{
+ const {c,find,dispatch}=fixture();c.reveal();
+ dispatch(find('note'),'touchstart',250);
+ expect(c.data.actions).toBe(false);expect(c.gesture).toBeFalsy();
+ dispatch(find('note'),'touchmove',140);dispatch(find('note'),'touchend',140);
+ expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
 });

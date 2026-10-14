@@ -83,3 +83,17 @@ NODE_PATH=/path/to/test-tools/node_modules PLAYWRIGHT_EXECUTABLE_PATH=/path/to/c
 `field-row-events.test.js` 新增文本/数值/日期触摸路径及输入时收起菜单回归：旧版 4 项均因 touchstart 被 start 捕获失败，新版通过；新增标题模板事件路径检查，既有选项、操作按钮、取消和误触检查继续通过。`field-row-swipe-scope.test.js` 增加原生控件祖先无手势监听约束。同前述 6 个 field-row 相关文件共 57 项通过，官方 wcc 9 / wcsc 7 通过。模板只移动事件属性，没有改 DOM 层级、条件或 CSS，复用既有几何结果；不重跑未变化的备注布局测试。
 
 证据保存在 `artifacts/native-entry-before/` 与 `artifacts/native-entry-fixed/`。上述为 WXML 事件路由及 handler 验证，不证明真机键盘弹出；需新预览验证地址文本、面积数值、日期选择及已确认的按钮/备注体验。
+
+## 2026-10-14 恢复输入框上的整行左滑
+
+用户否定 `71e4385`：填写框也属于整行，必须同时支持轻点填写、左滑展示三个按钮；是/否选项同样区分点击与滑动。上一轮把原生控件排除出手势路径的方案违反这一要求，对应“输入框不能开始手势”的测试也编码了错误的验收标准。前节仅保留历史经过，不再作为当前交互契约。
+
+重新核对 Tencent TDesign 与 Vant Weapp 的 swipe-cell WXML，两者都用 bindtouchstart 监听容器的触摸开始，而非在输入控件祖先 catchtouchstart。当前实现把 start/move/end/cancel 恢复到完整 swipe-shell，使用不截断传播的 bindtouchstart；原生 input/picker 与选项始终在同一手势区域内。原外层 bodyStart 会在事件冒泡时撤销正在识别的手势，因此只给地图及额外输入/备注/媒体区域保留它，不与整行识别器重复运行。按钮自身的 catchtouchstart 与已获用户真机确认的 touchend 单次分发保持不变，输入框祖先没有 catchtouchstart。短按保留原生聚焦与选项点击；识别为横向滑动后保持既有点击抑制，避免改答案。没有修改答案、媒体、备注键盘高度逻辑、DOM 层级或 CSS。
+
+参考源码（不是当前微信内核聚焦行为的直接证明）：
+- https://github.com/Tencent/tdesign-miniprogram/blob/develop/packages/components/swipe-cell/swipe-cell.wxml
+- https://github.com/youzan/vant-weapp/blob/dev/packages/swipe-cell/index.wxml
+
+替换错误约束后，`71e4385` 的事件/范围测试 4 项失败、33 项通过，失败覆盖文本/数值/日期框起手左滑及完整祖先绑定。修复后相关 6 文件共 59 项通过，包括输入框起手滑动、短按后聚焦/输入事件处理、纵向滚动、附件区隔离、选项点击、三按钮无 tap 序列与去重。测试中的 focus/input 仍由夹具派发，不代表原生键盘已弹出。官方 wcc 9 / wcsc 7 通过，构建差异只有 field-row/index.wxml；不重跑未改变的布局和备注键盘逻辑测试，复用既有证据。
+
+证据：`apps/wechat/artifacts/full-row-native-before/tests.log`、`apps/wechat/artifacts/full-row-native-fixed/`。当前三槽池查询均为 busy-or-quarantined，没有抢占实例或新开发者工具截图。真机仍需验证：直接在地址/数值填写框内部左滑打开三按钮；轻点输入能填写；是/否轻点选择、左滑不改答案；三按钮与备注键盘避让保持可用。本轮待手机验收，不合入或正式发布。

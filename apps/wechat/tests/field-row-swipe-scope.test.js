@@ -13,7 +13,7 @@ function nodes(path){
  return out;
 }
 const has=(n,c)=>(n.attrs.class||'').split(' ').includes(c);
-it('keeps full-width action geometry while native inputs have no ancestor swipe handlers',()=>{
+it('keeps all primary answers inside one full-row gesture scope without catching native touchstart',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
  const label=all.find(n=>has(n,'label')),tray=all.find(n=>has(n,'swipe-tray'));
  const shell=all.find(n=>has(n,'swipe-shell'));
@@ -23,8 +23,9 @@ it('keeps full-width action geometry while native inputs have no ancestor swipe 
  const answers=all.filter(n=>has(n,'choices')||n.tag==='picker'||n.tag==='input'&&!has(n,'other'));
  expect(answers.length).toBeGreaterThan(2);
  for(const n of answers)expect(n.parents).toContain(shell);
- for(const n of all.filter(n=>n.tag==='input'||n.tag==='picker')){
-  expect([n,...n.parents].some(p=>p.attrs.catchtouchstart==='start'||p.attrs.bindtouchstart==='start')).toBe(false);
+ expect(shell.attrs.bindtouchstart).toBe('start');
+ for(const n of answers){
+  expect([n,...n.parents].some(p=>p.attrs.catchtouchstart)).toBe(false);
  }
  const attachments=all.filter(n=>['note','thumbs','other'].some(c=>has(n,c))||n.tag==='address-picker');
  expect(attachments.length).toBeGreaterThan(2);
