@@ -36,7 +36,7 @@ it('asks before cellular traffic, handles refusal and offline without sending by
 });
 it('waits for an explicit Wi-Fi yes before downloading, including on retry',async()=>{
  const h=harness({deferModal:true});h.open();await settle();
- expect(h.modals).toHaveLength(1);expect(h.modals[0]).toMatchObject({title:'是否已连接 Wi-Fi？',confirmText:'是',cancelText:'否'});expect(h.requests).toHaveLength(0);
+ expect(h.modals).toHaveLength(1);expect(h.modals[0]).toMatchObject({title:'是否已连接 WiFi',content:'',confirmText:'是',cancelText:'否'});expect(h.requests).toHaveLength(0);
  h.page.start();await settle();expect(h.modals).toHaveLength(1);
  h.modals[0].success({confirm:true});await settle();expect(h.requests).toHaveLength(1);
  await h.response({fail:true});h.page.start();await settle();expect(h.modals).toHaveLength(2);expect(h.requests).toHaveLength(1);

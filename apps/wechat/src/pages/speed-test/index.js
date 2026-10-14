@@ -20,7 +20,7 @@ Page({
       const {networkType}=await service().api('getNetworkType');
       if(run!==this.run||!this.active)return;
       if(networkType==='none')throw Error('当前无网络，请连接 Wi-Fi 后重试');
-      const {confirm:connected}=await service().api('showModal',{title:'是否已连接 Wi-Fi？',content:'请确认连接的是房源 Wi-Fi。测速约需 8–15 秒，最多使用 64 MiB 流量，完成后自动回填。',confirmText:'是',cancelText:'否'});
+      const {confirm:connected}=await service().api('showModal',{title:'是否已连接 WiFi',content:'',confirmText:'是',cancelText:'否'});
       if(run!==this.run||!this.active)return;
       if(!connected){this.back();return;}
       if(networkType!=='wifi'){
