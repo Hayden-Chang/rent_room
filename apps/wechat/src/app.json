@@ -6,7 +6,8 @@
     "pages/settings/index",
     "pages/archive/index",
     "pages/templates/index",
-    "pages/import/index"
+    "pages/import/index",
+    "pages/speed-test/index"
   ],
   "window": {
     "navigationBarTitleText": "寻居 · 看房手记",
