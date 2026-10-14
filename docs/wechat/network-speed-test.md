@@ -71,3 +71,13 @@
 执行 `node scripts/build.mjs`、`node node_modules/vitest/vitest.mjs run tests/speed-test-page.test.js tests/speed-test.test.js tests/runtime.test.js`、`node scripts/check.mjs`。21 项通过，官方 wcc 10 / wcsc 8 文件通过，8 页面、1,148,655 字节。日志位于 `apps/wechat/artifacts/network-speed/wifi-confirm/`，没有运行全套测试。网络/文件适配器为 VM 替身，不能当成真实弹窗点击或界面截图。
 
 当前 UI 验收尚未完成：共享三槽的只读 runtime.json 均为 quarantined；状态命令会写 lease.lock，被自动审批拒绝，未绕过。上一轮预览生成后临时应用、登录副本已清理且原配置保留。当前变更待实际截图与用户确认，不合入、不发布；旧二维码不包含这次 UI 调整。
+
+## 用户验收与主线整合（2026-10-14）
+
+最终预览源码为 `acbc98948baad9c8c9f91f961c430c131fa43e6f`，生产基础库 3.17.3、urlCheck=true。预览包在 10:56 成功生成，随后清理该临时应用及登录副本，原登录配置保留。用户查看新预览后回复「没问题了，合入到主线吧」，本次测速界面及单句确认框获得明确验收与合入授权。此用户验收不改写历史自动化截图超时记录，也不代表国内三网及全部平台已测试。
+
+远程 main 前进到 `65a44518a865a2c7021a5899ff367aa1e10bd3cb`，新增 CI 机器人租约及地图构建配置/搜索框样式修复；无冲突整合为 `532f07722c99474a15f41628c088c5e7076c289d`。整合前后相对各自主线的 PR diff SHA-256 均为 `ca2d368d964695617ae7536eaa1f3978ab57f01aa45425ce565718f09dc3eeb3`。测速页、引擎、字段组件、详情页与用户已验收版本逐文件无差异，故沿用此次用户 UI 验收；没有重跑故障实例池。
+
+在整合提交重新 build 后执行 15 个定向 Vitest 文件，共 106 项通过，官方 wcc 10 / wcsc 8 文件通过，8 页面、1,148,611 字节。日志：`apps/wechat/artifacts/network-speed/merge-approved/`。选择映射：speed-test、speed-test-page 覆盖引擎、确认、回填和取消；field-row-placeholder、field-row-swipe、field-row-swipe-scope、field-row-inline-actions 覆盖共用字段组件；runtime、detail-navigation、media-caption、onboarding、onboarding-target 覆盖详情页及返回生命周期消费者；address-bindings、address-picker、places、map-build-config 覆盖本次整合的地图构建与组件边界。未运行全量测试。随后仅补充本段 Markdown 验收记录，不修改执行代码、测试或构建输入；通过结果等价适用于该文档提交。
+
+主 agent 已复核最终业务 diff、数据保护、测试范围、预览 receipt 与临时副本清理。GitHub 未返回 status checks 或 PR workflow runs，不称为远程 CI 通过。合入仅更新 Git 主线，不上传正式版、不提审或发布。
