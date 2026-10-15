@@ -1,1 +1,4 @@
+.menu{font-family:inherit;font-size:14px;font-weight:500;line-height:1.5}
+.account-summary{display:flex;align-items:center;gap:14px}.account-avatar{width:54px;height:54px;border-radius:50%;background:#eceeff;display:flex;align-items:center;justify-content:center}.account-avatar image{width:30px;height:30px}.account-name{font-size:20px;font-weight:600}.account-status{margin-top:2px;color:#4d56df;font-size:13px}.account-number{margin-top:4px;color:#667187;font-size:12px}.account-local{margin:16px 0 4px;padding-top:14px;border-top:1px solid #e5e9f1}.logout-button:not([size=mini]){width:100%;min-height:48px;margin-top:20px;color:#bb4149;background:#fff}.account-version{text-align:center;margin-top:16px}
+
 .workplace-entry{gap:16px}.workplace-title{flex-shrink:0}.workplace-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}

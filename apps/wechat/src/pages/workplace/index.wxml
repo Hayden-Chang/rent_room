@@ -1,4 +1,4 @@
-<view class="page">
+<view hidden="{{!accountReady}}"><view class="page">
  <view wx:if="{{saveError}}" class="error" bindtap="retry">{{saveError}} 点击重试</view>
  <view class="card">
   <view class="row between"><text class="subtitle">上班地址</text><button wx:if="{{address}}" class="link clear-workplace" bindtap="clear">清空地点</button></view>
@@ -9,3 +9,5 @@
   <address-picker address="{{address}}" location="{{location}}" anchor="{{anchor}}" empty-text="搜索地址或点击定位，选择上班位置" bindselect="selectPlace"/>
  </view>
 </view>
+</view>
+<view wx:if="{{!accountReady}}" class="auth-wait">正在确认登录状态…</view>

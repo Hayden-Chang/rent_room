@@ -1,3 +1,4 @@
+<view hidden="{{!accountReady}}">
 <view class="page issue-editor" style="padding-bottom:{{keyboardHeight + 110}}px">
  <view wx:if="{{readonly}}" class="readonly">房源已归档，问题只读</view>
  <view class="card">
@@ -27,3 +28,6 @@
   <button wx:if="{{!readonly}}" class="save-issue primary" bindtap="save" loading="{{saving}}" disabled="{{selecting||saving}}">保存问题</button>
  </view>
 </view>
+
+</view>
+<view wx:if="{{!accountReady}}" class="auth-wait">正在确认登录状态…</view>

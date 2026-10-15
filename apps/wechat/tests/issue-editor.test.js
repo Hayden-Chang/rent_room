@@ -1,3 +1,4 @@
+import {pageContextFixture} from './helpers/account-fixture.js';
 import {describe,it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -11,7 +12,7 @@ function setup() {
  const io={mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync(p){if(!disk.has(p))throw Error('missing');return disk.get(p);},writeFileSync(p,v){if(full)throw Error('full');disk.set(p,v);},copyFileSync(a,b){if(full||a===failAt)throw Error('full');if(!disk.has(a))throw Error('missing');disk.set(b,disk.get(a));},renameSync(a,b){if(full)throw Error('full');disk.set(b,disk.get(a));disk.delete(a);},unlinkSync:p=>disk.delete(p)};
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>io,setNavigationBarTitle(){},showToast:o=>toasts.push(o.title),enableAlertBeforeUnload:o=>guards.push(o.message),disableAlertBeforeUnload(o){guards.push(false);o.success?.({});},navigateBack(o={}){routes.push('back');o.success?.({});},navigateTo(o){routes.push(o.url);o.success({});},chooseMedia:o=>choose(o),showModal:o=>o.success({confirm:modal}),previewMedia(o){previews.push(o);o.success({});}};
  const service=createPlatform(wx),id=service.store.add('测试房源');
- function load(name='issue',options={id}){let page;const context=vm.createContext({wx,Page:o=>page=o,getApp:()=>({service}),console,setTimeout,clearTimeout});vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};page.onLoad(options);return page;}
+ function load(name='issue',options={id}){let page;const context=vm.createContext(pageContextFixture({wx,Page:o=>page=o,getApp:()=>({service}),console,setTimeout,clearTimeout}));vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};page.onLoad(options);return page;}
  function select(items=[['photo','image'],['clip','video']]){for(const [name] of items)disk.set('/temp/'+name,new Uint8Array([1,2,3]).buffer);choose=o=>{expect(o.mediaType).toEqual(['image','video']);expect(o.sourceType).toEqual(['album','camera']);o.success({tempFiles:items.map(([name,fileType])=>({tempFilePath:'/temp/'+name,fileType,size:3,duration:fileType==='video'?12:0}))});};}
  return {service,id,load,select,disk,toasts,guards,routes,previews,full:v=>full=v,modal:v=>modal=v,failAt:v=>failAt=v,choose:v=>choose=v,reload:()=>createPlatform(wx)};
 }

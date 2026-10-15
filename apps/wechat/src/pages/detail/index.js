@@ -1,12 +1,13 @@
+import {protectedPage} from '../../lib/auth-page.js';
 import {SPEED_FIELD_ID} from '../../lib/speed-test.js';
 import {mediaWithIssues} from '../../lib/issues.js';
 import {applyPlace} from '../../lib/places.js';
 import {coachSteps,coachMethods} from '../../lib/onboarding.js';
-import {stats,formView,houseTopics,rules,fieldView,checklistTargets,issueEntries,MAP_ID,uid,freshHouse} from '../../lib/model.js';
+import {stats,formView,houseTopics,rules,fieldView,checklistTargets,issueEntries,MAP_ID,costGroups,addCostField} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
-Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
-  onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;if(options.guide&&!options.id)this.guideHouse=freshHouse('用户引导');this.setData({id:options.id||'',coach:options.guide||options.new&&service().store.get().settings.onboarding?1:0});watch(this);this.refresh();},
-  onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){this.speedOpening=false;this.coachHidden=false;if(this.data.id||this.guideHouse)this.refresh();if(this.data.coach)this.coachLayout();},onUnload(){this.clearCoachTimer();this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.clearCoachTimer();this.dismissSwipe();this.setData({noteKeyboardHeight:0});},onPageScroll(){for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
+Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
+  onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id||'',coach:options.id&&options.new&&service().store.get().settings.onboarding?1:0});watch(this);this.refresh();},
+  onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){this.speedOpening=false;this.coachHidden=false;if(this.data.id)this.refresh();if(this.data.coach)this.coachLayout();},onUnload(){this.clearCoachTimer();this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.clearCoachTimer();this.dismissSwipe();this.setData({noteKeyboardHeight:0});},onPageScroll(){for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
   dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
   checklistData(h,view){
     const key=JSON.stringify(view),folds=this.folds[key]||{};
@@ -18,7 +19,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
     const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters,...patch};
     this.setData({...patch,...this.checklistData(h,view)});
   },
-  refresh(patch={},done){const h=this.guideHouse||service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
+  refresh(patch={},done){const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
     this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:mediaWithIssues(h).filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:issueEntries(h).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]).map(i=>({...i,media:h.media.filter(m=>m.issueId===i.id),mediaCount:h.media.filter(m=>m.issueId===i.id).length})),saveError:service().store.status().error},done);
     wx.setNavigationBarTitle({title:h.name});
   },
@@ -104,10 +105,21 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   previewIssueMedia(e){return attempt(()=>{const h=service().store.house(this.data.id),{issueId,id}=e.currentTarget.dataset;const media=h.media.filter(m=>m.issueId===issueId);if(media.some(m=>m.id===id))return service().preview(media,id);});},
   openIssue(e){if(this.dismissSwipe())return;attempt(()=>service().api('navigateTo',{url:'/pages/issue/index?id='+encodeURIComponent(this.data.id)+'&issueId='+encodeURIComponent(e.currentTarget.dataset.id)}));},
   resolve(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>{const i=h.issues.find(i=>i.id===e.currentTarget.dataset.id);i.resolved=!i.resolved;});this.refresh();});},
-  decision(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>h.decision=e.currentTarget.dataset.value);this.refresh();});},
+  decision(e){if(this.dismissSwipe())return;attempt(()=>{const value=e.currentTarget.dataset.value;service().store.edit(this.data.id,h=>h.decision=h.decision===value?'':value);this.setData({'house.decision':service().store.house(this.data.id).decision});});},
   summary(e){attempt(()=>service().store.edit(this.data.id,h=>h.summary=e.detail.value));},
-  custom(){if(this.dismissSwipe())return;attempt(async()=>{const label=await prompt('自定义检查项','例如：次卧空调制冷正常');if(!label)return;const id=uid();service().store.edit(this.data.id,h=>h.extras.push({id,title:label,category:'自定义检查',phase:'现场看房',path:[],fields:[{id:id+'_0',label,type:'y',options:['是','否'],badValue:'否'}]}));this.refresh();});},
+  addCost(e){
+    if(this.addingCost||this.dismissSwipe()||service().store.house(this.data.id)?.archived)return;
+    const groupId=e.currentTarget.dataset.groupId;if(!Object.keys(costGroups).includes(groupId))return;
+    this.addingCost=true;
+    return attempt(async()=>{try{
+      const label=await prompt('添加'+costGroups[groupId],'填写费用名称');if(!label||this.unloaded)return;
+      service().store.edit(this.data.id,h=>addCostField(h,groupId,label));
+      const h=service().store.house(this.data.id),category=houseTopics(h).find(t=>t.path?.some(p=>p.id===groupId)).category;
+      const view={phase:this.data.phase,query:'',filters:[]},folds=this.folds[JSON.stringify(view)]||={};folds[category]=true;folds[groupId]=true;
+      this.updateChecklist(view);this.refresh();
+    }finally{this.addingCost=false;}});
+  },
   export(){attempt(async()=>{const r=await service().api('showActionSheet',{itemList:['导出 Excel 记录','备份本房源（含影像）']});wx.showLoading({title:'正在生成',mask:true});try{await service().exportFile(r.tapIndex===0?'excel':'backup',this.data.id);}finally{wx.hideLoading();}});},
   top(){this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
   ...coachMethods,
-});
+}));

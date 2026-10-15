@@ -1,3 +1,4 @@
+import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -10,9 +11,9 @@ function setup(){
  house.media=[{id:'photo',type:'image',fieldId:'f1_6',path:'/test/photo.jpg'},{id:'video',type:'video',path:'/test/video.mp4'}];
  let page,titleCalls=0;
  const service={store:{house:()=>house,status:()=>({error:''})}};
- vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{
+ vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({
   Page:p=>page=p,getApp:()=>({service}),wx:{setNavigationBarTitle(){titleCalls++;},navigateBack(){}}
- });
+ }));
  const updates=[];
  page.data=JSON.parse(JSON.stringify(page.data));page.data.id=house.id;page.folds={};
  page.setData=function(patch){updates.push(JSON.parse(JSON.stringify(patch)));Object.assign(this.data,patch);};

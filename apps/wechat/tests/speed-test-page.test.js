@@ -1,3 +1,4 @@
+import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -12,11 +13,11 @@ function harness({network='wifi',confirm=true,deferModal=false,diskFailure=false
  };
  class Clock extends Date {static now(){return time;}}
  const context=vm.createContext({wx,Date:Clock,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
- vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();const id=app.service.store.add('网速验证');
+ vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);const id=app.service.store.add('网速验证');
  app.service.store.edit(id,h=>{h.answers[FIELD]={value:'25',note:'保留备注',issueFlag:true};h.media=[{id:'photo',type:'image',path:'/user/photo.jpg',fieldId:FIELD}];});
  function open(){vm.runInContext(fs.readFileSync('dist/pages/speed-test/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};page.onLoad({id});}
  async function response({fail=false}={}){const r=requests.at(-1);if(fail){r.o.fail({errMsg:'timeout'});}else{time+=1000;const [a,b]=r.o.header.Range.slice(6).split('-').map(Number),header={'content-range':`bytes ${a}-${b}/4294967296`,'content-length':String(b-a+1)};r.callback({header});r.o.success({statusCode:206,header,data:new ArrayBuffer(b-a+1)});}await settle();}
- return {app,id,requests,back,modals,toasts,open,response,wx,disk,get page(){return page;},failDisk(v){diskFailure=v;},changeNetwork(){networkListener?.({networkType:'4g'});},reload(){vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();return app.service.store.house(id);}};
+ return {app,id,requests,back,modals,toasts,open,response,wx,disk,get page(){return page;},failDisk(v){diskFailure=v;},changeNetwork(){networkListener?.({networkType:'4g'});},reload(){vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);return app.service.store.house(id);}};
 }
 it('measures after confirmation, fills only speed, and persists it across reload',async()=>{
  const h=harness();h.open();await settle();for(let i=0;i<8;i++)await h.response();

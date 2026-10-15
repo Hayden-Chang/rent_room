@@ -501,7 +501,7 @@
           {
             "id": "21255282-3663-4abe-b7de-d91eeb3825ed",
             "kind": "field",
-            "title": "公共交通通勤时间",
+            "title": "公共交通通勤时间（分钟）",
             "children": [],
             "meta": {
               "type": "n",
@@ -511,7 +511,7 @@
           {
             "id": "3c70cda2-7c6c-4fa6-b2db-b647af24ba72",
             "kind": "field",
-            "title": "开车通勤时间",
+            "title": "开车通勤时间（分钟）",
             "children": [],
             "meta": {
               "type": "n",
@@ -794,9 +794,11 @@
                 "IMG_6324.PNG"
               ],
               "inspection": {
-                "skippable": true,
-                "presence": false,
-                "aggregate": false
+                "skippable": false,
+                "presence": true,
+                "aggregate": true,
+                "detailsWithoutPresence": true,
+                "absenceLabel": "不涉及"
               }
             },
             "children": [
@@ -883,9 +885,11 @@
                 "IMG_6326.PNG"
               ],
               "inspection": {
-                "skippable": true,
-                "presence": false,
-                "aggregate": false
+                "skippable": false,
+                "presence": true,
+                "aggregate": true,
+                "detailsWithoutPresence": true,
+                "absenceLabel": "不涉及"
               }
             },
             "children": [
@@ -949,7 +953,8 @@
                 ],
                 "meta": {
                   "type": "s",
-                  "phase": "现场看房"
+                  "phase": "现场看房",
+                  "role": "inspection-check"
                 }
               },
               {
@@ -1125,7 +1130,8 @@
                     "IMG_6293.PNG",
                     "IMG_6313.PNG",
                     "IMG_6324.PNG"
-                  ]
+                  ],
+                  "role": "inspection-check"
                 },
                 "children": [
                   {
@@ -5084,7 +5090,7 @@
             "title": "冬季水管防冻正常",
             "meta": {
               "id": "f77_0",
-              "type": "y",
+              "type": "s",
               "options": null,
               "quick": false,
               "legacyType": "t",
@@ -5093,7 +5099,8 @@
               "sources": [
                 "IMG_6325.PNG"
               ],
-              "fact": false
+              "fact": false,
+              "role": "inspection-check"
             },
             "children": [
               {
@@ -5106,6 +5113,12 @@
                 "id": "f77_0_option_320f24d9-2f33-4717-9301-f0564289cb2d",
                 "kind": "option",
                 "title": "否",
+                "children": []
+              },
+              {
+                "id": "f77_0_option_not_applicable",
+                "kind": "option",
+                "title": "不涉及",
                 "children": []
               }
             ]
@@ -9398,7 +9411,13 @@
                 "meta": {
                   "type": "n",
                   "phase": "现场看房",
-                  "options": null
+                  "options": null,
+                  "aliases": [
+                    {
+                      "id": "b670b816-5107-4acf-96e0-cc28b84df4cc",
+                      "label": "原重复电费"
+                    }
+                  ]
                 }
               },
               {
@@ -9427,17 +9446,6 @@
                 "id": "acde6fad-21cc-4689-8ce2-019414866ef0",
                 "kind": "field",
                 "title": "网费",
-                "children": [],
-                "meta": {
-                  "type": "n",
-                  "phase": "现场看房",
-                  "options": null
-                }
-              },
-              {
-                "id": "b670b816-5107-4acf-96e0-cc28b84df4cc",
-                "kind": "field",
-                "title": "电费",
                 "children": [],
                 "meta": {
                   "type": "n",

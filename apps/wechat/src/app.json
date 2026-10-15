@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/login/index",
     "pages/home/index",
     "pages/detail/index",
     "pages/compare/index",
@@ -9,7 +10,8 @@
     "pages/templates/index",
     "pages/import/index",
     "pages/speed-test/index",
-    "pages/issue/index"
+    "pages/issue/index",
+    "pages/capacity/index"
   ],
   "window": {
     "navigationBarTitleText": "寻居 · 看房手记",
@@ -37,7 +39,7 @@
       },
       {
         "pagePath": "pages/settings/index",
-        "text": "设置",
+        "text": "我的",
         "iconPath": "assets/icons/settings-default.png",
         "selectedIconPath": "assets/icons/settings-selected.png"
       }

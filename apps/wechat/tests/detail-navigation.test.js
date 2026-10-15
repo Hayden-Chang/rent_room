@@ -1,3 +1,4 @@
+import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -14,7 +15,7 @@ function harness(){
     pageScrollTo({scrollTop:top,duration,complete}){scrollTop=Math.max(0,Math.min(top,heights[page.data.tab]));scrolls.push({tab:page.data.tab,top:scrollTop,duration,hidden:page.data.restoringTab});page.onPageScroll?.({scrollTop});if(holdScroll)completions.push(complete);else complete?.();},
   };
   const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
-  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();
+  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
   function open(id=app.service.store.add('状态保留')){
     scrollTop=0;
     vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);
@@ -38,6 +39,12 @@ function harness(){
 }
 const settle=async()=>{for(let i=0;i<20;i++)await Promise.resolve();};
 async function tab(h,name){h.page.tab(event(name));await settle();}
+
+it('switches bottom tabs without the native button pressed overlay',()=>{
+  const wxml=fs.readFileSync('src/pages/detail/index.wxml','utf8');
+  const buttons=wxml.match(/<button\b[^>]*\bbindtap="tab"[^>]*>/g);
+  expect(buttons).toHaveLength(1);expect(buttons[0]).toContain('hover-class="none"');
+});
 
 it('restores a deep checklist after a short media page and retains form view state',async()=>{
   const h=harness(),p=h.page;
