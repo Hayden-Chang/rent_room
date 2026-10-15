@@ -1,6 +1,6 @@
 import {zipSync,unzipSync,strToU8,strFromU8} from 'fflate';
 import {XMLParser} from 'fast-xml-parser';
-import {clone,validateState,prepareImport,topics,freshHouse,houseTopics,rules,problem,MAP_ID,annotationEntries,checklistTargets} from './model.js';
+import {clone,validateState,prepareImport,topics,freshHouse,houseTopics,rules,problem,MAP_ID,annotationEntries,checklistTargets,electricityField,mergeElectricity,customCostGroup,addCostField} from './model.js';
 
 export const MAX_BYTES=50*1024*1024;
 function boundedZip(bytes) {
@@ -61,7 +61,9 @@ export function readExcel(bytes) {
     const [version,id,name,fieldId,,label,value='',note='',flag='',otherText='']=row;
     if(version!=='1'||!id||!name)throw Error('缺少格式版本、房源编号或名称');
     if(!houses.has(id))houses.set(id,freshHouse(name));
-    const h=houses.get(id),f=checklistTargets(h).find(f=>f.id===fieldId);if(!f)throw Error('未知字段：'+(label||fieldId));
+    const h=houses.get(id);let f=checklistTargets(h).find(f=>f.id===fieldId)||(electricityField.aliases.some(a=>a.id===fieldId)?electricityField:null);
+    const costGroup=customCostGroup(fieldId);if(!f&&costGroup)f=addCostField(h,costGroup,label,fieldId);
+    if(!f)throw Error('未知字段：'+(label||fieldId));
     if(f.annotation&&(value||otherText))throw Error('父级节点不能填写结果');if(h.answers[fieldId])throw Error('同一房源有重复字段：'+f.label);
     let parsed=value;
     if(f.multiple&&value){try{parsed=JSON.parse(value);}catch{throw Error(f.label+'请使用 JSON 数组格式');}if(!Array.isArray(parsed))throw Error(f.label+'多选格式错误');}
@@ -75,5 +77,5 @@ export function readExcel(bytes) {
     if(row[10])warnings.push('Excel 只保留影像文件名；恢复实际影像请使用 ZIP 备份。');
   }
   if(!houses.size||houses.size>200)throw Error('请导入 1 至 200 套房源');
-  return {houses:[...houses.values()],files:{},warnings:[...new Set(warnings)]};
+  return {houses:[...houses.values()].map(mergeElectricity),files:{},warnings:[...new Set(warnings)]};
 }

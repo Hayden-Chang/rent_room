@@ -12,6 +12,7 @@
     <view class="category-head scroll-anchor" data-scroll-key="category-{{section.title}}"><field-row class="field-row" field="{{section.header}}" readonly="{{house.archived}}" bindfold="fold" bindaction="action"/></view>
     <view wx:if="{{section.expanded}}" class="category-body"><block wx:for="{{section.rows}}" wx:for-item="r" wx:key="key">
      <view wx:if="{{r.kind==='group'}}" data-scroll-key="group-{{r.id}}" class="scroll-anchor group-node" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><field-row class="field-row" field="{{r.swipe}}" readonly="{{house.archived}}" bindfold="fold" bindgroup="group" bindaction="action"/></view>
+     <view wx:elif="{{r.kind==='add-cost'}}" class="add-cost-row" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><button class="add-cost" data-group-id="{{r.id}}" aria-label="添加{{r.title}}" hover-class="none" bindtap="addCost">＋</button></view>
      <view wx:else id="{{coach===4 && r.id===coachField.id?'coach-field':''}}" class="field-branch scroll-anchor" data-scroll-key="field-{{r.key}}" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><field-row class="field-row" field="{{r}}" hide-divider="{{section.rows[index+1] && section.rows[index+1].kind==='group'}}" readonly="{{house.archived}}" address="{{house.address}}" location="{{house.location}}" anchor="{{house.locationAddress}}" bindselectplace="selectPlace" bindanswer="answer" bindchoose="choose" bindaction="action"/></view>
     </block></view>
    </view>
