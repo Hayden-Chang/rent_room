@@ -119,7 +119,7 @@ Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],media
       this.updateChecklist(view);this.refresh();
     }finally{this.addingCost=false;}});
   },
-  export(){attempt(async()=>{const r=await service().api('showActionSheet',{itemList:['导出 Excel 记录','备份本房源（含影像）']});wx.showLoading({title:'正在生成',mask:true});try{await service().exportFile(r.tapIndex===0?'excel':'backup',this.data.id);}finally{wx.hideLoading();}});},
+  export(){wx.navigateTo({url:'/pages/import/index?mode=export&id='+encodeURIComponent(this.data.id)});},
   top(){this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
   ...coachMethods,
 }));

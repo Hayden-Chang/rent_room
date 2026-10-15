@@ -10,7 +10,6 @@
     "package": "node scripts/package.mjs"
   },
   "dependencies": {
-    "fast-xml-parser": "5.11.2",
     "fflate": "0.8.3"
   },
   "devDependencies": {

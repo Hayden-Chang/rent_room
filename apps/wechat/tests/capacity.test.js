@@ -48,11 +48,11 @@ describe('house capacity',()=>{
   const io=adapter(),store=createStore(io),id=store.add('A');store.add('B');store.archive(id,true);io.write=()=>{throw Error('full');};
   expect(()=>store.remove(id)).toThrow();expect(store.capacity().remaining).toBe(0);expect(store.house(id)).toBeTruthy();
  });
- it('preflights import before writing any media and keeps the pending batch',()=>{
+ it('preflights import before writing any media and keeps the pending batch',async()=>{
   let writes=0;const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(){throw Error('missing');},writeFileSync(){writes++;}})};
   const platform=createPlatform(wx);platform.store.change(s=>s.houses=[freshHouse('A'),freshHouse('B')]);
   const h=freshHouse('导入');h.media=[{id:'m',type:'image',path:'media/a.jpg'}];const pending={houses:[h],files:{'media/a.jpg':new Uint8Array([1])}};
-  const before=writes;expect(()=>platform.commitImport(pending)).toThrow(expect.objectContaining({code:'HOUSE_CAPACITY'}));
+  const before=writes;await expect(platform.commitImport(pending,[{id:h.id,mode:'add'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY'});
   expect(writes).toBe(before);expect(pending.houses[0].media[0].path).toBe('media/a.jpg');
  });
  it('allows purchased capacity past the old 200-house ceiling and reloads it',()=>{
