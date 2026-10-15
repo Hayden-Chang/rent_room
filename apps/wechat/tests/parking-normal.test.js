@@ -6,13 +6,13 @@ const parking=[['topic_10','电动车停车充电','f10_0'],['topic_11','停车'
 const rows=h=>formView(h,{},Object.fromEntries(houseTopics(h).flatMap(t=>[[t.category,true],...t.path.map(p=>[p.id,true])]))).flatMap(s=>s.rows);
 const selected=(h,id)=>rows(h).find(r=>r.id===id).options.find(o=>o.selected)?.label;
 
-it.each(parking)('%s offers normal yes/no/absent controls in new and saved templates',(id,title)=>{
+it.each(parking)('%s offers normal yes/no/not-applicable controls in new and saved templates',(id,title)=>{
  for(const legacy of [false,true]){
   const h=freshHouse('停车检查');
   if(legacy)for(const t of h.templateTopics)for(const p of t.path)if(p.id===id){p.skippable=true;p.presence=false;p.aggregate=false;delete p.detailsWithoutPresence;}
   const before=JSON.stringify(h),row=rows(h).find(r=>r.id===id);
   expect(row.title).toBe(title+'正常');
-  expect(row.options.map(o=>o.label)).toEqual(['是','否','没有']);
+  expect(row.options.map(o=>o.label)).toEqual(['是','否','不涉及']);
   expect(row.options.some(o=>o.selected)).toBe(false);
   expect(row.skippable).toBe(false);
   expect(row.swipe.skippable).toBe(false);
@@ -32,7 +32,7 @@ it.each(parking)('%s persists all three choices and preserves details from legac
  let store=createStore(io);
  const reload=()=>{store=createStore(io);expect(store.status().blocked).toBe(false);return store.house(h.id);};
  expect(rows(reload()).some(r=>r.id===fieldId&&r.note==='原有备注')).toBe(true);
- for(const [value,label] of [['正常','是'],['有问题','否'],['没有','没有']]){
+ for(const [value,label] of [['正常','是'],['有问题','否'],['没有','不涉及']]){
   const prior=JSON.stringify(store.house(h.id).answers);
   store.group(h.id,id,'value',value);
   const saved=reload();
@@ -51,4 +51,15 @@ it.each(parking)('%s persists all three choices and preserves details from legac
  expect(rows(reload()).find(r=>r.id===id).skipped).toBe(false);
  expect(store.house(h.id).groups[id].notApplicable).toBe(true);
  expect(JSON.stringify(store.house(h.id).media)).toBe(media);
+});
+
+it.each(parking)('%s displays old third-choice answers as not-applicable without rewriting data',(id,title,fieldId)=>{
+ const h=freshHouse(title);
+ for(const t of h.templateTopics)for(const p of t.path)if(p.id===id)delete p.absenceLabel;
+ h.groups[id]={presence:'否',expanded:false};h.answers[fieldId]={value:'否',note:'保留原记录',issueFlag:true};
+ h.media=[{id:'old-photo',type:'image',fieldId,path:'/local/old.jpg'}];
+ const before=JSON.stringify(h),row=rows(h).find(r=>r.id===id);
+ expect(row.options.find(o=>o.selected)?.label).toBe('不涉及');
+ expect(rows(h).some(r=>r.id===fieldId)).toBe(false);expect(stats(h).issues).toBe(0);
+ expect(JSON.stringify(h)).toBe(before);
 });

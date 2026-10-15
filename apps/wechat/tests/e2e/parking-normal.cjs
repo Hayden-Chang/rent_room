@@ -22,8 +22,8 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
    assert.ok((await (await row.$('.label')).text()).includes(title));
    assert.equal(await row.$('button.skip'),null);
    const choices=await row.$$('button[data-value]');
-   assert.deepEqual(await Promise.all(choices.map(c=>c.text())),['是','否','没有']);
-   for(const [value,label] of [['正常','是'],['有问题','否'],['没有','没有']]){
+   assert.deepEqual(await Promise.all(choices.map(c=>c.text())),['是','否','不涉及']);
+   for(const [value,label] of [['正常','是'],['有问题','否'],['没有','不涉及']]){
     row=await group(groupId);
     await (await row.$('button[data-value="'+value+'"]')).tap();
     row=await group(groupId);
@@ -37,11 +37,11 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
    }
    assert.equal(await page.$('.field-branch[data-scroll-key="field-f-'+fieldId+'"]'),null);
   }
-  await mini.screenshot({path:output('parking-absent.png')});
+  await mini.screenshot({path:output('parking-not-applicable.png')});
   page=await mini.reLaunch(route);await search();
   for(const groupId of ['topic_10','topic_11']){
    let row=await group(groupId);
-   assert.equal(await (await row.$('button.selected[data-value]')).text(),'没有');
+   assert.equal(await (await row.$('button.selected[data-value]')).text(),'不涉及');
    await (await row.$('button[data-value="正常"]')).tap();
    row=await group(groupId);
    assert.equal(await (await row.$('button.selected[data-value]')).text(),'是');
@@ -98,6 +98,6 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
    await mini.screenshot({path:output('cost-prompt-'+groupId+'.png')});
    await mini.native().cancelModal();
   }
-  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has only three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice','charging station links to parking','commute minute labels','guard links to security result','winter pipe not-applicable choice','one electricity field with saved value','both cost add buttons open cancellable prompts'],hardware:'not tested; native editable-modal input and save still require phone acceptance'},null,2));
+  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has yes/no/not-applicable choices','tap each choice','disk persistence','not applicable hides details','reopen retains choices','fold preserves choice','charging station links to parking','commute minute labels','guard links to security result','winter pipe not-applicable choice','one electricity field with saved value','both cost add buttons open cancellable prompts'],hardware:'not tested; native editable-modal input and save still require phone acceptance'},null,2));
  } finally {clearTimeout(timer);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});

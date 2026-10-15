@@ -797,7 +797,8 @@
                 "skippable": false,
                 "presence": true,
                 "aggregate": true,
-                "detailsWithoutPresence": true
+                "detailsWithoutPresence": true,
+                "absenceLabel": "不涉及"
               }
             },
             "children": [
@@ -887,7 +888,8 @@
                 "skippable": false,
                 "presence": true,
                 "aggregate": true,
-                "detailsWithoutPresence": true
+                "detailsWithoutPresence": true,
+                "absenceLabel": "不涉及"
               }
             },
             "children": [

@@ -3,12 +3,12 @@ import {freshHouse,topics,rules,houseTopics,formView,fieldView,updateGroup,updat
 const sinkId='90bf172a-1c92-41e3-9369-c64f5935e7d9';
 const allRows=h=>formView(h,{},Object.fromEntries([...topics.map(t=>[t.category,true]),...topics.flatMap(t=>t.path.map(p=>[p.id,true]))])).flatMap(s=>s.rows);
 const labels=row=>row.options.map(o=>o.label||o.value);
-it('uses normal questions and yes/no/absent choices for every presence group, including sink',()=>{
+it('uses normal questions with scoped parking not-applicable choices and other presence groups unchanged',()=>{
  const h=freshHouse('检查');
  const groups=[...rules.inspectionGroups(houseTopics(h)).values()].filter(g=>g.presence&&g.topics.some(t=>t.path.findIndex(p=>p.id===g.id)>0));
  expect(groups.some(g=>g.id===sinkId)).toBe(true);
  for(const g of groups)h.groups[g.id]={presence:'是'};const before=JSON.stringify(h);
- for(const g of groups){const row=allRows(h).find(r=>r.id===g.id);expect(row.title).toBe(g.title.endsWith('正常')?g.title:g.title+'正常');expect(labels(row)).toEqual(['是','否','没有']);}
+ for(const g of groups){const row=allRows(h).find(r=>r.id===g.id);expect(row.title).toBe(g.title.endsWith('正常')?g.title:g.title+'正常');expect(labels(row)).toEqual(['是','否',['topic_10','topic_11'].includes(g.id)?'不涉及':'没有']);}
  expect(JSON.stringify(h)).toBe(before);
 });
 it('preserves saved group states and details while displaying and toggling the new labels',()=>{

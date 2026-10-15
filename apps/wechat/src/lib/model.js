@@ -24,7 +24,7 @@ export const houseTopics = h => {
     if(electricitySeen)return [];electricitySeen=true;return [{...f,...electricityField}];
   })};
   const normalGroups=['90bf172a-1c92-41e3-9369-c64f5935e7d9','topic_10','topic_11'];
-  if(t.path?.some(p=>normalGroups.includes(p.id)))t={...t,path:t.path.map(p=>normalGroups.includes(p.id)?{...p,aggregate:true,presence:true,detailsWithoutPresence:true,...(['topic_10','topic_11'].includes(p.id)?{skippable:false}:{})}:p)};
+  if(t.path?.some(p=>normalGroups.includes(p.id)))t={...t,path:t.path.map(p=>normalGroups.includes(p.id)?{...p,aggregate:true,presence:true,detailsWithoutPresence:true,...(['topic_10','topic_11'].includes(p.id)?{skippable:false,absenceLabel:'不涉及'}:{})}:p)};
   if(t.fields.some(f=>commuteLabels[f.id]||['f12_2','f77_0','2a7b314c-220f-4d89-a77c-4708bee21df6'].includes(f.id)))t={...t,fields:t.fields.map(f=>{
     if(commuteLabels[f.id])return {...f,label:commuteLabels[f.id]};
     if(['f12_2','2a7b314c-220f-4d89-a77c-4708bee21df6'].includes(f.id))return {...f,role:'inspection-check'};
@@ -38,7 +38,7 @@ export const houseTopics = h => {
  }).filter(t=>t.fields.length);
 };
 const normalTitle = title => title.endsWith('正常')?title:title+'正常';
-const resultLabel = value => ({'正常':'是','有问题':'否'}[value]||value);
+const resultLabel = (value,absenceLabel='没有') => ({'正常':'是','有问题':'否','没有':absenceLabel}[value]||value);
 export function freshHouse(name,settings={}) {
   const hidden=new Set(settings.template==='自定义'?settings.hiddenFields||[]:[]);
   const selected=topics.map(t=>({...clone(t),fields:t.fields.filter(f=>!hidden.has(f.id)).map(clone)})).filter(t=>t.fields.length);
@@ -169,7 +169,7 @@ export function formView(h,view={},folds={}) {
       let options=[],selected='',skipped=false;
       if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?['正常','有问题','没有']:g.aggregate?['是','否']:[];}
       const title=(g?.aggregate||g?.presence)&&!g.permissionFieldId?normalTitle(n.g.title):n.g.title;
-      const choices=options.map(value=>({value,label:g?.presence?resultLabel(value):value,selected:value===selected}));
+      const choices=options.map(value=>({value,label:g?.presence?resultLabel(value,g.absenceLabel):value,selected:value===selected}));
       const swipe={...fieldView(h,nodeById.get('node:group:'+n.g.id)),label:title,expanded,skippable:!!g?.skippable,skipped,options:skipped?[]:choices};
       rows.push({kind:'group',key:'g-'+n.g.id,id:n.g.id,title,depth,expanded,skippable:!!g?.skippable,skipped,options:choices,swipe});
       if(expanded&&!skipped&&(!g||rules.groupAllowsDetails(g,h,detailVisibility))){

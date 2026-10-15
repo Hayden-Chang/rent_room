@@ -24,6 +24,6 @@ it('ignores an inapplicable station for parking normal, keeps empty unconfirmed 
  updateAnswer(h,'f11_0','value','否');const before=JSON.stringify({answers:h.answers,media:h.media});
  updateGroup(h,'topic_11','value','是');expect(h.answers[station].value).toBe('是');
  updateGroup(h,'topic_11','value','是');expect(JSON.stringify({answers:h.answers,media:h.media})).toBe(before);expect(selected(h)).toBe('否');
- updateGroup(h,'topic_11','value','没有');expect(selected(h)).toBe('没有');expect(rows(h).some(r=>r.id===station)).toBe(false);
+ updateGroup(h,'topic_11','value','没有');expect(selected(h)).toBe('不涉及');expect(rows(h).some(r=>r.id===station)).toBe(false);
  updateGroup(h,'topic_11','value','没有');expect(JSON.stringify({answers:h.answers,media:h.media})).toBe(before);expect(selected(h)).toBe('否');
 });
