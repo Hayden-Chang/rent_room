@@ -40,6 +40,12 @@ function harness(){
 const settle=async()=>{for(let i=0;i<20;i++)await Promise.resolve();};
 async function tab(h,name){h.page.tab(event(name));await settle();}
 
+it('switches bottom tabs without the native button pressed overlay',()=>{
+  const wxml=fs.readFileSync('src/pages/detail/index.wxml','utf8');
+  const buttons=wxml.match(/<button\b[^>]*\bbindtap="tab"[^>]*>/g);
+  expect(buttons).toHaveLength(1);expect(buttons[0]).toContain('hover-class="none"');
+});
+
 it('restores a deep checklist after a short media page and retains form view state',async()=>{
   const h=harness(),p=h.page;
   p.phase(event('现场'));p.search({detail:{value:'电梯'}});p.toggleFilters();p.filter(event('未记录'));
