@@ -1,3 +1,4 @@
+import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -6,9 +7,9 @@ const tap=value=>({currentTarget:{dataset:{value}}});
 function setup(){
  let page;
  const settings={template:'完整',hiddenFields:[]},before=JSON.stringify(settings);
- vm.runInNewContext(fs.readFileSync('dist/pages/templates/index.js','utf8'),{
+ vm.runInNewContext(fs.readFileSync('dist/pages/templates/index.js','utf8'),pageContextFixture({
   Page:p=>page=p,getApp:()=>({service:{store:{get:()=>({settings})}}}),wx:{}
- });
+ }));
  page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};page.onLoad();
  const expression=fs.readFileSync('src/pages/templates/index.wxml','utf8').match(/<block wx:if="\{\{([^}]+)\}\}">/)[1];
  const visible=()=>page.data.rows.filter(item=>vm.runInNewContext(expression,{...page.data,item})).map(r=>r.title);

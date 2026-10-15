@@ -20,3 +20,13 @@ export function accountWx(){
     setNavigationBarTitle(){},showToast(){},getStorageSync:key=>storage.get(key),setStorageSync:(key,v)=>storage.set(key,v)};
   return {wx,fs,disk,calls,routes,failDisk:value=>{failing=value;},identity:value=>{identity=value;},respond:fn=>{response=fn;},confirm:value=>{confirmation=value;},packs:value=>{packs=value;}};
 }
+
+// Partial Page fixtures need an authenticated identity even when they do not
+// exercise onLoad. The actual login gate is covered by account-runtime.
+export function pageContextFixture(context){
+  const account={id:'a'.repeat(64),number:'AAAAAAAAAAAA',label:'微信用户'};
+  return {...context,
+    getApp(){const app=context.getApp?.()||{};return {...app,auth:app.auth||{isAuthenticated:()=>true,snapshot:()=>({state:'authenticated',account}),ready:Promise.resolve(true)}};},
+    Page(page){page.accountId=account.id;page.accountLoaded=true;context.Page(page);}
+  };
+}
