@@ -1,0 +1,95 @@
+import {describe,it,expect,vi} from 'vitest';
+import {createBilling} from '../src/lib/billing.js';
+
+function fixture(options={}){
+ let saved=options.saved||'',state='paid',packs=0,account='account-A',failPayment=null,failRequest=false,ready=true;
+ const calls=[],payment={mode:'short_series_goods',signData:'{"currencyType":"CNY","goodsPrice":190,"buyQuantity":1,"env":0,"productId":"house-capacity-10","outTradeNo":"order-test"}',paySig:'server-signature',signature:'user-signature'};
+ const api=vi.fn(async(name,args)=>{
+  calls.push({name,args});if(name==='login')return {code:'wx-code'};
+  if(name==='requestVirtualPayment'){if(failPayment)throw failPayment;return {};}
+  if(failRequest)throw Error('network offline');
+  const path=args.url.replace('https://capacity.test/api/rent-room','');let data;
+  if(path==='/catalog')data={available:ready,iosAvailable:false,product:{price:190,size:10}};
+  else if(path==='/session')data={token:'opaque-token',account,packs};
+  else if(path==='/orders')data={orderId:'order-test',status:'unpaid',payment};
+  else if(path==='/entitlements')data={packs};
+  else if(path.startsWith('/orders/request/')){if(state==='paid')packs=1;data={status:state,packs};}
+  else throw Error('Unexpected path '+path);
+  return {statusCode:200,data};
+ });
+ const config={url:'https://capacity.test/api/rent-room',session:{token:'opaque-token',account,packs},read:()=>saved,write:v=>{saved=v;},wait:async()=>{},...options};
+ const billing=createBilling(api,config);
+ return {billing,api,calls,payment,cache:()=>saved,reload:()=>createBilling(api,{...config,session:{token:'opaque-token',account,packs},read:()=>saved}),state:v=>{state=v;},packs:v=>{packs=v;},account:v=>{account=v;},cancel:()=>{failPayment={errMsg:'requestVirtualPayment:fail cancel'};},fail:()=>{failRequest=true;},unavailable:()=>{ready=false;}};
+}
+
+describe('server-confirmed capacity purchases',()=>{
+ it('passes the exact signed payment string and grants only server-confirmed packs',async()=>{
+  const f=fixture();await f.billing.purchase();expect(f.billing.snapshot().packs).toBe(1);
+  expect(f.calls.find(c=>c.name==='requestVirtualPayment').args).toEqual(f.payment);
+  const checkout=f.calls.find(c=>c.name==='request'&&c.args.url.endsWith('/orders'));
+  expect(checkout.args.data).toMatchObject({productId:'house-capacity-10',platform:'unknown'});
+  expect(checkout.args.data.price).toBeUndefined();expect(f.cache()).not.toContain('opaque-token');expect(f.cache()).not.toContain('signature');
+ });
+ it('never grants capacity from the client success callback alone',async()=>{
+  const f=fixture();f.state('pending');await expect(f.billing.purchase()).rejects.toThrow('正在确认');
+  expect(f.billing.snapshot()).toMatchObject({packs:0,pending:true});expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
+ });
+ it('recovers delayed payments after reload without paying again',async()=>{
+  const f=fixture();f.state('pending');await expect(f.billing.purchase()).rejects.toThrow();
+  f.state('paid');const reloaded=f.reload();await reloaded.refresh();expect(reloaded.snapshot()).toMatchObject({packs:1,pending:false});
+  expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
+ });
+ it('blocks a second checkout while a previous payment is still pending',async()=>{
+  const f=fixture();f.state('pending');await expect(f.billing.purchase()).rejects.toThrow();await expect(f.billing.purchase()).rejects.toThrow('上一笔');
+  expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
+ });
+ it('cancelling does not grant capacity and permits a deliberate retry',async()=>{
+  const f=fixture();f.cancel();await expect(f.billing.purchase()).rejects.toMatchObject({errMsg:expect.stringContaining('cancel')});
+  expect(f.billing.snapshot()).toMatchObject({packs:0,pending:false});
+ });
+ it('preserves last confirmed capacity while offline',async()=>{
+  const f=fixture();await f.billing.purchase();const reloaded=f.reload();f.fail();await expect(reloaded.refresh()).rejects.toThrow();
+  expect(reloaded.snapshot().packs).toBe(1);
+ });
+ it('refreshes refunds and resets entitlements for a different WeChat identity',async()=>{
+  const f=fixture();await f.billing.purchase();f.packs(0);await f.reload().refresh();expect(f.reload().snapshot().packs).toBe(0);
+  f.packs(1);await f.billing.refresh();f.account('account-B');f.packs(0);const other=f.reload();await other.refresh();expect(other.snapshot()).toMatchObject({packs:0,account:'account-B'});
+ });
+ it('does not accept purchase cache from another server or a house backup',()=>{
+  const saved=JSON.stringify({url:'https://other.test',packs:50});expect(fixture({saved}).billing.snapshot().packs).toBe(0);
+  expect(fixture({saved:JSON.stringify({purchases:{packs:50}})}).billing.snapshot().packs).toBe(0);
+ });
+ it('fails before checkout for an unavailable merchant, unsupported client or iOS channel',async()=>{
+  const noMerchant=fixture();noMerchant.unavailable();await expect(noMerchant.billing.purchase()).rejects.toThrow('暂未开放');
+  const oldClient=fixture({supported:()=>false});await expect(oldClient.billing.purchase()).rejects.toThrow('更新微信');
+  const ios=fixture({platform:()=>'ios'});await expect(ios.billing.purchase()).rejects.toThrow('iPhone');
+  for(const f of [noMerchant,oldClient,ios])expect(f.calls.some(c=>c.name==='requestVirtualPayment')).toBe(false);
+ });
+ it('serializes repeated purchase taps',async()=>{
+  const f=fixture();const first=f.billing.purchase();await expect(f.billing.purchase()).rejects.toThrow('正在处理');await first;
+  expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
+ });
+ it('does not start a background refresh in the middle of checkout',async()=>{
+  const f=fixture(),checkout=f.billing.purchase();const snapshot=await f.billing.refresh();
+  expect(snapshot.busy).toBe(true);await checkout;
+  expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/entitlements'))).toBe(false);
+  expect(f.billing.snapshot().packs).toBe(1);
+ });
+ it('finishes an older background response before confirming a new payment',async()=>{
+  const f=fixture(),original=f.api.getMockImplementation();let release,entered;
+  const gate=new Promise(r=>{release=r;}),waiting=new Promise(r=>{entered=r;});
+  f.api.mockImplementation(async(name,args)=>{const response=await original(name,args);if(name==='request'&&args.url.endsWith('/entitlements')){entered();await gate;}return response;});
+  const refresh=f.billing.refresh();await waiting;const purchase=f.billing.purchase();await new Promise(r=>setTimeout(r,0));
+  expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toBe(false);
+  release();await Promise.all([refresh,purchase]);expect(f.billing.snapshot().packs).toBe(1);
+ });
+ it('refuses a signed checkout for a different price before invoking payment',async()=>{
+  const f=fixture();f.payment.signData=f.payment.signData.replace('190','1900');
+  await expect(f.billing.purchase()).rejects.toThrow('支付金额或商品不一致');
+  expect(f.calls.some(c=>c.name==='requestVirtualPayment')).toBe(false);expect(f.billing.snapshot().packs).toBe(0);
+ });
+ it('does not silently succeed when service configuration is missing',async()=>{
+  const billing=createBilling(async()=>{throw Error('should not call');});await expect(billing.purchase()).rejects.toThrow('暂未开放');
+  expect(billing.snapshot()).toMatchObject({packs:0,configured:false});
+ });
+});

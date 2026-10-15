@@ -1,12 +1,13 @@
+import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
-it('runs built App and Page bundles without Node or browser globals and shares one store',async()=>{
+it('runs built Page bundles with an authenticated fixture and shares one store',async()=>{
  const disk=new Map();let app,page;
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync:(p,v)=>disk.set(p,v),copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),setNavigationBarTitle(){},navigateBack(){},showToast(){},showLoading(){},hideLoading(){},navigateTo(){}};
  const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
- vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();
+ vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
  const id=app.service.store.add('运行验证');
  for(const name of ['home','detail','compare','settings','archive','templates']){
    vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);

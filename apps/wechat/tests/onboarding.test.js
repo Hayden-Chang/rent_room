@@ -1,3 +1,4 @@
+import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect,vi,afterEach} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -7,7 +8,7 @@ function harness(options={}){
  vi.useFakeTimers();const disk=new Map();let app,page,fail=false;
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync(p,v){if(fail)throw Error('full');disk.set(p,v);},copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),setNavigationBarTitle(){},navigateBack:vi.fn(),navigateTo:vi.fn(),showToast:vi.fn(),getWindowInfo:()=>({windowWidth:390,windowHeight:720}),pageScrollTo:o=>o.complete?.()};
  const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
- vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();
+ vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
  const id=app.service.store.add('引导回归');app.service.store.answer(id,'f1_6','value','4800');
  if(options.disabled)app.service.store.change(s=>s.settings.onboarding=false);
  const before=JSON.stringify(app.service.store.house(id));
@@ -17,8 +18,9 @@ function harness(options={}){
  page.onLoad({id,...options});page.onReady?.();
  return {app,page,wx,before,fail:()=>{fail=true;},recover:()=>{fail=false;},disk};
 }
-it('replays from settings even when automatic onboarding is disabled',()=>{
- const {page}=harness({guide:'1',disabled:true});expect(page.data.coach).toBe(1);
+it('ignores the removed replay flag on ordinary visits regardless of the automatic preference',()=>{
+ expect(harness({guide:'1'}).page.data.coach).toBe(0);
+ expect(harness({guide:'1',disabled:true}).page.data.coach).toBe(0);
 });
 it('expands a real checklist item on step four without changing saved records',async()=>{
  const {page,app,before}=harness({new:'1'});
@@ -53,9 +55,9 @@ it('cancels the demonstration timer on hide and unload',async()=>{
 it('does not trigger automatic onboarding for an ordinary visit or opted out creation',()=>{
  expect(harness().page.data.coach).toBe(0);expect(harness({new:'1',disabled:true}).page.data.coach).toBe(0);
 });
-it('supports replay without a saved house and returns without persisting demo data',async()=>{
+it('returns from the removed replay-only route without creating or persisting a demo house',()=>{
  const {page,app,wx}=harness({guide:'1',id:''});const saved=JSON.stringify(app.service.store.get());
- expect(page.data.house.name).toBe('用户引导');for(let n=0;n<4;n++)await page.coachNext();
+ expect(page.data.house).toBe(null);expect(page.data.coach).toBe(0);
  expect(wx.navigateBack).toHaveBeenCalled();expect(JSON.stringify(app.service.store.get())).toBe(saved);
 });
 it('opens actions on a deliberate left drag without writing an answer',async()=>{

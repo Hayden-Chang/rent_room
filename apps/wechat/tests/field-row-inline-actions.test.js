@@ -1,3 +1,4 @@
+import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect,vi} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -37,7 +38,7 @@ it('routes the three buttons into the page, preserving the answer and attachment
  store.answer(id,'f1_1','value','原地址');store.answer(id,'f1_1','note','原备注');
  store.edit(id,h=>{h.media=[{id:'photo',type:'image',path:'/fixture.png',fieldId:'f1_1'}];});
  const service={store,chooseMedia:async(...args)=>{mediaCalls.push(args);}};
- vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page(p){page=p;},getApp:()=>({service}),wx:{setNavigationBarTitle(){},showToast(){}},console,setTimeout,clearTimeout});
+ vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page(p){page=p;},getApp:()=>({service}),wx:{setNavigationBarTitle(){},showToast(){}},console,setTimeout,clearTimeout}));
  page.data=structuredClone(page.data);page.setData=function(p){Object.assign(this.data,p);};page.onLoad({id});
  const c=row();c.data.field.id='f1_1';c.triggerEvent=(name,detail)=>page.action({detail});
  const press=action=>{c.reveal();c.start(point(100));c.end(point(100));c.trayAction(tap(action));};

@@ -1,3 +1,4 @@
+import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect,describe} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -12,7 +13,7 @@ function setup(){
  store.answer(id,'f1_1','note','检查项原备注');
  store.edit(id,h=>h.media=[{id:'photo',type:'image',path:'/photo.jpg',fieldId:'f1_1'},{id:'video',type:'video',path:'/video.mp4',fieldId:'',duration:12}]);
  const service={store,preview:(...args)=>previews.push(args)};
- const context=vm.createContext({wx:{setNavigationBarTitle(){},navigateBack(){},showToast:o=>toasts.push(o.title)},getApp:()=>({service}),Page:o=>{page=o;},console,setTimeout,clearTimeout});
+ const context=vm.createContext(pageContextFixture({wx:{setNavigationBarTitle(){},navigateBack(){},showToast:o=>toasts.push(o.title)},getApp:()=>({service}),Page:o=>{page=o;},console,setTimeout,clearTimeout}));
  vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);
  page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};page.onLoad({id});
  const edit=mediaId=>page.editMediaNote({currentTarget:{dataset:{id:mediaId}}});

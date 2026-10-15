@@ -16,6 +16,10 @@ const timer=setTimeout(()=>{console.error('ZIP transfer UI test timed out');proc
  const incoming={...a,name:'更新后的房源',answers:{f1_6:{value:'4200',note:'完整备注'}},media:[{id:'photo',type:'image',path:'/fixture',caption:'合成附件字节'}]};
  const zip=await makeBackup({...emptyState(),houses:[incoming,archived,skipped]},()=>new Uint8Array([1,2,3,4]));
  try {
+  // Authenticated identity/capacity are setup; the scenario under test is ZIP selection.
+  await mini.mockWxMethod('login',{code:'zip-ui-fixture'});
+  await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'zip-ui-fixture-token-'+ 'a'.repeat(64),packs:1,limit:12}});
+  assert.equal(await mini.evaluate(()=>getApp().auth.login()),true);
   console.log('Prepare disposable ZIP fixture');
   const input=await mini.evaluate(({houses,bytes})=>{
    const service=getApp().service,io=wx.getFileSystemManager();
@@ -54,5 +58,5 @@ const timer=setTimeout(()=>{console.error('ZIP transfer UI test timed out');proc
   saved=await snapshot();assert.equal(saved.houses.length,4);assert.equal(saved.houses.find(h=>h.id===a.id).name,'更新后的房源');assert.equal(saved.houses.filter(h=>h.name==='更新后的房源（副本）').length,1);
   await mini.reLaunch('/pages/home/index');await mini.screenshot({path:artifact('reopened-houses.png')});
   fs.writeFileSync(artifact('zip-assertions.json'),JSON.stringify({passed:true,scenarios:['export subset','empty selection disabled','conflict required','cancel overwrite','atomic overwrite + archived add','skip unselected','copy preserves original','native media bytes','page reopen and durable state'],nativeBoundaries:'chooseMessageFile/shareFileMessage mocked; phone file chooser/sharing and cold start untested'},null,2));
- }finally{clearTimeout(timer);await mini.restoreWxMethod('chooseMessageFile').catch(()=>{});await mini.restoreWxMethod('shareFileMessage').catch(()=>{});mini.disconnect();}
+ }finally{clearTimeout(timer);for(const name of ['chooseMessageFile','shareFileMessage','login','request'])await mini.restoreWxMethod(name).catch(()=>{});mini.disconnect();}
 })().catch(error=>{clearTimeout(timer);console.error(error);process.exit(1);});

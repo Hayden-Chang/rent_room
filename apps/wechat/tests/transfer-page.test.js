@@ -1,3 +1,4 @@
+import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect,describe,vi} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -8,7 +9,7 @@ import {mockWx} from './helpers/wx.js';
 const event=(id,mode)=>({currentTarget:{dataset:{id,mode}}});
 function fixture(){
  const m=mockWx(),service=createPlatform(m.wx);let page;
- const app={service},context=vm.createContext({wx:m.wx,Page:o=>page=o,getApp:()=>app,console,setTimeout,clearTimeout});
+ const app={service},context=vm.createContext(pageContextFixture({wx:m.wx,Page:o=>page=o,getApp:()=>app,console,setTimeout,clearTimeout}));
  vm.runInContext(fs.readFileSync('dist/pages/import/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};
  return {...m,page,service};
 }
@@ -99,7 +100,7 @@ describe('ZIP transfer page and entry points',()=>{
   const canceled=fixture();canceled.callbacks.chooseMessageFile=o=>o.fail({errMsg:'choose:fail cancel'});await canceled.page.onLoad();expect(canceled.page.data.error).toBe('');expect(canceled.page.data.busy).toBe(false);
  });
  it('routes all visible import/export entries to ZIP selection and removes Excel/JSON choices',async()=>{
-  const s=fixture(),id=s.service.store.add('A');let page;const context=vm.createContext({wx:s.wx,Page:o=>page=o,getApp:()=>({service:s.service}),console,setTimeout,clearTimeout});
+  const s=fixture(),id=s.service.store.add('A');let page;const context=vm.createContext(pageContextFixture({wx:s.wx,Page:o=>page=o,getApp:()=>({service:s.service}),console,setTimeout,clearTimeout}));
   vm.runInContext(fs.readFileSync('dist/pages/settings/index.js','utf8'),context);page.export();page.importFile();expect(s.routes).toEqual(['/pages/import/index?mode=export','/pages/import/index']);
   vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);page.data={...clone(page.data),id};page.export();expect(s.routes.at(-1)).toBe('/pages/import/index?mode=export&id='+id);
   const settings=fs.readFileSync('src/pages/settings/index.wxml','utf8');expect(settings).not.toMatch(/Excel|JSON|50 MB/);

@@ -14,6 +14,23 @@ async function select(m,p,houses,blobs={}){
 const choices=houses=>houses.map(h=>({id:h.id,mode:'add'}));
 const current='/user/xunju/state.json';
 describe('house ZIP transfer transactions',()=>{
+ it('checks added capacity before extracting media and permits replacement at a full account',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('原记录');p.store.add('第二套');
+  const incoming=media({...freshHouse('覆盖'),id}),pending=await select(m,p,[incoming]),append=m.io.appendFileSync;let writes=0;
+  m.io.appendFileSync=(...args)=>{writes++;return append(...args);};
+  await expect(p.commitImport(pending,[{id,mode:'copy'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY',additional:1});expect(writes).toBe(0);expect(p.store.house(id).name).toBe('原记录');
+  await p.commitImport(pending,[{id,mode:'replace'}]);expect(p.store.house(id).name).toBe('覆盖');expect(p.store.capacity().used).toBe(2);
+ });
+ it('cancels streaming export after account invalidation and removes its partial output',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A');m.disk.set('/photo',new Uint8Array([1,2,3]).buffer);p.store.edit(id,h=>media(h,'/photo'));
+  await expect(p.exportFile([id],{onProgress(){p.setActive(false);p.setActive(true);}})).rejects.toThrow('登录状态已变化');
+  expect([...m.disk.keys()].some(k=>k.includes('/transfer-'))).toBe(false);expect(p.store.house(id).name).toBe('A');
+ });
+ it('rejects a late import after account invalidation even if the service is reactivated',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx),pending=await select(m,p,[media(freshHouse('A'))]),before=m.disk.get(current);
+  await expect(p.commitImport(pending,choices(pending.houses),{onProgress(){p.setActive(false);p.setActive(true);}})).rejects.toThrow('登录状态已变化');
+  expect(p.store.get().houses).toEqual([]);expect(m.disk.get(current)).toBe(before);expect([...m.disk.keys()].filter(k=>k.includes('/media/'))).toEqual([]);
+ });
  it('selects a subset and preserves identity, archived state, templates and settings after reload',async()=>{
   const m=mockWx(),p=createPlatform(m.wx),existing=p.store.add('本机房源');p.store.change(s=>s.settings.workplace='本机地址');
   const a=media(freshHouse('相同名称')),b=media(freshHouse('归档房源'));b.archived=true;b.summary='完整总结';b.groups.keep={notApplicable:true};b.extras=[{id:'custom',title:'自定义',category:'自定义',phase:'现场看房',path:[],fields:[{id:'custom_0',label:'特殊要求',type:'y',options:['是','否']}]}];
@@ -29,7 +46,7 @@ describe('house ZIP transfer transactions',()=>{
   await p.commitImport(pending,[{id:other.id,mode:'add'}]);expect(p.store.get().houses).toHaveLength(2);expect(p.store.house(id)).toEqual(original);expect(p.store.house(other.id).name).toBe('同名');
  });
  it('replaces a whole house and adds a distinct copy in one transaction without merging stale fields',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('旧名'),copyId=p.store.add('另一套'),oldPath='/user/xunju/media/old.jpg';m.disk.set(oldPath,new Uint8Array([9]).buffer);
+  const m=mockWx(),p=createPlatform(m.wx,{session:{account:'transfer-fixture',packs:1}}),id=p.store.add('旧名'),copyId=p.store.add('另一套'),oldPath='/user/xunju/media/old.jpg';m.disk.set(oldPath,new Uint8Array([9]).buffer);
   p.store.edit(id,h=>{h.answers.f1_1={note:'不应保留'};h.summary='旧总结';h.media=[{id:'old',type:'image',path:oldPath}];});p.store.archive(id,true);
   const incoming=media({...freshHouse('新名'),id}),copySource=media({...freshHouse('副本来源'),id:copyId});incoming.answers.f1_6={value:'0'};incoming.issues=[{id:'issue',title:'漏水',note:'记录',resolved:true}];incoming.media[0].issueId='issue';
   const pending=await select(m,p,[incoming,copySource]);await p.commitImport(pending,[{id,mode:'replace'},{id:copyId,mode:'copy'}]);
@@ -67,13 +84,13 @@ describe('house ZIP transfer transactions',()=>{
   m.io.readSync=options=>{lengths.push(options.length);return read(options);};m.io.closeSync=options=>{closed++;close(options);};
   await p.commitImport(pending,[{id:h.id,mode:'add'}]);const exported=await p.exportFile([h.id]);p.discardExport(exported);expect(Math.max(...lengths)).toBeLessThanOrEqual(256*1024);expect(lengths.length).toBeGreaterThan(2);expect(closed).toBe(2);
  });
- it('permits replacement at the 200-house capacity but atomically refuses a new copy',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx);p.store.change(s=>s.houses=Array.from({length:200},(_,i)=>freshHouse('房源'+i)));const source=clone(p.store.get().houses[0]),pending=await select(m,p,[{...source,name:'覆盖成功'}]);
-  await expect(p.commitImport(pending,[{id:source.id,mode:'copy'}])).rejects.toThrow('200');expect(p.store.get().houses).toHaveLength(200);
-  await p.commitImport(pending,[{id:source.id,mode:'replace'}]);expect(createPlatform(m.wx).store.house(source.id).name).toBe('覆盖成功');expect(p.store.get().houses).toHaveLength(200);
+ it('permits replacement at purchased capacity beyond 200 houses but atomically refuses a new copy',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx,{session:{account:'transfer-fixture',packs:20}});p.store.change(s=>s.houses=Array.from({length:202},(_,i)=>freshHouse('房源'+i)));const source=clone(p.store.get().houses[0]),pending=await select(m,p,[{...source,name:'覆盖成功'}]);
+  await expect(p.commitImport(pending,[{id:source.id,mode:'copy'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY'});expect(p.store.get().houses).toHaveLength(202);
+  await p.commitImport(pending,[{id:source.id,mode:'replace'}]);expect(createPlatform(m.wx).store.house(source.id).name).toBe('覆盖成功');expect(p.store.get().houses).toHaveLength(202);
  });
  it('exports only selected archived and active houses with actual bytes and no global settings',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),a=p.store.add('A'),b=p.store.add('B'),c=p.store.add('C');p.store.change(s=>s.settings.workplace='不随包迁移');p.store.archive(b,true);m.disk.set('/photo',new Uint8Array([4,5]).buffer);p.store.edit(a,h=>media(h,'/photo'));
+  const m=mockWx(),p=createPlatform(m.wx,{session:{account:'transfer-fixture',packs:1}}),a=p.store.add('A'),b=p.store.add('B'),c=p.store.add('C');p.store.change(s=>s.settings.workplace='不随包迁移');p.store.archive(b,true);m.disk.set('/photo',new Uint8Array([4,5]).buffer);p.store.edit(a,h=>media(h,'/photo'));
   let bytes;m.callbacks.shareFileMessage=o=>{expect(o.fileName).toMatch(/2套.*\.zip$/);bytes=new Uint8Array(m.disk.get(o.filePath));o.success({});};const exported=await p.exportFile([a,b]);expect(bytes).toBeUndefined();expect(await p.shareExport(exported)).toEqual({shared:true});
   const pending=await readBackup(bytes);expect(pending.houses.map(h=>h.id)).toEqual([a,b]);expect(pending.houses[1].archived).toBe(true);expect(pending.houses.some(h=>h.id===c)).toBe(false);expect(JSON.parse(strFromU8(unzipSync(bytes)['manifest.json'])).settings).toBeUndefined();expect([...pending.files[pending.houses[0].media[0].path]]).toEqual([4,5]);expect(m.disk.has(exported.filePath)).toBe(true);p.discardExport(exported);expect([...m.disk.keys()].some(k=>k.includes('/transfer-'))).toBe(false);
  });

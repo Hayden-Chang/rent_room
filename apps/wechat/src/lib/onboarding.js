@@ -57,7 +57,6 @@ export const coachMethods={
   try{if(this.data.hideCoach)service().store.change(s=>s.settings.onboarding=false,true);}
   catch(error){this.setData({coachError:'偏好未保存，请重试。'});notify(error);return;}
   this.clearCoachTimer();this.setData({coach:0,coachError:''});
-  if(this.guideHouse){wx.navigateBack();return;}
   if(this.coachSavedFolds){this.folds=this.coachSavedFolds;this.coachSavedFolds=null;this.refresh();}
   wx.pageScrollTo({scrollTop:0,duration:0});
  },
