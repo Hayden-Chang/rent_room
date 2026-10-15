@@ -13,6 +13,8 @@ const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83')
 const commuteLabels=Object.fromEntries(fields.filter(f=>['21255282-3663-4abe-b7de-d91eeb3825ed','3c70cda2-7c6c-4fa6-b2db-b647af24ba72'].includes(f.id)).map(f=>[f.id,f.label]));
 export const electricityField=fields.find(f=>f.id==='617bd84f-3208-42ec-b2e4-5bb95d5c754c');
 const duplicateElectricityId='b670b816-5107-4acf-96e0-cc28b84df4cc';
+export const costGroups={'019886c9-e108-45b4-a0c5-c20d594379e5':'周期费用','538ea220-cf80-418e-a492-8cc3792654be':'一次性费用'};
+export const customCostGroup=id=>Object.keys(costGroups).find(group=>new RegExp(`^cost_${group}_[a-zA-Z0-9]+$`).test(id));
 // Apply current group controls to saved templates without rewriting their answers or snapshots.
 export const houseTopics = h => {
  let electricitySeen=false;
@@ -41,6 +43,18 @@ export function freshHouse(name,settings={}) {
   const hidden=new Set(settings.template==='自定义'?settings.hiddenFields||[]:[]);
   const selected=topics.map(t=>({...clone(t),fields:t.fields.filter(f=>!hidden.has(f.id)).map(clone)})).filter(t=>t.fields.length);
   return {id:uid(),name:name.trim()||'新房源',address:'',answers:{},groups:{},extras:[],media:[],issues:[],summary:'',decision:'',archived:false,createdAt:new Date().toISOString(),templateTopics:selected,checklistRevision:2};
+}
+export function addCostField(h,groupId,label,fieldId='cost_'+groupId+'_'+uid()) {
+  if(h.archived)throw Error('归档房源只读，请先还原');
+  if(!Object.keys(costGroups).includes(groupId)||customCostGroup(fieldId)!==groupId)throw Error('费用分组无效');
+  label=String(label||'').trim();if(!label||label.length>50)throw Error('费用名称需为 1 至 50 字');
+  const ts=houseTopics(h),groupTopics=ts.filter(t=>t.path?.some(p=>p.id===groupId));
+  if(!groupTopics.length)throw Error('费用分组不存在');
+  if(groupTopics.some(t=>t.fields.some(f=>f.label===label)))throw Error('该分组已有同名费用');
+  if(ts.some(t=>t.fields.some(f=>f.id===fieldId)))throw Error('费用编号重复');
+  const base=groupTopics[0],at=base.path.findIndex(p=>p.id===groupId),field={id:fieldId,label,type:'n'};
+  (h.extras||=[]).push({id:'topic_'+fieldId,title:costGroups[groupId],category:base.category,phase:base.phase,path:clone(base.path.slice(0,at+1)),fields:[field]});
+  return field;
 }
 // Merge the retired electricity field once; keep original answers and template snapshots.
 export function mergeElectricity(h) {
@@ -158,7 +172,10 @@ export function formView(h,view={},folds={}) {
       const choices=options.map(value=>({value,label:g?.presence?resultLabel(value):value,selected:value===selected}));
       const swipe={...fieldView(h,nodeById.get('node:group:'+n.g.id)),label:title,expanded,skippable:!!g?.skippable,skipped,options:skipped?[]:choices};
       rows.push({kind:'group',key:'g-'+n.g.id,id:n.g.id,title,depth,expanded,skippable:!!g?.skippable,skipped,options:choices,swipe});
-      if(expanded&&!skipped&&(!g||rules.groupAllowsDetails(g,h,detailVisibility)))for(const child of n.children)visit(child,depth+1);
+      if(expanded&&!skipped&&(!g||rules.groupAllowsDetails(g,h,detailVisibility))){
+        for(const child of n.children)visit(child,depth+1);
+        if(Object.keys(costGroups).includes(n.g.id)&&!h.archived)rows.push({kind:'add-cost',key:'add-cost-'+n.g.id,id:n.g.id,title:n.g.title,depth:depth+1});
+      }
     }
     const expanded=folds[cat]??!!filtered;
     if(expanded)for(const n of root.children)visit(n);

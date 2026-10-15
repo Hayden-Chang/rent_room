@@ -90,6 +90,14 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   page=await mini.reLaunch(route);await page.waitFor('input.grow');await (await page.$('input.grow')).input('周期费用');
   await page.waitFor('.field-branch[data-scroll-key="field-f-617bd84f-3208-42ec-b2e4-5bb95d5c754c"]');
   assert.equal(await (await page.$('.field-branch[data-scroll-key="field-f-617bd84f-3208-42ec-b2e4-5bb95d5c754c"] field-row input.input')).value(),'60');
-  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has only three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice','charging station links to parking','commute minute labels','guard links to security result','winter pipe not-applicable choice','one electricity field with saved value'],hardware:'not tested'},null,2));
+  await (await page.$('input.grow')).input('费用');await page.waitFor('button.add-cost');
+  assert.equal((await page.$$('button.add-cost')).length,2);
+  await mini.screenshot({path:output('cost-add-buttons.png')});
+  for(const groupId of ['019886c9-e108-45b4-a0c5-c20d594379e5','538ea220-cf80-418e-a492-8cc3792654be']){
+   await (await page.$('button.add-cost[data-group-id="'+groupId+'"]')).tap();
+   await mini.screenshot({path:output('cost-prompt-'+groupId+'.png')});
+   await mini.native().cancelModal();
+  }
+  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has only three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice','charging station links to parking','commute minute labels','guard links to security result','winter pipe not-applicable choice','one electricity field with saved value','both cost add buttons open cancellable prompts'],hardware:'not tested; native editable-modal input and save still require phone acceptance'},null,2));
  } finally {clearTimeout(timer);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});
