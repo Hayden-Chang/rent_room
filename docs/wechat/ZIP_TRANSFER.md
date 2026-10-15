@@ -11,6 +11,7 @@
 - 首次导入保留房源 ID 和名称；相同 ID 才视为重复。重复项必须逐套选择覆盖或新增副本，同名不同 ID 独立处理。
 - 覆盖整套记录，不合并旧字段，确认前展示目标名称；新增副本使用新 ID 和“（副本）”名称后缀。
 - 本次所选房源一次保存，全部成功才生效。文件写入、完整性校验、空间不足、取消或状态保存失败时保留原记录，并清理本次新文件。
+- 传输页须已登录，异步传输绑定原账号；账号变化时取消未完成的读写并清理临时文件。容量在解压前预检、保存时再次核对；覆盖不新增容量，新增/副本计入当前账号容量。
 - 保存前完成文件准备；旧附件在当前状态或上一份自动恢复仍引用时保留。后续成功导入轮换恢复副本后，可清理已无引用的旧附件。
 
 ## 文件边界
@@ -21,7 +22,7 @@
 
 ZIP 清单包含 `format: xunju-backup`、`archiveVersion: 1`、状态版本 2、导出时间、房源及每个附件的大小和 CRC32。导入校验路径、重复条目、引用完整性、所选附件大小/CRC32及 ZIP 结束记录。确认前后清单不一致时拒绝保存。
 
-取消此前 50 MiB 文件/媒体总量和 100 MiB 解压总量门槛。现有拍摄/相册入口的单个影像限制保持原行为。最多 200 套房源及 32 MiB 清单元数据校验仍有效；媒体总量由微信/设备资源决定，不承诺无限大小。空间不足应提示原因；未完成的 ZIP 立即清理，已完成的文件按上述发送/页面生命周期清理。
+取消此前 50 MiB 文件/媒体总量和 100 MiB 解压总量门槛。现有拍摄/相册入口的单个影像限制保持原行为。房源数量遵循当前账号的免费/已购容量，保留 32 MiB 清单元数据校验；媒体总量由微信/设备资源决定，不承诺无限大小。空间不足应提示原因；未完成的 ZIP 立即清理，已完成的文件按上述发送/页面生命周期清理。
 
 ## 自动测试选择
 
@@ -29,7 +30,7 @@ ZIP 清单包含 `format: xunju-backup`、`archiveVersion: 1`、状态版本 2�
 
 ```sh
 npm run build
-npm test -- tests/files.test.js tests/platform.test.js tests/transfer.test.js tests/transfer-page.test.js tests/model.test.js tests/runtime.test.js tests/media-caption.test.js tests/issue-editor.test.js tests/all-node-swipe.test.js tests/broadband-installation.test.js
+npm test -- tests/files.test.js tests/platform.test.js tests/transfer.test.js tests/transfer-page.test.js tests/model.test.js tests/runtime.test.js tests/media-caption.test.js tests/issue-editor.test.js tests/all-node-swipe.test.js tests/broadband-installation.test.js tests/capacity.test.js tests/capacity-runtime.test.js tests/account-runtime.test.js tests/account-storage.test.js tests/settings-simplification.test.js tests/custom-cost.test.js tests/recurring-electricity.test.js
 npm run check
 npm run package
 ```
@@ -37,9 +38,10 @@ npm run package
 | 生产边界 | 选择依据 |
 | --- | --- |
 | 流式编解码、媒体和清单 | files：真实字节、超过原 50 MiB、只提取所选文件、缺失/损坏/截断/非法文件及取消 |
-| 文件与持久化事务 | platform、transfer：相机既有行为、ID 冲突、同名不同 ID、覆盖/副本/跳过、混合批次、空间不足、状态保存失败、200 套边界、恢复副本、分享失败 |
+| 文件与持久化事务 | platform、transfer：相机既有行为、ID 冲突、同名不同 ID、覆盖/副本/跳过、混合批次、空间不足、状态保存失败、免费/已购容量、覆盖不新增容量、账号变更取消、恢复副本、分享失败 |
 | 页面选择和入口 | transfer-page、runtime：构建后 VM 验证多选、重复选择必填、覆盖取消、重复点击、失败重试、离开取消、所有 ZIP 入口 |
 | 导入准备和存储消费者 | model、broadband-installation：稳定 ID、保留答案和既有分组迁移，导入保存失败 |
+| 登录与容量整合 | account-runtime、account-storage、capacity、capacity-runtime、settings-simplification：登录门禁、账号隔离、超限保留选择、损坏恢复；custom-cost、recurring-electricity：新费用与既有电费记录的 ZIP 保留 |
 | 媒体与问题关联消费者 | media-caption、issue-editor、all-node-swipe：备注、问题状态、检查项关联、父节点注释和实际影像在 ZIP 导入后保留 |
 
 上述为按影响选择的测试，不运行全部本地单测或全部既有 E2E。VM/mock 验证不等于实际页面点击、系统文件选择/分享或真机证明。
@@ -48,4 +50,4 @@ npm run package
 
 固定池 runner 执行 `apps/wechat/tests/e2e/zip-transfer.cjs`。脚本仅在可丢弃租约中运行；房源及 ZIP 为前置夹具，系统文件选择/分享边界被 mock，选择、模式切换、提交和导航使用可见控件。截图和磁盘断言存入 `WECHAT_ARTIFACT_DIR`，不得把调用 handler 或 setData 冒充交互。
 
-待用户确认实际导入/导出列表、归档标记、覆盖提示和取消流程；iOS/Android 手机另验真实文件选取、微信分享、跨设备 ZIP 导入，以及实际大文件与空间不足体验。实例池不健康时保留失败 receipt，不抢占或重启其他任务的实例；UI 门禁仍未通过。
+实际导入/导出列表、归档标记、覆盖提示和取消流程的证据与用户确认状态以 PR 的最终提交记录为准；iOS/Android 手机另验真实文件选取、微信分享、跨设备 ZIP 导入，以及实际大文件与空间不足体验。实例池不健康时保留失败 receipt，不抢占或重启其他任务的实例。
