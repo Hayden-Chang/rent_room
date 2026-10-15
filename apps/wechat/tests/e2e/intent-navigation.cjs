@@ -6,19 +6,26 @@ const automator = require(process.env.WECHAT_AUTOMATOR_MODULE || path.resolve(__
 if (!process.env.WECHAT_WS_ENDPOINT || !process.env.WECHAT_ARTIFACT_DIR) throw Error('Use the shared pool runner');
 const timer = setTimeout(() => { console.error('Intent/navigation UI test timed out'); process.exit(1); }, 110000);
 const choices = ['考虑租住', '继续比较', '放弃'];
+async function step(label, action) {
+  console.log(label);
+  let deadline;
+  try { return await Promise.race([action(), new Promise((_, reject) => { deadline = setTimeout(() => reject(Error('Automation RPC timed out: ' + label)), 15000); })]); }
+  finally { clearTimeout(deadline); }
+}
 (async () => {
-  const mini = await automator.connect({wsEndpoint: process.env.WECHAT_WS_ENDPOINT});
+  const mini = await step('Connect to leased project', () => automator.connect({wsEndpoint: process.env.WECHAT_WS_ENDPOINT}));
   const evidence = {passed: false, decisions: [], navigation: [], pressed: []};
   try {
     // Only fixture preparation writes state directly. All actions below use controls.
-    const id = await mini.evaluate(() => {
+    const id = await step('Prepare disposable house', () => mini.evaluate(() => {
       const store = getApp().service.store;
       const id = store.add('意向与导航验收');
       store.edit(id, h => { h.summary = '切换和取消后仍保留的备注'; });
       return id;
-    });
+    }));
     const route = '/pages/detail/index?id=' + encodeURIComponent(id);
-    let page = await mini.reLaunch(route);
+    let page = await step('Open house detail', () => mini.reLaunch(route));
+    await step('Capture initial detail', () => mini.screenshot({path: path.join(process.env.WECHAT_ARTIFACT_DIR, 'detail-initial.png')}));
     const state = () => mini.evaluate(() => {
       const p = getCurrentPages().slice(-1)[0];
       return {tab: p.data.tab, restoring: p.data.restoringTab, decision: p.data.house?.decision, summary: p.data.house?.summary};
@@ -56,8 +63,8 @@ const choices = ['考虑租住', '继续比较', '放弃'];
         evidence.pressed.push({selector, background, samples});
       } finally { await button.touchend(); }
     }
-    await page.waitFor('.detail-tabs');
-    for (const name of ['影像', '问题', '总结', '清单', '总结', '问题', '影像', '清单', '总结']) await navigate(name);
+    await step('Query visible navigation controls', () => page.waitFor('.detail-tabs'));
+    for (const name of ['影像', '问题', '总结', '清单', '总结', '问题', '影像', '清单', '总结']) await step('Navigate to ' + name, () => navigate(name));
     assert.equal(await (await page.$('.summary-label')).text(), '意向');
     await mini.screenshot({path: path.join(process.env.WECHAT_ARTIFACT_DIR, 'intent-empty.png')});
     for (const [index, value] of choices.entries()) {
