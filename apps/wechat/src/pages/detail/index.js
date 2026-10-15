@@ -93,7 +93,7 @@ Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],media
     this.commuteOpening=true;
     const platform=service();
     try{
-      // Measure before onHide conceals the authenticated page and collapses its viewport.
+      // Capture the current field anchor before navigation; return layout may change.
       const position=await this.measureTab();
       if(!this.commuteVisible(platform)){this.commuteOpening=false;return;}
       const house=platform.store.house(houseId);

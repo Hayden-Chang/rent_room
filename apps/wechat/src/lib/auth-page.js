@@ -2,7 +2,7 @@
 export function protectedPage(definition) {
   const result={...definition,data:{...definition.data,accountReady:false}};
   function allowed(page){const auth=getApp().auth;return auth.isAuthenticated()&&page.accountId===auth.snapshot().account.id;}
-  function redirect(){wx.reLaunch({url:'/pages/login/index'});}
+  function redirect(){wx.reLaunch({url:'/pages/home/index'});}
   function load(page,args){
     const auth=getApp().auth;
     if(!auth.isAuthenticated()){redirect();return;}
@@ -31,7 +31,8 @@ export function protectedPage(definition) {
     return Promise.all([this.accountLoad,getApp().auth.ready]).then(show);
   };
   result.onHide=function(...args){
-    this.setData({accountReady:false});
+    // Navigation hides the page before its outgoing animation has finished.
+    if(!allowed(this))this.setData({accountReady:false});
     if(this.accountLoaded)return definition.onHide?.apply(this,args);
   };
   result.onUnload=function(...args){this.accountUnloaded=true;if(this.accountLoaded)return definition.onUnload?.apply(this,args);};

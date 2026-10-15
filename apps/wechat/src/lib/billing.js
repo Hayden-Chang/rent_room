@@ -52,7 +52,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       if(catalog.product?.price!==HOUSE_PACK.price||catalog.product?.size!==HOUSE_PACK.size)throw Error('房源包信息已更新，请稍后重试');
       const old=await orderState();
       if(old?.status==='paid')return snapshot();
-      if(old?.status==='pending')throw Error('上一笔支付正在确认，请点击恢复购买查询，避免重复付款');
+      if(old?.status==='pending')throw Error('上一笔支付正在确认，请点击刷新容量查询，避免重复付款');
       cached.pending={requestId:'cp'+Date.now().toString(36)+Math.random().toString(36).slice(2,14)};persist();
       const order=await request('/orders','POST',{requestId:cached.pending.requestId,productId:HOUSE_PACK.id,platform:platform()});
       if(order.status==='paid'){accept(order);cached.pending=null;persist();return snapshot();}
@@ -72,7 +72,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
         if(n<3&&!failure)await wait(600);
       }
       if(failure)throw failure;
-      throw Error('支付结果正在确认，请点击恢复购买查询，避免重复付款');
+      throw Error('支付结果正在确认，请点击刷新容量查询，避免重复付款');
     }finally{busy=false;}
   }
   return {snapshot,refresh,purchase};

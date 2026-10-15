@@ -10,23 +10,29 @@ afterEach(()=>vi.useRealTimers());
 function harness(m=accountWx()){
   let app,page;const context=vm.createContext({wx:m.wx,App:value=>{app=value;},Page:value=>{page=value;},getApp:()=>app,console,setTimeout,clearTimeout});
   const launch=()=>{vm.runInContext(appCode,context);app.onLaunch();return app;};launch();
-  return {m,context,get app(){return app;},launch,page(name){vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(values){Object.assign(this.data,values);};return page;}};
+  return {m,context,get app(){return app;},launch,page(name){vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(values,done){Object.assign(this.data,values);done?.();};return page;}};
+}
+function loginMaskVisible(data){
+  const template=fs.readFileSync('dist/pages/home/index.wxml','utf8');
+  const tag=template.match(/<view\b[^>]*class="[^"]*\blogin-mask\b[^"]*"[^>]*>/)[0];
+  const condition=tag.match(/wx:if="\{\{(.*?)\}\}"/)[1];
+  return !!vm.runInNewContext(condition,data);
 }
 it('does not create a guest store or invoke WeChat login before the button',async()=>{
-  const h=harness(),p=h.page('login');h.app.onShow();p.onLoad();p.onShow();
+  const h=harness(),p=h.page('home');h.app.onShow();p.onLoad();p.onShow();
   expect(h.app.service).toBeNull();expect(h.m.calls).toEqual([]);expect(p.data.busy).toBe(false);
-  await p.login();expect(h.app.auth.isAuthenticated()).toBe(true);expect(h.m.routes.at(-1)).toBe('/pages/home/index');
+  await p.login();expect(h.app.auth.isAuthenticated()).toBe(true);expect(p.data.accountReady).toBe(true);expect(p.data.houses).toEqual([]);expect(h.m.routes).toEqual([]);
   expect(h.m.calls.find(c=>c.url)).toEqual({url:'https://login.example.com/api/rent-room/session',method:'POST',data:{code:'test-one-time-code'}});
 });
 it('blocks every business route and its handlers before authentication',async()=>{
-  const h=harness(),routes=JSON.parse(fs.readFileSync('dist/app.json','utf8')).pages.filter(p=>!p.includes('/login/'));
+  const h=harness(),routes=JSON.parse(fs.readFileSync('dist/app.json','utf8')).pages;
   for(const route of routes){const p=h.page(route.split('/')[1]);await p.onLoad({});await p.onShow();p.add?.();p.save?.();expect(p.data.accountReady).toBe(false);p.onUnload();}
-  expect(h.app.service).toBeNull();expect(h.m.disk.size).toBe(0);expect(h.m.routes.every(p=>p==='/pages/login/index')).toBe(true);
+  expect(h.app.service).toBeNull();expect(h.m.disk.size).toBe(0);expect(h.m.routes.every(p=>p==='/pages/home/index')).toBe(true);
 });
 it('shows failure, prevents duplicate login, and retries without a guest fallback',async()=>{
-  const h=harness(),p=h.page('login');p.onLoad();let reject;h.m.respond(()=>new Promise((_,r)=>{reject=r;}));
+  const h=harness(),p=h.page('home');p.onLoad();let reject;h.m.respond(()=>new Promise((_,r)=>{reject=r;}));
   const first=p.login();await p.login();await Promise.resolve();expect(h.m.calls.filter(c=>c.url)).toHaveLength(1);reject(Error('网络不可用'));await first;
-  expect(p.data.error).toContain('网络');expect(h.app.service).toBeNull();h.m.respond(null);await p.login();expect(h.app.service).toBeTruthy();
+  expect(p.data.loginError).toContain('网络');expect(h.app.service).toBeNull();h.m.respond(null);await p.login();expect(h.app.service).toBeTruthy();
 });
 it('times out a hanging login and ignores its late result',async()=>{
   vi.useFakeTimers();const h=harness();let resolve;h.m.respond(()=>new Promise(r=>{resolve=r;}));const login=h.app.auth.login();
@@ -49,18 +55,30 @@ it('keeps unsaved input and the session when logout cannot save',async()=>{
   const h=harness();await h.app.auth.login();const id=h.app.service.store.add('未保存');h.m.failDisk(true);
   expect(()=>h.app.auth.logout()).toThrow('保存失败');expect(h.app.service.store.house(id)).toBeTruthy();
 });
-it('legacy records require confirmation and are never claimed by another account',async()=>{
-  const m=accountWx(),old=createPlatform(m.wx),id=old.store.add('旧记录'),h=harness(m);m.confirm(false);
-  expect(await h.app.auth.login()).toBe(false);expect(h.app.service).toBeNull();expect(m.disk.has(old.root+'/account-owner.json')).toBe(false);
-  m.confirm(true);await h.app.auth.login();expect(h.app.service.store.house(id)).toBeTruthy();h.app.auth.logout();m.identity(B);await h.app.auth.login();expect(h.app.service.store.get().houses).toEqual([]);
+it('automatically keeps legacy records and backups without an ownership dialog',async()=>{
+  const m=accountWx(),old=createPlatform(m.wx),id=old.store.add('旧记录'),before=m.disk.get(old.root+'/state.json'),h=harness(m);
+  expect(await h.app.auth.login()).toBe(true);expect(h.app.service.store.house(id)).toBeTruthy();
+  expect(m.calls.some(c=>c.modal)).toBe(false);expect(m.disk.get(old.root+'/before-login-state.json')).toBe(before);
+  expect(JSON.parse(m.disk.get(old.root+'/account-owner.json')).accountId).toBe(A);
+  h.app.auth.logout();m.identity(B);await h.app.auth.login();expect(h.app.service.store.get().houses).toEqual([]);
+  h.app.auth.logout();m.identity(A);await h.app.auth.login();expect(h.app.service.store.house(id).name).toBe('旧记录');
+});
+it('leaves unowned records intact when identity or backup creation fails',async()=>{
+  const m=accountWx(),old=createPlatform(m.wx);old.store.add('旧记录');
+  const before=m.disk.get(old.root+'/state.json'),h=harness(m);
+  m.identity('invalid');expect(await h.app.auth.login()).toBe(false);
+  expect(m.disk.has(old.root+'/account-owner.json')).toBe(false);
+  m.identity(A);m.failDisk(true);expect(await h.app.auth.login()).toBe(false);
+  expect(m.disk.has(old.root+'/account-owner.json')).toBe(false);expect(m.disk.get(old.root+'/state.json')).toBe(before);
+  m.failDisk(false);expect(await h.app.auth.login()).toBe(true);expect(h.app.service.store.get().houses[0].name).toBe('旧记录');
 });
 it('does not accept a malformed identity or a late login after logout',async()=>{
   const h=harness();h.m.identity('../bad');expect(await h.app.auth.login()).toBe(false);expect(h.app.service).toBeNull();
   let resolve;h.m.respond(()=>new Promise(r=>{resolve=r;}));const login=h.app.auth.login();await Promise.resolve();await Promise.resolve();h.app.auth.logout();resolve({statusCode:200,data:{account:A,token:'t'.repeat(43),packs:0,limit:2}});await login;expect(h.app.service).toBeNull();
 });
 it('blocks stale page events after an explicit account change',async()=>{
-  const h=harness();await h.app.auth.login();const p=h.page('home');p.onLoad();p.onShow();p.onHide();h.m.identity(B);h.app.auth.login();
-  await h.app.auth.ready;await p.onShow();expect(p.data.accountReady).toBe(false);p.add();expect(h.app.service.store.get().houses).toEqual([]);expect(h.m.routes.at(-1)).toBe('/pages/login/index');
+  const h=harness();await h.app.auth.login();const p=h.page('archive');p.onLoad();p.onShow();p.onHide();h.m.identity(B);h.app.auth.login();
+  await h.app.auth.ready;await p.onShow();expect(p.data.accountReady).toBe(false);p.refresh();expect(h.app.service.store.get().houses).toEqual([]);expect(h.m.routes.at(-1)).toBe('/pages/home/index');
 });
 it('preserves an import preview across successful same-account verification',async()=>{
   const h=harness();await h.app.auth.login();const pending={houses:[{id:'fixture'}]};h.app.pendingImport=pending;
@@ -119,7 +137,7 @@ it('expired bearer tokens return to login without erasing saved records or start
   const h=harness();await h.app.auth.login();const service=h.app.service,id=service.store.add('保留');
   h.m.respond(options=>({statusCode:options.url.endsWith('/catalog')?200:401,data:{available:false}}));
   await expect(service.billing.refresh()).rejects.toThrow('登录已过期');
-  expect(h.app.service).toBeNull();expect(h.m.routes.at(-1)).toBe('/pages/login/index');
+  expect(h.app.service).toBeNull();expect(h.m.routes.at(-1)).toBe('/pages/home/index');
   expect(h.m.calls.filter(c=>c.login)).toHaveLength(1);
   h.m.respond(null);await h.app.auth.login();expect(h.app.service.store.house(id)).toBeTruthy();
 });
@@ -134,4 +152,101 @@ it('ignores entitlement responses that finish after logout',async()=>{
   const refresh=old.billing.refresh();while(!release)await Promise.resolve();h.app.auth.logout();
   release({statusCode:200,data:{packs:99}});await expect(refresh).rejects.toThrow('登录状态已变化');
   expect(old.billing.snapshot().packs).toBe(0);expect(h.app.service).toBeNull();
+});
+
+it('removes old home data immediately and renders only the newly authenticated account',async()=>{
+  const h=harness();await h.app.auth.login();h.app.service.store.add('A 的记录');
+  const p=h.page('home');p.onLoad();p.onShow();expect(p.data.houses[0].name).toBe('A 的记录');
+  p.search({detail:{value:'A'}});h.app.auth.logout();
+  expect(p.data).toMatchObject({accountReady:false,houses:[],query:'',pending:false});expect(h.m.tabBarVisible).toBe(false);
+  await p.add();expect(h.m.calls.some(c=>c.modal)).toBe(false);
+  h.m.identity(B);await p.login();expect(p.data).toMatchObject({accountReady:true,houses:[]});expect(h.m.tabBarVisible).toBe(true);
+  h.app.service.store.add('B 的记录');p.onHide();p.onShow();expect(p.data.houses[0].name).toBe('B 的记录');
+});
+it('does not change another page tab bar and unsubscribes when home is destroyed',async()=>{
+  const h=harness();await h.app.auth.login();const p=h.page('home');p.onLoad();p.onShow();p.onHide();
+  h.app.auth.logout();expect(h.m.tabBarVisible).toBe(true);p.onShow();expect(h.m.tabBarVisible).toBe(false);
+  p.onUnload();const before=JSON.stringify(p.data);await h.app.auth.login();expect(JSON.stringify(p.data)).toBe(before);
+});
+
+it('keeps authenticated content during repeated house navigation instead of showing the login sheet',async()=>{
+  const h=harness();h.m.wx.navigateTo=options=>h.m.routes.push(options.url);
+  await h.app.auth.login();const id=h.app.service.store.add('连续查看的房源');
+  const home=h.page('home');home.onLoad();home.onShow();
+  for(let n=0;n<3;n++){
+    home.open({currentTarget:{dataset:{id}}});home.onHide();
+    expect(home.data.accountReady).toBe(true);expect(home.data.houses[0].id).toBe(id);
+    const detail=h.page('detail');detail.onLoad({id});detail.onShow();
+    expect(detail.data.house.id).toBe(id);expect(detail.data.accountReady).toBe(true);
+    detail.setData({noteKeyboardHeight:300});detail.onHide();
+    expect(detail.data.accountReady).toBe(true);expect(detail.data.house.id).toBe(id);
+    expect(detail.data.noteKeyboardHeight).toBe(0);expect(detail.coachHidden).toBe(true);
+    detail.onUnload();home.onShow();expect(home.data.accountReady).toBe(true);
+  }
+  expect(h.m.routes).toEqual(Array(3).fill('/pages/detail/index?id='+id));
+  expect(h.m.calls.filter(c=>c.login)).toHaveLength(1);home.onUnload();
+});
+it('keeps hidden home authenticated on session notifications but clears it on real logout',async()=>{
+  const h=harness();await h.app.auth.login();const id=h.app.service.store.add('保留的记录');
+  const home=h.page('home');home.onLoad();home.onShow();home.onHide();
+  home.renderSession(h.app.auth.snapshot());
+  expect(home.data.accountReady).toBe(true);expect(home.data.houses[0].id).toBe(id);
+  h.app.auth.logout();expect(home.data).toMatchObject({accountReady:false,houses:[]});
+  home.open({currentTarget:{dataset:{id}}});expect(h.m.routes).toEqual([]);home.onUnload();
+});
+it('still hides a protected page when its account is no longer authenticated',async()=>{
+  const h=harness();await h.app.auth.login();const page=h.page('archive');page.onLoad();page.onShow();
+  h.app.auth.logout();page.onHide();expect(page.data.accountReady).toBe(false);page.onUnload();
+});
+
+it('does not put a login sheet in the initial home frame before determining its session',async()=>{
+  const h=harness(),home=h.page('home');expect(loginMaskVisible(home.data)).toBe(false);
+  home.onLoad();home.onShow();expect(loginMaskVisible(home.data)).toBe(true);
+  await home.login();expect(loginMaskVisible(home.data)).toBe(false);home.onUnload();
+  const restored=h.page('home');expect(loginMaskVisible(restored.data)).toBe(false);
+  restored.onLoad();restored.onShow();expect(loginMaskVisible(restored.data)).toBe(false);restored.onUnload();
+});
+it('restores the native tab bar only after the login sheet is removed and houses are rendered',async()=>{
+  const m=accountWx();createPlatform(m.wx).store.add('已保存的房源');
+  const h=harness(m),home=h.page('home'),rendered=structuredClone(home.data),frames=[],shown=[];
+  home.setData=function(values,done){Object.assign(this.data,values);const patch=structuredClone(values);frames.push(()=>{Object.assign(rendered,patch);done?.();});};
+  const flush=()=>{while(frames.length)frames.shift()();};
+  const showTabBar=m.wx.showTabBar;m.wx.showTabBar=()=>{shown.push({login:loginMaskVisible(rendered),houses:rendered.houses.length});showTabBar();};
+  home.onLoad();home.onShow();flush();expect(loginMaskVisible(rendered)).toBe(true);
+  await home.login();expect(shown).toEqual([]);
+  flush();expect(shown).toEqual([{login:false,houses:1}]);expect(m.tabBarVisible).toBe(true);
+  home.onHide();home.onShow();flush();expect(shown).toHaveLength(1);home.onUnload();
+});
+it('does not restore the tab bar from an obsolete login render callback after logout or navigation',async()=>{
+  for(const leave of ['logout','hide','unload']){
+    const h=harness(),home=h.page('home'),frames=[];
+    home.setData=function(values,done){Object.assign(this.data,values);if(done)frames.push(done);};
+    const show=vi.spyOn(h.m.wx,'showTabBar');home.onLoad();home.onShow();await home.login();
+    if(leave==='logout')h.app.auth.logout();else if(leave==='hide')home.onHide();else home.onUnload();
+    for(const done of frames)done();expect(show).not.toHaveBeenCalled();
+    if(leave!=='unload')home.onUnload();
+  }
+});
+
+it('saves a nickname only after the WeChat review passes and restores rejected or empty edits',async()=>{
+ const h=harness();h.m.wx.canIUse=()=>true;await h.app.auth.login();const p=h.page('settings');p.onLoad();p.onShow();
+ p.nicknameChanged({detail:{value:'小林'}});expect(h.app.service.profile.read().nickname).toBe('');
+ await p.nicknameReviewed({detail:{pass:true}});expect(p.data.profile.nickname).toBe('小林');
+ p.nicknameChanged({detail:{value:'未通过昵称'}});p.nicknameReviewed({detail:{pass:false}});expect(p.data.profile.nickname).toBe('小林');
+ p.nicknameChanged({detail:{value:''}});await p.nicknameReviewed({detail:{pass:true}});expect(p.data.profile.nickname).toBe('小林');
+ const reopened=h.page('settings');reopened.onLoad();reopened.onShow();expect(reopened.data.profile.nickname).toBe('小林');
+});
+it('persists the chosen avatar, supports old nickname controls and keeps prior data when saving fails',async()=>{
+ const h=harness();h.m.wx.canIUse=()=>false;await h.app.auth.login();const p=h.page('settings');p.onLoad();p.onShow();
+ h.m.disk.set('/temporary/avatar','image-bytes');await p.chooseAvatar({detail:{avatarUrl:'/temporary/avatar'}});await p.nicknameChanged({detail:{value:'小林'}});
+ const profile=JSON.parse(JSON.stringify(p.data.profile));h.m.disk.delete('/temporary/avatar');h.m.failDisk(true);
+ await p.nicknameChanged({detail:{value:'无法保存'}});expect(p.data.profile).toEqual(profile);h.m.failDisk(false);
+ h.launch();h.app.onShow();await h.app.auth.ready;const next=h.page('settings');next.onLoad();next.onShow();expect(next.data.profile).toEqual(profile);expect(h.m.disk.get(next.data.profile.avatarUrl)).toBe('image-bytes');
+});
+it('ignores pending nickname reviews and avatar callbacks from a previous session or unloaded page',async()=>{
+ const h=harness();h.m.wx.canIUse=()=>true;await h.app.auth.login();const p=h.page('settings');p.onLoad();p.onShow();p.nicknameChanged({detail:{value:'旧回调'}});
+ h.app.auth.logout();await h.app.auth.login();h.m.disk.set('/temporary/avatar','old');p.nicknameReviewed({detail:{pass:true}});p.chooseAvatar({detail:{avatarUrl:'/temporary/avatar'}});
+ expect(h.app.service.profile.read()).toEqual({nickname:'',avatarUrl:''});
+ const next=h.page('settings');next.onLoad();next.onShow();next.nicknameChanged({detail:{value:'已离开'}});next.onUnload();next.nicknameReviewed({detail:{pass:true}});next.chooseAvatar({detail:{avatarUrl:'/temporary/avatar'}});
+ expect(h.app.service.profile.read()).toEqual({nickname:'',avatarUrl:''});
 });

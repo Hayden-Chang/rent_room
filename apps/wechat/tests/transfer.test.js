@@ -21,6 +21,32 @@ describe('house ZIP transfer transactions',()=>{
   await expect(p.commitImport(pending,[{id,mode:'copy'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY',additional:1});expect(writes).toBe(0);expect(p.store.house(id).name).toBe('原记录');
   await p.commitImport(pending,[{id,mode:'replace'}]);expect(p.store.house(id).name).toBe('覆盖');expect(p.store.capacity().used).toBe(2);
  });
+ it('checks an archived-to-active replacement before extracting media at full capacity',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('归档');p.store.archive(id,true);p.store.add('A');p.store.add('B');
+  const incoming=media({...freshHouse('恢复备份'),id}),pending=await select(m,p,[incoming]),saved=m.disk.get(current),append=m.io.appendFileSync;let writes=0;
+  m.io.appendFileSync=(...args)=>{writes++;return append(...args);};
+  await expect(p.commitImport(pending,[{id,mode:'replace'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY',additional:1});
+  expect(writes).toBe(0);expect(m.disk.get(current)).toBe(saved);expect(p.store.house(id).archived).toBe(true);
+ });
+ it('releases a slot when replacing an active record with an archived backup',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A');p.store.add('B');
+  const pending=await select(m,p,[{...freshHouse('已归档备份'),id,archived:true}]);
+  await p.commitImport(pending,[{id,mode:'replace'}]);
+  expect(createPlatform(m.wx).store.capacity()).toMatchObject({used:1,remaining:1});expect(p.store.house(id).archived).toBe(true);
+ });
+ it('uses the net active count for a mixed replacement, addition and archived copy',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A'),archived=p.store.add('归档');p.store.archive(archived,true);p.store.add('B');
+  const incoming=[{...freshHouse('A 已归档'),id,archived:true},freshHouse('C'),{...freshHouse('归档副本'),id:archived,archived:true}],pending=await select(m,p,incoming);
+  await p.commitImport(pending,[{id,mode:'replace'},{id:incoming[1].id,mode:'add'},{id:archived,mode:'copy'}]);
+  const loaded=createPlatform(m.wx).store;expect(loaded.capacity()).toMatchObject({used:2,remaining:0});expect(loaded.get().houses).toHaveLength(5);
+  expect(loaded.house(id).archived).toBe(true);expect(loaded.get().houses.filter(h=>h.archived)).toHaveLength(3);
+ });
+ it('allows a capacity-neutral replacement of historic over-capacity records',async()=>{
+  const m=mockWx(),houses=[freshHouse('A'),freshHouse('B'),freshHouse('C')];m.disk.set(current,JSON.stringify({...emptyState(),houses}));
+  const p=createPlatform(m.wx),pending=await select(m,p,[{...houses[0],summary:'继续更新'}]);
+  await p.commitImport(pending,[{id:houses[0].id,mode:'replace'}]);
+  expect(createPlatform(m.wx).store.capacity()).toMatchObject({used:3,over:1});expect(p.store.house(houses[0].id).summary).toBe('继续更新');
+ });
  it('cancels streaming export after account invalidation and removes its partial output',async()=>{
   const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A');m.disk.set('/photo',new Uint8Array([1,2,3]).buffer);p.store.edit(id,h=>media(h,'/photo'));
   await expect(p.exportFile([id],{onProgress(){p.setActive(false);p.setActive(true);}})).rejects.toThrow('登录状态已变化');

@@ -40,12 +40,7 @@ export function createAccountSession(wx) {
       try{
         const identity=await identify(),next=identity.profile;if(version!==generation)return false;
         const storage=accountStorage(wx,next.id);
-        if(storage.needsClaim){
-          const result=await new Promise((resolve,reject)=>wx.showModal({title:'保留已有看房记录',content:'将本机已有记录归入当前微信账号。记录和照片仍只保存在本机，其他账号无法查看。',confirmText:'确认归属',cancelText:'取消登录',success:resolve,fail:reject}));
-          if(version!==generation)return false;
-          if(!result.confirm)throw Error('已取消登录，原有记录保持不变');
-          storage.claim();
-        }
+        if(storage.needsClaim)storage.claim();
         if(active){
           active.setActive(true);
           const saved=active.store.status().blocked||active.store.save();active.setActive(false);
@@ -55,7 +50,7 @@ export function createAccountSession(wx) {
           if(active!==nextService)return;
           if(!active.store.status().blocked)active.store.save();
           generation++;pending=null;active.setActive(false);state='signed-out';error='登录已过期，请重新登录';emit();
-          wx.reLaunch({url:'/pages/login/index'});
+          wx.reLaunch({url:'/pages/home/index'});
         }});
         // Remembering consent is not authentication: every cold launch rechecks identity.
         remember(true);active=nextService;account=next;active.setActive(true);state='authenticated';emit();return true;

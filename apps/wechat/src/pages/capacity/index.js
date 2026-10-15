@@ -18,9 +18,8 @@ Page(protectedPage({
     try{
       if(!this.data.configured)throw Error('房源包暂未开放购买，请稍后再试');
       const result=await service().billing.refresh();this.refresh();
-      notify(result.pending?'支付结果仍在确认，请稍后重试':'购买记录已刷新');
+      notify(result.pending?'支付结果仍在确认，请稍后重试':'房源容量已刷新');
     }catch(error){this.setData({error:error.message||'购买记录暂时无法确认，请稍后重试'});}
     finally{this.setData({busy:false});}
-  },
-  back(){wx.navigateBack();}
+  }
 }));

@@ -117,7 +117,7 @@ it.each([TRANSIT_FIELD_ID,DRIVING_FIELD_ID])('restores the checklist viewport af
   const folds=JSON.stringify(p.folds),view={phase:p.data.phase,query:p.data.query,filters:[...p.data.filters],showFilters:p.data.showFilters};
   h.scroll(1120);commute(h,field);await settle();
   expect(h.navigations).toEqual(['/pages/commute/index?id='+id+'&field='+field]);
-  p.onHide();expect(h.top).toBe(0);
+  p.onHide();expect(p.data.accountReady).toBe(true);expect(h.top).toBe(1120);
   h.app.service.store.answer(id,field,'value','42');
   await p.onShow();await settle();
   expect(h.top).toBe(1120);expect(p.data).toMatchObject(view);expect(JSON.stringify(p.folds)).toBe(folds);

@@ -1,8 +1,21 @@
 import {protectedPage} from '../../lib/auth-page.js';
 import {service,attempt,watch,unwatch,confirm,notify} from '../../lib/ui.js';
 import {version} from '../../../package.json';
-Page(protectedPage({data:{account:{},limit:2,settings:{},count:0,archived:0,saveError:'',recoveryBlocked:false,version},onLoad(){watch(this);},onShow(){this.refresh();},onUnload(){unwatch(this);},refresh(){const s=service().store.get();this.setData({account:getApp().auth.snapshot().account,limit:service().store.capacity().limit,settings:s.settings,count:s.houses.length,archived:s.houses.filter(h=>h.archived).length,recoveryBlocked:service().store.status().blocked,version:wx.getAccountInfoSync?.()?.miniProgram?.version||version});},
- logout(){return attempt(async()=>{if(await confirm('退出登录','本机记录会保留，再次登录同一微信账号后可继续查看。')){getApp().auth.logout();getApp().pendingImport=null;wx.reLaunch({url:'/pages/login/index'});}});},
+Page(protectedPage({data:{profile:{nickname:'',avatarUrl:''},limit:2,used:0,settings:{},archived:0,saveError:'',recoveryBlocked:false,version},onLoad(){this.profileService=service();watch(this);},onShow(){this.refresh();},onUnload(){this.pendingNickname=null;unwatch(this);},refresh(){const s=service().store.get();this.setData({profile:service().profile.read(),limit:service().store.capacity().limit,used:service().store.capacity().used,settings:s.settings,archived:s.houses.filter(h=>h.archived).length,recoveryBlocked:service().store.status().blocked,version:wx.getAccountInfoSync?.()?.miniProgram?.version||version});},
+ chooseAvatar(e){if(this.accountUnloaded||this.profileService!==service()||!e.detail.avatarUrl)return;return attempt(()=>{service().profile.saveAvatar(e.detail.avatarUrl);this.refresh();});},
+ nicknameChanged(e){
+  if(this.accountUnloaded||this.profileService!==service())return;
+  if(wx.canIUse?.('input.bindnicknamereview')){this.pendingNickname={value:e.detail.value,service:service()};return;}
+  return this.saveNickname(e.detail.value);
+ },
+ nicknameReviewed(e){
+  const pending=this.pendingNickname;this.pendingNickname=null;
+  if(this.accountUnloaded||!pending||pending.service!==service())return;
+  if(e.detail.pass)return this.saveNickname(pending.value);
+  this.refresh();notify('昵称未通过检查，请重新选择');
+ },
+ saveNickname(value){if(this.accountUnloaded||this.profileService!==service())return;return attempt(()=>{try{if(value?.trim())service().profile.saveNickname(value);}finally{this.refresh();}});},
+ logout(){return attempt(async()=>{if(await confirm('退出登录','本机记录会保留，再次登录同一微信账号后可继续查看。')){getApp().auth.logout();getApp().pendingImport=null;wx.reLaunch({url:'/pages/home/index'});}});},
  open(e){wx.navigateTo({url:'/pages/'+e.currentTarget.dataset.page+'/index'});},
  workplace(){wx.navigateTo({url:'/pages/workplace/index'});},
  export(){wx.navigateTo({url:'/pages/import/index?mode=export'});},
