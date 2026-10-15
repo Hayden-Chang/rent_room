@@ -1,6 +1,6 @@
 import {protectedPage} from '../../lib/auth-page.js';
 import {service,attempt,watch,unwatch,prompt,confirm,notify} from '../../lib/ui.js';
-Page(protectedPage({data:{account:{},settings:{},count:0,archived:0,saveError:''},onLoad(){watch(this);},onShow(){this.refresh();},onUnload(){unwatch(this);},refresh(){const s=service().store.get();this.setData({account:getApp().auth.snapshot().account,settings:s.settings,count:s.houses.length,archived:s.houses.filter(h=>h.archived).length});},
+Page(protectedPage({data:{account:{},settings:{},count:0,archived:0,limit:2,saveError:''},onLoad(){watch(this);},onShow(){this.refresh();},onUnload(){unwatch(this);},refresh(){const s=service().store.get();this.setData({account:getApp().auth.snapshot().account,settings:s.settings,count:s.houses.length,archived:s.houses.filter(h=>h.archived).length,limit:service().store.capacity().limit});},
  logout(){return attempt(async()=>{if(await confirm('退出登录','本机记录会保留，再次登录同一微信账号后可继续查看。')){getApp().auth.logout();getApp().pendingImport=null;wx.reLaunch({url:'/pages/login/index'});}});},
  open(e){wx.navigateTo({url:'/pages/'+e.currentTarget.dataset.page+'/index'});},
  workplace(){attempt(async()=>{const value=await prompt('上班地点','手动填写地址或地点');if(value!==null){service().store.change(s=>s.settings.workplace=value);this.refresh();}});},

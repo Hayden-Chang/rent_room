@@ -173,7 +173,7 @@ export function assertSafe(value,depth=0) {
 }
 export function validateState(state) {
   assertSafe(state);
-  if(!state||![1,2].includes(state.version)||!Array.isArray(state.houses)||state.houses.length>200)throw Error('不是有效的房源备份');
+  if(!state||![1,2].includes(state.version)||!Array.isArray(state.houses))throw Error('不是有效的房源备份');
   if(state.settings&&(typeof state.settings!=='object'||Array.isArray(state.settings)||state.settings.hiddenFields&&(!Array.isArray(state.settings.hiddenFields)||state.settings.hiddenFields.some(x=>typeof x!=='string'))))throw Error('设置数据无效');
   const ids=new Set();
   for(const h of state.houses) {

@@ -19,11 +19,11 @@ const timer=setTimeout(()=>{console.error('Account UI test timed out');process.e
   // Identity mocks are setup only. Every login/logout below taps a visible button.
   async function identity(id){
     await step('mock wx.login',()=>mini.mockWxMethod('login',{code:'ui-fixture-code'}));
-    await step('mock backend',()=>mini.mockWxMethod('request',{statusCode:id?200:503,data:id?{accountId:id}:{error:'UNAVAILABLE'}}));
+    await step('mock backend',()=>mini.mockWxMethod('request',{statusCode:id?200:503,data:id?{account:id,token:'ui-token-'+id,packs:0,limit:2}:{error:'UNAVAILABLE'}}));
   }
   try{
     await identity(null);
-    let page=await step('open login',()=>mini.reLaunch('/pages/login/index'));console.log('page path '+page.path);console.log('session '+JSON.stringify(await step('read session',()=>mini.evaluate(()=>({route:getCurrentPages().map(p=>p.route),auth:getApp().auth.snapshot()})))));await screenshot('login');await step('find login button',()=>page.waitFor('#wechat-login'));
+    let page=await step('open login',()=>mini.reLaunch('/pages/login/index'));console.log('page path '+page.path);console.log('session '+JSON.stringify(await step('read session',()=>mini.evaluate(()=>({route:getCurrentPages().map(p=>p.route),auth:getApp().auth.snapshot()})))));await screenshot('login');if(process.env.ACCOUNT_RENDER_ONLY==='1')throw Error('Explicit render-only diagnosis: SDK query and desktop control unavailable');await step('find login button',()=>page.waitFor('#wechat-login'));
     await (await page.$('#wechat-login')).tap();await page.waitFor('.login-error');assert.match(await(await page.$('.login-error')).text(),/暂不可用/);await screenshot('login-error');
     await identity('a'.repeat(64));await(await page.$('#wechat-login')).tap();page=await current('pages/home/index');await page.waitFor('.page');
     // House setup is an isolated fixture; logout/re-login must reload it from disk.
@@ -55,6 +55,12 @@ const timer=setTimeout(()=>{console.error('Account UI test timed out');process.e
         let tries=0;function check(){wx.createSelectorQuery().select('.account-name').boundingClientRect(rect=>{if(rect?.width){wx.nextTick(resolve);return;}if(++tries>40){reject(Error('Account view not rendered'));return;}setTimeout(check,100);}).exec();}check();
       })));
       await screenshot('account-render-only');
+      await step('render-only capacity page',()=>mini.navigateTo('/pages/capacity/index?needed=1'));
+      await current('pages/capacity/index');
+      await step('wait for capacity rendering',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{
+        let tries=0;function check(){wx.createSelectorQuery().select('.capacity-number').boundingClientRect(rect=>{if(rect?.width){wx.nextTick(resolve);return;}if(++tries>40){reject(Error('Capacity view not rendered'));return;}setTimeout(check,100);}).exec();}check();
+      })));
+      await screenshot('capacity-render-only');
       fs.writeFileSync(path.join(process.env.WECHAT_ARTIFACT_DIR,'render-boundary.json'),JSON.stringify({interactionPassed:false,boundary:'Login/error/account screenshots use backend fixtures and direct session calls. Button interaction remains unverified.'},null,2));
     }catch(renderError){console.error('Render capture failed: '+renderError.message);}
     throw error;

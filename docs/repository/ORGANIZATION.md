@@ -7,7 +7,6 @@
 | 路径 | 内容与策略 |
 | --- | --- |
 | apps/wechat/ | 原 miniprogram-wechat 的源码、测试、锁文件、构建脚本、清单源和运行资源 |
-| services/wechat-auth/ | 自有服务器微信身份核验、独立容器配置和测试；不保存看房业务数据 |
 | docs/wechat/ | 小程序验证、Figma 核对与交互审计文档 |
 | docs/product/ | 产品设计文档 |
 | docs/research/ | 研究资料；原 README 与看房指南重复，保留单份 |

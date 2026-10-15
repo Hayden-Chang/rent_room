@@ -16,7 +16,9 @@
 
 旧根目录为 `USER_DATA_PATH/xunju`；首次认领的旧数据保留原路径，新的账号使用 `xunju/accounts/<accountId>`。目录隔离用于应用内账户访问控制，不是文件加密。
 
-服务与部署配置位于 [services/wechat-auth](../../services/wechat-auth/README.md)。云开发版本从未部署，当前源码不再使用 wx.cloud，也无需云环境 ID。
+登录与容量统一使用 model_server 的独立 `rent-room-api` 服务，部署与接口见 [房源容量](CAPACITY.md)。不再维护第二个登录服务，也不使用 wx.cloud。`POST /api/rent-room/session` 返回 `{account, token, packs, limit}`；账号为服务端计算的 SHA-256 十六进制标识，令牌只留在内存，绝不写入本机文件或房源备份。
+
+`WECHAT_API_URL=https://api.keeline.xyz/api/rent-room` 是唯一构建地址。首次会话同时取得账号与权益，购买/恢复沿用该令牌，不再次调用 wx.login。401 会锁住旧服务并返回登录页；退出和账号切换清除待导入内容及新房源草稿。支付未开放时仍可以登录并使用免费容量。
 
 ## 定向验证映射
 
@@ -27,7 +29,7 @@
 | HTTPS 配置及构建配置共存 | `tests/auth-build-config.test.js`、`tests/map-build-config.test.js` |
 | 业务页面共享 service、保留原功能 | `tests/runtime.test.js`、`tests/root-group-runtime.test.js`、`tests/unanswered-group-runtime.test.js`、`tests/detail-navigation.test.js`、`tests/onboarding.test.js`、`tests/speed-test-page.test.js` |
 | 文件与平台 adapter | `tests/platform.test.js` |
-| 后端真实 HTTP handler、微信失败/输入/身份隔离 | `services/wechat-auth/server.test.mjs` |
+| 后端身份、令牌、订单隔离与支付默认关闭 | model_server 的 `business_api/tests/test_rent_room_capacity.py` |
 | 实际按钮、失败重试、退出及重登保存、两账号隔离截图 | `tests/e2e/account-login.cjs`，通过固定实例池执行 |
 
 页面原有测试使用明确的 `localPageFixture` 只验证页面功能；真实 App 登录生命周期由 account-runtime 单独覆盖。E2E 的微信 code、后端身份与原生确认弹框均为夹具，只有按钮和页面导航是真实操作。真实微信身份、请求合法域名、AppSecret、iOS/Android 真机仍须接通后验收。

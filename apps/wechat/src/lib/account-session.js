@@ -13,7 +13,7 @@ export function createAccountSession(wx) {
     const path=rememberPath+'.pending';fs.writeFileSync(path,JSON.stringify({remember:value}),'utf8');fs.renameSync(path,rememberPath);
   }
   async function identify(){
-    const url=typeof __WECHAT_AUTH_URL__==='undefined'?'':__WECHAT_AUTH_URL__;
+    const url=typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__;
     if(!url)throw Error('登录服务暂不可用，请稍后重试');
     let timer,request,expired=false;
     try{
@@ -22,14 +22,15 @@ export function createAccountSession(wx) {
           const login=await new Promise((resolve,reject)=>wx.login({timeout:8000,success:resolve,fail:()=>reject(Error('微信登录失败，请重试'))}));
           if(expired)throw Error('登录已过期，请重试');
           if(!login.code)throw Error('未取得微信登录凭证，请重试');
-          return new Promise((resolve,reject)=>{request=wx.request({url,method:'POST',data:{code:login.code},header:{'content-type':'application/json'},timeout:10000,success:resolve,fail:()=>reject(Error('连接登录服务失败，请检查网络后重试'))});});
+          return new Promise((resolve,reject)=>{request=wx.request({url:url+'/session',method:'POST',data:{code:login.code},header:{'content-type':'application/json'},timeout:10000,success:resolve,fail:()=>reject(Error('连接登录服务失败，请检查网络后重试'))});});
         })(),
         new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(Error('登录超时，请检查网络后重试'));request?.abort?.();},15000);})
       ]);
       if(response.statusCode===403)throw Error('微信暂不允许当前账号登录，请稍后重试');
       if(response.statusCode!==200)throw Error(response.statusCode===401?'微信登录凭证已过期，请重试':'登录服务暂不可用，请稍后重试');
-      if(!validAccountId(response.data?.accountId))throw Error('账号校验失败，请重试');
-      return {id:response.data.accountId,label:'微信用户',number:response.data.accountId.slice(0,12).toUpperCase()};
+      const data=response.data;
+      if(!validAccountId(data?.account)||typeof data.token!=='string'||data.token.length<32||data.token.length>256||!Number.isSafeInteger(data.packs)||data.packs<0||!Number.isSafeInteger(2+10*data.packs)||data.limit!==2+10*data.packs)throw Error('账号校验失败，请重试');
+      return {profile:{id:data.account,label:'微信用户',number:data.account.slice(0,12).toUpperCase()},credentials:{account:data.account,token:data.token,packs:data.packs}};
     }finally{clearTimeout(timer);}
   }
   function login(){
@@ -37,7 +38,7 @@ export function createAccountSession(wx) {
     const version=++generation;state='checking';error='';active?.setActive(false);emit();
     pending=(async()=>{
       try{
-        const next=await identify();if(version!==generation)return false;
+        const identity=await identify(),next=identity.profile;if(version!==generation)return false;
         const storage=accountStorage(wx,next.id);
         if(storage.needsClaim){
           const result=await new Promise((resolve,reject)=>wx.showModal({title:'保留已有看房记录',content:'将本机已有记录归入当前微信账号。记录和照片仍只保存在本机，其他账号无法查看。',confirmText:'确认归属',cancelText:'取消登录',success:resolve,fail:reject}));
@@ -45,12 +46,17 @@ export function createAccountSession(wx) {
           if(!result.confirm)throw Error('已取消登录，原有记录保持不变');
           storage.claim();
         }
-        if(active&&account?.id!==next.id){
+        if(active){
           active.setActive(true);
           const saved=active.store.status().blocked||active.store.save();active.setActive(false);
           if(!saved)throw Error('上一账号的内容尚未保存，请切回原微信账号重试');
         }
-        const nextService=account?.id===next.id&&active?active:createPlatform(wx,{root:storage.root});
+        const nextService=createPlatform(wx,{root:storage.root,session:identity.credentials,onExpired:()=>{
+          if(active!==nextService)return;
+          if(!active.store.status().blocked)active.store.save();
+          generation++;pending=null;active.setActive(false);state='signed-out';error='登录已过期，请重新登录';emit();
+          wx.reLaunch({url:'/pages/login/index'});
+        }});
         // Remembering consent is not authentication: every cold launch rechecks identity.
         remember(true);active=nextService;account=next;active.setActive(true);state='authenticated';emit();return true;
       }catch(e){

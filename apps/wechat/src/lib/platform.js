@@ -3,9 +3,10 @@ import {createStore} from './store.js';
 import {uid,clone,prepareImport,emptyState,freshHouse} from './model.js';
 import {makeBackup,readBackup,readExcel,exportExcel,MAX_BYTES} from './files.js';
 import {writeIssue} from './issues.js';
+import {createBilling} from './billing.js';
 import {dataRoot} from './account-storage.js';
 
-export function createPlatform(wx,{root=dataRoot(wx)}={}) {
+export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{}}={}) {
   const fs=wx.getFileSystemManager(),current=root+'/state.json',previous=root+'/previous.json';
   try{fs.mkdirSync(root,true);}catch{}
   try{fs.mkdirSync(root+'/media',true);}catch{}
@@ -14,13 +15,27 @@ export function createPlatform(wx,{root=dataRoot(wx)}={}) {
     write(text){const tmp=root+'/state.pending.json';fs.writeFileSync(tmp,text,'utf8');if(exists(current))fs.copyFileSync(current,previous);fs.renameSync(tmp,current);},
     preserveCorrupt(){if(exists(current))fs.copyFileSync(current,root+'/preserved-'+Date.now()+'.json');}
   };
-  let active=true;
-  const rawStore=createStore(adapter),store={};
-  for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
+  let active=true,epoch=0;
   const api=(name,args={})=>new Promise((resolve,reject)=>{
     if(!active){reject(Error('请先登录'));return;}
-    wx[name]({...args,success:value=>active?resolve(value):reject(Error('登录状态已变化，请重新操作')),fail:reject});
+    const version=epoch;
+    wx[name]({...args,success:value=>active&&version===epoch?resolve(value):reject(Error('登录状态已变化，请重新操作')),fail:reject});
   });
+  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,
+    read:()=>exists(root+'/purchases.json')?fs.readFileSync(root+'/purchases.json','utf8'):null,
+    write:text=>{const tmp=root+'/purchases.pending.json';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,root+'/purchases.json');},
+    platform:()=>{const p=wx.getDeviceInfo?.().platform;return p==='ios'?'ios':p==='android'?'android':'unknown';},
+    supported:()=>{
+      if(typeof wx.requestVirtualPayment!=='function'||wx.canIUse&&!wx.canIUse('requestVirtualPayment'))return false;
+      if(wx.getDeviceInfo?.().platform==='ios'){
+        const v=(wx.getAppBaseInfo?.().version||'0').split('.').map(Number);
+        return v[0]>8||v[0]===8&&(v[1]>0||v[1]===0&&(v[2]||0)>=68);
+      }
+      return true;
+    }
+  });
+  const rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs}),store={};
+  for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
   async function chooseMedia(houseId,fieldId='') {
     const saved=await stageIssueMedia(houseId,fieldId);
     try{store.edit(houseId,h=>h.media.push(...saved));}
@@ -62,6 +77,7 @@ export function createPlatform(wx,{root=dataRoot(wx)}={}) {
     return {...parsed,fileName:file.name};
   }
   function commitImport(pending) {
+    store.checkCapacity(pending.houses.length);
     const houses=clone(pending.houses),created=[];
     try{for(const h of houses)for(const m of h.media||[]){const bytes=pending.files[m.path];if(!bytes)throw Error('备份影像缺失');m.id=uid();m.path=root+'/media/'+m.id+(m.type==='video'?'.mp4':'.jpg');fs.writeFileSync(m.path,bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));created.push(m.path);}store.import(houses);}
     catch(e){for(const p of created)if(!store.get().houses.some(h=>h.media.some(m=>m.path===p)))try{fs.unlinkSync(p);}catch{}throw e;}
@@ -74,7 +90,7 @@ export function createPlatform(wx,{root=dataRoot(wx)}={}) {
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,api,setActive(value){active=value;},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
+  return {store,billing,api,setActive(value){if(active!==value)epoch++;active=value;},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }
