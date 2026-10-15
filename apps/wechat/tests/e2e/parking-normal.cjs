@@ -51,6 +51,13 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
    await (await row.$('.head')).tap();
   }
   await mini.screenshot({path:output('parking-restored.png')});
+  const station=()=>page.$('.field-branch[data-scroll-key="field-f-2a7b314c-220f-4d89-a77c-4708bee21df6"] field-row');
+  assert.equal(await (await (await station()).$('button.selected[data-value]')).text(),'是');
+  await (await (await station()).$('button[data-value="否"]')).tap();
+  assert.equal(await (await (await group('topic_11')).$('button.selected[data-value]')).text(),'否');
+  await (await (await station()).$('button[data-value="不涉及"]')).tap();
+  assert.equal(await (await (await group('topic_11')).$('button.selected[data-value]')).text(),'是');
+  await mini.screenshot({path:output('parking-station.png')});
   await (await page.$('input.grow')).input('通勤时间');
   await page.waitFor('.field-branch');
   for(const [fieldId,label] of [['21255282-3663-4abe-b7de-d91eeb3825ed','公共交通通勤时间（分钟）'],['3c70cda2-7c6c-4fa6-b2db-b647af24ba72','开车通勤时间（分钟）']]){
@@ -73,6 +80,16 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   await (await winter.$('button[data-value="不涉及"]')).tap();
   assert.equal(await (await winter.$('button.selected[data-value]')).text(),'不涉及');
   await mini.screenshot({path:output('winter-pipe.png')});
-  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has only three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice','commute minute labels','guard links to security result','winter pipe not-applicable choice'],hardware:'not tested'},null,2));
+  await (await page.$('input.grow')).input('周期费用');
+  await page.waitFor('.field-branch');
+  const feeLabels=await Promise.all((await page.$$('.field-branch field-row .label')).map(r=>r.text()));
+  assert.equal(feeLabels.filter(t=>t==='电费').length,1);
+  const fee=await page.$('.field-branch[data-scroll-key="field-f-617bd84f-3208-42ec-b2e4-5bb95d5c754c"] field-row');
+  await (await fee.$('input.input')).input('60');
+  await mini.screenshot({path:output('recurring-electricity.png')});
+  page=await mini.reLaunch(route);await page.waitFor('input.grow');await (await page.$('input.grow')).input('周期费用');
+  await page.waitFor('.field-branch[data-scroll-key="field-f-617bd84f-3208-42ec-b2e4-5bb95d5c754c"]');
+  assert.equal(await (await page.$('.field-branch[data-scroll-key="field-f-617bd84f-3208-42ec-b2e4-5bb95d5c754c"] field-row input.input')).value(),'60');
+  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has only three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice','charging station links to parking','commute minute labels','guard links to security result','winter pipe not-applicable choice','one electricity field with saved value'],hardware:'not tested'},null,2));
  } finally {clearTimeout(timer);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});

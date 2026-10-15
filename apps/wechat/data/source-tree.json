@@ -951,7 +951,8 @@
                 ],
                 "meta": {
                   "type": "s",
-                  "phase": "现场看房"
+                  "phase": "现场看房",
+                  "role": "inspection-check"
                 }
               },
               {
@@ -9408,7 +9409,13 @@
                 "meta": {
                   "type": "n",
                   "phase": "现场看房",
-                  "options": null
+                  "options": null,
+                  "aliases": [
+                    {
+                      "id": "b670b816-5107-4acf-96e0-cc28b84df4cc",
+                      "label": "原重复电费"
+                    }
+                  ]
                 }
               },
               {
@@ -9437,17 +9444,6 @@
                 "id": "acde6fad-21cc-4689-8ce2-019414866ef0",
                 "kind": "field",
                 "title": "网费",
-                "children": [],
-                "meta": {
-                  "type": "n",
-                  "phase": "现场看房",
-                  "options": null
-                }
-              },
-              {
-                "id": "b670b816-5107-4acf-96e0-cc28b84df4cc",
-                "kind": "field",
-                "title": "电费",
                 "children": [],
                 "meta": {
                   "type": "n",
