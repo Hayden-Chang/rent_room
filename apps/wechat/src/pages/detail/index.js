@@ -1,5 +1,6 @@
 import {protectedPage} from '../../lib/auth-page.js';
 import {SPEED_FIELD_ID} from '../../lib/speed-test.js';
+import {commuteMode} from '../../lib/commute-fields.js';
 import {mediaWithIssues} from '../../lib/issues.js';
 import {applyPlace} from '../../lib/places.js';
 import {coachSteps,coachMethods} from '../../lib/onboarding.js';
@@ -7,7 +8,7 @@ import {stats,formView,houseTopics,rules,fieldView,checklistTargets,issueEntries
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
 Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
   onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id||'',coach:options.id&&options.new&&service().store.get().settings.onboarding?1:0});watch(this);this.refresh();},
-  onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){this.speedOpening=false;this.coachHidden=false;if(this.data.id)this.refresh();if(this.data.coach)this.coachLayout();},onUnload(){this.clearCoachTimer();this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.clearCoachTimer();this.dismissSwipe();this.setData({noteKeyboardHeight:0});},onPageScroll(){for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
+  onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){this.speedOpening=false;this.commuteOpening=false;this.coachHidden=false;if(this.data.id)this.refresh();if(this.data.coach)this.coachLayout();},onUnload(){this.clearCoachTimer();this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.clearCoachTimer();this.dismissSwipe();this.setData({noteKeyboardHeight:0});},onPageScroll(){for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
   dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
   checklistData(h,view){
     const key=JSON.stringify(view),folds=this.folds[key]||{};
@@ -81,6 +82,7 @@ Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],media
     if(action==='media'){await service().chooseMedia(h.id,id);this.refresh();}
     if(action==='preview')await service().preview(h.media.filter(m=>m.fieldId===id));
     if(action==='speed-test'&&id===SPEED_FIELD_ID&&!h.archived&&!this.speedOpening){this.speedOpening=true;wx.navigateTo({url:'/pages/speed-test/index?id='+encodeURIComponent(h.id),fail:error=>{this.speedOpening=false;notify(error);}});}
+    if(action==='commute'&&commuteMode(id)&&!h.archived&&!this.commuteOpening){this.commuteOpening=true;wx.navigateTo({url:'/pages/commute/index?id='+encodeURIComponent(h.id)+'&field='+encodeURIComponent(id),fail:error=>{this.commuteOpening=false;notify(error);}});}
   });},
   note(e){this.setData({note:e.detail.value});},saveNote(){attempt(()=>{service().store.answer(this.data.id,this.data.noteId,'note',this.data.note);this.close();this.refresh();});},close(){this.setData({sheet:'',noteKeyboardHeight:0});wx.hideKeyboard?.();},noop(){},
   noteKeyboard(e){if(!['note','mediaNote'].includes(this.data.sheet))return;const height=Number(e.detail.height);if(!Number.isFinite(height)||height<0)return;if(height!==this.data.noteKeyboardHeight)this.setData({noteKeyboardHeight:height});},

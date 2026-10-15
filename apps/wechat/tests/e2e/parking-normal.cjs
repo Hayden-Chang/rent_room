@@ -62,9 +62,9 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   await (await (await station()).$('button[data-value="不涉及"]')).tap();
   assert.equal(await (await (await group('topic_11')).$('button.selected[data-value]')).text(),'是');
   await mini.screenshot({path:output('parking-station.png')});
-  await (await page.$('input.grow')).input('通勤时间');
+  await (await page.$('input.grow')).input('通');
   await page.waitFor('.field-branch');
-  for(const [fieldId,label] of [['21255282-3663-4abe-b7de-d91eeb3825ed','公共交通通勤时间（分钟）'],['3c70cda2-7c6c-4fa6-b2db-b647af24ba72','开车通勤时间（分钟）']]){
+  for(const [fieldId,label] of [['21255282-3663-4abe-b7de-d91eeb3825ed','公交地铁通行时间（分钟）'],['3c70cda2-7c6c-4fa6-b2db-b647af24ba72','开车通勤时间（分钟）']]){
    const row=await page.$('.field-branch[data-scroll-key="field-f-'+fieldId+'"] field-row');
    assert.equal(await (await row.$('.label')).text(),label);
   }

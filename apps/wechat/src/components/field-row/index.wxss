@@ -35,6 +35,7 @@
 .speed-trigger{flex-shrink:0;margin:0;min-height:44px;padding:10px 8px;font-size:13px;line-height:24px;background:#eceeff;color:#4d56df;border-radius:8px}
 
 .speed-field.inline .swipe-shell{grid-template-columns:minmax(80px,1fr) minmax(0,1.8fr)}.speed-entry{display:flex;align-items:center;gap:6px;min-width:0}.speed-entry .input{min-width:0;flex:1;padding:10px 8px}.speed-unit{font-size:11px;color:#667187}
+.commute-field.inline .swipe-shell{grid-template-columns:minmax(0,1fr) 136px}.commute-entry{display:flex;align-items:center;gap:8px;min-width:0}.commute-entry .input{width:76px;min-width:0;flex:1;padding:10px 8px}.commute-trigger{flex-shrink:0;margin:0;min-height:44px;padding:10px;font-size:13px;line-height:24px;background:#eceeff;color:#4d56df;border-radius:8px}
 
 /* Categories and groups share the tested row gesture without becoming inputs. */
 .heading{padding:4px 0;border-bottom:0}.heading .label{font-size:14px;font-weight:600}.heading .chevron{margin-left:8px;font-weight:400}.heading .swipe-shell{grid-template-columns:minmax(0,1fr) minmax(132px,auto)}.heading .head{min-height:48px}.heading.category .head{min-height:56px}.heading-stats{white-space:nowrap;font-size:12px;line-height:44px}.issue-count{color:#bb4149}.heading .choice{font-weight:600}.heading .skip{font-size:12px;font-weight:400}.heading .choices{flex-wrap:wrap}.heading.group{margin-top:8px;border-top:1px solid #e5e9f1}.heading.group .note,.heading.category .note{white-space:pre-wrap;-webkit-line-clamp:unset;display:block}
