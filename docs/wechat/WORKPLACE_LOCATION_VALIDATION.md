@@ -56,3 +56,24 @@ node scripts/check.mjs
 保留的未通过项：旧 UI 脚本 run `c4106519b70446c5b9f41db96cf8ee34` 在元素查询处超时；后续逐项探测证明系统信息、App evaluate、currentPage 和截图均可用，`Page.getElement` 无响应。原生 `cua_repl` 对准确池 App 路径也返回 `timeoutReached`。已向用户请求明确允许 AppleScript / System Events 替代输入（该控制工具说明要求明确指定替代技术），等待期间没有采用该输入方式。
 
 当前截图证明实际渲染，未证明设置入口点击、真实输入、搜索结果点击及操作后的落盘回显。完整交互验收和用户视觉确认仍待完成，PR 保留草稿。
+
+## 原生操作补充记录
+
+用户已明确授权仅对本任务独占的 3 号窗口使用 AppleScript / System Events。后续通过该方式显示窗口，`cua_repl` 曾恢复可用；以下交互均未调用页面 handler、setData 或直接修改 store。应用源码仍与 `8b30a821651739a15f40fd50ad697ae8e2e9ac6e` 相同。
+
+实例池 run `82b47a27c9f443bfa4f584f7f926ed6f` 已正常完成、归还 idle；其 passed receipt 证明回调、冻结核验与清理成功，不代表下表未通过的 UI 操作通过。截图、观察 JSON、test.log 与 receipt 已归档到 `apps/wechat/artifacts/workplace-location/ui-20261015/native-v2/`。
+
+| 操作 | 实际结果与证据 |
+| --- | --- |
+| 点击设置中的上班地点 | 进入 `pages/workplace/index`；`04-workplace-empty-real.png` |
+| 实际键盘输入及中文粘贴 | 英文输入及中文地址进入页面与共享设置；`09-manual-typed-real.png`、`10-manual-chinese-real.png` |
+| 原生返回设置页 | 摘要回显中文地址；`11-settings-summary-real.png`、`12-settings-summary-real.png` |
+| 点击入口重开 | 手填地址仍显示；`13-reopened-manual-real.png` |
+| 在搜索框实际输入“腾讯滨海大厦” | 线上天地图返回“深圳腾讯滨海大厦”等结果，未使用查询夹具；`14-search-results-real.png` |
+| 点击搜索结果 | 原生坐标操作多次返回 `noWindowsAvailable`；System Events 点击后地址和坐标未改变，不能计为通过；`15-selected-system-real.png` |
+
+本轮观察中 `disk` 读取未成功，故保存成功的当前证据限于页面/共享 store 与返回回显，不能声称已独立读盘验证。初始空状态没有 state.json 属于预期；后续已增加文件读取错误记录供继续验收。
+
+窗口控制的限制仍存在：原生控制前后曾观察到窗口移到屏幕外；恢复位置能短暂恢复输入，但 `cua_repl` 后续仍出现 `noWindowsAvailable` / ScreenCaptureKit `-3812`，System Events 也出现 AppleEvent `-1712`。修改池副本应用标识的诊断方案被自动审批拒绝，未执行该安装修改；已准备仅核对租约/PID/窗口范围的 Swift / CoreGraphics 脚本，等待用户明确授权后方可执行。
+
+剩余验收：搜索结果选择并保存坐标、独立读盘、返回重开后的坐标回显、修改地址后旧坐标失效、清空与未设置、定位失败仍可手填。用户视觉确认也尚未取得，PR 继续保留草稿。
