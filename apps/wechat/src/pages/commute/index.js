@@ -1,7 +1,6 @@
 import {protectedPage} from '../../lib/auth-page.js';
 import {commuteMode} from '../../lib/commute-fields.js';
 import {commuteEndpoints,endpointKey,routeViewport} from '../../lib/commute.js';
-import {selectWorkplace} from '../../lib/workplace.js';
 import {applyPlace} from '../../lib/places.js';
 import {houseTopics,updateAnswer,MAP_ID} from '../../lib/model.js';
 import {service,watch,unwatch} from '../../lib/ui.js';
@@ -13,7 +12,7 @@ Page(protectedPage({
     const mode=commuteMode(this.fieldId),title=mode==='transit'?'公交地铁路线':'开车路线';
     this.setData({mode,title});wx.setNavigationBarTitle({title});watch(this);
   },
-  onShow(){this.active=true;try{this.refreshEndpoints();if(!this.data.routes.length)this.query();}catch(e){this.setData({message:e.message});}},
+  onShow(){this.active=true;this.workplaceOpening=false;try{this.refreshEndpoints();if(!this.data.routes.length)this.query();}catch(e){this.setData({message:e.message});}},
   onHide(){this.active=false;this.run++;this.setData({busy:false});},
   onUnload(){this.active=false;this.run++;unwatch(this);},
   validHouse(){
@@ -34,7 +33,7 @@ Page(protectedPage({
     if(!this.active||this.data.busy||this.data.picker)return;
     let endpoints;
     try{endpoints=this.refreshEndpoints();}catch(e){this.setData({message:e.message});return;}
-    if(!endpoints.origin.location||!endpoints.destination.location){this.setData({message:'请先选择房源和上班地点的地图位置'});return;}
+    if(!endpoints.origin.location||!endpoints.destination.location){this.setData({message:!endpoints.origin.location?'请点击房源，补选房源的地图位置':'请点击上班地点，在设置页补选地图位置后返回查询'});return;}
     const run=++this.run,stamp=endpointKey(endpoints);
     this.previous=this.validHouse().answers[this.fieldId]?.value;
     this.results=[];this.setData({busy:true,message:'',routes:[],chosen:null,selectedId:'',polyline:[],queriedAt:''});
@@ -57,8 +56,15 @@ Page(protectedPage({
   },
   mapUpdated(){if(!this.data.mapReady)this.setData({mapReady:true});},
   choose(e){if(!this.data.busy)this.showRoute(this.results.find(r=>r.id===e.currentTarget.dataset.id));},
+  async openWorkplace(){
+    if(this.workplaceOpening)return;
+    try{
+      this.validHouse();this.workplaceOpening=true;
+      await this.platform.api('navigateTo',{url:'/pages/workplace/index'});
+    }catch(e){this.workplaceOpening=false;this.setData({message:'上班地点页面打开失败，请重试'});}
+  },
   openPicker(e){
-    const picker=e.currentTarget.dataset.endpoint;if(!['origin','destination'].includes(picker))return;
+    const picker=e.currentTarget.dataset.endpoint;if(picker!=='origin')return;
     try{
       const endpoints=this.refreshEndpoints(),value=endpoints[picker];
       this.run++;this.results=[];
@@ -67,9 +73,8 @@ Page(protectedPage({
   },
   selectPlace(e){
     try{
-      if(this.data.picker==='origin')this.platform.store.edit(this.houseId,h=>applyPlace(h,e.detail,MAP_ID),true);
-      else if(this.data.picker==='destination')this.platform.store.change(s=>selectWorkplace(s.settings,e.detail),true);
-      else return;
+      if(this.data.picker!=='origin')return;
+      this.platform.store.edit(this.houseId,h=>applyPlace(h,e.detail,MAP_ID),true);
       this.setData({picker:'',saveError:''});this.refreshEndpoints();this.query();
     }catch(e){this.setData({saveError:e.message||'地点未保存，请重试'});}
   },

@@ -14,14 +14,23 @@ it('keeps the location permission description within the WeChat upload limit',()
 
 function setup(initial){
   let saved=initial;const adapter={read:()=>saved,write:value=>saved=value};
-  const store=createStore(adapter),wx={navigateTo:vi.fn(),showToast:vi.fn()};
+  const store=createStore(adapter),wx={navigateTo:vi.fn(),reLaunch:vi.fn(),showToast:vi.fn()},account={id:'test-account',number:'TEST'};
+  const app={service:{store},auth:{isAuthenticated:()=>true,snapshot:()=>({account}),ready:Promise.resolve(true)}};
   function load(name){
-    let page;vm.runInNewContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),{Page:o=>page=o,wx,getApp:()=>({service:{store}}),setTimeout,clearTimeout});
+    let page;vm.runInNewContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),{Page:o=>page=o,wx,getApp:()=>app,setTimeout,clearTimeout});
     page.data=structuredClone(page.data);page.setData=function(p){Object.assign(this.data,p);};
     page.onLoad?.();page.onShow?.();return page;
   }
-  return {store,wx,load,adapter};
+  return {store,wx,load,adapter,app};
 }
+
+it('blocks stale workplace edits after the authenticated account changes',async()=>{
+  const {store,wx,load,app}=setup(),page=load('workplace'),before=structuredClone(store.get());
+  app.auth.snapshot=()=>({account:{id:'another-account'}});
+  await page.input({detail:{value:'不能写入'}});expect(store.get()).toEqual(before);
+  await page.selectPlace({detail:{address:'不能选中',location:{latitude:22.54,longitude:113.95}}});await page.clear();
+  expect(store.get()).toEqual(before);page.onShow();expect(page.data.accountReady).toBe(false);expect(wx.reLaunch).toHaveBeenCalledWith({url:'/pages/login/index'});page.onUnload();
+});
 
 it('opens the separate workplace page from settings and reflects the one selected address on return',async()=>{
   const {store,wx,load}=setup(),settings=load('settings');

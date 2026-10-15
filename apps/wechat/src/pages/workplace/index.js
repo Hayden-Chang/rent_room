@@ -1,8 +1,9 @@
+import {protectedPage} from '../../lib/auth-page.js';
 import {point,keepsLocation} from '../../lib/places.js';
 import {updateWorkplace,selectWorkplace,clearWorkplace} from '../../lib/workplace.js';
 import {service,attempt,watch,unwatch} from '../../lib/ui.js';
 
-Page({
+Page(protectedPage({
   data:{address:'',location:null,anchor:'',saveError:''},
   onLoad(){watch(this);},
   onShow(){this.refresh();},
@@ -15,4 +16,4 @@ Page({
   selectPlace(e){attempt(()=>{service().store.change(s=>selectWorkplace(s.settings,e.detail));this.refresh();});},
   clear(){attempt(()=>{service().store.change(s=>clearWorkplace(s.settings));this.refresh();});},
   retry(){service().store.save();}
-});
+}));

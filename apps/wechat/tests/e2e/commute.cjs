@@ -18,7 +18,9 @@ async function step(name,fn,limit=10000){let timer;console.log('START '+name);tr
   fs.writeFileSync(out('live-service.json'),JSON.stringify(liveResult,null,2));
   id=await step('isolated house and route fixture',()=>mini.evaluate(({live,transit,driving})=>{
    const s=getApp().service,id=s.store.add('通行时间查询验收');s.store.change(state=>{state.settings.onboarding=false;state.settings.workplace='西直门';state.settings.workplaceLocation=live.destination;state.settings.workplaceLocationAddress='西直门';const h=state.houses.find(h=>h.id===id);h.address='东直门';h.location=live.origin;h.locationAddress='东直门';h.answers[transit]={value:'60',note:'保留原来的备注',issueFlag:true};h.answers[driving]={value:'20'};});
-   s.commute.query=async mode=>(mode==='driving'?live.drivingRoutes:live.routes).slice(0,2);return id;
+   getApp().commuteTestCalls=[];
+   s.commute.query=async(mode,origin,destination)=>{getApp().commuteTestCalls.push({mode,origin,destination});return (mode==='driving'?live.drivingRoutes:live.routes).slice(0,2);};
+   s.places.search=async()=>[{id:'shared-workplace',name:'西直门办公楼',address:'西直门办公楼',location:live.destination}];return id;
   },{live,transit,driving}));
   let page=await step('open detail',()=>mini.reLaunch('/pages/detail/index?id='+id));
   if(process.env.COMMUTE_RENDER_ONLY==='1')throw Error('Explicit render-only run; Page element protocol unavailable');
@@ -26,7 +28,14 @@ async function step(name,fn,limit=10000){let timer;console.log('START '+name);tr
   await (await page.$('input.grow')).input('通');await page.waitFor('.commute-trigger');await screen('commute-fields');
   const row=field=>page.$('.field-branch[data-scroll-key="field-f-'+field+'"] field-row');
   const open=async field=>{await (await (await row(field)).$('button.commute-trigger')).tap();page=await current('pages/commute/index');await page.waitFor('.route-option');};
-  await open(transit);await screen('transit-routes');await (await page.$('.route-cancel')).tap();page=await current('pages/detail/index');assert.equal(await mini.evaluate(({id,transit})=>getApp().service.store.house(id).answers[transit].value,{id,transit}),'60');
+  await open(transit);await screen('transit-routes');
+  await step('open shared workplace settings',async()=>{await (await page.$('.workplace-endpoint')).tap();page=await current('pages/workplace/index');await page.waitFor('.workplace-address');});
+  await screen('shared-workplace');
+  await step('search and select shared workplace',async()=>{const picker=await page.$('address-picker');await (await picker.$('input.address-search')).input('西直门办公楼');await page.waitFor(async()=>Boolean(await picker.$('.result')));await (await picker.$('.result')).tap();});
+  await mini.navigateBack();page=await current('pages/commute/index');await page.waitFor('.route-option');
+  const afterWorkplace=await mini.evaluate(({id,transit})=>{const s=getApp().service,state=JSON.parse(wx.getFileSystemManager().readFileSync(s.root+'/state.json','utf8'));return {settings:state.settings,value:s.store.house(id).answers[transit].value,calls:getApp().commuteTestCalls};},{id,transit});
+  assert.equal(afterWorkplace.settings.workplace,'西直门办公楼');assert.equal(afterWorkplace.value,'60');assert.equal(afterWorkplace.calls.length,2);assert.equal(afterWorkplace.calls[1].mode,'transit');assert.deepEqual(afterWorkplace.calls[1].destination,live.destination);await screen('shared-workplace-return');
+  await (await page.$('.route-cancel')).tap();page=await current('pages/detail/index');assert.equal(await mini.evaluate(({id,transit})=>getApp().service.store.house(id).answers[transit].value,{id,transit}),'60');
   await open(transit);await (await page.$('.route-option[data-id="1"]')).tap();await screen('transit-selected');await (await page.$('.route-confirm')).tap();page=await current('pages/detail/index');
   const saved=await mini.evaluate(({id,transit,driving})=>{const s=getApp().service,state=JSON.parse(wx.getFileSystemManager().readFileSync(s.root+'/state.json','utf8')),h=state.houses.find(h=>h.id===id);return {transit:h.answers[transit],driving:h.answers[driving]};},{id,transit,driving});
   assert.equal(saved.transit.value,String(live.routes[1].minutes));assert.equal(saved.transit.note,'保留原来的备注');assert.equal(saved.transit.issueFlag,true);assert.equal(saved.driving.value,'20');await screen('commute-filled');
@@ -46,7 +55,8 @@ async function step(name,fn,limit=10000){let timer;console.log('START '+name);tr
    await screen('driving-render-only');
    // Missing-location rendering uses a fixture change, not a simulated selection.
    await mini.evaluate(()=>getApp().service.store.change(s=>{delete s.settings.workplaceLocation;}));
-   await mini.redirectTo('/pages/commute/index?id='+id+'&field='+transit);await screen('missing-location-render-only');
+   await mini.redirectTo('/pages/commute/index?id='+id+'&field='+transit);await step('wait for missing workplace rendering',()=>mini.evaluate(()=>new Promise(resolve=>wx.nextTick(resolve))));await screen('missing-location-render-only');
+   await mini.navigateTo('/pages/workplace/index');await step('wait for shared workplace rendering',()=>mini.evaluate(()=>new Promise(resolve=>wx.nextTick(resolve))));await screen('shared-workplace-render-only');
    fs.writeFileSync(out('render-boundary.json'),JSON.stringify({interactionPassed:false,routeSource:'Recorded public Tianditu routes injected as a fixture',boundary:'Screenshots use fixture navigation only. They do not prove clicks, selection, save or current network routing.'},null,2));
   }catch(renderError){console.error('Render capture failed: '+renderError.message);}
   throw error;
