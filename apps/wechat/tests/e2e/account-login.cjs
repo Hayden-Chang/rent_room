@@ -16,6 +16,9 @@ const timer=setTimeout(()=>{console.error('Account UI test timed out');process.e
     throw Error('Navigation did not reach '+route);
   }
   const screenshot=name=>step('screenshot '+name,()=>mini.screenshot({path:path.join(process.env.WECHAT_ARTIFACT_DIR,name+'.png')}));
+  const loggedIn=()=>step('wait for home login completion',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{
+    let tries=0;function check(){const page=getCurrentPages().slice(-1)[0];if(getApp().auth.isAuthenticated()&&page.data.accountReady){resolve();return;}if(++tries>40){reject(Error('Home login did not complete'));return;}setTimeout(check,100);}check();
+  })));
   // Identity mocks are setup only. Every login/logout below taps a visible button.
   async function identity(id){
     await step('mock wx.login',()=>mini.mockWxMethod('login',{code:'ui-fixture-code'}));
@@ -23,22 +26,25 @@ const timer=setTimeout(()=>{console.error('Account UI test timed out');process.e
   }
   try{
     await identity(null);
-    let page=await step('open login',()=>mini.reLaunch('/pages/login/index'));console.log('page path '+page.path);console.log('session '+JSON.stringify(await step('read session',()=>mini.evaluate(()=>({route:getCurrentPages().map(p=>p.route),auth:getApp().auth.snapshot()})))));await screenshot('login');if(process.env.ACCOUNT_RENDER_ONLY==='1')throw Error('Explicit render-only diagnosis: SDK query and desktop control unavailable');await step('find login button',()=>page.waitFor('#wechat-login'));
+    let page=await step('open home login',()=>mini.reLaunch('/pages/home/index'));console.log('page path '+page.path);console.log('session '+JSON.stringify(await step('read session',()=>mini.evaluate(()=>({route:getCurrentPages().map(p=>p.route),auth:getApp().auth.snapshot()})))));await screenshot('login');if(process.env.ACCOUNT_RENDER_ONLY==='1')throw Error('Explicit render-only diagnosis: SDK query and desktop control unavailable');await step('find login button',()=>page.waitFor('#wechat-login'));
     await (await page.$('#wechat-login')).tap();await page.waitFor('.login-error');assert.match(await(await page.$('.login-error')).text(),/暂不可用/);await screenshot('login-error');
-    await identity('a'.repeat(64));await(await page.$('#wechat-login')).tap();page=await current('pages/home/index');await page.waitFor('.page');
+    await identity('a'.repeat(64));await(await page.$('#wechat-login')).tap();page=await current('pages/home/index');await loggedIn();await screenshot('home-empty');
     // House setup is an isolated fixture; logout/re-login must reload it from disk.
     const id=await mini.evaluate(()=>getApp().service.store.add('账号 A 的验收记录'));
     page=await mini.switchTab('/pages/settings/index');await page.waitFor('#account-logout');assert.match(await(await page.$('.account-local')).text(),/1/);await screenshot('account');
     await mini.mockWxMethod('showModal',{confirm:true,cancel:false});
-    await(await page.$('#account-logout')).tap();page=await current('pages/login/index');await page.waitFor('#wechat-login');
+    await(await page.$('#account-logout')).tap();page=await current('pages/home/index');await page.waitFor('#wechat-login');
     assert.equal(await mini.evaluate(()=>getApp().service===null),true);
-    await(await page.$('#wechat-login')).tap();await current('pages/home/index');
+    await(await page.$('#wechat-login')).tap();await current('pages/home/index');await loggedIn();
     assert.equal(await mini.evaluate(houseId=>getApp().service.store.house(houseId)?.name,id),'账号 A 的验收记录');
-    page=await mini.switchTab('/pages/settings/index');await(await page.$('#account-logout')).tap();page=await current('pages/login/index');
-    await identity('b'.repeat(64));await(await page.$('#wechat-login')).tap();await current('pages/home/index');
+    page=await mini.switchTab('/pages/settings/index');await(await page.$('#account-logout')).tap();page=await current('pages/home/index');
+    await identity('b'.repeat(64));await(await page.$('#wechat-login')).tap();await current('pages/home/index');await loggedIn();
     assert.equal(await mini.evaluate(()=>getApp().service.store.get().houses.length),0);
-    page=await mini.switchTab('/pages/settings/index');await screenshot('account-b');
-    fs.writeFileSync(path.join(process.env.WECHAT_ARTIFACT_DIR,'account-assertions.json'),JSON.stringify({passed:true,scenarios:['login failure and retry','login button navigation','logout access gate','same-account disk reload','different-account isolation'],boundary:'WeChat code, backend identity and confirmation mocked; real authentication not tested'},null,2));
+    await screenshot('home-empty-b');
+    page=await mini.navigateTo('/pages/capacity/index');await page.waitFor('.restore-purchases');
+    assert.equal(await(await page.$('.restore-purchases')).text(),'刷新容量');
+    assert.equal(await page.$('.back-to-records'),null);await screenshot('capacity');
+    fs.writeFileSync(path.join(process.env.WECHAT_ARTIFACT_DIR,'account-assertions.json'),JSON.stringify({passed:true,scenarios:['login failure and retry','home login overlay dismissal','logout access gate','same-account disk reload','different-account isolation'],boundary:'WeChat code, backend identity and confirmation mocked; real authentication not tested'},null,2));
   }catch(error){
     // Preserve the failed interaction result. Independent render fixtures below
     // help review pixels; direct auth calls are NOT evidence of button behavior.
@@ -48,7 +54,7 @@ const timer=setTimeout(()=>{console.error('Account UI test timed out');process.e
       await screenshot('login-error-render-only');
       await identity('a'.repeat(64));
       await step('render-only authenticated session',()=>mini.evaluate(()=>getApp().auth.login()));
-      await current('pages/home/index');
+      await current('pages/home/index');await loggedIn();await screenshot('home-render-only');
       await step('render-only account page',()=>mini.switchTab('/pages/settings/index'));
       await current('pages/settings/index');
       await step('wait for account rendering',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{

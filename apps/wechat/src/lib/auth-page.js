@@ -2,7 +2,7 @@
 export function protectedPage(definition) {
   const result={...definition,data:{...definition.data,accountReady:false}};
   function allowed(page){const auth=getApp().auth;return auth.isAuthenticated()&&page.accountId===auth.snapshot().account.id;}
-  function redirect(){wx.reLaunch({url:'/pages/login/index'});}
+  function redirect(){wx.reLaunch({url:'/pages/home/index'});}
   function load(page,args){
     const auth=getApp().auth;
     if(!auth.isAuthenticated()){redirect();return;}

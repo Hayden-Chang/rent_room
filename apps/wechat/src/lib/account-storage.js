@@ -1,7 +1,7 @@
 export const validAccountId=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
 export const dataRoot=wx=>wx.env.USER_DATA_PATH+'/'+(typeof __TEST_DATA_ROOT__==='undefined'?'xunju':__TEST_DATA_ROOT__);
 
-// The first explicit claim keeps legacy media paths and recovery files intact.
+// The first verified login keeps legacy media paths and recovery files intact.
 // The ownership marker is separate from state/previous.json and never exported.
 export function accountStorage(wx,accountId) {
   if(!validAccountId(accountId))throw Error('账号校验失败，请重新登录');

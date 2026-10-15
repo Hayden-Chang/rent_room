@@ -1,13 +1,15 @@
-<view hidden="{{!accountReady}}">
 <view class="page">
  <view wx:if="{{saveError}}" class="error" bindtap="retry">{{saveError}} 点击重试</view>
- <view wx:if="{{!houses.length}}" class="empty"><image class="empty-icon" src="/assets/icons/empty-art.png"/><view class="subtitle">把心动的房子，认真记下来</view><view>从第一套房源开始，边看边记录。</view><view class="space"/><button class="primary" bindtap="add">添加房源</button><button class="link" bindtap="importFile">导入已有记录</button></view>
- <view class="grid"><view wx:for="{{houses}}" wx:key="id" class="house" data-id="{{item.id}}" bindtap="open" bindlongpress="manage">
+ <view wx:if="{{!accountReady||!houses.length}}" class="empty"><image class="empty-icon" src="/assets/icons/empty-art.png"/><button class="primary" disabled="{{!accountReady}}" bindtap="add">添加房源</button></view>
+ <view wx:if="{{accountReady}}" class="grid"><view wx:for="{{houses}}" wx:key="id" class="house" data-id="{{item.id}}" bindtap="open" bindlongpress="manage">
   <view class="cover"><image wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill"/><view wx:else class="placeholder"><image src="/assets/icons/home-selected.png"/></view><text class="badge status">{{item.decision||'待检查'}}</text></view>
   <view class="house-body"><view class="house-name">{{item.name}}</view><view class="money">{{item.rent==='待填写'?'租金待填写':'¥ '+item.rent+' / 月'}}</view><view class="muted address">{{item.address||'地址待填写'}} · {{item.area}}m²</view><view wx:if="{{item.stats.issues}}" class="badge danger">{{item.stats.issues}} 个问题</view><view wx:else class="muted">检查 {{item.stats.done}} / {{item.stats.total}}</view></view>
  </view></view>
- <button wx:if="{{houses.length}}" class="add" bindtap="add" aria-label="添加房源"><image src="/assets/icons/plus.png"/></button>
+ <button wx:if="{{accountReady&&houses.length}}" class="add" bindtap="add" aria-label="添加房源"><image src="/assets/icons/plus.png"/></button>
 </view>
-
+<view wx:if="{{!accountReady}}" class="mask login-mask" catchtouchmove="preventTouchMove">
+ <view class="sheet login-sheet">
+  <view wx:if="{{loginError}}" class="error login-error">{{loginError}}</view>
+  <button id="wechat-login" class="primary" loading="{{busy}}" disabled="{{busy}}" bindtap="login">{{busy?'正在登录':'微信登录'}}</button>
+ </view>
 </view>
-<view wx:if="{{!accountReady}}" class="auth-wait">正在确认登录状态…</view>
