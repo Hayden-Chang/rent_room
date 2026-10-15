@@ -36,14 +36,14 @@
 | 地址组件文案参数与既有地图事件 | `tests/places.test.js`、`tests/address-picker.test.js`、`tests/address-bindings.test.js` |
 | 字段组件新增按钮与既有输入/滑动行为 | `tests/field-row-events.test.js`、`tests/field-row-placeholder.test.js`、`tests/field-row-swipe.test.js`、`tests/field-row-inline-actions.test.js` |
 
-构建后执行上述精确文件的 Vitest 增量组合及 `npm run check`；不运行本地全量单测或全量 E2E。最终 head、命令、输出与 UI 证据边界写入 PR 和本机 `apps/wechat/artifacts/commute/`。
+构建后执行上述精确文件的 Vitest 增量组合及 `npm run check`；不运行本地全量单测或全量 E2E。实现提交 `05ee332` 上该组合 13 文件、174 项通过；官方 wcc 14、wcsc 13 文件通过，12 页面、1,474,044 字节。最终 head、命令、输出与 UI 证据边界写入 PR 和本机 `apps/wechat/artifacts/commute/`。
 
 ## 现场证据与未完成项
 
 - 公开北京地点的真实公交/驾车 API 返回已解析；微信内生产公交适配也取得 5 个候选。只证明这些样本及请求路径，不能据此推断所有城市、实时路况、班次或真机均通过。
 - 第一轮 UI 测试因未设置登录服务地址停在身份夹具，未进入产品操作；后续 UI 构建显式使用 `WECHAT_API_URL=https://commute-fixture.example.invalid` 并模拟登录服务，该测试地址不可用于真实用户预览。
 - 新增 `tests/e2e/commute.cjs` 覆盖可见查询、取消、选择、确认及写盘回读；`parking-normal.cjs` 仅同步受改名影响的搜索词与标签。两者已实际执行，但 Page 元素查询均未到达被测控件，不能算通过。CUA 工具超时；没有采用页面 handler 或 setData 冒充点击。
-- 已取得实际路线页渲染截图。首轮截图发现地图未包含完整起终点；后续原生视野探测未获得完成回调，之后改为显式中心/缩放并补几何覆盖。所有失败 receipt 和早期截图保留，不能作为最终视觉批准。
+- 已取得实际路线页渲染截图。首轮截图发现地图未包含完整起终点；后续原生视野探测未获得完成回调，之后改为显式中心/缩放并补几何覆盖。额外诊断确认登录页的自动 switchTab 曾覆盖立即打开的路线页，后续脚本先等待登录导航稳定；该前置条件修复不代表控件交互已通过。所有失败 receipt 和早期截图保留，不能作为最终视觉批准。
 - 真实点击、完整地图最终像素、页内搜索/选点、系统权限、iOS/Android 真机及用户视觉确认仍是交付门禁。保留 Draft，不合并、不上传体验版、不提审或发布。
 
 参考：[天地图公交](https://lbs.tianditu.gov.cn/server/bus.html)、[驾车](https://lbs.tianditu.gov.cn/server/drive.html)、[腾讯位置服务 map 组件指南](https://github.com/TencentLBS/tencentmap-miniprogram-skill/blob/main/references/map_component_guide.md)。官方站点本轮直接抓取受限，公交参数另与既有官方文档记录及本轮真实返回交叉核对。

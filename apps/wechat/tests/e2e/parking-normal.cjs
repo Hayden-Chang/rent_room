@@ -13,6 +13,8 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   await mini.mockWxMethod('login',{code:'ui-fixture-code'});
   await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:0,limit:2}});
   assert.equal(await mini.evaluate(()=>getApp().auth.login()),true);
+  // The login page schedules switchTab; do not let it overwrite the next route.
+  await mini.evaluate(()=>new Promise((resolve,reject)=>{let n=0;function check(){const p=getCurrentPages().slice(-1)[0];if(p?.route==='pages/home/index'&&p.data.accountReady){resolve();return;}if(++n>60){reject(Error('Login navigation not settled'));return;}setTimeout(check,100);}check();}));
   // Fixture creation only; all tested choices, folds and search use visible controls.
   const id = await mini.evaluate(() => getApp().service.store.add('停车选项验收'));
   const route='/pages/detail/index?id='+encodeURIComponent(id);

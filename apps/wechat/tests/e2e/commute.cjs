@@ -13,6 +13,7 @@ async function step(name,fn,limit=10000){let timer;console.log('START '+name);tr
  const transit='21255282-3663-4abe-b7de-d91eeb3825ed',driving='3c70cda2-7c6c-4fa6-b2db-b647af24ba72';let id;
  try{
   await step('login fixture',async()=>{await mini.mockWxMethod('login',{code:'ui-fixture'});await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:0,limit:2}});assert.equal(await mini.evaluate(()=>getApp().auth.login()),true);await mini.restoreWxMethod('request');});
+  await step('wait for login navigation',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{let n=0;function check(){const p=getCurrentPages().slice(-1)[0];if(p?.route==='pages/home/index'&&p.data.accountReady){resolve();return;}if(++n>60){reject(Error('Login navigation not settled'));return;}setTimeout(check,100);}check();})));
   const liveResult=await step('production route request for public endpoints',()=>mini.evaluate(async live=>{try{const routes=await getApp().service.commute.query('transit',live.origin,live.destination);return {passed:true,candidates:routes.map(({title,minutes})=>({title,minutes}))};}catch(e){return {passed:false,message:e.message};}},live),18000);
   fs.writeFileSync(out('live-service.json'),JSON.stringify(liveResult,null,2));
   id=await step('isolated house and route fixture',()=>mini.evaluate(({live,transit,driving})=>{
