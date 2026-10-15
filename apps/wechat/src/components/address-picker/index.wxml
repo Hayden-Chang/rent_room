@@ -3,7 +3,7 @@
  <scroll-view wx:if="{{(mode==='search'||mode==='manual')&&items.length}}" scroll-y class="search-results"><view wx:for="{{items}}" wx:key="id" class="result" data-id="{{item.id}}" bindtap="use"><view class="result-main"><view class="name">{{item.name}}</view><view class="address">{{item.distanceText}} {{item.address}}</view></view><text class="choose">选择</text></view></scroll-view>
  <view class="map-wrap">
   <map wx:if="{{center}}" id="address-map" latitude="{{center.latitude}}" longitude="{{center.longitude}}" scale="{{scale}}" enable-scroll="{{!readonly}}" enable-zoom="{{true}}" enable-rotate="{{false}}" enable-poi="{{false}}" show-location="{{false}}" bindregionchange="region" class="map"/>
-  <view wx:else class="map-empty">{{busy?'正在匹配地址位置':'搜索地址或点击定位，选择房源位置'}}</view>
+  <view wx:else class="map-empty">{{busy?'正在匹配地址位置':emptyText}}</view>
   <cover-view wx:if="{{center}}" class="center-pin">●</cover-view>
   <cover-view wx:if="{{!readonly}}" class="locate" bindtap="locate" aria-label="定位到当前位置">定位</cover-view>
  <scroll-view wx:if="{{mode==='nearby'&&items.length}}" scroll-y class="nearby-results"><view wx:for="{{items}}" wx:key="id" class="result"><view class="result-main"><view class="name">{{item.name}}</view><view class="address">{{item.distanceText}} {{item.address}}</view></view><button class="use" data-id="{{item.id}}" bindtap="use">使用</button></view></scroll-view>

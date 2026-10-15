@@ -1,6 +1,6 @@
 import {AddressPicker} from '../../lib/address-picker.js';
 Component({
-  properties:{address:String,location:Object,anchor:String,readonly:Boolean},
+  properties:{address:String,location:Object,anchor:String,readonly:Boolean,emptyText:{type:String,value:'搜索地址或点击定位，选择房源位置'}},
   data:{center:null,query:'',items:[],mode:'',busy:false,message:'',locationAction:'',scale:16},
   observers:{'address,location,anchor,readonly'(){this.picker?.sync(this.data);}},
   lifetimes:{
