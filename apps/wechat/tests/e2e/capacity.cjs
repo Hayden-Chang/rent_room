@@ -24,6 +24,9 @@ async function step(label,action){
   if(process.env.CAPACITY_RENDER_ONLY==='1'){
    // A diagnostic render path, never a substitute for the interaction test.
    await step('render capacity fixture',()=>mini.reLaunch('/pages/capacity/index?needed=1'));
+   await step('wait for capacity rendering',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{
+    let tries=0;function check(){wx.createSelectorQuery().select('.purchase-pack').boundingClientRect(rect=>{if(rect?.width){wx.nextTick(resolve);return;}if(++tries>40){reject(Error('Capacity view not rendered'));return;}setTimeout(check,100);}).exec();}check();
+   })));
    await step('capture capacity fixture',()=>mini.screenshot({path:path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-render.png')}));
    await step('scroll capacity fixture',()=>mini.callWxMethod('pageScrollTo',{scrollTop:600,duration:0}));
    await step('capture capacity footer',()=>mini.screenshot({path:path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-footer-render.png')}));
@@ -35,14 +38,19 @@ async function step(label,action){
   for(let n=0;n<60;n++){page=await mini.currentPage();if(page?.path==='pages/capacity/index')break;await new Promise(r=>setTimeout(r,100));}
   assert.equal(page.path,'pages/capacity/index');await step('find rendered capacity',()=>page.waitFor('.capacity-number'));
   assert.match(await (await page.$('.capacity-number')).text(),/2\s*\/\s*2/);
-  assert.match(await (await page.$('.capacity-notice')).text(),/本次需新增 1 套/);
-  assert.equal(await (await page.$('.purchase-pack')).property('disabled'),true);
+  assert.equal(await page.$('.capacity-notice'),null);
+  assert.equal(await (await page.$('.purchase-pack')).property('disabled'),false);
   await mini.screenshot({path:path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-limit.png')});
+  await (await page.$('.purchase-pack')).tap();
+  for(let n=0;n<50;n++){if(!await mini.evaluate(()=>getCurrentPages().slice(-1)[0].data.busy))break;await new Promise(r=>setTimeout(r,100));}
+  assert.match(await (await page.$('.error')).text(),/暂未开放|不支持购买/);
+  assert.equal(await mini.evaluate(()=>getApp().service.store.capacity().limit),2);
+  await mini.screenshot({path:path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-unavailable.png')});
   await (await page.$('.restore-purchases')).tap();
   for(let n=0;n<50;n++){if(!await mini.evaluate(()=>getCurrentPages().slice(-1)[0].data.busy))break;await new Promise(r=>setTimeout(r,100));}
   assert.equal(await mini.evaluate(()=>getCurrentPages().slice(-1)[0].data.error),'');
-  await mini.screenshot({path:path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-unavailable.png')});
+  await mini.screenshot({path:path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-restored.png')});
   const count=await mini.evaluate(()=>getApp().service.store.get().houses.length);assert.equal(count,2);
-  fs.writeFileSync(path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-assertions.json'),JSON.stringify({passed:true,scenarios:['third house opens capacity before input','archived house counts','unavailable checkout disabled','refreshing free entitlements preserves houses'],realPayments:false},null,2));
+  fs.writeFileSync(path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-assertions.json'),JSON.stringify({passed:true,scenarios:['third house opens capacity before input','archived house counts','enabled purchase reports unavailable without granting capacity','refreshing free entitlements preserves houses'],realPayments:false},null,2));
  }finally{clearTimeout(timer);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});

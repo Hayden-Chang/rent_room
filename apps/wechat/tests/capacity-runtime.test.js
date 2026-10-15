@@ -16,7 +16,7 @@ it('routes the third-house action to capacity before requesting a name',async()=
  const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);r.app.service.store.add('列表');
  const home=r.load('home');expect(home.data.houses).toHaveLength(1);await home.add();
  expect(r.routes).toEqual(['/pages/capacity/index?needed=1']);expect(r.app.service.store.capacity().used).toBe(2);
- const page=r.load('capacity',{needed:'1'});expect(page.data).toMatchObject({used:2,limit:2,needed:1,canContinue:false,configured:false});
+ const page=r.load('capacity',{needed:'1'});expect(page.data).toMatchObject({used:2,limit:2,remaining:0,configured:false});
  await page.restore();expect(page.data.error).toContain('暂未开放');
 });
 
@@ -30,7 +30,7 @@ it('keeps the complete pending import while opening the capacity page',async()=>
 
 it('shows released capacity and leaves purchase errors visible without clearing inputs',async()=>{
  const r=runtime(),id=r.app.service.store.add('A');r.app.service.store.add('B');r.app.service.store.archive(id,true);r.app.service.store.remove(id);
- const page=r.load('capacity',{needed:'1'});expect(page.data).toMatchObject({remaining:1,canContinue:true});
+ const page=r.load('capacity',{needed:'1'});expect(page.data).toMatchObject({remaining:1});
  r.app.pendingHouseName='尚未保存的房源';r.app.service.billing.purchase=async()=>{throw Error('支付结果正在确认');};
  await page.purchase();expect(page.data).toMatchObject({busy:false,error:'支付结果正在确认'});expect(r.app.pendingHouseName).toBe('尚未保存的房源');
  const settings=r.load('settings');expect(settings.data).toMatchObject({count:1,limit:2});

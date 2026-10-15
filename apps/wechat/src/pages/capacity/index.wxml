@@ -1,8 +1,7 @@
 <view hidden="{{!accountReady}}">
 <view class="page capacity-page">
- <view class="card capacity-summary"><view class="subtitle">房源容量</view><view class="capacity-number">{{used}}<text> / {{limit}} 套</text></view><view class="muted">剩余 {{remaining}} 套容量 · 含归档房源</view><view wx:if="{{over}}" class="hint">已有房源超出当前容量 {{over}} 套，仍可查看、编辑和备份。</view></view>
- <view wx:if="{{needed}}" class="capacity-notice">本次需新增 {{needed}} 套房源，当前剩余 {{remaining}} 套。{{canContinue ? '容量已足够，可以返回继续。' : '扩容后即可继续。'}}</view>
- <view class="card pack-card"><view class="pack-heading"><view class="subtitle">房源包</view><view class="pack-price">¥1.90</view></view><view class="pack-size">增加 10 套房源容量</view><view class="hint">一次购买，长期有效，可叠加购买。</view><view class="line"/><view class="pack-rule">删除房源释放容量，归档仍占容量。</view><view class="pack-rule">导入和备份恢复新增的房源也计入容量。</view><view class="pack-rule">购买容量绑定微信账号，房源记录保存在本机。</view><button class="primary purchase-pack" loading="{{busy}}" disabled="{{busy || !available}}" bindtap="purchase">¥1.90 购买房源包</button><view wx:if="{{!available}}" class="hint">房源包暂未开放购买，请稍后再试。已有房源可继续使用。</view></view>
+ <view class="card capacity-summary"><view class="subtitle">房源容量</view><view class="capacity-number">{{used}}<text> / {{limit}} 套</text></view><view wx:if="{{over}}" class="hint">已有房源超出当前容量 {{over}} 套，仍可查看、编辑和备份。</view></view>
+ <view class="card pack-card"><view class="pack-heading"><view class="subtitle">房源包</view><view class="pack-price">¥1.90</view></view><view class="pack-size">增加 10 套房源容量</view><button class="primary purchase-pack" loading="{{busy}}" disabled="{{busy}}" bindtap="purchase">¥1.90 购买房源包</button></view>
  <view wx:if="{{error}}" class="error">{{error}}</view>
  <button class="link restore-purchases" disabled="{{busy}}" bindtap="restore">恢复购买 / 刷新容量</button><button class="back-to-records" disabled="{{busy}}" bindtap="back">返回继续</button>
 </view>
