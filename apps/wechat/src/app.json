@@ -5,6 +5,7 @@
     "pages/detail/index",
     "pages/compare/index",
     "pages/settings/index",
+    "pages/workplace/index",
     "pages/archive/index",
     "pages/templates/index",
     "pages/import/index",
@@ -47,7 +48,7 @@
   },
   "permission": {
     "scope.userLocation": {
-      "desc": "点击定位时，用于查找房源附近地址；也可搜索或手动填写"
+      "desc": "点击定位查找房源或上班地点附近地址，也可搜索或手动填写"
     }
   },
   "requiredPrivateInfos": [
