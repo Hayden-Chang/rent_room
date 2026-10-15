@@ -48,7 +48,12 @@ const timer=setTimeout(()=>{console.error('Account UI test timed out');process.e
       await screenshot('login-error-render-only');
       await identity('a'.repeat(64));
       await step('render-only authenticated session',()=>mini.evaluate(()=>getApp().auth.login()));
+      await current('pages/home/index');
       await step('render-only account page',()=>mini.switchTab('/pages/settings/index'));
+      await current('pages/settings/index');
+      await step('wait for account rendering',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{
+        let tries=0;function check(){wx.createSelectorQuery().select('.account-name').boundingClientRect(rect=>{if(rect?.width){wx.nextTick(resolve);return;}if(++tries>40){reject(Error('Account view not rendered'));return;}setTimeout(check,100);}).exec();}check();
+      })));
       await screenshot('account-render-only');
       fs.writeFileSync(path.join(process.env.WECHAT_ARTIFACT_DIR,'render-boundary.json'),JSON.stringify({interactionPassed:false,boundary:'Login/error/account screenshots use backend fixtures and direct session calls. Button interaction remains unverified.'},null,2));
     }catch(renderError){console.error('Render capture failed: '+renderError.message);}
