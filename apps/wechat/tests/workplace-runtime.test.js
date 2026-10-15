@@ -30,7 +30,7 @@ it('blocks the workplace route and edits before authentication',async()=>{
   const page=load('workplace',{mount:false});await page.onLoad();await page.onShow();
   await page.input({detail:{value:'不应保存'}});
   expect(page.data.accountReady).toBe(false);expect(store.get().settings.workplace).toBe('');
-  expect(wx.reLaunch).toHaveBeenCalledWith({url:'/pages/login/index'});page.onUnload();
+  expect(wx.reLaunch).toHaveBeenCalledWith({url:'/pages/home/index'});page.onUnload();
 });
 
 it('ignores workplace edits from a page belonging to the previous account',async()=>{
