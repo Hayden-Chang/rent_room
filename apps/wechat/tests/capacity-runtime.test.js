@@ -34,14 +34,14 @@ it('shows released capacity and leaves purchase errors visible without clearing 
  const page=r.load('capacity',{needed:'1'});expect(page.data).toMatchObject({remaining:1});
  r.app.pendingHouseName='尚未保存的房源';r.app.service.billing.purchase=async()=>{throw Error('支付结果正在确认');};
  await page.purchase();expect(page.data).toMatchObject({busy:false,error:'支付结果正在确认'});expect(r.app.pendingHouseName).toBe('尚未保存的房源');
- const settings=r.load('settings');expect(settings.data).toMatchObject({count:1,used:1,limit:2});
+ const settings=r.load('settings');expect(settings.data).toMatchObject({used:1,limit:2});
 });
 
-it('shows only active occupancy in settings and capacity while retaining the total record count',()=>{
+it('shows only active occupancy in settings and capacity and keeps archives separate',()=>{
  const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.add('正在看');r.app.service.store.archive(id,true);
- expect(r.load('settings').data).toMatchObject({count:2,archived:1,used:1,limit:2});
+ expect(r.load('settings').data).toMatchObject({archived:1,used:1,limit:2});
  expect(r.load('capacity').data).toMatchObject({used:1,limit:2,remaining:1});
- r.app.service.store.archive(id,false);expect(r.load('settings').data).toMatchObject({count:2,archived:0,used:2});
+ r.app.service.store.archive(id,false);expect(r.load('settings').data).toMatchObject({archived:0,used:2});
 });
 it('routes a full-capacity restore to capacity and leaves the record archived',async()=>{
  const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);r.app.service.store.add('A');r.app.service.store.add('B');

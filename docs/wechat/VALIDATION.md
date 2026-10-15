@@ -67,3 +67,11 @@ npm run check
 新增 inspection-wording 四项测试在修改前全部因缺少预期标题、选项标签及水槽状态分组失败。修改后覆盖全部可见三选一分组、旧选择回显与取消、水槽不存在/恢复及明细记录保留、纱窗旧值与独立问题标记。旧模型初始总数断言随新增水槽状态更新；遍历测试明确排除不渲染选项的根分类节点。
 
 最终检查：官方 wcc 8 文件、wcsc 6 文件通过；inspection-wording、model、files、runtime、field-row-placeholder、field-row-swipe 六文件共 41 项测试通过。选择依据为模板视图与条件/统计规则、备份与 Excel 的模板消费者、打包运行时，以及使用选项标签的字段组件交互。桌面实际展开厨房分类确认三项标题和按钮，截图 artifacts/inspection-wording-20261012/kitchen-runtime.png。未点击用户已有记录的答案按钮。
+
+## 2026-10-15 个人资料与登录页亮度
+
+「我的」删除账号编号、记录总数及顶部本机存储说明，保留登录状态和仅计算未归档房源的容量。头像/昵称直接在原位置调用微信选择控件，本机按账号保存，不追加资料页或云同步。头像先复制再原子提交资料，失败保留旧头像和昵称；退出或切换账号后的旧控件回调不得写入新会话。
+
+登录页的添加房源保持亮紫色、白字和完整不透明度；登录层背景透明，仍拦截背景操作。修改前运行 `38c1be71e2a54ebeacf16dd10fa365e8` 实测按钮 opacity 为 0.45，亮度断言失败。最终运行 `83956eb32c4a43f1ad67882388e66576` 确认 opacity 为 1、按钮色为 rgb(77, 86, 223)、文字白色、登录背景透明、disabled 仍为 true，三处已删内容无渲染节点；资料卡重开后读取相同昵称和持久头像路径。截图、receipt 和结果位于 `apps/wechat/artifacts/profile-review/`。
+
+定向验证：`account-profile`、`account-runtime`、`account-storage`、`settings-simplification`、`capacity-runtime`、`runtime` 六文件 59 项通过。最后一次修改仅补充登录背景透明样式；原生渲染与官方 wcc/wcsc 检查随后重跑通过（11 个页面），业务测试按 JS 未变保留有效。测试使用 `xunju-test-profile` 隔离目录；身份和资料为夹具，原生选择器、系统键盘与真机触摸尚待扫码验收，不能把截图或程序导航当成点击端到端通过。此前登录转场的真机验收仍待用户确认，保持草稿 PR。

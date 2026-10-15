@@ -3,7 +3,8 @@
 ## 本期行为
 
 - 首次打开在「我的房源」首页弹出「微信登录」按钮，登录前隐藏底部导航并拦截业务操作，不保留游客入口。
-- 登录成功后首页弹层消失，原地显示房源；「我的」显示默认头像、微信用户、账号编号和本机记录数量。无头像/昵称表单，无手机号授权。
+- 登录成功后首页弹层消失，原地显示房源；「我的」只显示头像、昵称、登录状态和房源容量。账号编号、本机记录总数及重复存储说明不展示。首页登录层保留触摸拦截，背景透明不压灰；添加房源按钮保留正常亮紫色及登录守卫。
+- 微信登录接口仅确认账号，不返回头像、昵称。「我的」头像使用 `chooseAvatar`，昵称使用 `input type="nickname"`，用户在原位置选择一次即可，不另设资料页或强制完善步骤。支持 `nicknamereview` 的微信版本待审核通过后才保存昵称。头像复制为持久文件，资料按账号存于本机 `profile.json`，不进入房源备份、不上传或云同步；换机需重新选择。
 - 冷启动时先向自有后端重新确认记住的微信账号，确认前不展示业务页面。登录失败可以重试，没有离线免验证入口。
 - 同一次运行从照片选择器、文件选择器或后台返回时沿用已确认的登录状态，避免打断未完成的系统调用。退出后再次进入须点击登录。
 - 退出先保存，失败则保持当前会话；成功退出保留本机数据。同一账号再次登录可继续查看，其他账号使用独立目录。
@@ -26,6 +27,8 @@
 | --- | --- |
 | 登录/恢复/退出、路由守卫、旧回调、文件选择器返回 | `tests/account-runtime.test.js` |
 | 账号目录、旧记录认领、失败保护、服务失效 | `tests/account-storage.test.js` |
+| 本机头像/昵称持久化、失败保护、昵称检查、账号隔离 | `tests/account-profile.test.js`、`tests/account-runtime.test.js` |
+| 登录按钮颜色和资料卡实际渲染 | `tests/e2e/account-profile-render.cjs`；身份/资料为夹具，不代表真机资料控件已验证 |
 | HTTPS 配置及构建配置共存 | `tests/auth-build-config.test.js`、`tests/map-build-config.test.js` |
 | 业务页面共享 service、保留原功能 | `tests/runtime.test.js`、`tests/root-group-runtime.test.js`、`tests/unanswered-group-runtime.test.js`、`tests/detail-navigation.test.js`、`tests/onboarding.test.js`、`tests/speed-test-page.test.js` |
 | 文件与平台 adapter | `tests/platform.test.js` |

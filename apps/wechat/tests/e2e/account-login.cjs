@@ -31,7 +31,7 @@ const timer=setTimeout(()=>{console.error('Account UI test timed out');process.e
     await identity('a'.repeat(64));await(await page.$('#wechat-login')).tap();page=await current('pages/home/index');await loggedIn();await screenshot('home-empty');
     // House setup is an isolated fixture; logout/re-login must reload it from disk.
     const id=await mini.evaluate(()=>getApp().service.store.add('账号 A 的验收记录'));
-    page=await mini.switchTab('/pages/settings/index');await page.waitFor('#account-logout');assert.match(await(await page.$('.account-local')).text(),/1/);await screenshot('account');
+    page=await mini.switchTab('/pages/settings/index');await page.waitFor('#account-logout');assert.equal(await mini.evaluate(()=>getApp().service.store.get().houses.length),1);await screenshot('account');
     await mini.mockWxMethod('showModal',{confirm:true,cancel:false});
     await(await page.$('#account-logout')).tap();page=await current('pages/home/index');await page.waitFor('#wechat-login');
     assert.equal(await mini.evaluate(()=>getApp().service===null),true);

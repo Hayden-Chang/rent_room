@@ -227,3 +227,26 @@ it('does not restore the tab bar from an obsolete login render callback after lo
     if(leave!=='unload')home.onUnload();
   }
 });
+
+it('saves a nickname only after the WeChat review passes and restores rejected or empty edits',async()=>{
+ const h=harness();h.m.wx.canIUse=()=>true;await h.app.auth.login();const p=h.page('settings');p.onLoad();p.onShow();
+ p.nicknameChanged({detail:{value:'小林'}});expect(h.app.service.profile.read().nickname).toBe('');
+ await p.nicknameReviewed({detail:{pass:true}});expect(p.data.profile.nickname).toBe('小林');
+ p.nicknameChanged({detail:{value:'未通过昵称'}});p.nicknameReviewed({detail:{pass:false}});expect(p.data.profile.nickname).toBe('小林');
+ p.nicknameChanged({detail:{value:''}});await p.nicknameReviewed({detail:{pass:true}});expect(p.data.profile.nickname).toBe('小林');
+ const reopened=h.page('settings');reopened.onLoad();reopened.onShow();expect(reopened.data.profile.nickname).toBe('小林');
+});
+it('persists the chosen avatar, supports old nickname controls and keeps prior data when saving fails',async()=>{
+ const h=harness();h.m.wx.canIUse=()=>false;await h.app.auth.login();const p=h.page('settings');p.onLoad();p.onShow();
+ h.m.disk.set('/temporary/avatar','image-bytes');await p.chooseAvatar({detail:{avatarUrl:'/temporary/avatar'}});await p.nicknameChanged({detail:{value:'小林'}});
+ const profile=JSON.parse(JSON.stringify(p.data.profile));h.m.disk.delete('/temporary/avatar');h.m.failDisk(true);
+ await p.nicknameChanged({detail:{value:'无法保存'}});expect(p.data.profile).toEqual(profile);h.m.failDisk(false);
+ h.launch();h.app.onShow();await h.app.auth.ready;const next=h.page('settings');next.onLoad();next.onShow();expect(next.data.profile).toEqual(profile);expect(h.m.disk.get(next.data.profile.avatarUrl)).toBe('image-bytes');
+});
+it('ignores pending nickname reviews and avatar callbacks from a previous session or unloaded page',async()=>{
+ const h=harness();h.m.wx.canIUse=()=>true;await h.app.auth.login();const p=h.page('settings');p.onLoad();p.onShow();p.nicknameChanged({detail:{value:'旧回调'}});
+ h.app.auth.logout();await h.app.auth.login();h.m.disk.set('/temporary/avatar','old');p.nicknameReviewed({detail:{pass:true}});p.chooseAvatar({detail:{avatarUrl:'/temporary/avatar'}});
+ expect(h.app.service.profile.read()).toEqual({nickname:'',avatarUrl:''});
+ const next=h.page('settings');next.onLoad();next.onShow();next.nicknameChanged({detail:{value:'已离开'}});next.onUnload();next.nicknameReviewed({detail:{pass:true}});next.chooseAvatar({detail:{avatarUrl:'/temporary/avatar'}});
+ expect(h.app.service.profile.read()).toEqual({nickname:'',avatarUrl:''});
+});

@@ -6,6 +6,7 @@ import {makeBackup,readBackup,readExcel,exportExcel,MAX_BYTES} from './files.js'
 import {writeIssue} from './issues.js';
 import {createBilling} from './billing.js';
 import {dataRoot} from './account-storage.js';
+import {createAccountProfile} from './account-profile.js';
 
 export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{}}={}) {
   const fs=wx.getFileSystemManager(),current=root+'/state.json',previous=root+'/previous.json';
@@ -37,6 +38,8 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
   });
   const rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs}),store={};
   for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
+  const profile={};
+  for(const [name,fn] of Object.entries(createAccountProfile(fs,root)))profile[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
   async function chooseMedia(houseId,fieldId='') {
     const saved=await stageIssueMedia(houseId,fieldId);
     try{store.edit(houseId,h=>h.media.push(...saved));}
@@ -91,7 +94,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,billing,api,setActive(value){if(active!==value)epoch++;active=value;},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
+  return {store,profile,billing,api,setActive(value){if(active!==value)epoch++;active=value;},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }
