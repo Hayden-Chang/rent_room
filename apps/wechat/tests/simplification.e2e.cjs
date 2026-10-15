@@ -19,12 +19,14 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
  try{
   console.log('UI: settings and persisted guide toggle');
   let page=await mini.switchTab('/pages/settings/index');
+  await screenshot('settings-top');
   const settingsText=await text(page);
   for(const removed of ['检查模板','重新查看引导','恢复上一次本机保存','尝试恢复本机记录'])assert(!settingsText.includes(removed),removed+' must be absent during normal use');
   assert(settingsText.includes('新房源显示操作引导'));assert(settingsText.includes('版本'));
-  await screenshot('settings-top');await mini.pageScrollTo(99999);await screenshot('settings-version');
+  await mini.pageScrollTo(99999);await screenshot('settings-version');
   await mini.pageScrollTo(0);await tap(page,'switch');
   await wait(p=>p.data.settings.onboarding===false,'guide disabled');
+  assert.equal(await mini.evaluate(()=>JSON.parse(wx.getFileSystemManager().readFileSync(wx.env.USER_DATA_PATH+'/xunju/state.json','utf8')).settings.onboarding),false);
   page=await mini.reLaunch('/pages/settings/index');await wait(p=>p.data.settings.onboarding===false,'persisted guide preference');
   await tap(page,'switch');await wait(p=>p.data.settings.onboarding===true,'guide enabled');steps.push('settings removals, independent version row and persisted guide switch');
 
