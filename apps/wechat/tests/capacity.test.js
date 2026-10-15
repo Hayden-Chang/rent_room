@@ -12,9 +12,9 @@ describe('house capacity',()=>{
   expect(()=>store.add('C')).toThrow(expect.objectContaining({code:'HOUSE_CAPACITY'}));
   expect(store.capacity()).toMatchObject({used:2,limit:2,remaining:0});expect(io.read()).toBe(before);
  });
- it('counts archived houses and releases capacity only on persisted deletion',()=>{
+ it('excludes archived houses and keeps occupancy unchanged on their deletion',()=>{
   const io=adapter(),store=createStore(io),a=store.add('A');store.add('B');store.archive(a,true);
-  expect(()=>store.add('C')).toThrow();store.archive(a,false);expect(store.capacity().used).toBe(2);
+  expect(store.capacity().used).toBe(1);store.archive(a,false);expect(store.capacity().used).toBe(2);
   store.archive(a,true);store.remove(a);store.add('C');expect(createStore(io).get().houses.map(h=>h.name)).toEqual(['B','C']);
  });
  it('stacks ten permanent slots per pack and preserves records after a refund',()=>{
@@ -25,8 +25,8 @@ describe('house capacity',()=>{
   const id=store.get().houses[0].id;store.answer(id,'f1_6','value','4800');expect(store.house(id).answers.f1_6.value).toBe('4800');
   expect(()=>store.add('14')).toThrow();expect(store.get().houses).toHaveLength(13);
  });
- it('rejects the entire import batch including archived and duplicate-name copies',()=>{
-  const io=adapter(),store=createStore(io);store.add('同名');const incoming=[freshHouse('同名'),freshHouse('归档')];incoming[1].archived=true;
+ it('rejects the entire batch when its active copies exceed the remaining capacity',()=>{
+  const io=adapter(),store=createStore(io);store.add('同名');const incoming=[freshHouse('同名'),freshHouse('另一套'),freshHouse('归档')];incoming[2].archived=true;
   expect(()=>store.import(incoming)).toThrow();expect(store.get().houses).toHaveLength(1);
   expect(JSON.parse(io.read()).houses).toHaveLength(1);
  });
@@ -44,9 +44,9 @@ describe('house capacity',()=>{
   expect(()=>store.add('保留草稿')).toThrow('保存失败');expect(store.capacity().used).toBe(0);
   io.write=write;store.add('重试');expect(createStore(io).capacity().used).toBe(1);
  });
- it('does not free a slot when deletion fails',()=>{
+ it('does not change occupancy when deleting an archived house fails',()=>{
   const io=adapter(),store=createStore(io),id=store.add('A');store.add('B');store.archive(id,true);io.write=()=>{throw Error('full');};
-  expect(()=>store.remove(id)).toThrow();expect(store.capacity().remaining).toBe(0);expect(store.house(id)).toBeTruthy();
+  expect(()=>store.remove(id)).toThrow();expect(store.capacity().remaining).toBe(1);expect(store.house(id)).toBeTruthy();
  });
  it('preflights import before writing any media and keeps the pending batch',()=>{
   let writes=0;const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(){throw Error('missing');},writeFileSync(){writes++;}})};
@@ -63,5 +63,47 @@ describe('house capacity',()=>{
  });
  it('rejects malformed entitlement counts',()=>{
   for(const value of [-1,1.1,NaN,Infinity,'1',Number.MAX_SAFE_INTEGER])expect(()=>capacityInfo([],value)).toThrow();
+ });
+});
+
+describe('active-only capacity',()=>{
+ it('frees an archived slot while preserving the complete record across reload',()=>{
+  const io=adapter(),store=createStore(io),id=store.add('A');store.add('B');
+  store.edit(id,h=>{h.answers.f1_6={value:'4800'};h.media=[{id:'photo',type:'image',path:'/user/photo.jpg'}];h.summary='保留备注';});
+  const original=store.house(id);store.archive(id,true);
+  expect(store.capacity()).toMatchObject({used:1,remaining:1});store.add('C');
+  const reloaded=createStore(io);expect(reloaded.capacity().used).toBe(2);
+  expect(reloaded.house(id)).toEqual({...original,archived:true});
+ });
+ it('rejects restoring into a full list without changing state or disk',()=>{
+  const state={...emptyState(),houses:[freshHouse('A'),freshHouse('B'),{...freshHouse('旧归档'),archived:true}]};
+  const io=adapter(state),store=createStore(io),before=io.read(),id=state.houses[2].id;
+  expect(()=>store.archive(id,false)).toThrow(expect.objectContaining({code:'HOUSE_CAPACITY'}));
+  expect(store.house(id).archived).toBe(true);expect(io.read()).toBe(before);
+  expect(()=>store.change(s=>{s.houses[2].archived=false;})).toThrow(expect.objectContaining({code:'HOUSE_CAPACITY'}));
+  store.archive(state.houses[0].id,true);store.archive(id,false);
+  expect(createStore(io).capacity()).toMatchObject({used:2,remaining:0});
+ });
+ it('does not release a slot when archiving cannot be saved',()=>{
+  const io=adapter(),store=createStore(io),id=store.add('A');store.add('B');const before=io.read(),write=io.write;
+  io.write=()=>{throw Error('full');};expect(()=>store.archive(id,true)).toThrow('保存失败');
+  expect(store.house(id).archived).toBe(false);expect(store.capacity().used).toBe(2);expect(io.read()).toBe(before);
+  io.write=write;store.archive(id,true);expect(createStore(io).capacity().used).toBe(1);
+ });
+ it('rolls back a restore when it cannot be saved',()=>{
+  const io=adapter(),store=createStore(io),id=store.add('A');store.archive(id,true);const before=io.read();
+  io.write=()=>{throw Error('full');};expect(()=>store.archive(id,false)).toThrow('保存失败');
+  expect(store.house(id).archived).toBe(true);expect(store.capacity().used).toBe(0);expect(io.read()).toBe(before);
+ });
+ it('imports archived-only batches even when historic active records exceed capacity',()=>{
+  const state={...emptyState(),houses:Array.from({length:3},(_,n)=>freshHouse(String(n)))};
+  const io=adapter(state),store=createStore(io),incoming={...freshHouse('旧归档'),archived:true};
+  store.import([incoming]);expect(createStore(io).capacity()).toMatchObject({used:3,over:1});
+  expect(createStore(io).house(incoming.id).archived).toBe(true);
+ });
+ it('counts only active copies in a mixed import',()=>{
+  const io=adapter(),store=createStore(io);store.add('A');
+  store.import([freshHouse('B'),{...freshHouse('归档'),archived:true}]);
+  expect(createStore(io).get().houses).toHaveLength(3);expect(createStore(io).capacity().used).toBe(2);
  });
 });

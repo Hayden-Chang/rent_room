@@ -1,5 +1,6 @@
 import {createPlaces} from './places.js';
 import {createStore} from './store.js';
+import {activeHouseCount} from './capacity.js';
 import {uid,clone,prepareImport,emptyState,freshHouse} from './model.js';
 import {makeBackup,readBackup,readExcel,exportExcel,MAX_BYTES} from './files.js';
 import {writeIssue} from './issues.js';
@@ -77,7 +78,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     return {...parsed,fileName:file.name};
   }
   function commitImport(pending) {
-    store.checkCapacity(pending.houses.length);
+    store.checkCapacity(activeHouseCount(pending.houses));
     const houses=clone(pending.houses),created=[];
     try{for(const h of houses)for(const m of h.media||[]){const bytes=pending.files[m.path];if(!bytes)throw Error('备份影像缺失');m.id=uid();m.path=root+'/media/'+m.id+(m.type==='video'?'.mp4':'.jpg');fs.writeFileSync(m.path,bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));created.push(m.path);}store.import(houses);}
     catch(e){for(const p of created)if(!store.get().houses.some(h=>h.media.some(m=>m.path===p)))try{fs.unlinkSync(p);}catch{}throw e;}
