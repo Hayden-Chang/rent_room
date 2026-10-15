@@ -22,7 +22,16 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
   await screenshot('settings-top');
   const settingsText=await text(page);
   for(const removed of ['检查模板','重新查看引导','恢复上一次本机保存','尝试恢复本机记录'])assert(!settingsText.includes(removed),removed+' must be absent during normal use');
-  assert(settingsText.includes('新房源显示操作引导'));assert(settingsText.includes('版本'));
+  assert(settingsText.includes('操作引导'));assert(!settingsText.includes('新房源显示操作引导'));assert(settingsText.includes('版本'));
+  const guide=await bounded(page.$('.guide-setting'),'guide setting'),reference=await bounded(page.$('button.menu'),'reference setting');
+  assert(guide&&reference);
+  const typography={};
+  for(const property of ['font-family','font-size','font-weight']){
+   typography[property]=await bounded(guide.style(property),'guide '+property);
+   assert.equal(typography[property],await bounded(reference.style(property),'reference '+property),property+' must match other settings');
+  }
+  assert.equal(typography['font-size'],'14px');assert.equal(String(typography['font-weight']),'500');
+  fs.writeFileSync(path.join(output,'settings-typography.json'),JSON.stringify(typography,null,2));
   await mini.pageScrollTo(99999);await screenshot('settings-version');
   await mini.pageScrollTo(0);await tap(page,'switch');
   await wait(p=>p.data.settings.onboarding===false,'guide disabled');
