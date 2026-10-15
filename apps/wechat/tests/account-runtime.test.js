@@ -162,3 +162,33 @@ it('does not change another page tab bar and unsubscribes when home is destroyed
   h.app.auth.logout();expect(h.m.tabBarVisible).toBe(true);p.onShow();expect(h.m.tabBarVisible).toBe(false);
   p.onUnload();const before=JSON.stringify(p.data);await h.app.auth.login();expect(JSON.stringify(p.data)).toBe(before);
 });
+
+it('keeps authenticated content during repeated house navigation instead of showing the login sheet',async()=>{
+  const h=harness();h.m.wx.navigateTo=options=>h.m.routes.push(options.url);
+  await h.app.auth.login();const id=h.app.service.store.add('连续查看的房源');
+  const home=h.page('home');home.onLoad();home.onShow();
+  for(let n=0;n<3;n++){
+    home.open({currentTarget:{dataset:{id}}});home.onHide();
+    expect(home.data.accountReady).toBe(true);expect(home.data.houses[0].id).toBe(id);
+    const detail=h.page('detail');detail.onLoad({id});detail.onShow();
+    expect(detail.data.house.id).toBe(id);expect(detail.data.accountReady).toBe(true);
+    detail.setData({noteKeyboardHeight:300});detail.onHide();
+    expect(detail.data.accountReady).toBe(true);expect(detail.data.house.id).toBe(id);
+    expect(detail.data.noteKeyboardHeight).toBe(0);expect(detail.coachHidden).toBe(true);
+    detail.onUnload();home.onShow();expect(home.data.accountReady).toBe(true);
+  }
+  expect(h.m.routes).toEqual(Array(3).fill('/pages/detail/index?id='+id));
+  expect(h.m.calls.filter(c=>c.login)).toHaveLength(1);home.onUnload();
+});
+it('keeps hidden home authenticated on session notifications but clears it on real logout',async()=>{
+  const h=harness();await h.app.auth.login();const id=h.app.service.store.add('保留的记录');
+  const home=h.page('home');home.onLoad();home.onShow();home.onHide();
+  home.renderSession(h.app.auth.snapshot());
+  expect(home.data.accountReady).toBe(true);expect(home.data.houses[0].id).toBe(id);
+  h.app.auth.logout();expect(home.data).toMatchObject({accountReady:false,houses:[]});
+  home.open({currentTarget:{dataset:{id}}});expect(h.m.routes).toEqual([]);home.onUnload();
+});
+it('still hides a protected page when its account is no longer authenticated',async()=>{
+  const h=harness();await h.app.auth.login();const page=h.page('archive');page.onLoad();page.onShow();
+  h.app.auth.logout();page.onHide();expect(page.data.accountReady).toBe(false);page.onUnload();
+});

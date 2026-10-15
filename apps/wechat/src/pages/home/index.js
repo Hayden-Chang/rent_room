@@ -29,7 +29,6 @@ Page({...home,
     if(this.accountId!==state.account.id){unwatch(this);this.accountLoaded=false;}
     if(!this.accountLoaded)home.onLoad.call(this);
     if(this.visible){wx.showTabBar?.({animation:false});home.onShow.call(this);}
-    else this.setData({accountReady:false});
   },
   async login(){if(!this.data.busy)await getApp().auth.login();},
   preventTouchMove(){}
