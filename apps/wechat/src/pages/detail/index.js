@@ -107,7 +107,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   decision(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>h.decision=e.currentTarget.dataset.value);this.refresh();});},
   summary(e){attempt(()=>service().store.edit(this.data.id,h=>h.summary=e.detail.value));},
   custom(){if(this.dismissSwipe())return;attempt(async()=>{const label=await prompt('自定义检查项','例如：次卧空调制冷正常');if(!label)return;const id=uid();service().store.edit(this.data.id,h=>h.extras.push({id,title:label,category:'自定义检查',phase:'现场看房',path:[],fields:[{id:id+'_0',label,type:'y',options:['是','否'],badValue:'否'}]}));this.refresh();});},
-  export(){attempt(async()=>{const r=await service().api('showActionSheet',{itemList:['导出 Excel 记录','备份本房源（含影像）']});wx.showLoading({title:'正在生成',mask:true});try{await service().exportFile(r.tapIndex===0?'excel':'backup',this.data.id);}finally{wx.hideLoading();}});},
+  export(){wx.navigateTo({url:'/pages/import/index?mode=export&id='+encodeURIComponent(this.data.id)});},
   top(){this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
   ...coachMethods,
 });

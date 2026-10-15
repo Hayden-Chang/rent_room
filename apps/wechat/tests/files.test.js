@@ -1,13 +1,50 @@
 import {it,expect,describe} from 'vitest';
 import {zipSync,unzipSync,strToU8,strFromU8} from 'fflate';
 import {emptyState,freshHouse,fields} from '../src/lib/model.js';
-import {makeBackup,readBackup,writeWorkbook,exportExcel,readExcel} from '../src/lib/files.js';
-describe('portable backups and fixed Excel schema',()=>{
- it('round-trips actual photo and video bytes plus hidden answers',()=>{const state=emptyState(),h=freshHouse('影像房源');state.houses=[h];h.answers.retired={value:'保留'};h.media=[{id:'photo1',type:'image',path:'/local/a',fieldId:'f1_1'},{id:'video1',type:'video',path:'/local/b',fieldId:''}];const blobs={'/local/a':new Uint8Array([255,216,1,2]),'/local/b':new Uint8Array([0,0,24,102])};const before=JSON.stringify(state),result=readBackup(makeBackup(state,p=>blobs[p]));expect(result.houses[0].answers.retired.value).toBe('保留');for(let i=0;i<2;i++)expect([...result.files[result.houses[0].media[i].path]]).toEqual([...Object.values(blobs)[i]]);expect(JSON.stringify(state)).toBe(before);});
- it('rejects missing media and path traversal',()=>{const h=freshHouse('A');h.media=[{id:'x',type:'image',path:'../../secret'}];const bytes=zipSync({'manifest.json':strToU8(JSON.stringify({version:2,format:'xunju-backup',houses:[h]}))});expect(()=>readBackup(bytes)).toThrow('影像');});
- it('does not silently create a backup if original media cannot be read',()=>{const h=freshHouse('A');h.media=[{id:'x',type:'image',path:'missing'}];expect(()=>makeBackup({...emptyState(),houses:[h]},()=>{throw Error('missing');})).toThrow('missing');});
- it('round-trips Chinese text, multi-select, notes, issue overrides and zero',()=>{const h=freshHouse('东 & 西 <一居>');h.answers.f1_6={value:'0',note:'备注\n第二行',issueFlag:false};const f=fields.find(f=>f.multiple);h.answers[f.id]={value:f.options.slice(0,2)};const r=readExcel(exportExcel([h]));expect(r.houses[0].name).toBe(h.name);expect(r.houses[0].answers.f1_6).toMatchObject(h.answers.f1_6);expect(r.houses[0].answers[f.id].value).toEqual(f.options.slice(0,2));});
- it('exports all 303 fields in the fixed import template',()=>{const r=readExcel(exportExcel([freshHouse('A')],true));expect(Object.keys(r.houses[0].answers)).toHaveLength(303);});
- it('rejects arbitrary spreadsheets and formulas before import',()=>{expect(()=>readExcel(writeWorkbook([['姓名','地址'],['A','B']]))).toThrow('列名');const files=unzipSync(exportExcel([freshHouse('A')]));files['xl/worksheets/sheet1.xml']=strToU8(strFromU8(files['xl/worksheets/sheet1.xml']).replace('<is>','<f>HYPERLINK("x")</f><is>'));expect(()=>readExcel(zipSync(files))).toThrow('公式');});
- it('rejects duplicate fields rather than silently choosing a value',()=>{const files=unzipSync(exportExcel([freshHouse('A')]));let xml=strFromU8(files['xl/worksheets/sheet1.xml']);const row=xml.match(/<row r="2">.*?<\/row>/)[0];xml=xml.replace('</sheetData>',row+'</sheetData>');files['xl/worksheets/sheet1.xml']=strToU8(xml);expect(()=>readExcel(zipSync(files))).toThrow('重复字段');});
+import {writeBackup,readBackup as scanBackup,CHUNK_BYTES} from '../src/lib/files.js';
+import {makeBackup,readBackup,reader} from './helpers/backup.js';
+const state=houses=>({...emptyState(),settings:{workplace:'PRIVATE LOCATION'},houses});
+const photo=h=>{h.media=[{id:'photo',type:'image',path:'/photo',fieldId:'f1_1',caption:'影像说明'}];return h;};
+describe('selectable streaming ZIP archives',()=>{
+ it('round-trips full house state and actual media bytes without leaking settings or mutating source',async()=>{
+  const h=photo(freshHouse('影像房源'));h.archived=true;h.answers.retired={value:'保留',note:'第二行',issueFlag:false};h.answers.f1_6={value:'0'};const f=fields.find(f=>f.multiple);h.answers[f.id]={value:f.options.slice(0,2)};h.summary='总结';h.decision='继续比较';h.groups.hidden={normal:'否'};h.media.push({id:'clip',type:'video',path:'/clip'});
+  const original=state([h]),before=JSON.stringify(original),blobs={'/photo':new Uint8Array([255,216,1]),'/clip':new Uint8Array([0,0,24,102])};
+  const bytes=await makeBackup(original,p=>blobs[p]),raw=JSON.parse(strFromU8(unzipSync(bytes)['manifest.json']));
+  expect(raw.settings).toBeUndefined();expect(strFromU8(bytes)).not.toContain('PRIVATE LOCATION');
+  const result=await readBackup(bytes),restored=result.houses[0];expect(restored.id).toBe(h.id);expect(restored.name).toBe(h.name);expect(restored.archived).toBe(true);expect(restored.answers).toEqual(h.answers);expect(restored.groups.hidden).toEqual(h.groups.hidden);expect(restored.summary).toBe(h.summary);expect(restored.templateTopics).toEqual(h.templateTopics);
+  for(let i=0;i<2;i++)expect([...result.files[restored.media[i].path]]).toEqual([...Object.values(blobs)[i]]);expect(JSON.stringify(original)).toBe(before);
+ });
+ it('streams more than the former 50 MB total, while each media read is bounded',async()=>{
+  const h=photo(freshHouse('大房源')),parts=[],source=new Uint8Array(CHUNK_BYTES).fill(7);let maxChunk=0;
+  await writeBackup([h],async function*(){for(let i=0;i<205;i++)yield source;},chunk=>{maxChunk=Math.max(maxChunk,chunk.length);parts.push(chunk);});
+  expect(parts.reduce((n,p)=>n+p.length,0)).toBeGreaterThan(50*1024*1024);expect(maxChunk).toBeLessThanOrEqual(CHUNK_BYTES);
+  const read=async function*(){yield* parts;},preview=await scanBackup(read);expect(preview.houses[0].media[0].size).toBe(205*CHUNK_BYTES);
+  let extracted=0;await scanBackup(read,{},new Map([[preview.houses[0].media[0].path,chunk=>extracted+=chunk.length]]));expect(extracted).toBe(205*CHUNK_BYTES);
+ },20000);
+ it('preview inflates no media and commit extracts only selected media',async()=>{
+  const a=photo(freshHouse('A')),b=photo(freshHouse('B')),bytes=await makeBackup(state([a,b]),()=>new Uint8Array([1,2,3]));
+  const preview=await scanBackup(reader(bytes,257)),seen=[];
+  await scanBackup(reader(bytes,257),{},new Map([[preview.houses[1].media[0].path,chunk=>seen.push(...chunk)]]));expect(seen).toEqual([1,2,3]);expect(preview.houses).toHaveLength(2);
+ });
+ it('rejects missing media, invalid paths, non-app archives and truncated ZIPs',async()=>{
+  const h=photo(freshHouse('A')),bytes=await makeBackup(state([h]),()=>new Uint8Array([1])),files=unzipSync(bytes);
+  const key=Object.keys(files).find(k=>k.startsWith('media/'));delete files[key];await expect(scanBackup(reader(zipSync(files)))).rejects.toThrow('影像');
+  await expect(scanBackup(reader(zipSync({'../secret':new Uint8Array([1])})))).rejects.toThrow('路径');
+  await expect(scanBackup(reader(zipSync({'manifest.json':strToU8('{}')})))).rejects.toThrow('本应用');
+  await expect(scanBackup(reader(bytes.subarray(0,bytes.length-20)))).rejects.toThrow();
+ });
+ it('detects corrupted selected media bytes even if ZIP metadata is otherwise valid',async()=>{
+  const bytes=await makeBackup(state([photo(freshHouse('A'))]),()=>new Uint8Array([1,2,3])),files=unzipSync(bytes),key=Object.keys(files).find(k=>k.startsWith('media/'));files[key][0]=9;
+  await expect(scanBackup(reader(zipSync(files)),{},new Map([[key,()=>{}]]))).rejects.toThrow('损坏');
+ });
+ it('fails on unavailable originals and empty exports without claiming success',async()=>{
+  await expect(makeBackup(state([photo(freshHouse('A'))]),()=>{throw Error('missing original');})).rejects.toThrow('missing original');
+  await expect(writeBackup([],async function*(){},()=>{})).rejects.toThrow('选择');
+ });
+ it('honors cancellation and propagates output failure',async()=>{
+  const h=photo(freshHouse('A')),job={cancelled:false,onProgress(){job.cancelled=true;}};
+  await expect(writeBackup([h],async function*(){yield new Uint8Array([1]);yield new Uint8Array([2]);},()=>{},job)).rejects.toThrow('取消');
+  await expect(writeBackup([freshHouse('A')],async function*(){},()=>{throw Error('disk full');})).rejects.toThrow('disk full');
+  const bytes=await makeBackup(state([h]),()=>new Uint8Array([1]));await expect(scanBackup(reader(bytes),{cancelled:true})).rejects.toThrow('取消');
+ });
 });

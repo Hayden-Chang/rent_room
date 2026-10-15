@@ -194,7 +194,7 @@ export function validateState(state) {
 export function prepareImport(raw) {
   validateState(raw);
   return raw.houses.map(source=>{
-    const h=clone(source);h.id=uid();h.name+='（导入）';h.media||=[];h.issues||=[];h.extras||=[];h.groups||={};h.archived=!!h.archived;h.templateTopics||=clone(topics);
+    const h=clone(source);h.media||=[];h.issues||=[];h.extras||=[];h.groups||={};h.archived=!!h.archived;h.templateTopics||=clone(topics);
     rules.normalizeHouse(h,h.templateTopics);rules.migrateBehavior(h,h.templateTopics);return h;
   });
 }

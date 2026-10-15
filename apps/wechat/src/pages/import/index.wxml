@@ -1,1 +1,20 @@
-<view class="page"><view class="title">核对后再导入</view><view class="hint break">{{fileName}}</view><view class="card">将新增 {{houses.length}} 套房源。相同名称也作为新房源加入，不覆盖原记录。</view><view wx:for="{{warnings}}" wx:key="*this" class="error">{{item}}</view><view wx:for="{{houses}}" wx:key="id" class="card"><view class="subtitle">{{item.name}}</view><view class="hint">{{item.fields}} 条检查记录 · {{item.media}} 个影像文件</view></view><view class="row"><button class="grow" bindtap="cancel">取消</button><button class="primary grow" loading="{{importing}}" disabled="{{importing}}" bindtap="commit">确认导入</button></view></view>
+<view class="page transfer-page">
+ <view class="title">{{exporting?'选择要导出的房源':'选择要导入的房源'}}</view>
+ <view class="hint">{{exporting?'导出完整记录、照片与视频，可再次导入。':'仅支持本应用导出的房源 ZIP，核对后再导入。'}}</view>
+ <view wx:if="{{!exporting}}" class="file-bar"><view class="muted break">{{fileName||'尚未选择 ZIP 文件'}}</view><button class="link choose-file" disabled="{{busy}}" bindtap="chooseFile">{{fileName?'重新选择 ZIP':'选择 ZIP 文件'}}</button></view>
+ <view wx:if="{{error}}" class="error transfer-error">{{error}}</view>
+ <view wx:if="{{houses.length}}" class="row between selection-bar"><text>共 {{houses.length}} 套，已选 {{selectedCount}} 套</text><button class="link select-all" disabled="{{busy}}" bindtap="toggleAll">{{allSelected?'取消全选':'全选'}}</button></view>
+ <view wx:for="{{houses}}" wx:key="id" class="card transfer-house" data-house-id="{{item.id}}">
+  <button class="house-select row" data-id="{{item.id}}" bindtap="toggle" disabled="{{busy}}" aria-label="选择{{item.name}}" aria-pressed="{{item.selected}}">
+   <view class="check {{item.selected?'on':''}}">{{item.selected?'✓':''}}</view>
+   <view class="grow"><view class="subtitle house-title">{{item.name}} <text wx:if="{{item.archived}}" class="badge">已归档</text></view><view class="muted">{{item.address}}</view><view class="muted">{{item.fields}} 条检查记录 · {{item.media}} 个影像</view></view>
+  </button>
+  <view wx:if="{{item.conflict && item.selected}}" class="conflict">
+   <view class="hint">本机已有「{{item.targetName}}」，请选择处理方式</view>
+   <view class="row"><button class="grow mode-replace {{item.mode==='replace'?'selected':''}}" data-id="{{item.id}}" data-mode="replace" bindtap="mode" disabled="{{busy}}">覆盖</button><button class="grow mode-copy {{item.mode==='copy'?'selected':''}}" data-id="{{item.id}}" data-mode="copy" bindtap="mode" disabled="{{busy}}">新增副本</button></view>
+  </view>
+ </view>
+ <view wx:if="{{exporting && !houses.length}}" class="empty">还没有可导出的房源</view>
+ <view class="hint">只迁移所选房源，个人设置与上班地点不随包导入导出。</view>
+ <view class="transfer-footer"><view wx:if="{{busy}}" class="hint progress">{{progress}}</view><view wx:elif="{{selectedCount && !ready}}" class="hint">请为重复房源选择覆盖或新增副本</view><view class="row"><button class="grow cancel-transfer" bindtap="cancel">{{busy?'取消操作':'取消'}}</button><button class="primary grow commit-transfer" loading="{{busy}}" disabled="{{busy || !ready}}" bindtap="commit">{{exporting?'导出':'导入'}} {{selectedCount}} 套</button></view></view>
+</view>

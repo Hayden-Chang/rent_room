@@ -17,6 +17,15 @@ export function createStore(adapter) {
     archive(id,value){return change(s=>{const h=s.houses.find(h=>h.id===id);if(!h)throw Error('房源不存在');h.archived=value;});},
     remove(id){if(blocked)throw Error(error);const h=state.houses.find(h=>h.id===id);if(!h?.archived)throw Error('请先归档房源');const prior=state;state={...clone(state),houses:state.houses.filter(h=>h.id!==id),updatedAt:new Date().toISOString()};if(!save()){state=prior;emit();throw Error('删除未保存，房源和影像已保留，请稍后重试');}revision++;emit();return state;},
     recover(){const old=adapter.previous();if(!old)throw Error('没有可恢复的保存版本');const recovered=validateState(JSON.parse(old));adapter.preserveCorrupt();state={...emptyState(),...recovered,version:2,settings:{...emptyState().settings,...recovered.settings}};blocked=false;revision++;save();},
-    import(houses){change(s=>{if(s.houses.length+houses.length>200)throw Error('房源数量不能超过 200 套');s.houses.push(...clone(houses));},true);}
+    import(houses,replaceIds=[]){change(s=>{
+      const replacements=new Set(replaceIds);
+      if(replacements.size!==replaceIds.length||replaceIds.some(id=>!s.houses.some(h=>h.id===id)||!houses.some(h=>h.id===id)))throw Error('待覆盖房源已变化，请重新选择');
+      if(houses.some(h=>s.houses.some(old=>old.id===h.id)&&!replacements.has(h.id)))throw Error('已有相同编号的房源，请选择覆盖或新增副本');
+      const incoming=new Map(clone(houses).map(h=>[h.id,h]));
+      if(incoming.size!==houses.length)throw Error('导入房源编号重复');
+      if(s.houses.length+houses.length-replacements.size>200)throw Error('房源数量不能超过 200 套');
+      s.houses=s.houses.map(h=>replacements.has(h.id)?incoming.get(h.id):h).concat([...incoming.values()].filter(h=>!replacements.has(h.id)));
+      validateState(s);
+    },true);}
   };
 }

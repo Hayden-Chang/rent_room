@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {createStore} from '../src/lib/store.js';
 import {emptyState,freshHouse,validateState} from '../src/lib/model.js';
-import {makeBackup,readBackup} from '../src/lib/files.js';
+import {makeBackup,readBackup} from './helpers/backup.js';
 
 function setup(){
  let saved='',full=false,page;
@@ -52,11 +52,11 @@ describe('media captions',()=>{
   const s=setup();s.edit('photo');s.input('字'.repeat(10000));await s.page.saveMediaNote();expect(s.reload().house(s.id).media[0].caption).toHaveLength(10000);
   s.edit('photo');s.input('字'.repeat(10001));await s.page.saveMediaNote();expect(s.toasts.at(-1)).toContain('10000');expect(s.reload().house(s.id).media[0].caption).toHaveLength(10000);
  });
- it('round-trips captions, media bytes and associations through ZIP import without changing the source',()=>{
+ it('round-trips captions, media bytes and associations through ZIP import without changing the source',async()=>{
   const h=freshHouse('备份'),state={...emptyState(),houses:[h]};h.media=[{id:'photo',type:'image',path:'/photo',fieldId:'f1_1',caption:'第一行\n第二行'},{id:'video',type:'video',path:'/video',caption:'视频说明'}];
   const bytes={'/photo':new Uint8Array([1,2,3]),'/video':new Uint8Array([4,5,6])},before=JSON.stringify(state);
-  const backup=readBackup(makeBackup(state,p=>bytes[p])),restored=backup.houses[0];
-  expect(restored.id).not.toBe(h.id);expect(restored.media.map(m=>m.caption)).toEqual(h.media.map(m=>m.caption));expect(restored.media[0].fieldId).toBe('f1_1');
+  const backup=await readBackup(makeBackup(state,p=>bytes[p])),restored=backup.houses[0];
+  expect(restored.id).toBe(h.id);expect(restored.media.map(m=>m.caption)).toEqual(h.media.map(m=>m.caption));expect(restored.media[0].fieldId).toBe('f1_1');
   for(let i=0;i<2;i++)expect([...backup.files[restored.media[i].path]]).toEqual([...Object.values(bytes)[i]]);
   expect(JSON.stringify(state)).toBe(before);
  });

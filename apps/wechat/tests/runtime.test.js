@@ -4,7 +4,7 @@ import vm from 'node:vm';
 
 it('runs built App and Page bundles without Node or browser globals and shares one store',async()=>{
  const disk=new Map();let app,page;
- const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync:(p,v)=>disk.set(p,v),copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),setNavigationBarTitle(){},navigateBack(){},showToast(){},showLoading(){},hideLoading(){}};
+ const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync:(p,v)=>disk.set(p,v),copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),setNavigationBarTitle(){},navigateBack(){},showToast(){},showLoading(){},hideLoading(){},navigateTo(){}};
  const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();
  const id=app.service.store.add('运行验证');
@@ -13,10 +13,10 @@ it('runs built App and Page bundles without Node or browser globals and shares o
    page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};
    page.onLoad?.({id});page.onShow?.();
    if(name==='home'){
-     const originalApi=app.service.api,originalExport=app.service.exportFile,calls=[];
-     app.service.api=async()=>({tapIndex:3});app.service.exportFile=async(...args)=>calls.push(args);
-     await page.manage({currentTarget:{dataset:{id}}});expect(calls).toEqual([['backup',id]]);
-     app.service.api=originalApi;app.service.exportFile=originalExport;
+     const originalApi=app.service.api,routes=[];const navigate=wx.navigateTo;
+     app.service.api=async()=>({tapIndex:2});wx.navigateTo=o=>routes.push(o.url);
+     await page.manage({currentTarget:{dataset:{id}}});expect(routes).toEqual(['/pages/import/index?mode=export&id='+id]);
+     app.service.api=originalApi;wx.navigateTo=navigate;
    }
    if(name==='detail'){expect(page.data.sections).toHaveLength(13);page.choose({detail:{id:'f1_2',value:'一室一厅'}});expect(app.service.store.house(id).answers.f1_2.value).toBe('一室一厅');page.answer({detail:{id:'f1_6',prop:'value',value:'4800'}});expect(page.data.stats.done).toBe(2);
      app.service.store.edit(id,h=>h.media=[{id:'photo',type:'image',path:'/user/photo.jpg'},{id:'clip',type:'video',path:'/user/clip.mp4'}]);

@@ -12,7 +12,7 @@
 | `src/lib/source-model.js`、`src/lib/model.js` | 字段、条件、分组、模板、统计、对比及导入状态校验；规则优先在此集中实现 |
 | `src/lib/store.js` | 状态修改、订阅和保存，通过 adapter 访问持久化；保留写入失败可恢复语义 |
 | `src/lib/platform.js` | 组装 store 与微信文件、媒体、权限及导入导出调用；平台失败在此与业务结果衔接 |
-| `src/lib/files.js` | Excel/ZIP 编解码、备份数据与媒体内容校验 |
+| `src/lib/files.js` | ZIP 流式编解码、清单校验、媒体大小与 CRC 校验 |
 | `src/lib/ui.js` | 页面取得 service、提示、确认及保存状态订阅的公共辅助 |
 | `src/pages/` | 页面显示、局部交互状态与用户操作编排；共享业务状态通过 service 处理 |
 | `src/components/field-row/` | 字段输入、焦点、左滑操作等组件行为及事件；与页面的事件接口保持明确 |
@@ -46,7 +46,7 @@ npm run package
 | 改动边界 | 现有测试入口 |
 | --- | --- |
 | 条件、模板、统计、状态与持久化规则 | `tests/model.test.js`，涉及问句/选项兼容时增加 `tests/inspection-wording.test.js` |
-| Excel、ZIP 与媒体备份 | `tests/files.test.js`，涉及微信文件操作时增加 `tests/platform.test.js` |
+| ZIP 与媒体备份 | `tests/files.test.js`；微信文件操作加 `tests/platform.test.js`，多选/覆盖/原子导入加 `tests/transfer.test.js`，页面编排加构建后的 `tests/transfer-page.test.js`；见 [传输验收](ZIP_TRANSFER.md) |
 | 微信接口、权限/文件失败和存储 adapter | `tests/platform.test.js` |
 | 构建后 App/Page 与共享 service | 先 `npm run build`，再 `tests/runtime.test.js` |
 | 输入焦点、占位及左滑组件行为 | `tests/field-row-placeholder.test.js`、`tests/field-row-swipe.test.js`，并做实际页面交互验收 |
