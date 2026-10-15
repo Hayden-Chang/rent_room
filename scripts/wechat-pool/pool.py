@@ -157,8 +157,12 @@ def inventory(directory):
             data = path.read_bytes()
             if path == directory / 'project.config.json':
                 # DevTools rewrites this file's indentation on first import.
-                # Values remain protected; formatting is not a source change.
-                data = json.dumps(json.loads(data), sort_keys=True, separators=(',', ':')).encode()
+                # It also persists this pinned version's implicit WXML default.
+                # Explicit false and every other value remain hash-protected.
+                config = json.loads(data)
+                if config.get('compileType', 'miniprogram') == 'miniprogram':
+                    config.setdefault('setting', {}).setdefault('minifyWXML', True)
+                data = json.dumps(config, sort_keys=True, separators=(',', ':')).encode()
             result[str(path.relative_to(directory))] = hashlib.sha256(data).hexdigest()
     return result
 

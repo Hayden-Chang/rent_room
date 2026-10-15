@@ -95,6 +95,8 @@ python3 /Volumes/mac2/codex-builds/wechat-instance-pool/runner/pool.py \
 
 预登记工程缓存时必须规范化 `miniprogramRoot`：公开配置的 `./` 写为缓存里的空根，`./src/` 写为 `src/`。本机固定工具版本的 `BaseProject.exists(root, path)` 会拿规范化后的文件路径检查根前缀；直接缓存 `./` 会把已存在的自定义组件误判为缺失，模拟器不能启动，SDK 随后超时。绝对路径和包含 `..` 的根目录拒绝登记。
 
+冻结校验只将此固定工具版本自动落盘的隐式 `setting.minifyWXML:true` 视为与缺省等价，避免首编译被误报为源码变化。显式 `false`、其他配置和所有业务文件仍受完整哈希保护。`Page.*` 元素查询在本机基础库 3.17.3 仍可能无响应，App/截图就绪不等于可执行该协议族；须保留失败记录，采用真实原生界面操作验收，不能调用页面 handler 代替点击。
+
 - 原子 allocator 锁只覆盖分配；每槽使用内核文件锁。等待者不占运行槽。
 - 回调继承租约描述符，常驻工具进程不继承租约，避免归还后仍锁住槽位。监督进程崩溃后，`leased` 状态也阻止其他任务接管；不按 TTL 抢占。
 - 正常归还只清理该任务小程序数据、关闭该任务项目并释放租约。工具进程、登录配置和插件资源保留，没有空闲自动退出机制。receipt 记录 `runtimePid`、`runtimeReused` 和 `residentState`。

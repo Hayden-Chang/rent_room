@@ -34,6 +34,20 @@ class PoolTests(unittest.TestCase):
         config.write_text(json.dumps({'libVersion': '3.15.2', 'appid': 'fixture'}, indent=2))
         self.assertNotEqual(pool.inventory(self.root), before, 'Actual config changes must still fail')
 
+    def test_tool_implicit_wxml_minification_default_is_semantically_stable(self):
+        config = self.root / 'project.config.json'
+        value = {'appid': 'fixture', 'compileType': 'miniprogram', 'setting': {'es6': True}}
+        pool.write_json(config, value)
+        before = pool.inventory(self.root)
+        value['setting']['minifyWXML'] = True
+        pool.write_json(config, value)
+        self.assertEqual(pool.inventory(self.root), before,
+                         'DevTools writes its existing true default during first app compilation')
+        value['setting']['minifyWXML'] = False
+        pool.write_json(config, value)
+        self.assertNotEqual(pool.inventory(self.root), before,
+                            'An explicit behavior change must still invalidate the snapshot')
+
     def test_three_concurrent_owners_and_fourth_waiter(self):
         self.slots.append({'id': '3'})
         (self.root / 'slots/3').mkdir()
