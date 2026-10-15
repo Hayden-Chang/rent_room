@@ -76,6 +76,7 @@ export function validTopics(topics) {
 
 export function isProblem(f, a = {}) {
   if(isInspectionResult(f))return a.value==='有问题';
+  if(f.role==='inspection-check')return a.value==='否';
   if (['y','c','a'].includes(f.type)) return f.badValue === '否' && a.value === '否';
   return !f.fact && a.problem === true;
 }
@@ -215,7 +216,7 @@ export function setGroupPermission(h,g,value) {
 }
 
 export function groupFields(g,h) {
-  return g.topics.filter(t=>topicActive(t,h)).flatMap(t=>t.fields.filter(f=>!isPermissionController(t,f))).filter(f=>fieldActive(f,h)&&(['y','c','a'].includes(f.type)||(isInspectionResult(f)&&h.answers[f.id]?.value!=='没有')));
+  return g.topics.filter(t=>topicActive(t,h)).flatMap(t=>t.fields.filter(f=>!isPermissionController(t,f))).filter(f=>fieldActive(f,h)&&(['y','c','a'].includes(f.type)||f.role==='inspection-check'||(isInspectionResult(f)&&h.answers[f.id]?.value!=='没有')));
 }
 
 export function groupStatus(g,h) {

@@ -9,19 +9,21 @@ const selected=(h,id)=>rows(h).find(r=>r.id===id).options.find(o=>o.selected)?.l
 it.each(parking)('%s offers normal yes/no/absent controls in new and saved templates',(id,title)=>{
  for(const legacy of [false,true]){
   const h=freshHouse('停车检查');
-  if(legacy)for(const t of h.templateTopics)for(const p of t.path)if(p.id===id){p.presence=false;p.aggregate=false;delete p.detailsWithoutPresence;}
+  if(legacy)for(const t of h.templateTopics)for(const p of t.path)if(p.id===id){p.skippable=true;p.presence=false;p.aggregate=false;delete p.detailsWithoutPresence;}
   const before=JSON.stringify(h),row=rows(h).find(r=>r.id===id);
   expect(row.title).toBe(title+'正常');
   expect(row.options.map(o=>o.label)).toEqual(['是','否','没有']);
   expect(row.options.some(o=>o.selected)).toBe(false);
-  expect(row.skippable).toBe(true);
+  expect(row.skippable).toBe(false);
+  expect(row.swipe.skippable).toBe(false);
   expect(JSON.stringify(h)).toBe(before);
  }
 });
 
-it.each(parking)('%s persists all three choices and preserves details across absent and skipped states',(id,title,fieldId)=>{
+it.each(parking)('%s persists all three choices and preserves details from legacy skipped states',(id,title,fieldId)=>{
  const h=freshHouse(title);
- for(const t of h.templateTopics)for(const p of t.path)if(p.id===id){p.presence=false;p.aggregate=false;delete p.detailsWithoutPresence;}
+ for(const t of h.templateTopics)for(const p of t.path)if(p.id===id){p.skippable=true;p.presence=false;p.aggregate=false;delete p.detailsWithoutPresence;}
+ h.groups[id]={notApplicable:true};
  h.answers[fieldId]={value:'否',note:'原有备注',issueFlag:true};
  h.media=[{id:'parking-photo',fieldId,type:'image',path:'/local/parking.jpg'}];
  const snapshot=JSON.stringify(h.templateTopics),media=JSON.stringify(h.media);
@@ -46,11 +48,7 @@ it.each(parking)('%s persists all three choices and preserves details across abs
  expect(rows(reload()).some(r=>r.id===fieldId)).toBe(true);
  expect(selected(reload(),id)).toBe('否');
  expect(stats(reload()).issues).toBeGreaterThan(0);
- const answers=JSON.stringify(store.house(h.id).answers);
- store.group(h.id,id,'skip');
- expect(rows(reload()).some(r=>r.id===fieldId)).toBe(false);
- store.group(h.id,id,'skip');
- expect(selected(reload(),id)).toBe('否');
- expect(JSON.stringify(store.house(h.id).answers)).toBe(answers);
+ expect(rows(reload()).find(r=>r.id===id).skipped).toBe(false);
+ expect(store.house(h.id).groups[id].notApplicable).toBe(true);
  expect(JSON.stringify(store.house(h.id).media)).toBe(media);
 });

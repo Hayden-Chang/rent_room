@@ -20,6 +20,7 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   for(const [groupId,title,fieldId] of [['topic_10','电动车停车充电正常','f10_0'],['topic_11','停车正常','f11_0']]){
    let row=await group(groupId);
    assert.ok((await (await row.$('.label')).text()).includes(title));
+   assert.equal(await row.$('button.skip'),null);
    const choices=await row.$$('button[data-value]');
    assert.deepEqual(await Promise.all(choices.map(c=>c.text())),['是','否','没有']);
    for(const [value,label] of [['正常','是'],['有问题','否'],['没有','没有']]){
@@ -50,6 +51,21 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
    await (await row.$('.head')).tap();
   }
   await mini.screenshot({path:output('parking-restored.png')});
-  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['both titles and three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice'],hardware:'not tested'},null,2));
+  await (await page.$('input.grow')).input('通勤时间');
+  await page.waitFor('.field-branch');
+  for(const [fieldId,label] of [['21255282-3663-4abe-b7de-d91eeb3825ed','公共交通通勤时间（分钟）'],['3c70cda2-7c6c-4fa6-b2db-b647af24ba72','开车通勤时间（分钟）']]){
+   const row=await page.$('.field-branch[data-scroll-key="field-f-'+fieldId+'"] field-row');
+   assert.equal(await (await row.$('.label')).text(),label);
+  }
+  await mini.screenshot({path:output('commute-minutes.png')});
+  await (await page.$('input.grow')).input('门禁安保');
+  await page.waitFor('.group-node[data-scroll-key="group-topic_12"]');
+  await (await (await group('topic_12')).$('button[data-value="是"]')).tap();
+  const guard=()=>page.$('.field-branch[data-scroll-key="field-f-f12_2"] field-row');
+  assert.equal(await (await (await guard()).$('button.selected[data-value]')).text(),'是');
+  await (await (await guard()).$('button[data-value="否"]')).tap();
+  assert.equal(await (await (await group('topic_12')).$('button.selected[data-value]')).text(),'否');
+  await mini.screenshot({path:output('security-guard.png')});
+  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has only three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice','commute minute labels','guard links to security result'],hardware:'not tested'},null,2));
  } finally {clearTimeout(timer);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});

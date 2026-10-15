@@ -10,10 +10,12 @@ export const categories = [...new Set(topics.map(t=>t.category))];
 export const MAP_ID = fields.find(f=>f.label==='地图（和地址联动）').id;
 export const emptyState = () => ({version:2,houses:[],settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
 const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83');
+const commuteLabels=Object.fromEntries(fields.filter(f=>['21255282-3663-4abe-b7de-d91eeb3825ed','3c70cda2-7c6c-4fa6-b2db-b647af24ba72'].includes(f.id)).map(f=>[f.id,f.label]));
 // Apply current group controls to saved templates without rewriting their answers or snapshots.
 export const houseTopics = h => [...(h.templateTopics||topics),...(h.extras||[])].map(t=>{
   const normalGroups=['90bf172a-1c92-41e3-9369-c64f5935e7d9','topic_10','topic_11'];
-  if(t.path?.some(p=>normalGroups.includes(p.id)))t={...t,path:t.path.map(p=>normalGroups.includes(p.id)?{...p,aggregate:true,presence:true,detailsWithoutPresence:true}:p)};
+  if(t.path?.some(p=>normalGroups.includes(p.id)))t={...t,path:t.path.map(p=>normalGroups.includes(p.id)?{...p,aggregate:true,presence:true,detailsWithoutPresence:true,...(['topic_10','topic_11'].includes(p.id)?{skippable:false}:{})}:p)};
+  if(t.fields.some(f=>commuteLabels[f.id]||f.id==='f12_2'))t={...t,fields:t.fields.map(f=>commuteLabels[f.id]?{...f,label:commuteLabels[f.id]}:f.id==='f12_2'?{...f,role:'inspection-check'}:f)};
   if(t.path?.some(p=>p.id===installationGroup.id))t={...t,
     title:t.title==='宽带条件'?installationGroup.title:t.title,
     path:t.path.map(p=>p.id===installationGroup.id?{...p,title:installationGroup.title,visibleWhen:installationGroup.visibleWhen}:p)};
