@@ -75,3 +75,14 @@ npm run check
 登录页的添加房源保持亮紫色、白字和完整不透明度；登录层背景透明，仍拦截背景操作。修改前运行 `38c1be71e2a54ebeacf16dd10fa365e8` 实测按钮 opacity 为 0.45，亮度断言失败。最终运行 `83956eb32c4a43f1ad67882388e66576` 确认 opacity 为 1、按钮色为 rgb(77, 86, 223)、文字白色、登录背景透明、disabled 仍为 true，三处已删内容无渲染节点；资料卡重开后读取相同昵称和持久头像路径。截图、receipt 和结果位于 `apps/wechat/artifacts/profile-review/`。
 
 定向验证：`account-profile`、`account-runtime`、`account-storage`、`settings-simplification`、`capacity-runtime`、`runtime` 六文件 59 项通过。最后一次修改仅补充登录背景透明样式；原生渲染与官方 wcc/wcsc 检查随后重跑通过（11 个页面），业务测试按 JS 未变保留有效。测试使用 `xunju-test-profile` 隔离目录；身份和资料为夹具，原生选择器、系统键盘与真机触摸尚待扫码验收，不能把截图或程序导航当成点击端到端通过。此前登录转场的真机验收仍待用户确认，保持草稿 PR。
+
+
+## 2026-10-15 登录、资料与容量的主线集成
+
+整合主线 `2b5f9a79a257cc6c90d5f70e2328e0ff6dfd8cff`（ZIP 多选导入导出与路线回填），业务验证候选为 `5170cc95d79caf06fc89d1af6d2b04f2f65916f6`。覆盖导入按整批未归档数量的净增量预检，允许归档副本、容量不增加的覆盖和释放容量的替换；归档转未归档超额时先拒绝再写媒体。修改前两项交叉回归分别复现了提前写入媒体、错误拒绝归档副本，原始记录保存在 `apps/wechat/artifacts/merge-review/preflight-before.log`。
+
+定向测试共 199 项通过：account-profile、account-runtime、account-storage、auth-build-config、billing、capacity-config、capacity-runtime、capacity、platform、transfer、transfer-page、runtime、settings-simplification、workplace-runtime、detail-navigation、commute-page 共 191 项；model 仅选择 `durable store and migrations` 的 8 项。精确命令和边界映射见 `apps/wechat/artifacts/merge-review/plan.json` 与 `commands.json`。首轮旧夹具的路由、资料对象和隐藏页面假设已更新；一次 202 套完整清单用例并行运行超时，分步诊断与原断言单例复验保留在 `campaign-22bd991/`，没有放宽超时或断言。最终候选限制文件并发后完整定向集通过，未执行全量单测。官方 wcc/wcsc 各 14 文件通过，12 页面；恢复正常构建后确认未打入测试数据根目录。
+
+固定池 2 号实例的原生证据：资料与亮度 `b34360fdc4f34348aced5529a237ae98`；登录渲染及三轮详情往返 `e38a2f1354bd4bf2b5039e1e3f5bcd7c`；归档容量渲染 `cab0a05e282b4975af3c14ab05fe4e55`。实际按钮为完整不透明亮紫色、登录背景透明；恢复 tabBar 时待完成渲染为 0，三轮导航中首页登录层均为 false；两条记录含一条归档时容量为 1 / 2。主 agent 已查看首页、资料、详情及容量截图。资料证据来自 `22bd991`，与最终候选之间只变更独立容量渲染测试的隔离目录守卫和总数读取，业务、构建输入、资料测试及运行环境完全一致，记录在 `profile-equivalence.json`。
+
+截图、日志和 receipt 汇总于 `apps/wechat/artifacts/merge-review/`。上述原生验证使用身份/房源/资料夹具与导航 API，不宣称真实点击、微信资料选择器、支付或手机转场已验证。此前点击用例的 SDK 查询超时记录继续保留，不能用渲染结果覆盖。用户随后已接受现方案并明确要求合入；原草稿阶段待确认状态由本次合入授权取代，正式发布仍单独处理。
