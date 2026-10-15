@@ -2,6 +2,8 @@
 
 日期：2026-10-15。需求：设置中的上班地点进入独立页面，全局保存一个地点，复用房源地址的搜索、地图选点、定位和手动填写。
 
+最新结论：核心桌面 UI 流程已通过，包含原生地图底图截图及独立读盘。定位拒绝使用测试夹具；真实 GPS、系统权限弹窗、原生地图拖动和用户视觉审批未覆盖。下文早期阻塞保留为历史记录，最终证据见末节。
+
 ## 行为与数据
 
 - `pages/settings` 打开 `pages/workplace`；返回设置时刷新地址摘要，长地址省略显示。
@@ -77,3 +79,25 @@ node scripts/check.mjs
 窗口控制的限制仍存在：原生控制前后曾观察到窗口移到屏幕外；恢复位置能短暂恢复输入，但 `cua_repl` 后续仍出现 `noWindowsAvailable` / ScreenCaptureKit `-3812`，System Events 也出现 AppleEvent `-1712`。修改池副本应用标识的诊断方案被自动审批拒绝，未执行该安装修改；已准备仅核对租约/PID/窗口范围的 Swift / CoreGraphics 脚本，等待用户明确授权后方可执行。
 
 剩余验收：搜索结果选择并保存坐标、独立读盘、返回重开后的坐标回显、修改地址后旧坐标失效、清空与未设置、定位失败仍可手填。用户视觉确认也尚未取得，PR 继续保留草稿。
+
+## Swift 原生操作后的最终验收
+
+用户已明确允许 Swift / CoreGraphics 仅操作本任务独占的 3 号窗口。原生事件校验当前租约、准确 PID、池 App 路径、项目窗口及坐标范围，通过窗口号投递真实鼠标和 Unicode 键盘事件。未调用页面业务 handler、setData 或直接改 store。ScreenCaptureKit 仅捕获该窗口内的手机预览区域，没有拼接、合成或修改界面截图。
+
+应用及测试源码仍与 `8b30a821651739a15f40fd50ad697ae8e2e9ac6e` 相同；本次只增加验收文档，复用同一构建、31 项定向测试和官方编译证据。
+
+| Run | 验收结果 |
+| --- | --- |
+| `98718919ccad4a62ab31a42d1b699aa4` | 真实设置入口、中文手填、返回摘要和重开；线上天地图搜索并点击结果；选点地址/GCJ-02 坐标落盘并重开回显；补充楼层保留坐标；改成其他地址使旧坐标失效；清空移除地址及全部锚点，设置回到未设置。无服务夹具。 |
+| `4eede67c663e4b0d91d17129123d4d9d` | 仅 getLocation 使用 auth deny 夹具，其余为真实 UI、线上搜索和独立读盘。点击定位后显示拒绝提示，原地址/坐标保留；之后仍可中文手填并保存。 |
+| `f15f2a74e9ce4b9db7b39280a0289fef` | 冷恢复后的下一次热复用，重复真实搜索选点，等待地图加载并取得 `04-native-phone-map.png`。主 agent 检查原生像素，确认道路底图、中心点、地址、搜索框和定位按钮正常显示。 |
+
+独立读盘从本次租约和项目 AppID 对应的 `WeappSimulator/WeappFileSystem/<user>/<AppID>/usr/xunju/state.json` 读取真实 JSON，保存 SHA-256 与设置快照；验证房源仍为空、模板/引导等其他设置保持不变。自动化 evaluate 中直接调用 wx 文件接口会触发 `Function has non-object prototype 'undefined' in instanceof check`，因此没有把该接口的失败当成业务写盘失败，也没有用内存状态代替独立读盘。
+
+截图、原生操作脚本、状态与文件断言分别位于本工作树的 `apps/wechat/artifacts/workplace-location/ui-20261015/native-v4/`、`native-v5/` 和 `native-v6/`。核心断言为 `workplace-native-assertions.json`、`workplace-denial-assertions.json`；底图像素检查为 `map-native-review.json`。早期截图未显示底图细节；等待加载并恢复原生主窗口后，原生与同轮 SDK 截图均确认道路底图正常，最终地图视觉证据以加载后的原生手机区域截图为准。
+
+以上三个最终 UI run 均正常结束为 passed/idle。最后一轮热复用保持恢复后的 PID `75128`，App/截图/冻结核验/清理和归还成功；这不代表旧 Page 元素查询脚本通过。
+
+另保留 run `6bae3b642eb54296a21890a26ad31f16` 的回调前连接失败：自动化端口未打开，未执行 UI 断言，池按设计隔离。使用固定 runner 的 recover 命令，仅恢复本任务控制器已退出的 3 号槽，按锁/PID/profile 核验后冷启动；维护 receipt `99cc0197d1714507a3ac741dc506fdef`、原失败 runtime/receipt/profile 全部保留。没有修改微信安装、应用标识或其他槽位。
+
+核心桌面交互通过不等于真机验收：真实 GPS、操作系统权限弹窗、原生地图拖动、冷 App 进程重启与用户视觉确认仍未覆盖。旧 Page.getElement 自动 E2E 的超时记录继续保留，不声称该脚本通过。PR 保留草稿，未合并、未发布。
