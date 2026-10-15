@@ -18,8 +18,9 @@ function harness(options={}){
  page.onLoad({id,...options});page.onReady?.();
  return {app,page,wx,before,fail:()=>{fail=true;},recover:()=>{fail=false;},disk};
 }
-it('replays from settings even when automatic onboarding is disabled',()=>{
- const {page}=harness({guide:'1',disabled:true});expect(page.data.coach).toBe(1);
+it('ignores the removed replay flag on ordinary visits regardless of the automatic preference',()=>{
+ expect(harness({guide:'1'}).page.data.coach).toBe(0);
+ expect(harness({guide:'1',disabled:true}).page.data.coach).toBe(0);
 });
 it('expands a real checklist item on step four without changing saved records',async()=>{
  const {page,app,before}=harness({new:'1'});
@@ -54,9 +55,9 @@ it('cancels the demonstration timer on hide and unload',async()=>{
 it('does not trigger automatic onboarding for an ordinary visit or opted out creation',()=>{
  expect(harness().page.data.coach).toBe(0);expect(harness({new:'1',disabled:true}).page.data.coach).toBe(0);
 });
-it('supports replay without a saved house and returns without persisting demo data',async()=>{
+it('returns from the removed replay-only route without creating or persisting a demo house',()=>{
  const {page,app,wx}=harness({guide:'1',id:''});const saved=JSON.stringify(app.service.store.get());
- expect(page.data.house.name).toBe('用户引导');for(let n=0;n<4;n++)await page.coachNext();
+ expect(page.data.house).toBe(null);expect(page.data.coach).toBe(0);
  expect(wx.navigateBack).toHaveBeenCalled();expect(JSON.stringify(app.service.store.get())).toBe(saved);
 });
 it('opens actions on a deliberate left drag without writing an answer',async()=>{
