@@ -11,10 +11,12 @@ const timer=setTimeout(()=>{console.error('ZIP transfer UI test timed out');proc
  const {makeBackup,readBackup}=await import(pathToFileURL(path.resolve(__dirname,'../helpers/backup.js')));
  const mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  const artifact=name=>path.join(process.env.WECHAT_ARTIFACT_DIR,name);
+ const bounded=(promise,label)=>{let timeout;return Promise.race([promise,new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error(label+' timed out after 10 seconds')),10000);})]).finally(()=>clearTimeout(timeout));};
  const a=freshHouse('原房源'),untouched=freshHouse('保留的房源'),archived=freshHouse('归档房源'),skipped=freshHouse('不导入的房源');archived.archived=true;
  const incoming={...a,name:'更新后的房源',answers:{f1_6:{value:'4200',note:'完整备注'}},media:[{id:'photo',type:'image',path:'/fixture',caption:'合成附件字节'}]};
  const zip=await makeBackup({...emptyState(),houses:[incoming,archived,skipped]},()=>new Uint8Array([1,2,3,4]));
  try {
+  console.log('Prepare disposable ZIP fixture');
   const input=await mini.evaluate(({houses,bytes})=>{
    const service=getApp().service,io=wx.getFileSystemManager();
    service.store.change(s=>{s.houses=houses;s.settings.workplace='不应导出的私人地点';});
@@ -27,10 +29,12 @@ const timer=setTimeout(()=>{console.error('ZIP transfer UI test timed out');proc
   await mini.mockWxMethod('chooseMessageFile',{tempFiles:[{name:'房源验收.zip',path:input,size:zip.length}]});
   // Sharing is a native boundary mock. Copy the generated ZIP before cleanup;
   // this does not send a message or claim the real recipient chooser works.
-  await mini.mockWxMethod('shareFileMessage',function(options){const service=getApp().service;wx.getFileSystemManager().copyFileSync(options.filePath,service.root+'/exported-test.zip');options.success({});});
-  let page=await mini.switchTab('/pages/settings/index');await page.waitFor('.menu-export');
+  await mini.mockWxMethod('shareFileMessage',function(options){const service=getApp().service;wx.getFileSystemManager().copyFileSync(options.filePath,service.root+'/exported-test.zip');return {};});
+  console.log('Open settings and query export entry');
+  let page=await mini.switchTab('/pages/settings/index');await bounded(page.waitFor('.menu-export'),'Export entry query');
   // Select by stable class/data attributes rather than Page handlers.
   await (await page.$('.menu-export')).tap();page=await current('pages/import/index');await page.waitFor('.house-select');
+  console.log('Export entry reached');
   await mini.screenshot({path:artifact('export-all.png')});await (await page.$('.select-all')).tap();
   assert.equal(await (await page.$('.commit-transfer')).property('disabled'),true);
   await (await page.$('.house-select[data-id="'+a.id+'"]')).tap();await mini.screenshot({path:artifact('export-selected.png')});await (await page.$('.commit-transfer')).tap();
