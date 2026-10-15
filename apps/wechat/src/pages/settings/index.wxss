@@ -1,0 +1,1 @@
+.workplace-entry{gap:16px}.workplace-title{flex-shrink:0}.workplace-value{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}

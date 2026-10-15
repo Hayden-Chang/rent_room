@@ -1,7 +1,7 @@
-import {service,attempt,watch,unwatch,prompt,confirm,notify} from '../../lib/ui.js';
+import {service,attempt,watch,unwatch,confirm,notify} from '../../lib/ui.js';
 Page({data:{settings:{},count:0,archived:0,saveError:''},onLoad(){watch(this);},onShow(){this.refresh();},onUnload(){unwatch(this);},refresh(){const s=service().store.get();this.setData({settings:s.settings,count:s.houses.length,archived:s.houses.filter(h=>h.archived).length});},
  open(e){wx.navigateTo({url:'/pages/'+e.currentTarget.dataset.page+'/index'});},
- workplace(){attempt(async()=>{const value=await prompt('上班地点','手动填写地址或地点');if(value!==null){service().store.change(s=>s.settings.workplace=value);this.refresh();}});},
+ workplace(){wx.navigateTo({url:'/pages/workplace/index'});},
  export(e){attempt(async()=>{wx.showLoading({title:'正在生成',mask:true});try{await service().exportFile(e.currentTarget.dataset.kind);}finally{wx.hideLoading();}});},
  importFile(){attempt(async()=>{getApp().pendingImport=await service().selectImport();wx.navigateTo({url:'/pages/import/index'});});},
  onboarding(e){attempt(()=>{service().store.change(s=>s.settings.onboarding=e.detail.value);this.refresh();});},
