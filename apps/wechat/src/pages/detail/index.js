@@ -104,7 +104,7 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   previewIssueMedia(e){return attempt(()=>{const h=service().store.house(this.data.id),{issueId,id}=e.currentTarget.dataset;const media=h.media.filter(m=>m.issueId===issueId);if(media.some(m=>m.id===id))return service().preview(media,id);});},
   openIssue(e){if(this.dismissSwipe())return;attempt(()=>service().api('navigateTo',{url:'/pages/issue/index?id='+encodeURIComponent(this.data.id)+'&issueId='+encodeURIComponent(e.currentTarget.dataset.id)}));},
   resolve(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>{const i=h.issues.find(i=>i.id===e.currentTarget.dataset.id);i.resolved=!i.resolved;});this.refresh();});},
-  decision(e){if(this.dismissSwipe())return;attempt(()=>{service().store.edit(this.data.id,h=>h.decision=e.currentTarget.dataset.value);this.refresh();});},
+  decision(e){if(this.dismissSwipe())return;attempt(()=>{const value=e.currentTarget.dataset.value;service().store.edit(this.data.id,h=>h.decision=h.decision===value?'':value);this.setData({'house.decision':service().store.house(this.data.id).decision});});},
   summary(e){attempt(()=>service().store.edit(this.data.id,h=>h.summary=e.detail.value));},
   export(){attempt(async()=>{const r=await service().api('showActionSheet',{itemList:['导出 Excel 记录','备份本房源（含影像）']});wx.showLoading({title:'正在生成',mask:true});try{await service().exportFile(r.tapIndex===0?'excel':'backup',this.data.id);}finally{wx.hideLoading();}});},
   top(){this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
