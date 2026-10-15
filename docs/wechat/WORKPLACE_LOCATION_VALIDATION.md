@@ -41,3 +41,18 @@ node scripts/check.mjs
 本次使用固定 runner `/Volumes/mac2/codex-builds/wechat-instance-pool/runner/pool.py`，run ID `197a21c61b7c4d799bc6c8047c2ff4bf`。槽位 3 在执行回调前健康检查超时：`App service health timeout`；receipt 状态 `failed` / `quarantined`，进程由池保留。没有执行页面交互断言，没有实际截图，不把 VM 或编译成功作为 UI 通过。没有重试同一异常槽或修改共享池。
 
 可用槽恢复后需执行上述 UI 脚本并检查真实截图。实际手机 GPS、原生权限/键盘和地图拖动仍需受影响平台验收。用户确认实际 UI 后方可合入；当前为待验收。
+
+## 2026-10-15 工具池恢复后的实际渲染
+
+用户明确要求维护工具池后，独立 PR #26 修复工程缓存根路径及工具自动落盘的默认 WXML 配置，固定入口已安装维护提交 `226a6d922b1e2ccae6f5beeaa82d72ddd7d2216d`。三个遗留隔离槽均按锁、控制器和 PID 身份检查恢复，旧 profile、runtime 和失败 receipt 保留。
+
+应用源码仍为 `8b30a821651739a15f40fd50ad697ae8e2e9ac6e`。新增本节仅为文档，不改变构建、测试或应用行为；此前 31 项单测和官方编译证据可复用。
+
+- 实际设置页：run `7bbf2aed65eb42f2a9594e41256c925f`，3 号槽同 PID 复用，SDK 打开设置作为前置条件后截图，已正常归还。
+- 实际上班地点页：run `41f9af7a5f5b4be9b7b1c9f91f269e7f`，直接 SDK 导航仅作为渲染准备；断言路由为 `pages/workplace/index`、地址为空，取得 `workplace-empty-real.png`。没有用页面 handler 或 setData 准备页面效果。
+- 截图及渲染断言位于本 worktree 的 `apps/wechat/artifacts/workplace-location/ui-20261015/`。可以确认手填、搜索框、定位按钮及上班位置空状态在当前代码中实际渲染。
+- 工具池完整 App/截图/冻结/归还探测 run `e30564465e6f4dd5b95c916ce1fccf91` 为 `passed` / `idle`，2 号槽同 PID 复用。
+
+保留的未通过项：旧 UI 脚本 run `c4106519b70446c5b9f41db96cf8ee34` 在元素查询处超时；后续逐项探测证明系统信息、App evaluate、currentPage 和截图均可用，`Page.getElement` 无响应。原生 `cua_repl` 对准确池 App 路径也返回 `timeoutReached`。已向用户请求明确允许 AppleScript / System Events 替代输入（该控制工具说明要求明确指定替代技术），等待期间没有采用该输入方式。
+
+当前截图证明实际渲染，未证明设置入口点击、真实输入、搜索结果点击及操作后的落盘回显。完整交互验收和用户视觉确认仍待完成，PR 保留草稿。
