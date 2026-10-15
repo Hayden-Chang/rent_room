@@ -42,6 +42,13 @@ PR #24 在本轮核对时仍是未合并草稿。#31 的任务分支包含该依
 
 构建后执行上述精确文件的 Vitest 增量组合及 `npm run check`；不运行本地全量单测或全量 E2E。实现提交 `05ee332` 上该组合 13 文件、174 项通过；官方 wcc 14、wcsc 13 文件通过，12 页面、1,474,044 字节。最终 head、命令、输出与 UI 证据边界写入 PR 和本机 `apps/wechat/artifacts/commute/`。
 
+## 共享上班地点整合验证（2026-10-15）
+
+- 生产实现 `fd3c04f`，基线 `5ac60a6`，包含 #24 依赖 `ebdd5fe`。干净工作树构建后，上表 15 个精确测试文件共 193 项通过；官方 wcc 15、wcsc 14 文件通过，13 页面、1,481,630 字节。输出为 `apps/wechat/artifacts/commute/workplace-final-unit.log` 与 `workplace-final-compile.log`。
+- 新增账号切换回归在 #24 原页面 bundle 上失败：旧页面把“不能写入”写入共享设置；同一测试在补齐账号保护后通过。失败记录 `artifacts/commute/workplace-before-guard.log`。
+- 组合 UI 测试已提交固定池：`commute.cjs` 的 run `6b76d114ba0e49ad9ca2417649c269e5` 在回调前以 `App service health timeout` 失败；`workplace.cjs` 的 run `adfdf8b6a8bf4d938b71d436e14f3b81` 排队后以无可用槽位失败。状态检查三槽均为 busy-or-quarantined；没有抢用窗口或修改共享运行时。回执复制到 `artifacts/commute/workplace-integration/`。
+- 本轮没有取得组合版本的真实截图或点击证据。之前的路线渲染截图属于旧界面，不能替代本轮共享设置入口及返回流程验收。依赖 #24 合入、实际交互、当前截图及用户视觉确认仍待完成。
+
 ## 现场证据与未完成项
 
 - 公开北京地点的真实公交/驾车 API 返回已解析；微信内生产公交适配也取得 5 个候选。只证明这些样本及请求路径，不能据此推断所有城市、实时路况、班次或真机均通过。
