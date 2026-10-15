@@ -14,5 +14,5 @@
   </view>
  </view>
  <view wx:if="{{exporting && !houses.length}}" class="empty">还没有可导出的房源</view>
- <view class="transfer-footer"><view wx:if="{{busy}}" class="hint progress">{{progress}}</view><view class="row"><button class="grow cancel-transfer" bindtap="cancel">{{busy?'取消操作':'取消'}}</button><button class="primary grow commit-transfer" loading="{{busy}}" disabled="{{busy || !ready}}" bindtap="commit">{{exporting?(exportPrepared?'发送 ZIP':'导出 '+selectedCount+' 套'):'导入 '+selectedCount+' 套'}}</button></view></view>
+ <view class="transfer-footer"><view wx:if="{{busy}}" class="hint progress">{{progress}}</view><view class="row"><button class="grow cancel-transfer" bindtap="cancel">{{busy?'取消操作':'取消'}}</button><button class="primary grow commit-transfer" loading="{{busy}}" disabled="{{busy || !ready}}" bindtap="commit">{{exporting?(exportPrepared?'重试发送':'导出 '+selectedCount+' 套'):'导入 '+selectedCount+' 套'}}</button></view></view>
 </view>

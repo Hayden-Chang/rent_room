@@ -29,16 +29,16 @@ Page({
     const selected=this.data.houses.filter(h=>h.selected),job=this.start(this.data.exporting?(this.exported?'正在发送 ZIP':'正在生成 ZIP'):'正在导入');
     try {
       if(this.data.exporting){
-        if(this.exported){
-          const result=await service().shareExport(this.exported);
-          if(this.unloaded)return;
-          if(result.shared){this.exported=null;this.setData({exportPrepared:false});}
-          notify(result.shared?'已导出 '+selected.length+' 套房源':'已取消发送');
-        }else{
+        if(!this.exported){
           const file=await service().exportFile(selected.map(h=>h.id),job);
           if(this.unloaded){service().discardExport(file);return;}
           this.exported=file;this.setData({exportPrepared:true});
         }
+        this.setData({progress:'正在打开分享'});
+        const result=await service().shareExport(this.exported);
+        if(this.unloaded)return;
+        if(result.shared){this.exported=null;this.setData({exportPrepared:false});}
+        notify(result.shared?'已导出 '+selected.length+' 套房源':'已取消发送');
       }else {
         const replacements=selected.filter(h=>h.mode==='replace');
         if(replacements.length&&!await confirm('覆盖 '+replacements.length+' 套房源？',replacements.slice(0,4).map(h=>h.targetName).join('、')+(replacements.length>4?'等':'')+'的记录和附件将被整套替换。'))return;

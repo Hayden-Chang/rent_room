@@ -14,38 +14,42 @@ function fixture(){
 }
 async function file(s,houses){const bytes=await makeBackup({...emptyState(),houses});s.disk.set('/input.zip',bytes.buffer);s.callbacks.chooseMessageFile=o=>o.success({tempFiles:[{name:'记录.zip',path:'/input.zip'}]});}
 describe('ZIP transfer page and entry points',()=>{
- it('prepares the ZIP before a fresh tap invokes native sharing synchronously',async()=>{
+ it('automatically opens sharing after one export tap finishes generating the selected ZIP',async()=>{
+  const s=fixture(),id=s.service.store.add('自动导出');s.disk.set('/photo',new Uint8Array([1,2,3]).buffer);s.service.store.edit(id,h=>h.media=[{id:'photo',type:'image',path:'/photo'}]);await s.page.onLoad({mode:'export'});
+  let shares=0,bytes;s.callbacks.shareFileMessage=o=>{shares++;expect(s.page.data.busy).toBe(true);bytes=new Uint8Array(s.disk.get(o.filePath));o.success({});};
+  await Promise.all([s.page.commit(),s.page.commit()]);expect(shares).toBe(1);expect((await readBackup(bytes)).houses.map(h=>h.id)).toEqual([id]);expect(s.page.data.error).toBe('');expect(s.page.data.exportPrepared).toBe(false);expect(s.page.data.busy).toBe(false);expect(s.toasts.at(-1)).toBe('已导出 1 套房源');
+ });
+ it('keeps a rejected automatic share for a synchronous retry from a fresh tap',async()=>{
   const s=fixture(),id=s.service.store.add('手势房源');s.disk.set('/photo',new Uint8Array([1,2,3]).buffer);s.service.store.edit(id,h=>h.media=[{id:'photo',type:'image',path:'/photo'}]);await s.page.onLoad({mode:'export'});
   let tapping=false,shares=0,bytes;s.callbacks.shareFileMessage=o=>{shares++;if(!tapping)return o.fail({errMsg:'shareFileMessage:fail can only be invoked by user TAP gesture'});bytes=new Uint8Array(s.disk.get(o.filePath));o.success({});};
-  tapping=true;const generated=s.page.commit();tapping=false;await generated;
-  expect(s.page.data.error).toBe('');expect(shares).toBe(0);expect(s.page.data.exportPrepared).toBe(true);
+  const log=vi.spyOn(console,'error').mockImplementation(()=>{});tapping=true;const generated=s.page.commit();tapping=false;try{await generated;}finally{log.mockRestore();}
+  expect(s.page.data.error).toBe('请点击“重试发送”打开微信分享');expect(shares).toBe(1);expect(s.page.data.exportPrepared).toBe(true);
   tapping=true;const shared=s.page.commit();tapping=false;await shared;
-  expect(s.page.data.error).toBe('');expect(shares).toBe(1);expect(s.page.data.exportPrepared).toBe(false);expect((await readBackup(bytes)).houses.map(h=>h.id)).toEqual([id]);expect(s.toasts.at(-1)).toBe('已导出 1 套房源');
+  expect(s.page.data.error).toBe('');expect(shares).toBe(2);expect(s.page.data.exportPrepared).toBe(false);expect((await readBackup(bytes)).houses.map(h=>h.id)).toEqual([id]);expect(s.toasts.at(-1)).toBe('已导出 1 套房源');
  });
  it('selects export houses, marks archives, prevents empty export and shares only selected IDs',async()=>{
   const s=fixture(),a=s.service.store.add('A'),b=s.service.store.add('B');s.service.store.archive(b,true);await s.page.onLoad({mode:'export'});expect(s.page.data.houses[1].archived).toBe(true);expect(s.page.data.selectedCount).toBe(2);
   s.page.toggleAll();expect(s.page.data.ready).toBe(false);expect(s.page.data.selectedCount).toBe(0);await s.page.commit();expect(s.routes).toEqual([]);
-  s.page.toggle(event(b));let bytes;s.callbacks.shareFileMessage=o=>{bytes=new Uint8Array(s.disk.get(o.filePath));o.success({});};await s.page.commit();expect(s.page.data.exportPrepared).toBe(true);await s.page.commit();expect((await readBackup(bytes)).houses.map(h=>h.id)).toEqual([b]);expect(s.toasts.at(-1)).toBe('已导出 1 套房源');expect(s.service.store.house(a)).toBeTruthy();
+  s.page.toggle(event(b));let bytes;s.callbacks.shareFileMessage=o=>{bytes=new Uint8Array(s.disk.get(o.filePath));o.success({});};await s.page.commit();expect((await readBackup(bytes)).houses.map(h=>h.id)).toEqual([b]);expect(s.toasts.at(-1)).toBe('已导出 1 套房源');expect(s.service.store.house(a)).toBeTruthy();
  });
  it('retries the same prepared ZIP after canceled or failed sending without regenerating it',async()=>{
-  const s=fixture();s.service.store.add('A');await s.page.onLoad({mode:'export'});await s.page.commit();const path=s.page.exported.filePath,bytes=s.disk.get(path),paths=[];
-  s.callbacks.shareFileMessage=o=>{paths.push(o.filePath);o.fail({errMsg:'shareFileMessage:fail cancel'});};await s.page.commit();expect(s.page.data.error).toBe('');expect(s.page.data.exportPrepared).toBe(true);expect(s.disk.get(path)).toBe(bytes);expect(s.toasts.at(-1)).toBe('已取消发送');
+  const s=fixture();s.service.store.add('A');await s.page.onLoad({mode:'export'});const paths=[];s.callbacks.shareFileMessage=o=>{paths.push(o.filePath);o.fail({errMsg:'shareFileMessage:fail cancel'});};await s.page.commit();const path=s.page.exported.filePath,bytes=s.disk.get(path);expect(s.page.data.error).toBe('');expect(s.page.data.exportPrepared).toBe(true);expect(s.toasts.at(-1)).toBe('已取消发送');
   const log=vi.spyOn(console,'error').mockImplementation(()=>{});
   try{s.callbacks.shareFileMessage=o=>{paths.push(o.filePath);o.fail({errMsg:'shareFileMessage:fail native error'});};await s.page.commit();expect(s.page.data.error).toBe('发送 ZIP 失败，请重试');expect(log).toHaveBeenCalledWith('房源文件发送失败',{errMsg:'shareFileMessage:fail native error'});}finally{log.mockRestore();}
   expect(s.page.data.exportPrepared).toBe(true);expect(s.disk.get(path)).toBe(bytes);s.callbacks.shareFileMessage=o=>{paths.push(o.filePath);o.success({});};await s.page.commit();expect(paths).toEqual([path,path,path]);expect(s.disk.has(path)).toBe(false);expect(s.page.data.exportPrepared).toBe(false);expect(s.page.data.error).toBe('');
  });
  it('discards prepared exports when selections change or the page leaves',async()=>{
-  const s=fixture(),a=s.service.store.add('A');s.service.store.add('B');await s.page.onLoad({mode:'export'});await s.page.commit();const all=s.page.exported.filePath;s.page.toggle(event(a));expect(s.disk.has(all)).toBe(false);expect(s.page.data.exportPrepared).toBe(false);
+  const s=fixture(),a=s.service.store.add('A');s.service.store.add('B');s.callbacks.shareFileMessage=o=>o.fail({errMsg:'share:fail cancel'});await s.page.onLoad({mode:'export'});await s.page.commit();const all=s.page.exported.filePath;s.page.toggle(event(a));expect(s.disk.has(all)).toBe(false);expect(s.page.data.exportPrepared).toBe(false);
   await s.page.commit();const subset=s.page.exported.filePath;s.page.toggleAll();expect(s.disk.has(subset)).toBe(false);expect(s.page.data.exportPrepared).toBe(false);await s.page.commit();const last=s.page.exported.filePath;s.page.onUnload();expect(s.disk.has(last)).toBe(false);
  });
  it('cleans late generation and defers unload cleanup until native sharing releases the file',async()=>{
   const s=fixture();s.service.store.add('A');await s.page.onLoad({mode:'export'});const generate=s.service.exportFile;let release,created;const ready=new Promise(resolve=>created=resolve);
   s.service.exportFile=async(...args)=>{const file=await generate(...args);created(file);await new Promise(resolve=>release=resolve);return file;};const pending=s.page.commit(),file=await ready;s.page.onUnload();release();await pending;expect(s.disk.has(file.filePath)).toBe(false);expect(s.toasts).toEqual([]);
-  const sending=fixture();sending.service.store.add('B');await sending.page.onLoad({mode:'export'});await sending.page.commit();const path=sending.page.exported.filePath;let request;sending.callbacks.shareFileMessage=o=>request=o;
-  const shared=sending.page.commit();sending.page.onUnload();expect(sending.disk.has(path)).toBe(true);request.success({});await shared;expect(sending.disk.has(path)).toBe(false);expect(sending.toasts).toEqual([]);
+  const sending=fixture();sending.service.store.add('B');await sending.page.onLoad({mode:'export'});let request,opened;const native=new Promise(resolve=>opened=resolve);sending.callbacks.shareFileMessage=o=>{request=o;opened();};
+  const shared=sending.page.commit();await native;const path=request.filePath;sending.page.onUnload();expect(sending.disk.has(path)).toBe(true);request.success({});await shared;expect(sending.disk.has(path)).toBe(false);expect(sending.toasts).toEqual([]);
  });
  it('returns to generation when a prepared ZIP is no longer available',async()=>{
-  const s=fixture();s.service.store.add('A');await s.page.onLoad({mode:'export'});await s.page.commit();s.disk.delete(s.page.exported.filePath);await s.page.commit();expect(s.page.data.error).toContain('重新导出');expect(s.page.data.exportPrepared).toBe(false);await s.page.commit();expect(s.page.data.error).toBe('');expect(s.page.data.exportPrepared).toBe(true);
+  const s=fixture();s.service.store.add('A');s.callbacks.shareFileMessage=o=>o.fail({errMsg:'share:fail cancel'});await s.page.onLoad({mode:'export'});await s.page.commit();s.disk.delete(s.page.exported.filePath);await s.page.commit();expect(s.page.data.error).toContain('重新导出');expect(s.page.data.exportPrepared).toBe(false);await s.page.commit();expect(s.page.data.error).toBe('');expect(s.page.data.exportPrepared).toBe(true);
  });
  it('requires per-house duplicate decisions and preserves the deselected house after import and reload',async()=>{
   const s=fixture(),id=s.service.store.add('原记录'),other=s.service.store.add('不选这套'),incoming={...freshHouse('替换'),id},copy={...freshHouse('备份'),id:other};await file(s,[incoming,copy]);await s.page.onLoad();

@@ -81,12 +81,13 @@ export function createPlatform(wx) {
     if(sharing.has(path))return Promise.reject(Error('正在发送 ZIP'));
     if(typeof wx.shareFileMessage!=='function')return Promise.reject(Error('当前微信不支持文件发送，请更新微信后重试'));
     sharing.add(path);let shared=false;
-    // Invoke the native API in the tap call stack, before any await or timer.
+    // No await here: retries from a tap retain that tap's invocation context.
     return api('shareFileMessage',{filePath:path,fileName:file.fileName}).then(()=>{
       shared=true;return {shared:true};
     },error=>{
       if(/cancel/i.test(error?.errMsg||error?.message||''))return {shared:false};
-      const failure=Error('发送 ZIP 失败，请重试');failure.cause=error;throw failure;
+      const reason=error?.errMsg||error?.message||'';
+      const failure=Error(/gesture|user\s*tap/i.test(reason)?'请点击“重试发送”打开微信分享':'发送 ZIP 失败，请重试');failure.cause=error;throw failure;
     }).finally(()=>{sharing.delete(path);if(shared||discarded.has(path))discardExport(file);});
   }
   async function selectImport(job={}){
