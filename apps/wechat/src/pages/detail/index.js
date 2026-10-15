@@ -1,10 +1,11 @@
+import {protectedPage} from '../../lib/auth-page.js';
 import {SPEED_FIELD_ID} from '../../lib/speed-test.js';
 import {mediaWithIssues} from '../../lib/issues.js';
 import {applyPlace} from '../../lib/places.js';
 import {coachSteps,coachMethods} from '../../lib/onboarding.js';
 import {stats,formView,houseTopics,rules,fieldView,checklistTargets,issueEntries,MAP_ID,costGroups,addCostField} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
-Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
+Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
   onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id||'',coach:options.id&&options.new&&service().store.get().settings.onboarding?1:0});watch(this);this.refresh();},
   onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){this.speedOpening=false;this.coachHidden=false;if(this.data.id)this.refresh();if(this.data.coach)this.coachLayout();},onUnload(){this.clearCoachTimer();this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.clearCoachTimer();this.dismissSwipe();this.setData({noteKeyboardHeight:0});},onPageScroll(){for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
   dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
@@ -121,4 +122,4 @@ Page({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{valu
   export(){attempt(async()=>{const r=await service().api('showActionSheet',{itemList:['导出 Excel 记录','备份本房源（含影像）']});wx.showLoading({title:'正在生成',mask:true});try{await service().exportFile(r.tapIndex===0?'excel':'backup',this.data.id);}finally{wx.hideLoading();}});},
   top(){this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
   ...coachMethods,
-});
+}));

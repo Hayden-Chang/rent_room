@@ -1,8 +1,9 @@
+import {protectedPage} from '../../lib/auth-page.js';
 import {uid} from '../../lib/model.js';
 import {issueDraft} from '../../lib/issues.js';
 import {service, attempt, notify} from '../../lib/ui.js';
 
-Page({
+Page(protectedPage({
   data: {houseId: '', issueId: '', title: '', note: '', media: [], readonly: false, dirty: false, selecting: false, saving: false, error: '', titleError: '', keyboardHeight: 0},
   onLoad(options) {
     this.staged = []; this.unloaded = false; this.isNew = !options.issueId;
@@ -72,4 +73,4 @@ Page({
     } catch (error) { this.setData({error: error.message || '保存失败，已填写内容仍保留，请重试'}); }
     finally { if (!this.unloaded) this.setData({saving: false}); }
   }); }
-});
+}));

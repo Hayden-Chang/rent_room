@@ -1,3 +1,4 @@
+import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect,vi,afterEach} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -7,7 +8,7 @@ function harness(options={}){
  vi.useFakeTimers();const disk=new Map();let app,page,fail=false;
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync(p,v){if(fail)throw Error('full');disk.set(p,v);},copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),setNavigationBarTitle(){},navigateBack:vi.fn(),navigateTo:vi.fn(),showToast:vi.fn(),getWindowInfo:()=>({windowWidth:390,windowHeight:720}),pageScrollTo:o=>o.complete?.()};
  const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
- vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();
+ vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
  const id=app.service.store.add('引导回归');app.service.store.answer(id,'f1_6','value','4800');
  if(options.disabled)app.service.store.change(s=>s.settings.onboarding=false);
  const before=JSON.stringify(app.service.store.house(id));

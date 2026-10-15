@@ -9,6 +9,10 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
 (async () => {
  const mini = await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  try {
+  // Authentication is fixture setup; production page actions remain guarded.
+  await mini.mockWxMethod('login',{code:'ui-fixture-code'});
+  await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:0,limit:2}});
+  assert.equal(await mini.evaluate(()=>getApp().auth.login()),true);
   // Fixture creation only; all tested choices, folds and search use visible controls.
   const id = await mini.evaluate(() => getApp().service.store.add('停车选项验收'));
   const route='/pages/detail/index?id='+encodeURIComponent(id);

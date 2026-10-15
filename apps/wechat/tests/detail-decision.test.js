@@ -1,6 +1,7 @@
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {pageContextFixture} from './helpers/account-fixture.js';
 import {createStore} from '../src/lib/store.js';
 
 const event=value=>({currentTarget:{dataset:{value}}});
@@ -11,10 +12,10 @@ function setup(){
   const store=createStore(adapter),id=store.add('意向回归'),toasts=[],updates=[];
   store.answer(id,'f1_6','note','保留检查备注');
   store.edit(id,h=>{h.summary='保留总结';h.issues=[{id:'issue',title:'待确认',resolved:false}];h.media=[{id:'photo',type:'image',path:'/photo.jpg'}];});
-  vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{
+  vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({
     Page:p=>page=p,getApp:()=>({service:{store}}),setTimeout,clearTimeout,
     wx:{setNavigationBarTitle(){},navigateBack(){},showToast:o=>toasts.push(o.title)},
-  });
+  }));
   page.data=JSON.parse(JSON.stringify(page.data));
   page.setData=function(patch){
     updates.push(patch);

@@ -1,3 +1,4 @@
+import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -47,7 +48,7 @@ it('a heading tap folds once, its answer tap only selects, and its swipe never f
 it('page actions save and reopen parent notes and media, independently of group controls',async()=>{
  const {store,id,io}=make();let page;const mediaCalls=[];
  const service={store,chooseMedia:async(...args)=>mediaCalls.push(args)};
- vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page:p=>page=p,getApp:()=>({service}),wx:{setNavigationBarTitle(){},showToast(){}},console,setTimeout,clearTimeout});
+ vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page:p=>page=p,getApp:()=>({service}),wx:{setNavigationBarTitle(){},showToast(){}},console,setTimeout,clearTimeout}));
  page.data=structuredClone(page.data);page.setData=function(v){Object.assign(this.data,v);};page.onLoad({id});
  const category=page.data.sections[0];page.fold({detail:{id:category.title,expanded:false}});expect(page.data.sections[0].expanded).toBe(true);
  const target=category.header.id;

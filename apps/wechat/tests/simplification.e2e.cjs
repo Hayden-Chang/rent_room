@@ -17,6 +17,9 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
  async function text(page){const root=await bounded(page.$('.page'),'rendered page query');assert(root);return bounded(root.text(),'rendered page text');}
  async function tap(page,selector){const element=await bounded(page.$(selector),selector);assert(element,selector+' must be visible');await bounded(element.tap(),'tap '+selector);}
  try{
+  await mini.mockWxMethod('login',{code:'ui-fixture-code'});
+  await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:1,limit:12}});
+  assert.equal(await mini.evaluate(()=>getApp().auth.login()),true);
   console.log('UI: settings and persisted guide toggle');
   let page=await mini.switchTab('/pages/settings/index');
   await screenshot('settings-top');
@@ -35,7 +38,7 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
   await mini.pageScrollTo(99999);await screenshot('settings-version');
   await mini.pageScrollTo(0);await tap(page,'switch');
   await wait(p=>p.data.settings.onboarding===false,'guide disabled');
-  assert.equal(await mini.evaluate(()=>JSON.parse(wx.getFileSystemManager().readFileSync(wx.env.USER_DATA_PATH+'/xunju/state.json','utf8')).settings.onboarding),false);
+  assert.equal(await mini.evaluate(()=>JSON.parse(wx.getFileSystemManager().readFileSync(getApp().service.root+'/state.json','utf8')).settings.onboarding),false);
   page=await mini.reLaunch('/pages/settings/index');await wait(p=>p.data.settings.onboarding===false,'persisted guide preference');
   await tap(page,'switch');await wait(p=>p.data.settings.onboarding===true,'guide enabled');steps.push('settings removals, independent version row and persisted guide switch');
 
@@ -64,7 +67,7 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
   page=await mini.reLaunch('/pages/home/index');page=await mini.navigateTo('/pages/detail/index?id='+ids.id);await wait(p=>p.data.coach===0,'ordinary visit without guide');steps.push('ordinary visit does not replay guide');
 
   console.log('UI: recovery only after unreadable-data fixture');
-  await mini.evaluate(()=>{const file=wx.env.USER_DATA_PATH+'/xunju/state.json';wx.getFileSystemManager().writeFileSync(file,'{corrupt','utf8');getApp().onLaunch();});
+  await mini.evaluate(()=>{const file=getApp().service.root+'/state.json';wx.getFileSystemManager().writeFileSync(file,'{corrupt','utf8');getApp().onLaunch();return getApp().auth.login();});
   page=await mini.reLaunch('/pages/settings/index');await wait(p=>p.data.recoveryBlocked,'unreadable-data state');
   assert((await text(page)).includes('尝试恢复本机记录'));await screenshot('settings-read-error');
   await tap(page,'.recovery-card .menu');await mini.native().confirmModal();await wait(p=>!p.data.recoveryBlocked&&!p.data.saveError,'recovery completed');

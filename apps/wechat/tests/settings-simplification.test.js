@@ -1,6 +1,7 @@
 import {it,expect,vi} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {localPageFixture} from './helpers/account-fixture.js';
 import {createStore} from '../src/lib/store.js';
 import {emptyState,freshHouse,houseTopics} from '../src/lib/model.js';
 import {version} from '../package.json';
@@ -12,7 +13,7 @@ function harness({current,previous,releaseVersion=''}={}){
  const write=(p,v)=>{if(full)throw Error('full');disk.set(p,v);};
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync:write,copyFileSync:(a,b)=>write(b,disk.get(a)),renameSync(a,b){if(renameFailure)throw Error('rename failed');write(b,disk.get(a));disk.delete(a);}}),getAccountInfoSync:()=>({miniProgram:{version:releaseVersion}}),setNavigationBarTitle(){},navigateBack:vi.fn(),showToast:vi.fn(),showModal:o=>o.success({confirm:confirmation})};
  const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
- vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();
+ vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
  function open(name='settings',options={}){
   page?.onUnload?.();vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);
   page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};

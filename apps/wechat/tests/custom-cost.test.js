@@ -1,6 +1,7 @@
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {pageContextFixture} from './helpers/account-fixture.js';
 import * as model from '../src/lib/model.js';
 import {createStore} from '../src/lib/store.js';
 import {makeBackup,readBackup,exportExcel,readExcel} from '../src/lib/files.js';
@@ -12,7 +13,7 @@ function setup(){
  const io={read:()=>disk,write:v=>{if(full)throw Error('full');disk=v;}};
  const store=createStore(io),id=store.add('自定义费用');
  const service={store,api:async(name,options)=>{prompts.push({name,options});return typeof response==='function'?response():response;}};
- vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),{Page:p=>page=p,getApp:()=>({service}),wx:{setNavigationBarTitle(){},showToast:o=>toasts.push(o.title)},console,setTimeout,clearTimeout});
+ vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page:p=>page=p,getApp:()=>({service}),wx:{setNavigationBarTitle(){},showToast:o=>toasts.push(o.title)},console,setTimeout,clearTimeout}));
  page.data=structuredClone(page.data);page.setData=function(p){Object.assign(this.data,p);};page.onLoad({id});
  return {page,store,id,io,prompts,toasts,response:v=>{response=v;},full:v=>{full=v;},add:groupId=>page.addCost({currentTarget:{dataset:{groupId}}})};
 }

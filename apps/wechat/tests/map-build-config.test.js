@@ -6,7 +6,7 @@ import {spawnSync} from 'node:child_process';
 let fixture;
 beforeAll(()=>{
  fixture=fs.mkdtempSync(path.join(os.tmpdir(),'wechat-map-build-'));
- for(const name of ['scripts','src','data'])fs.cpSync(name,path.join(fixture,name),{recursive:true});
+ for(const name of ['scripts','src','data','package.json'])fs.cpSync(name,path.join(fixture,name),{recursive:true});
  fs.symlinkSync(path.resolve('node_modules'),path.join(fixture,'node_modules'),'dir');
 });
 afterAll(()=>fs.rmSync(fixture,{recursive:true,force:true}));
@@ -19,14 +19,14 @@ it('refuses a missing explicit map key file before deleting an existing build',(
 });
 it('embeds a configured browser key from a file without logging it',()=>{
  const key='a'.repeat(32),keyFile=path.join(fixture,'browser-key');fs.writeFileSync(keyFile,key+'\n');
- const result=build({TIANDITU_KEY_FILE:keyFile});expect(result.status).toBe(0);
+ const result=build({TIANDITU_KEY_FILE:keyFile});expect(result.status,result.stderr).toBe(0);
  expect(fs.readFileSync(path.join(fixture,'dist/app.js'),'utf8')).toContain(key);
  expect(result.stdout+result.stderr).not.toContain(key);
  expect(fs.existsSync(path.join(fixture,'dist/browser-key'))).toBe(false);
 });
 it('keeps explicit environment key precedence',()=>{
  const key='b'.repeat(32),result=build({TIANDITU_KEY:key,TIANDITU_KEY_FILE:path.join(fixture,'missing-key')});
- expect(result.status).toBe(0);expect(fs.readFileSync(path.join(fixture,'dist/app.js'),'utf8')).toContain(key);
+ expect(result.status,result.stderr).toBe(0);expect(fs.readFileSync(path.join(fixture,'dist/app.js'),'utf8')).toContain(key);
 });
 it('uses shared user configuration from a fresh worktree and prefers local overrides',async()=>{
  const {loadMapKey}=await import('../scripts/map-config.mjs');
