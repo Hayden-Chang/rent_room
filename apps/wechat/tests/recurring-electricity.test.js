@@ -50,3 +50,12 @@ it('deduplicates a legacy custom template containing only the second field and r
  h.answers[duplicate]={value:'18'};const {io,store}=open(h);expect(rows(store.house(h.id))[0]).toMatchObject({id:primary,value:'18'});
  store.recover();expect(rows(store.house(h.id))[0]).toMatchObject({id:primary,value:'18'});
 });
+it('combines electricity recovery with transactional retries without replacing the readable backup',()=>{
+ const h=legacy();h.answers[duplicate]={value:'42',note:'旧电费'};h.media=[{id:'bill',type:'image',path:'/local/bill.jpg',fieldId:duplicate}];
+ const backup=JSON.stringify({...emptyState(),houses:[h]});let disk='{corrupt',previous=backup,full=true,preserved;
+ const io={read:()=>disk,previous:()=>previous,preserveCorrupt:()=>{preserved=disk;},write:(value,{keepPrevious=false}={})=>{if(full)throw Error('full');if(!keepPrevious)previous=disk;disk=value;}};
+ const store=createStore(io);expect(store.status().blocked).toBe(true);
+ expect(()=>store.recover()).toThrow('恢复未保存');expect(store.status().blocked).toBe(true);expect(disk).toBe('{corrupt');expect(previous).toBe(backup);
+ full=false;store.recover();expect(store.status().blocked).toBe(false);expect(previous).toBe(backup);expect(preserved).toBe('{corrupt');
+ const saved=createStore(io).house(h.id);expect(rows(saved)[0]).toMatchObject({value:'42',note:'旧电费'});expect(rows(saved)[0].media).toHaveLength(1);expect(saved.answers[duplicate]).toEqual(h.answers[duplicate]);
+});
