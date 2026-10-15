@@ -66,6 +66,13 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   await (await (await guard()).$('button[data-value="否"]')).tap();
   assert.equal(await (await (await group('topic_12')).$('button.selected[data-value]')).text(),'否');
   await mini.screenshot({path:output('security-guard.png')});
-  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has only three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice','commute minute labels','guard links to security result'],hardware:'not tested'},null,2));
+  await (await page.$('input.grow')).input('冬季水管防冻');
+  await page.waitFor('.field-branch[data-scroll-key="field-f-f77_0"]');
+  const winter=await page.$('.field-branch[data-scroll-key="field-f-f77_0"] field-row');
+  assert.deepEqual(await Promise.all((await winter.$$('button[data-value]')).map(c=>c.text())),['是','否','不涉及']);
+  await (await winter.$('button[data-value="不涉及"]')).tap();
+  assert.equal(await (await winter.$('button.selected[data-value]')).text(),'不涉及');
+  await mini.screenshot({path:output('winter-pipe.png')});
+  fs.writeFileSync(output('parking-assertions.json'),JSON.stringify({passed:true,scenarios:['parking has only three choices','tap each choice','disk persistence','absent hides details','reopen retains choices','fold preserves choice','commute minute labels','guard links to security result','winter pipe not-applicable choice'],hardware:'not tested'},null,2));
  } finally {clearTimeout(timer);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});

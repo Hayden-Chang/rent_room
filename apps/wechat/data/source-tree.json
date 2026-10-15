@@ -5087,7 +5087,7 @@
             "title": "冬季水管防冻正常",
             "meta": {
               "id": "f77_0",
-              "type": "y",
+              "type": "s",
               "options": null,
               "quick": false,
               "legacyType": "t",
@@ -5096,7 +5096,8 @@
               "sources": [
                 "IMG_6325.PNG"
               ],
-              "fact": false
+              "fact": false,
+              "role": "inspection-check"
             },
             "children": [
               {
@@ -5109,6 +5110,12 @@
                 "id": "f77_0_option_320f24d9-2f33-4717-9301-f0564289cb2d",
                 "kind": "option",
                 "title": "否",
+                "children": []
+              },
+              {
+                "id": "f77_0_option_not_applicable",
+                "kind": "option",
+                "title": "不涉及",
                 "children": []
               }
             ]

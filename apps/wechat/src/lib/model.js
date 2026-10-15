@@ -15,7 +15,12 @@ const commuteLabels=Object.fromEntries(fields.filter(f=>['21255282-3663-4abe-b7d
 export const houseTopics = h => [...(h.templateTopics||topics),...(h.extras||[])].map(t=>{
   const normalGroups=['90bf172a-1c92-41e3-9369-c64f5935e7d9','topic_10','topic_11'];
   if(t.path?.some(p=>normalGroups.includes(p.id)))t={...t,path:t.path.map(p=>normalGroups.includes(p.id)?{...p,aggregate:true,presence:true,detailsWithoutPresence:true,...(['topic_10','topic_11'].includes(p.id)?{skippable:false}:{})}:p)};
-  if(t.fields.some(f=>commuteLabels[f.id]||f.id==='f12_2'))t={...t,fields:t.fields.map(f=>commuteLabels[f.id]?{...f,label:commuteLabels[f.id]}:f.id==='f12_2'?{...f,role:'inspection-check'}:f)};
+  if(t.fields.some(f=>commuteLabels[f.id]||['f12_2','f77_0'].includes(f.id)))t={...t,fields:t.fields.map(f=>{
+    if(commuteLabels[f.id])return {...f,label:commuteLabels[f.id]};
+    if(f.id==='f12_2')return {...f,role:'inspection-check'};
+    if(f.id==='f77_0')return {...f,type:'s',role:'inspection-check',options:['是','否','不涉及']};
+    return f;
+  })};
   if(t.path?.some(p=>p.id===installationGroup.id))t={...t,
     title:t.title==='宽带条件'?installationGroup.title:t.title,
     path:t.path.map(p=>p.id===installationGroup.id?{...p,title:installationGroup.title,visibleWhen:installationGroup.visibleWhen}:p)};
