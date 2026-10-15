@@ -16,7 +16,7 @@ function setup(initial){
   let saved=initial;const adapter={read:()=>saved,write:value=>saved=value};
   const store=createStore(adapter),wx={navigateTo:vi.fn(),reLaunch:vi.fn(),showToast:vi.fn()};
   const account={id:'a'.repeat(64),number:'AAAAAAAAAAAA'};
-  const app={service:{store},auth:{isAuthenticated:()=>true,snapshot:()=>({account}),ready:Promise.resolve(true)}};
+  const app={service:{store,profile:{read:()=>({nickname:'',avatarUrl:''})}},auth:{isAuthenticated:()=>true,snapshot:()=>({account}),ready:Promise.resolve(true)}};
   function load(name,{mount=true}={}){
     let page;vm.runInNewContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),{Page:o=>page=o,wx,getApp:()=>app,setTimeout,clearTimeout});
     page.data=structuredClone(page.data);page.setData=function(p){Object.assign(this.data,p);};
@@ -45,7 +45,7 @@ it('blocks stale workplace edits after the authenticated account changes',async(
   app.auth.snapshot=()=>({account:{id:'another-account'}});
   await page.input({detail:{value:'不能写入'}});expect(store.get()).toEqual(before);
   await page.selectPlace({detail:{address:'不能选中',location:{latitude:22.54,longitude:113.95}}});await page.clear();
-  expect(store.get()).toEqual(before);page.onShow();expect(page.data.accountReady).toBe(false);expect(wx.reLaunch).toHaveBeenCalledWith({url:'/pages/login/index'});page.onUnload();
+  expect(store.get()).toEqual(before);page.onShow();expect(page.data.accountReady).toBe(false);expect(wx.reLaunch).toHaveBeenCalledWith({url:'/pages/home/index'});page.onUnload();
 });
 
 it('opens the separate workplace page from settings and reflects the one selected address on return',async()=>{
