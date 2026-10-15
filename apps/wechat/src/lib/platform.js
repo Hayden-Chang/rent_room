@@ -17,6 +17,7 @@ export function createPlatform(wx) {
   const api=(name,args={})=>new Promise((resolve,reject)=>wx[name]({...args,success:resolve,fail:reject}));
   const MAX_BYTES=50*1024*1024; // Existing per-file capture limit.
   const unlink=path=>{try{fs.unlinkSync(path);}catch{}};
+  const exports=new Set(),sharing=new Set(),discarded=new Set();
   const append=(path,chunk)=>{if(chunk.length)fs.appendFileSync(path,chunk.buffer.slice(chunk.byteOffset,chunk.byteOffset+chunk.byteLength));};
   async function* chunks(path) {
     const size=fs.statSync(path).size,fd=fs.openSync({filePath:path,flag:'r'});
@@ -64,10 +65,29 @@ export function createPlatform(wx) {
     try {
       checkTransfer(job);fs.writeFileSync(path,new ArrayBuffer(0));
       await writeBackup(snapshot,chunks,chunk=>append(path,chunk),job);checkTransfer(job);
-      // Only the user chooses whether and where to share the ZIP.
-      try{await api('shareFileMessage',{filePath:path,fileName:name});return {shared:true};}
-      catch(error){if(/cancel/.test(error.errMsg||''))return {shared:false};throw Error('ZIP 已生成，但分享未完成，请重试导出');}
-    }catch(error){throw transferError(error);}finally{unlink(path);}
+      exports.add(path);return {filePath:path,fileName:name};
+    }catch(error){unlink(path);throw transferError(error);}
+  }
+  function discardExport(file) {
+    const path=file?.filePath;if(!exports.has(path))return;
+    if(sharing.has(path)){discarded.add(path);return;}
+    exports.delete(path);discarded.delete(path);unlink(path);
+  }
+  function shareExport(file) {
+    const path=file?.filePath;
+    if(!exports.has(path)||!exists(path)){
+      discardExport(file);const error=Error('ZIP 已不可用，请重新导出');error.fileUnavailable=true;return Promise.reject(error);
+    }
+    if(sharing.has(path))return Promise.reject(Error('正在发送 ZIP'));
+    if(typeof wx.shareFileMessage!=='function')return Promise.reject(Error('当前微信不支持文件发送，请更新微信后重试'));
+    sharing.add(path);let shared=false;
+    // Invoke the native API in the tap call stack, before any await or timer.
+    return api('shareFileMessage',{filePath:path,fileName:file.fileName}).then(()=>{
+      shared=true;return {shared:true};
+    },error=>{
+      if(/cancel/i.test(error?.errMsg||error?.message||''))return {shared:false};
+      const failure=Error('发送 ZIP 失败，请重试');failure.cause=error;throw failure;
+    }).finally(()=>{sharing.delete(path);if(shared||discarded.has(path))discardExport(file);});
   }
   async function selectImport(job={}){
     const res=await api('chooseMessageFile',{count:1,type:'file',extension:['zip']}),file=res.tempFiles[0];
@@ -114,7 +134,7 @@ export function createPlatform(wx) {
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,api,places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
+  return {store,api,places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }

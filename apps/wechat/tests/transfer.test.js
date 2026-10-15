@@ -65,7 +65,7 @@ describe('house ZIP transfer transactions',()=>{
   const originalRead=m.io.readFileSync,read=m.io.readSync,close=m.io.closeSync,lengths=[];let closed=0;
   m.io.readFileSync=(path,...args)=>{if(path.endsWith('.zip')||path.endsWith('.jpg'))throw Error('whole-file binary read');return originalRead(path,...args);};
   m.io.readSync=options=>{lengths.push(options.length);return read(options);};m.io.closeSync=options=>{closed++;close(options);};
-  await p.commitImport(pending,[{id:h.id,mode:'add'}]);m.callbacks.shareFileMessage=o=>o.success({});await p.exportFile([h.id]);expect(Math.max(...lengths)).toBeLessThanOrEqual(256*1024);expect(lengths.length).toBeGreaterThan(2);expect(closed).toBe(2);
+  await p.commitImport(pending,[{id:h.id,mode:'add'}]);const exported=await p.exportFile([h.id]);p.discardExport(exported);expect(Math.max(...lengths)).toBeLessThanOrEqual(256*1024);expect(lengths.length).toBeGreaterThan(2);expect(closed).toBe(2);
  });
  it('permits replacement at the 200-house capacity but atomically refuses a new copy',async()=>{
   const m=mockWx(),p=createPlatform(m.wx);p.store.change(s=>s.houses=Array.from({length:200},(_,i)=>freshHouse('房源'+i)));const source=clone(p.store.get().houses[0]),pending=await select(m,p,[{...source,name:'覆盖成功'}]);
@@ -74,14 +74,24 @@ describe('house ZIP transfer transactions',()=>{
  });
  it('exports only selected archived and active houses with actual bytes and no global settings',async()=>{
   const m=mockWx(),p=createPlatform(m.wx),a=p.store.add('A'),b=p.store.add('B'),c=p.store.add('C');p.store.change(s=>s.settings.workplace='不随包迁移');p.store.archive(b,true);m.disk.set('/photo',new Uint8Array([4,5]).buffer);p.store.edit(a,h=>media(h,'/photo'));
-  let bytes;m.callbacks.shareFileMessage=o=>{expect(o.fileName).toMatch(/2套.*\.zip$/);bytes=new Uint8Array(m.disk.get(o.filePath));o.success({});};expect(await p.exportFile([a,b])).toEqual({shared:true});
+  let bytes;m.callbacks.shareFileMessage=o=>{expect(o.fileName).toMatch(/2套.*\.zip$/);bytes=new Uint8Array(m.disk.get(o.filePath));o.success({});};const exported=await p.exportFile([a,b]);expect(bytes).toBeUndefined();expect(await p.shareExport(exported)).toEqual({shared:true});
   const pending=await readBackup(bytes);expect(pending.houses.map(h=>h.id)).toEqual([a,b]);expect(pending.houses[1].archived).toBe(true);expect(pending.houses.some(h=>h.id===c)).toBe(false);expect(JSON.parse(strFromU8(unzipSync(bytes)['manifest.json'])).settings).toBeUndefined();expect([...pending.files[pending.houses[0].media[0].path]]).toEqual([4,5]);expect([...m.disk.keys()].some(k=>k.includes('/transfer-'))).toBe(false);
  });
- it('does not share partial output and cleans it on read errors, cancellation and sharing failure',async()=>{
+ it('cleans partial output but retains a complete ZIP across sharing failure and cancellation',async()=>{
   const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A');let shares=0;m.callbacks.shareFileMessage=o=>{shares++;o.fail({errMsg:'share:fail'});};
   p.store.edit(id,h=>media(h,'/missing'));await expect(p.exportFile([id])).rejects.toThrow();expect(shares).toBe(0);expect([...m.disk.keys()].some(k=>k.includes('/transfer-'))).toBe(false);
-  p.store.edit(id,h=>h.media=[]);await expect(p.exportFile([id],{cancelled:true})).rejects.toThrow('取消');expect(shares).toBe(0);await expect(p.exportFile([id])).rejects.toThrow('分享未完成');expect(shares).toBe(1);
-  m.callbacks.shareFileMessage=o=>o.fail({errMsg:'share:fail cancel'});expect(await p.exportFile([id])).toEqual({shared:false});expect([...m.disk.keys()].some(k=>k.includes('/transfer-'))).toBe(false);
+  p.store.edit(id,h=>h.media=[]);await expect(p.exportFile([id],{cancelled:true})).rejects.toThrow('取消');expect(shares).toBe(0);const exported=await p.exportFile([id]);await expect(p.shareExport(exported)).rejects.toMatchObject({message:'发送 ZIP 失败，请重试',cause:{errMsg:'share:fail'}});expect(shares).toBe(1);expect(m.disk.has(exported.filePath)).toBe(true);
+  m.callbacks.shareFileMessage=o=>o.fail({errMsg:'share:fail cancel'});expect(await p.shareExport(exported)).toEqual({shared:false});expect(m.disk.has(exported.filePath)).toBe(true);p.discardExport(exported);expect(m.disk.has(exported.filePath)).toBe(false);
+ });
+ it('retains an in-flight native file until its callback and prevents duplicate sends',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A'),file=await p.exportFile([id]);let request;m.callbacks.shareFileMessage=o=>request=o;
+  const pending=p.shareExport(file);expect(request.filePath).toBe(file.filePath);await expect(p.shareExport(file)).rejects.toThrow('正在发送');
+  p.discardExport(file);expect(m.disk.has(file.filePath)).toBe(true);request.fail({errMsg:'share:fail cancel'});expect(await pending).toEqual({shared:false});expect(m.disk.has(file.filePath)).toBe(false);await expect(p.shareExport(file)).rejects.toThrow('重新导出');
+ });
+ it('reports missing files and unsupported clients without sending or changing house data',async()=>{
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A'),before=JSON.stringify(p.store.get()),missing=await p.exportFile([id]);m.disk.delete(missing.filePath);await expect(p.shareExport(missing)).rejects.toMatchObject({fileUnavailable:true});
+  const file=await p.exportFile([id]),share=m.wx.shareFileMessage;delete m.wx.shareFileMessage;await expect(p.shareExport(file)).rejects.toThrow('更新微信');expect(m.disk.has(file.filePath)).toBe(true);
+  m.wx.shareFileMessage=share;m.callbacks.shareFileMessage=o=>o.success({});expect(await p.shareExport(file)).toEqual({shared:true});expect(m.disk.has(file.filePath)).toBe(false);expect(JSON.stringify(p.store.get())).toBe(before);
  });
  it('rejects legacy file extensions, empty/duplicate selections and missing overwrite targets',async()=>{
   const m=mockWx(),p=createPlatform(m.wx);m.callbacks.chooseMessageFile=o=>o.success({tempFiles:[{name:'旧记录.json',path:'/old'}]});await expect(p.selectImport()).rejects.toThrow('ZIP');

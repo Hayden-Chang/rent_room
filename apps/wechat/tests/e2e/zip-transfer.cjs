@@ -38,7 +38,8 @@ const timer=setTimeout(()=>{console.error('ZIP transfer UI test timed out');proc
   await mini.screenshot({path:artifact('export-all.png')});await (await page.$('.select-all')).tap();
   assert.equal(await (await page.$('.commit-transfer')).property('disabled'),true);
   await (await page.$('.house-select[data-id="'+a.id+'"]')).tap();await mini.screenshot({path:artifact('export-selected.png')});await (await page.$('.commit-transfer')).tap();
-  await page.waitFor(async()=>!(await page.data('busy')));
+  await page.waitFor(async()=>!(await page.data('busy'))&&await page.data('exportPrepared'));await mini.screenshot({path:artifact('export-send-ready.png')});
+  await (await page.$('.commit-transfer')).tap();await page.waitFor(async()=>!(await page.data('busy'))&&!(await page.data('exportPrepared')));
   const exported=await mini.evaluate(()=>{const service=getApp().service;return wx.arrayBufferToBase64(wx.getFileSystemManager().readFileSync(service.root+'/exported-test.zip'));});
   assert.deepEqual((await readBackup(new Uint8Array(Buffer.from(exported,'base64')))).houses.map(h=>h.id),[a.id]);
   await (await page.$('.cancel-transfer')).tap();page=await current('pages/settings/index');await (await page.$('.menu-import')).tap();page=await current('pages/import/index');await page.waitFor('.mode-replace');
