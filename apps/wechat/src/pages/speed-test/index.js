@@ -1,7 +1,8 @@
+import {protectedPage} from '../../lib/auth-page.js';
 import {startSpeedTest,SPEED_FIELD_ID} from '../../lib/speed-test.js';
 import {houseTopics,updateAnswer} from '../../lib/model.js';
 import {service} from '../../lib/ui.js';
-Page({
+Page(protectedPage({
   data:{state:'preparing',speed:'—',progress:0,message:'正在检查网络…'},
   onLoad(options){this.houseId=options.id;this.active=true;this.run=0;this.networkChanged=()=>{if(this.testing)this.cancel();};wx.onNetworkStatusChange?.(this.networkChanged);this.start();},
   onHide(){if(this.testing)this.cancel();},
@@ -57,4 +58,4 @@ Page({
     if(this.active&&['preparing','testing'].includes(this.data.state))this.setData({state:'cancelled',message:'测速已取消，原值保持不变'});
   },
   back(){this.cancel();wx.navigateBack({delta:1});}
-});
+}));

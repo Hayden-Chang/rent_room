@@ -1,3 +1,4 @@
+<view hidden="{{!accountReady}}">
 <view wx:if="{{house}}" bindtap="dismissSwipe">
  <view wx:if="{{house.archived}}" class="readonly">归档房源 · 只读查看，在归档列表中可还原</view>
  <view class="page detail {{restoringTab?'tab-restoring':''}}">
@@ -60,3 +61,6 @@
   </view>
  </view>
 </view>
+
+</view>
+<view wx:if="{{!accountReady}}" class="auth-wait">正在确认登录状态…</view>

@@ -1,3 +1,4 @@
+<view hidden="{{!accountReady}}">
 <view class="page">
  <view wx:if="{{saveError}}" class="error" bindtap="retry">{{saveError}} 点击重试</view>
  <view wx:if="{{!houses.length}}" class="empty"><image class="empty-icon" src="/assets/icons/empty-art.png"/><view class="subtitle">把心动的房子，认真记下来</view><view>从第一套房源开始，边看边记录。</view><view class="space"/><button class="primary" bindtap="add">添加房源</button><button class="link" bindtap="importFile">导入已有记录</button></view>
@@ -7,3 +8,6 @@
  </view></view>
  <button wx:if="{{houses.length}}" class="add" bindtap="add" aria-label="添加房源"><image src="/assets/icons/plus.png"/></button>
 </view>
+
+</view>
+<view wx:if="{{!accountReady}}" class="auth-wait">正在确认登录状态…</view>

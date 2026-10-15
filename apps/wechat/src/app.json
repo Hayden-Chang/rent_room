@@ -1,5 +1,6 @@
 {
   "pages": [
+    "pages/login/index",
     "pages/home/index",
     "pages/detail/index",
     "pages/compare/index",
@@ -36,7 +37,7 @@
       },
       {
         "pagePath": "pages/settings/index",
-        "text": "设置",
+        "text": "我的",
         "iconPath": "assets/icons/settings-default.png",
         "selectedIconPath": "assets/icons/settings-selected.png"
       }

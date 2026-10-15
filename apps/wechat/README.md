@@ -67,3 +67,7 @@ npm run check
 ```
 
 生成预览码仍使用仓库统一的 `scripts/wechat-ci/ci.py preview`。代码版本和构建配置需要同时核对，上传成功不能证明地图查询配置正确。
+
+## 微信登录
+
+必须登录后使用，无游客模式。自有后端地址通过 `WECHAT_AUTH_URL` 在构建时配置；未配置会停留在登录页。账号与本地记录归属见 [账号说明](../../docs/wechat/ACCOUNT_LOGIN.md)，服务部署见 [后端说明](../../services/wechat-auth/README.md)。

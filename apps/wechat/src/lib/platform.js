@@ -3,9 +3,10 @@ import {createStore} from './store.js';
 import {uid,clone,prepareImport,emptyState,freshHouse} from './model.js';
 import {makeBackup,readBackup,readExcel,exportExcel,MAX_BYTES} from './files.js';
 import {writeIssue} from './issues.js';
+import {dataRoot} from './account-storage.js';
 
-export function createPlatform(wx) {
-  const fs=wx.getFileSystemManager(),root=wx.env.USER_DATA_PATH+'/'+(typeof __TEST_DATA_ROOT__==='undefined'?'xunju':__TEST_DATA_ROOT__),current=root+'/state.json',previous=root+'/previous.json';
+export function createPlatform(wx,{root=dataRoot(wx)}={}) {
+  const fs=wx.getFileSystemManager(),current=root+'/state.json',previous=root+'/previous.json';
   try{fs.mkdirSync(root,true);}catch{}
   try{fs.mkdirSync(root+'/media',true);}catch{}
   const exists=p=>{try{fs.accessSync(p);return true;}catch{return false;}};
@@ -13,8 +14,13 @@ export function createPlatform(wx) {
     write(text){const tmp=root+'/state.pending.json';fs.writeFileSync(tmp,text,'utf8');if(exists(current))fs.copyFileSync(current,previous);fs.renameSync(tmp,current);},
     preserveCorrupt(){if(exists(current))fs.copyFileSync(current,root+'/preserved-'+Date.now()+'.json');}
   };
-  const store=createStore(adapter);
-  const api=(name,args={})=>new Promise((resolve,reject)=>wx[name]({...args,success:resolve,fail:reject}));
+  let active=true;
+  const rawStore=createStore(adapter),store={};
+  for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
+  const api=(name,args={})=>new Promise((resolve,reject)=>{
+    if(!active){reject(Error('请先登录'));return;}
+    wx[name]({...args,success:value=>active?resolve(value):reject(Error('登录状态已变化，请重新操作')),fail:reject});
+  });
   async function chooseMedia(houseId,fieldId='') {
     const saved=await stageIssueMedia(houseId,fieldId);
     try{store.edit(houseId,h=>h.media.push(...saved));}
@@ -68,7 +74,7 @@ export function createPlatform(wx) {
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,api,places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
+  return {store,api,setActive(value){active=value;},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }
