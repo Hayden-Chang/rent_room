@@ -6,11 +6,11 @@ import {houseTopics,updateAnswer,MAP_ID} from '../../lib/model.js';
 import {service,watch,unwatch} from '../../lib/ui.js';
 
 Page(protectedPage({
-  data:{mode:'',title:'',origin:{},destination:{},center:null,scale:13,markers:[],polyline:[],includePoints:[],mapReady:false,routes:[],selectedId:'',chosen:null,busy:false,message:'',queriedAt:'',picker:'',pickerAddress:'',pickerLocation:null,pickerAnchor:'',saveError:''},
+  data:{mode:'',origin:{},destination:{},center:null,scale:13,markers:[],polyline:[],includePoints:[],mapReady:false,routes:[],selectedId:'',chosen:null,busy:false,message:'',picker:'',pickerAddress:'',pickerLocation:null,pickerAnchor:'',saveError:''},
   onLoad(options){
     this.houseId=options.id;this.fieldId=options.field;this.platform=service();this.run=0;this.active=true;this.results=[];
     const mode=commuteMode(this.fieldId),title=mode==='transit'?'公交地铁路线':'开车路线';
-    this.setData({mode,title});wx.setNavigationBarTitle({title});watch(this);
+    this.setData({mode});wx.setNavigationBarTitle({title});watch(this);
   },
   onShow(){this.active=true;this.workplaceOpening=false;try{this.refreshEndpoints();if(!this.data.routes.length)this.query();}catch(e){this.setData({message:e.message});}},
   onHide(){this.active=false;this.run++;this.setData({busy:false});},
@@ -23,7 +23,7 @@ Page(protectedPage({
   endpoints(){return commuteEndpoints(this.validHouse(),this.platform.store.get().settings);},
   refreshEndpoints(){
     const endpoints=this.endpoints(),key=endpointKey(endpoints);
-    if(key!==this.endpointStamp){this.run++;this.results=[];this.endpointStamp=key;this.setData({routes:[],selectedId:'',chosen:null,polyline:[],busy:false,queriedAt:'',message:''});}
+    if(key!==this.endpointStamp){this.run++;this.results=[];this.endpointStamp=key;this.setData({routes:[],selectedId:'',chosen:null,polyline:[],busy:false,message:''});}
     const {origin,destination}=endpoints,points=[origin.location,destination.location].filter(Boolean);
     const viewport=this.data.chosen?{}:points.length>1?routeViewport(points):{center:points[0]||null,scale:13};
     this.setData({...endpoints,...viewport,markers:points.map((p,i)=>({...p,id:i+1,width:26,height:26,iconPath:'/assets/icons/'+(p===origin.location?'home-selected':'settings-selected')+'.png',callout:{content:p===origin.location?'房源':'上班地点',display:'ALWAYS',padding:5,borderRadius:5}})),includePoints:this.data.chosen?this.data.polyline.flatMap(p=>p.points):points});
@@ -36,14 +36,13 @@ Page(protectedPage({
     if(!endpoints.origin.location||!endpoints.destination.location){this.setData({message:!endpoints.origin.location?'请点击房源，补选房源的地图位置':'请点击上班地点，在设置页补选地图位置后返回查询'});return;}
     const run=++this.run,stamp=endpointKey(endpoints);
     this.previous=this.validHouse().answers[this.fieldId]?.value;
-    this.results=[];this.setData({busy:true,message:'',routes:[],chosen:null,selectedId:'',polyline:[],queriedAt:''});
+    this.results=[];this.setData({busy:true,message:'',routes:[],chosen:null,selectedId:'',polyline:[]});
     try{
       const routes=await this.platform.commute.query(this.data.mode,endpoints.origin.location,endpoints.destination.location);
       if(!this.current(run))return;
       if(stamp!==endpointKey(this.endpoints()))throw Error('地点已变化，请重新查询');
       this.resultStamp=stamp;this.results=routes;
-      const now=new Date(),queriedAt=[now.getHours(),now.getMinutes()].map(v=>String(v).padStart(2,'0')).join(':');
-      this.setData({routes:routes.map(({id,title,minutes,distanceText,walkText,transfers})=>({id,title,minutes,distanceText,walkText:walkText||'',transfers:transfers||0})),queriedAt});
+      this.setData({routes:routes.map(({id,title,minutes,distanceText,walkText,transfers})=>({id,title,minutes,distanceText,walkText:walkText||'',transfers:transfers||0}))});
       this.showRoute(routes[0]);
     }catch(e){if(this.current(run))this.setData({message:e.message||'路线查询失败，请重试或返回手动填写'});}
     finally{if(this.current(run))this.setData({busy:false});}
@@ -52,7 +51,7 @@ Page(protectedPage({
   showRoute(route){
     if(!route)return;
     const points=route.polyline.flatMap(p=>p.points),width=(wx.getWindowInfo?.().windowWidth||375)-32;
-    this.setData({...routeViewport(points,{width}),selectedId:route.id,chosen:{minutes:route.minutes,steps:route.steps},polyline:route.polyline,includePoints:points,mapReady:false});
+    this.setData({...routeViewport(points,{width}),selectedId:route.id,chosen:{minutes:route.minutes},polyline:route.polyline,includePoints:points,mapReady:false});
   },
   mapUpdated(){if(!this.data.mapReady)this.setData({mapReady:true});},
   choose(e){if(!this.data.busy)this.showRoute(this.results.find(r=>r.id===e.currentTarget.dataset.id));},

@@ -17,8 +17,7 @@
    <map wx:if="{{center}}" id="commute-map" class="route-map" latitude="{{center.latitude}}" longitude="{{center.longitude}}" markers="{{markers}}" polyline="{{polyline}}" scale="{{scale}}" enable-rotate="{{false}}" show-location="{{false}}" bindupdated="mapUpdated"/>
    <view wx:else class="map-placeholder">选择起终点后，在这里查看通行路线</view>
   </view>
-  <view class="row between route-heading"><text class="subtitle">{{title}}</text><button class="link route-retry" bindtap="query" disabled="{{busy}}">{{busy?'查询中…':'重新查询'}}</button></view>
-  <view class="route-reference">路线信息来源：天地图<text wx:if="{{queriedAt}}"> · {{queriedAt}} 查询</text><view>参考耗时，实际候车、班次与路况可能不同。</view></view>
+  <view class="route-toolbar"><button class="link route-retry" bindtap="query" disabled="{{busy}}">{{busy?'查询中…':'重新查询'}}</button></view>
   <view wx:if="{{busy}}" class="card route-status">正在查询房源到上班地点的路线…</view>
   <view wx:if="{{message}}" class="card route-message" role="alert">{{message}}</view>
   <button wx:for="{{routes}}" wx:key="id" class="route-option {{selectedId===item.id?'route-selected':''}}" data-id="{{item.id}}" bindtap="choose" aria-label="{{item.title}}，预计{{item.minutes}}分钟" aria-pressed="{{selectedId===item.id}}">
@@ -26,7 +25,6 @@
    <view class="route-title">{{item.title}}</view>
    <view class="route-meta">{{item.distanceText}}<text wx:if="{{mode==='transit'}}"> · 步行 {{item.walkText}} · {{item.transfers?'换乘 '+item.transfers+' 次':'无需换乘'}}</text></view>
   </button>
-  <view wx:if="{{chosen}}" class="card route-steps"><text class="subtitle">路线详情</text><view wx:for="{{chosen.steps}}" wx:key="index" class="route-step"><view>{{item.name}}<text wx:if="{{item.minutes}}" class="step-time"> {{item.minutes}} 分钟</text></view><view wx:if="{{item.detail}}" class="step-detail">{{item.detail}}</view></view></view>
   <view class="commute-footer"><button class="soft route-cancel" bindtap="back">取消</button><button class="primary route-confirm" bindtap="save" disabled="{{busy||!chosen}}">{{chosen?'确定并填入 '+chosen.minutes+' 分钟':'确定并填入'}}</button></view>
  </block>
 </view>
