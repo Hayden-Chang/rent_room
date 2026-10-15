@@ -3,7 +3,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const automator=require(process.env.WECHAT_AUTOMATOR_MODULE||path.resolve(__dirname,'../../../../scripts/wechat-pool/node_modules/miniprogram-automator'));
+const automator=require(process.env.WECHAT_AUTOMATOR_MODULE||'/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 if(!process.env.WECHAT_WS_ENDPOINT||!process.env.WECHAT_ARTIFACT_DIR)throw Error('Use the shared pool runner');
 const timer=setTimeout(()=>{console.error('Workplace UI test timed out');process.exit(1);},90000);
 (async()=>{
@@ -11,6 +11,10 @@ const timer=setTimeout(()=>{console.error('Workplace UI test timed out');process
   const artifacts=process.env.WECHAT_ARTIFACT_DIR,navigationMs=[];
   try{
     const system=await mini.systemInfo();
+    await mini.mockWxMethod('login',{code:'ui-fixture'});
+    await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:0,limit:2}});
+    assert.equal(await mini.evaluate(()=>getApp().auth.login()),true);await mini.restoreWxMethod('request');
+    await mini.evaluate(()=>new Promise((resolve,reject)=>{let n=0;function check(){const p=getCurrentPages().slice(-1)[0];if(p?.route==='pages/home/index'&&p.data.accountReady){resolve();return;}if(++n>60){reject(Error('Login navigation not settled'));return;}setTimeout(check,100);}check();}));
     // API fixtures are installed before mounting the actual address component.
     await mini.evaluate(()=>{
       const service=getApp().service;

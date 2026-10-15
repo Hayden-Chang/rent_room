@@ -17,6 +17,7 @@
 | `src/lib/files.js` | ZIP 流式编解码、清单校验、媒体大小与 CRC 校验 |
 | `src/lib/ui.js` | 页面取得 service、提示、确认及保存状态订阅的公共辅助 |
 | `src/pages/` | 页面显示、局部交互状态与用户操作编排；共享业务状态通过 service 处理 |
+| `src/lib/commute.js`、`pages/commute/` | 房源到上班地点的公交/驾车查询、路线校验与确认回填；[契约与验证](COMMUTE_ROUTES.md) |
 | `src/components/field-row/` | 字段输入、焦点、左滑操作等组件行为及事件；与页面的事件接口保持明确 |
 | `data/source-tree.json`、`data/source-provenance.json` | 原始清单源与来源记录；修改需检查字段映射及来源说明 |
 | `scripts/source-core.mjs`、`scripts/build.mjs` | 清单生成、应用打包和开发者工具工程配置生成 |

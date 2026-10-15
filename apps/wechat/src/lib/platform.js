@@ -1,4 +1,5 @@
 import {createPlaces} from './places.js';
+import {createCommute} from './commute.js';
 import {createStore} from './store.js';
 import {uid,clone} from './model.js';
 import {writeBackup,readBackup,checkTransfer,CHUNK_BYTES} from './files.js';
@@ -165,7 +166,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,billing,api,setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
+  return {store,billing,api,setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),commute:createCommute(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }

@@ -1,0 +1,31 @@
+<view wx:if="{{accountReady}}" class="page commute-page">
+ <block wx:if="{{picker}}">
+  <view class="card">
+   <view class="row between"><text class="subtitle">选择房源位置</text><button class="link picker-cancel" bindtap="closePicker">取消</button></view>
+   <view class="hint">选择后更新这套房源的地址</view>
+   <view wx:if="{{saveError}}" class="error">{{saveError}}</view>
+   <address-picker address="{{pickerAddress}}" location="{{pickerLocation}}" anchor="{{pickerAnchor}}" empty-text="搜索地址或点击定位，选择房源位置" bindselect="selectPlace"/>
+  </view>
+ </block>
+ <block wx:else>
+  <view class="card endpoints">
+   <button class="endpoint" data-endpoint="origin" bindtap="openPicker"><text class="point origin-point">起</text><view class="endpoint-main"><text class="endpoint-label">房源</text><text class="endpoint-address">{{origin.address||'选择房源位置'}}</text><text wx:if="{{origin.address&&!origin.location}}" class="missing-point">请补选地图位置</text></view><text class="endpoint-edit">更改 ›</text></button>
+   <view class="endpoint-divider"/>
+   <button class="endpoint workplace-endpoint" bindtap="openWorkplace"><text class="point destination-point">终</text><view class="endpoint-main"><text class="endpoint-label">上班地点</text><text class="endpoint-address">{{destination.address||'未设置上班地点'}}</text><text wx:if="{{destination.address&&!destination.location}}" class="missing-point">请补选地图位置</text></view><text class="endpoint-edit">{{destination.address?'修改':'设置'}} ›</text></button>
+  </view>
+  <view class="route-map-card">
+   <map wx:if="{{center}}" id="commute-map" class="route-map" latitude="{{center.latitude}}" longitude="{{center.longitude}}" markers="{{markers}}" polyline="{{polyline}}" scale="{{scale}}" enable-rotate="{{false}}" show-location="{{false}}" bindupdated="mapUpdated"/>
+   <view wx:else class="map-placeholder">选择起终点后，在这里查看通行路线</view>
+  </view>
+  <view class="route-toolbar"><button class="link route-retry" bindtap="query" disabled="{{busy}}">{{busy?'查询中…':'重新查询'}}</button></view>
+  <view wx:if="{{busy}}" class="card route-status">正在查询房源到上班地点的路线…</view>
+  <view wx:if="{{message}}" class="card route-message" role="alert">{{message}}</view>
+  <button wx:for="{{routes}}" wx:key="id" class="route-option {{selectedId===item.id?'route-selected':''}}" data-id="{{item.id}}" bindtap="choose" aria-label="{{item.title}}，预计{{item.minutes}}分钟" aria-pressed="{{selectedId===item.id}}">
+   <view class="row between"><text class="route-duration">{{item.minutes}}<text class="minute-unit"> 分钟</text></text><text class="route-radio">{{selectedId===item.id?'✓':'○'}}</text></view>
+   <view class="route-title">{{item.title}}</view>
+   <view class="route-meta">{{item.distanceText}}<text wx:if="{{mode==='transit'}}"> · 步行 {{item.walkText}} · {{item.transfers?'换乘 '+item.transfers+' 次':'无需换乘'}}</text></view>
+  </button>
+  <view class="commute-footer"><button class="soft route-cancel" bindtap="back">取消</button><button class="primary route-confirm" bindtap="save" disabled="{{busy||!chosen}}">{{chosen?'确定并填入 '+chosen.minutes+' 分钟':'确定并填入'}}</button></view>
+ </block>
+</view>
+<view wx:else class="auth-wait">正在确认登录状态…</view>

@@ -1,5 +1,6 @@
 import {protectedPage} from '../../lib/auth-page.js';
 import {SPEED_FIELD_ID} from '../../lib/speed-test.js';
+import {commuteMode} from '../../lib/commute-fields.js';
 import {mediaWithIssues} from '../../lib/issues.js';
 import {applyPlace} from '../../lib/places.js';
 import {coachSteps,coachMethods} from '../../lib/onboarding.js';
@@ -7,7 +8,12 @@ import {stats,formView,houseTopics,rules,fieldView,checklistTargets,issueEntries
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
 Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
   onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id||'',coach:options.id&&options.new&&service().store.get().settings.onboarding?1:0});watch(this);this.refresh();},
-  onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){this.speedOpening=false;this.coachHidden=false;if(this.data.id)this.refresh();if(this.data.coach)this.coachLayout();},onUnload(){this.clearCoachTimer();this.unloaded=true;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.clearCoachTimer();this.dismissSwipe();this.setData({noteKeyboardHeight:0});},onPageScroll(){for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
+  onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){
+    this.speedOpening=false;this.commuteOpening=false;this.coachHidden=false;this.commuteRestoreRun=(this.commuteRestoreRun||0)+1;
+    const saved=this.commuteReturn;
+    if(saved&&saved.platform===service()&&saved.houseId===this.data.id&&service().store.house(this.data.id))return attempt(()=>this.restoreCommute(saved,this.commuteRestoreRun));
+    if(this.data.id)this.refresh();if(this.data.coach)this.coachLayout();
+  },onUnload(){this.clearCoachTimer();this.unloaded=true;this.commuteReturn=null;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.clearCoachTimer();this.dismissSwipe();this.setData({noteKeyboardHeight:0,...(this.commuteReturn?{restoringTab:true}:{})});},onPageScroll(){for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
   dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
   checklistData(h,view){
     const key=JSON.stringify(view),folds=this.folds[key]||{};
@@ -39,7 +45,7 @@ Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],media
     const target=e.currentTarget.dataset.value;
     if(this.unloaded||!this.data.tabs.includes(target))return;
     this.requestedTab=target;
-    if(this.switchingTab||target===this.data.tab)return;
+    if(this.switchingTab||this.commuteRestoring||target===this.data.tab)return;
     this.switchingTab=true;
     try{
       while(!this.unloaded&&this.requestedTab!==this.data.tab){
@@ -76,12 +82,49 @@ Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],media
   answer(e){attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);const h=service().store.house(this.data.id);this.setData({stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''});});},
   choose(e){attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
   group(e){if(this.dismissSwipe())return;const {id,op,value}=e.detail?.id?e.detail:e.currentTarget.dataset;attempt(()=>{service().store.group(this.data.id,id,op,value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[id]=true;this.refresh();});},
-  action(e){attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查节点不存在');if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!issueEntries(h).some(e=>e.field.id===id));this.refresh();}
+  action(e){return attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查节点不存在');if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!issueEntries(h).some(e=>e.field.id===id));this.refresh();}
     if(action==='note')this.setData({sheet:'note',noteKeyboardHeight:0,noteId:id,noteTitle:f.label,note:h.answers[id]?.note||''});
     if(action==='media'){await service().chooseMedia(h.id,id);this.refresh();}
     if(action==='preview')await service().preview(h.media.filter(m=>m.fieldId===id));
     if(action==='speed-test'&&id===SPEED_FIELD_ID&&!h.archived&&!this.speedOpening){this.speedOpening=true;wx.navigateTo({url:'/pages/speed-test/index?id='+encodeURIComponent(h.id),fail:error=>{this.speedOpening=false;notify(error);}});}
+    if(action==='commute'&&commuteMode(id)&&!h.archived&&!this.commuteOpening)await this.openCommute(h.id,id);
   });},
+  async openCommute(houseId,fieldId){
+    this.commuteOpening=true;
+    const platform=service();
+    try{
+      // Measure before onHide conceals the authenticated page and collapses its viewport.
+      const position=await this.measureTab();
+      if(!this.commuteVisible(platform)){this.commuteOpening=false;return;}
+      const house=platform.store.house(houseId);
+      if(this.data.id!==houseId||!house||house.archived||!checklistTargets(house).some(field=>field.id===fieldId)){this.commuteOpening=false;return;}
+      const rows=position.rows.filter(row=>row.dataset?.scrollKey&&row.bottom>row.top);
+      this.commuteReturn={platform,houseId,scrollTop:position.scrollTop,anchors:[...rows.filter(row=>row.bottom>0),...rows.filter(row=>row.bottom<=0).reverse()].map(row=>({key:row.dataset.scrollKey,top:row.top}))};
+      wx.hideKeyboard();
+      await platform.api('navigateTo',{url:'/pages/commute/index?id='+encodeURIComponent(houseId)+'&field='+encodeURIComponent(fieldId)});
+    }catch(error){this.commuteOpening=false;this.commuteReturn=null;notify(error);}
+  },
+  commuteVisible(platform){return !this.unloaded&&!this.coachHidden&&this.data.accountReady&&getApp().service===platform;},
+  async restoreCommute(saved,run){
+    this.commuteRestoring=true;
+    const current=()=>this.commuteVisible(saved.platform)&&run===this.commuteRestoreRun;
+    try{
+      await new Promise(resolve=>this.refresh({restoringTab:true},resolve));
+      if(!current())return;
+      const layout=await this.measureTab();if(!current())return;
+      let scrollTop=saved.scrollTop;
+      const rows=new Map(layout.rows.map(row=>[row.dataset?.scrollKey,row]));
+      for(const anchor of saved.anchors){const row=rows.get(anchor.key);if(row&&row.bottom>row.top){scrollTop=layout.scrollTop+row.top-anchor.top;break;}}
+      await new Promise(resolve=>wx.pageScrollTo({scrollTop:Math.max(0,scrollTop),duration:0,complete:resolve}));
+      if(current())this.commuteReturn=null;
+    }finally{
+      if(run===this.commuteRestoreRun)this.commuteRestoring=false;
+      if(current()){
+        this.setData({restoringTab:false});
+        if(this.requestedTab!==this.data.tab)this.tab({currentTarget:{dataset:{value:this.requestedTab}}});
+      }
+    }
+  },
   note(e){this.setData({note:e.detail.value});},saveNote(){attempt(()=>{service().store.answer(this.data.id,this.data.noteId,'note',this.data.note);this.close();this.refresh();});},close(){this.setData({sheet:'',noteKeyboardHeight:0});wx.hideKeyboard?.();},noop(){},
   noteKeyboard(e){if(!['note','mediaNote'].includes(this.data.sheet))return;const height=Number(e.detail.height);if(!Number.isFinite(height)||height<0)return;if(height!==this.data.noteKeyboardHeight)this.setData({noteKeyboardHeight:height});},
   editMediaNote(e){
