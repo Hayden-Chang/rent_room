@@ -3,6 +3,15 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {createStore} from '../src/lib/store.js';
 
+it('keeps the location permission description within the WeChat upload limit',()=>{
+  for(const root of ['src','dist']){
+    const app=JSON.parse(fs.readFileSync(`${root}/app.json`,'utf8'));
+    const description=app.permission['scope.userLocation'].desc;
+    expect(description.trim().length).toBeGreaterThan(0);
+    expect([...description].length).toBeLessThanOrEqual(30);
+  }
+});
+
 function setup(initial){
   let saved=initial;const adapter={read:()=>saved,write:value=>saved=value};
   const store=createStore(adapter),wx={navigateTo:vi.fn(),showToast:vi.fn()};
