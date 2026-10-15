@@ -1,6 +1,5 @@
 <view class="page transfer-page">
  <view class="title">{{exporting?'选择要导出的房源':'选择要导入的房源'}}</view>
- <view class="hint">{{exporting?'导出完整记录、照片与视频，可再次导入。':'仅支持本应用导出的房源 ZIP，核对后再导入。'}}</view>
  <view wx:if="{{!exporting}}" class="file-bar"><view class="muted break">{{fileName||'尚未选择 ZIP 文件'}}</view><button class="link choose-file" disabled="{{busy}}" bindtap="chooseFile">{{fileName?'重新选择 ZIP':'选择 ZIP 文件'}}</button></view>
  <view wx:if="{{error}}" class="error transfer-error">{{error}}</view>
  <view wx:if="{{houses.length}}" class="row between selection-bar"><text>共 {{houses.length}} 套，已选 {{selectedCount}} 套</text><button class="link select-all" disabled="{{busy}}" bindtap="toggleAll">{{allSelected?'取消全选':'全选'}}</button></view>
@@ -15,6 +14,5 @@
   </view>
  </view>
  <view wx:if="{{exporting && !houses.length}}" class="empty">还没有可导出的房源</view>
- <view class="hint">只迁移所选房源，个人设置与上班地点不随包导入导出。</view>
- <view class="transfer-footer"><view wx:if="{{busy}}" class="hint progress">{{progress}}</view><view wx:elif="{{selectedCount && !ready}}" class="hint">请为重复房源选择覆盖或新增副本</view><view class="row"><button class="grow cancel-transfer" bindtap="cancel">{{busy?'取消操作':'取消'}}</button><button class="primary grow commit-transfer" loading="{{busy}}" disabled="{{busy || !ready}}" bindtap="commit">{{exporting?'导出':'导入'}} {{selectedCount}} 套</button></view></view>
+ <view class="transfer-footer"><view wx:if="{{busy}}" class="hint progress">{{progress}}</view><view class="row"><button class="grow cancel-transfer" bindtap="cancel">{{busy?'取消操作':'取消'}}</button><button class="primary grow commit-transfer" loading="{{busy}}" disabled="{{busy || !ready}}" bindtap="commit">{{exporting?'导出':'导入'}} {{selectedCount}} 套</button></view></view>
 </view>
