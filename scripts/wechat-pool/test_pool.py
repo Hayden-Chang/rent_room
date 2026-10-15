@@ -455,6 +455,88 @@ class PoolTests(unittest.TestCase):
                     child.kill()
                 child.wait()
 
+    def test_project_registration_canonicalizes_roots_for_component_lookup(self):
+        slot, src = self.resident_fixture()
+        profile = pool.slot_profile(self.root, slot)
+        pool.write_json(profile / 'WeappLocalData/hash_key_map_2.json', {})
+        for root, expected in [('./', ''), ('', ''), ('./src/', 'src/')]:
+            with self.subTest(root=root):
+                pool.write_json(src / 'project.config.json', {
+                    'appid': 'fixture-app', 'libVersion': '3.17.3', 'miniprogramRoot': root})
+                pool.register_project(profile, src)
+                actual = pool.project_metadata(profile, src)['miniprogramRoot']
+                self.assertEqual(actual, expected,
+                                 'DevTools stat checks normalized file paths against this cached root')
+
+    def test_project_registration_refuses_roots_outside_the_snapshot(self):
+        slot, src = self.resident_fixture()
+        for value in ['../outside', '/outside', 'src/../../outside']:
+            pool.write_json(src / 'project.config.json', {
+                'appid': 'fixture-app', 'libVersion': '3.17.3', 'miniprogramRoot': value})
+            with self.assertRaisesRegex(ValueError, 'inside the project'):
+                pool.register_project(pool.slot_profile(self.root, slot), src)
+
+    def recovery_fixture(self):
+        self.root = self.root.resolve()
+        slot, _ = self.resident_fixture()
+        profile = pool.slot_profile(self.root, slot)
+        profile.mkdir()
+        (profile / 'preserved-marker').write_text('do not clear this profile')
+        child = subprocess.Popen(['/bin/sleep', '60'], start_new_session=True)
+        self.addCleanup(lambda: (child.kill(), child.wait()) if child.poll() is None else None)
+        state = {'lifecycle': 'resident-v1', 'state': 'quarantined', 'runId': 'failed-run',
+                 'pid': child.pid, 'identity': pool.process_identity(child.pid),
+                 'profile': str(profile), 'ownerPid': 99999999, 'reason': 'health failed'}
+        pool.write_json(pool.runtime_path(self.root, slot), state)
+        pool.write_json(self.root / 'runs/failed-run/receipt.json', {'status': 'failed'})
+        return slot, child, state
+
+    def test_explicit_recovery_stops_only_the_orphan_and_preserves_failed_state(self):
+        slot, child, state = self.recovery_fixture()
+        before = pool.runtime_path(self.root, slot).read_bytes()
+        with patch.object(pool, 'stop_profile_helpers'):
+            report = pool.recover_slot(self.root, '1')
+        self.assertIsNotNone(child.poll())
+        self.assertEqual(pool.read_json(report)['status'], 'stopped')
+        self.assertEqual((report.parent / 'runtime-before.json').read_bytes(), before)
+        self.assertEqual(pool.runtime_path(self.root, slot).read_bytes(), before)
+        self.assertEqual(pool.read_json(self.root / 'runs/failed-run/receipt.json'), {'status': 'failed'})
+        self.assertEqual((Path(state['profile']) / 'preserved-marker').read_text(), 'do not clear this profile')
+        lease = pool.try_slot(self.root, slot)
+        self.assertIsNotNone(lease)
+        lease.close()
+
+    def test_explicit_recovery_refuses_a_held_lease(self):
+        slot, child, _ = self.recovery_fixture()
+        with (self.root / 'slots/1/lease.lock').open('a') as guard:
+            pool.fcntl.flock(guard, pool.fcntl.LOCK_EX | pool.fcntl.LOCK_NB)
+            with self.assertRaises(BlockingIOError):
+                pool.recover_slot(self.root, '1')
+        self.assertIsNone(child.poll())
+
+    def test_explicit_recovery_refuses_a_live_controller(self):
+        slot, child, state = self.recovery_fixture()
+        pool.write_json(pool.runtime_path(self.root, slot), dict(state, ownerPid=os.getpid()))
+        with self.assertRaisesRegex(RuntimeError, 'controller still running'):
+            pool.recover_slot(self.root, '1')
+        self.assertIsNone(child.poll())
+
+    def test_explicit_recovery_refuses_changed_process_identity(self):
+        slot, child, state = self.recovery_fixture()
+        pool.write_json(pool.runtime_path(self.root, slot), dict(state, identity='another process'))
+        with self.assertRaisesRegex(RuntimeError, 'identity'):
+            pool.recover_slot(self.root, '1')
+        self.assertIsNone(child.poll())
+
+    def test_explicit_recovery_refuses_non_quarantined_or_foreign_profiles(self):
+        slot, child, state = self.recovery_fixture()
+        for changed in [dict(state, state='leased'), dict(state, state='idle'),
+                        dict(state, profile=str(self.root / 'other-profile'))]:
+            pool.write_json(pool.runtime_path(self.root, slot), changed)
+            with self.assertRaisesRegex(RuntimeError, 'registered quarantined'):
+                pool.recover_slot(self.root, '1')
+        self.assertIsNone(child.poll())
+
     def test_controller_crash_does_not_reassign_a_leased_resident(self):
         slot, _ = self.resident_fixture()
         child = subprocess.Popen(['/bin/sleep', '60'])

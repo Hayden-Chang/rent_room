@@ -511,6 +511,12 @@ def register_project(profile, project):
     name = 'project2_' + str(project)
     key = hashlib.md5(name.encode()).hexdigest()
     record = dict(project_metadata(profile, project), **config)
+    # The IDE cache expects canonical roots, unlike public project.config.json.
+    # A cached './' makes BaseProject.exists reject 'components/...' before stat.
+    source_root = Path(config.get('miniprogramRoot') or '')
+    if source_root.is_absolute() or '..' in source_root.parts:
+        raise ValueError('Mini-program root must stay inside the project')
+    record['miniprogramRoot'] = '' if str(source_root) == '.' else source_root.as_posix() + '/'
     record.update(projectid=str(project), projectpath=str(project),
                   originLibVersion=config['libVersion'])
     # Public project.config uses miniprogram; this pinned NW version stores weapp.
@@ -521,6 +527,62 @@ def register_project(profile, project):
     mapping = read_json(mapping_path)
     mapping[key] = name
     write_json(mapping_path, mapping)
+
+
+def recover_slot(root, slot_id):
+    """Explicit maintenance only: stop an unleased, orphaned quarantined slot."""
+    root = Path(root).resolve()
+    cfg = load_config(root)
+    slot = next((s for s in cfg['slots'] if s['id'] == slot_id), None)
+    if slot is None:
+        raise ValueError('Unknown pool slot')
+    with (root / 'allocator.lock').open('a') as allocator:
+        fcntl.flock(allocator, fcntl.LOCK_EX)
+        with (root / 'slots' / slot_id / 'lease.lock').open('a') as guard:
+            fcntl.flock(guard, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            path = runtime_path(root, slot)
+            state = read_json(path)
+            if (state.get('lifecycle') != 'resident-v1' or state.get('state') != 'quarantined'
+                    or state.get('profile') != str(slot_profile(root, slot))):
+                raise RuntimeError('Only a registered quarantined resident may be recovered')
+            if state.get('ownerPid') and alive(state['ownerPid']):
+                raise RuntimeError('Slot controller still running; refusing recovery')
+            pid = state.get('pid')
+            if pid and alive(pid) and (not matching_runtime(state) or os.getpgid(pid) != pid):
+                raise RuntimeError('Runtime identity or process group changed; refusing recovery')
+            maintenance = root / 'maintenance' / uuid.uuid4().hex
+            maintenance.mkdir(parents=True)
+            # Preserve the exact old state and original run receipts for diagnosis.
+            shutil.copy2(path, maintenance / 'runtime-before.json')
+            if pid and alive(pid):
+                os.killpg(pid, signal.SIGTERM)
+                deadline = time.monotonic() + 5
+                while matching_runtime(state) and time.monotonic() < deadline:
+                    try:
+                        os.waitpid(pid, os.WNOHANG)
+                    except ChildProcessError:
+                        pass
+                    time.sleep(0.1)
+                if matching_runtime(state):
+                    os.killpg(pid, signal.SIGKILL)
+            stop_profile_helpers(state['profile'])
+            deadline = time.monotonic() + 5
+            while pid and alive(pid):
+                try:
+                    os.waitpid(pid, os.WNOHANG)
+                except ChildProcessError:
+                    pass
+                if time.monotonic() >= deadline:
+                    raise RuntimeError('Stopped runtime has not exited; slot remains quarantined')
+                time.sleep(0.1)
+            if not stopped_resident(state):
+                raise RuntimeError('Slot still has a live owner or helpers; remains quarantined')
+            report = {'slot': slot_id, 'status': 'stopped', 'previousRunId': state.get('runId'),
+                      'runtimePreserved': True, 'profilePreserved': True, 'finished': time.time()}
+            write_json(maintenance / 'receipt.json', report)
+            # Do not rewrite failed runtime/receipt. Normal acquire archives it,
+            # then performs a fresh boot with the normalized project metadata.
+            return maintenance / 'receipt.json'
 
 
 def prepare_project(root, slot, run_dir):
@@ -775,6 +837,8 @@ def main():
                          help='Compatibility flag for earlier pool commands')
     execute.add_argument('command', nargs=argparse.REMAINDER)
     sub.add_parser('status')
+    recover = sub.add_parser('recover', help='Explicitly stop an orphaned quarantined slot; preserve its profile')
+    recover.add_argument('--slot', required=True, choices=('1', '2', '3'))
     args = parser.parse_args()
     if args.action == 'init':
         initialize(args.root, args.source_app, args.source_profile)
@@ -782,6 +846,8 @@ def main():
     elif args.action == 'expand':
         cfg = expand(args.root, args.source_app)
         print(json.dumps({'root': cfg['root'], 'slots': len(cfg['slots'])}))
+    elif args.action == 'recover':
+        print(str(recover_slot(args.root, args.slot)))
     elif args.action == 'status':
         cfg = load_config(args.root)
         result = []

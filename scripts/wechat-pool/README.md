@@ -82,6 +82,19 @@ try {
 
 ## 生命周期与恢复
 
+### 显式维护隔离槽
+
+用户明确要求维护工具池时，维护者可执行：
+
+```sh
+python3 /Volumes/mac2/codex-builds/wechat-instance-pool/runner/pool.py \
+  --root /Volumes/mac2/codex-builds/wechat-instance-pool recover --slot 3
+```
+
+该入口同时持有 allocator 和该槽的内核锁，只接受已登记的 `quarantined` 常驻实例；活跃租约、活控制器、PID 身份或进程组不符、其他 profile 一律拒绝。核实后只停止该槽进程组及精确 profile 对应的残留进程，保留登录配置、工程和旧失败 receipt/runtime，并写入独立 `maintenance/<id>/` 记录。恢复命令不启动工具、不把失败状态改成通过；下一次正常领用重新启动和验证。普通业务任务不得借此重启别人的实例。
+
+预登记工程缓存时必须规范化 `miniprogramRoot`：公开配置的 `./` 写为缓存里的空根，`./src/` 写为 `src/`。本机固定工具版本的 `BaseProject.exists(root, path)` 会拿规范化后的文件路径检查根前缀；直接缓存 `./` 会把已存在的自定义组件误判为缺失，模拟器不能启动，SDK 随后超时。绝对路径和包含 `..` 的根目录拒绝登记。
+
 - 原子 allocator 锁只覆盖分配；每槽使用内核文件锁。等待者不占运行槽。
 - 回调继承租约描述符，常驻工具进程不继承租约，避免归还后仍锁住槽位。监督进程崩溃后，`leased` 状态也阻止其他任务接管；不按 TTL 抢占。
 - 正常归还只清理该任务小程序数据、关闭该任务项目并释放租约。工具进程、登录配置和插件资源保留，没有空闲自动退出机制。receipt 记录 `runtimePid`、`runtimeReused` 和 `residentState`。
