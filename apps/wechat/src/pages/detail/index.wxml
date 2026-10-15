@@ -15,7 +15,7 @@
      <view wx:else id="{{coach===4 && r.id===coachField.id?'coach-field':''}}" class="field-branch scroll-anchor" data-scroll-key="field-{{r.key}}" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><field-row class="field-row" field="{{r}}" hide-divider="{{section.rows[index+1] && section.rows[index+1].kind==='group'}}" readonly="{{house.archived}}" address="{{house.address}}" location="{{house.location}}" anchor="{{house.locationAddress}}" bindselectplace="selectPlace" bindanswer="answer" bindchoose="choose" bindaction="action"/></view>
     </block></view>
    </view>
-   <view wx:if="{{!sections.length}}" class="empty">没有符合条件的检查项</view><button wx:if="{{!house.archived}}" class="link" bindtap="custom">＋ 自定义检查</button>
+   <view wx:if="{{!sections.length}}" class="empty">没有符合条件的检查项</view>
   </block>
   <block wx:if="{{tab==='影像'}}"><view class="chips media-filters"><button wx:for="{{mediaFilters}}" wx:key="value" class="chip {{mediaType===item.value?'selected':''}}" data-value="{{item.value}}" hover-class="none" bindtap="mediaFilter">{{item.label}}</button></view><view wx:if="{{!house.media.length}}" class="empty"><view class="subtitle">还没有影像</view>把房间、细节和需要确认的地方拍下来。</view><view class="media-grid"><view wx:for="{{visibleMedia}}" wx:key="id" class="media-card">
    <view class="media-tile" data-id="{{item.id}}" bindtap="preview" bindlongpress="mediaManage"><image wx:if="{{item.type==='image'}}" src="{{item.path}}" mode="aspectFill"/><view wx:else class="video">▶<text>视频 {{item.duration}}s</text></view><text class="media-label">{{item.issueTitle?'问题 · '+item.issueTitle:item.fieldId?'已关联检查项':'房源影像'}}</text></view>
