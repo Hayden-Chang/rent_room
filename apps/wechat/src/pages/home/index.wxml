@@ -7,7 +7,7 @@
  </view></view>
  <button wx:if="{{accountReady&&houses.length}}" class="add" bindtap="add" aria-label="添加房源"><image src="/assets/icons/plus.png"/></button>
 </view>
-<view wx:if="{{!accountReady}}" class="mask login-mask" catchtouchmove="preventTouchMove">
+<view wx:if="{{loginVisible}}" class="mask login-mask" catchtouchmove="preventTouchMove">
  <view class="sheet login-sheet">
   <view wx:if="{{loginError}}" class="error login-error">{{loginError}}</view>
   <button id="wechat-login" class="primary" loading="{{busy}}" disabled="{{busy}}" bindtap="login">{{busy?'正在登录':'微信登录'}}</button>

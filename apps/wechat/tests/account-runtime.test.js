@@ -10,7 +10,13 @@ afterEach(()=>vi.useRealTimers());
 function harness(m=accountWx()){
   let app,page;const context=vm.createContext({wx:m.wx,App:value=>{app=value;},Page:value=>{page=value;},getApp:()=>app,console,setTimeout,clearTimeout});
   const launch=()=>{vm.runInContext(appCode,context);app.onLaunch();return app;};launch();
-  return {m,context,get app(){return app;},launch,page(name){vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(values){Object.assign(this.data,values);};return page;}};
+  return {m,context,get app(){return app;},launch,page(name){vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(values,done){Object.assign(this.data,values);done?.();};return page;}};
+}
+function loginMaskVisible(data){
+  const template=fs.readFileSync('dist/pages/home/index.wxml','utf8');
+  const tag=template.match(/<view\b[^>]*class="[^"]*\blogin-mask\b[^"]*"[^>]*>/)[0];
+  const condition=tag.match(/wx:if="\{\{(.*?)\}\}"/)[1];
+  return !!vm.runInNewContext(condition,data);
 }
 it('does not create a guest store or invoke WeChat login before the button',async()=>{
   const h=harness(),p=h.page('home');h.app.onShow();p.onLoad();p.onShow();
@@ -191,4 +197,33 @@ it('keeps hidden home authenticated on session notifications but clears it on re
 it('still hides a protected page when its account is no longer authenticated',async()=>{
   const h=harness();await h.app.auth.login();const page=h.page('archive');page.onLoad();page.onShow();
   h.app.auth.logout();page.onHide();expect(page.data.accountReady).toBe(false);page.onUnload();
+});
+
+it('does not put a login sheet in the initial home frame before determining its session',async()=>{
+  const h=harness(),home=h.page('home');expect(loginMaskVisible(home.data)).toBe(false);
+  home.onLoad();home.onShow();expect(loginMaskVisible(home.data)).toBe(true);
+  await home.login();expect(loginMaskVisible(home.data)).toBe(false);home.onUnload();
+  const restored=h.page('home');expect(loginMaskVisible(restored.data)).toBe(false);
+  restored.onLoad();restored.onShow();expect(loginMaskVisible(restored.data)).toBe(false);restored.onUnload();
+});
+it('restores the native tab bar only after the login sheet is removed and houses are rendered',async()=>{
+  const m=accountWx();createPlatform(m.wx).store.add('已保存的房源');
+  const h=harness(m),home=h.page('home'),rendered=structuredClone(home.data),frames=[],shown=[];
+  home.setData=function(values,done){Object.assign(this.data,values);const patch=structuredClone(values);frames.push(()=>{Object.assign(rendered,patch);done?.();});};
+  const flush=()=>{while(frames.length)frames.shift()();};
+  const showTabBar=m.wx.showTabBar;m.wx.showTabBar=()=>{shown.push({login:loginMaskVisible(rendered),houses:rendered.houses.length});showTabBar();};
+  home.onLoad();home.onShow();flush();expect(loginMaskVisible(rendered)).toBe(true);
+  await home.login();expect(shown).toEqual([]);
+  flush();expect(shown).toEqual([{login:false,houses:1}]);expect(m.tabBarVisible).toBe(true);
+  home.onHide();home.onShow();flush();expect(shown).toHaveLength(1);home.onUnload();
+});
+it('does not restore the tab bar from an obsolete login render callback after logout or navigation',async()=>{
+  for(const leave of ['logout','hide','unload']){
+    const h=harness(),home=h.page('home'),frames=[];
+    home.setData=function(values,done){Object.assign(this.data,values);if(done)frames.push(done);};
+    const show=vi.spyOn(h.m.wx,'showTabBar');home.onLoad();home.onShow();await home.login();
+    if(leave==='logout')h.app.auth.logout();else if(leave==='hide')home.onHide();else home.onUnload();
+    for(const done of frames)done();expect(show).not.toHaveBeenCalled();
+    if(leave!=='unload')home.onUnload();
+  }
 });
