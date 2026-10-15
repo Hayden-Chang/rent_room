@@ -1,8 +1,9 @@
 import {createPlaces} from './places.js';
+import {createCommute} from './commute.js';
 import {createStore} from './store.js';
 import {activeHouseCount} from './capacity.js';
-import {uid,clone,prepareImport,emptyState,freshHouse} from './model.js';
-import {makeBackup,readBackup,readExcel,exportExcel,MAX_BYTES} from './files.js';
+import {uid,clone} from './model.js';
+import {writeBackup,readBackup,checkTransfer,CHUNK_BYTES} from './files.js';
 import {writeIssue} from './issues.js';
 import {createBilling} from './billing.js';
 import {dataRoot} from './account-storage.js';
@@ -40,6 +41,30 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
   for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
   const profile={};
   for(const [name,fn] of Object.entries(createAccountProfile(fs,root)))profile[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
+  function accountJob(job) {
+    const version=epoch;
+    return {get cancelled(){if(!active||version!==epoch)throw Error('登录状态已变化，请重新操作');return !!job.cancelled;},onProgress:bytes=>job.onProgress?.(bytes)};
+  }
+  const MAX_BYTES=50*1024*1024; // Existing per-file capture limit.
+  const unlink=path=>{try{fs.unlinkSync(path);}catch{}};
+  const exports=new Set(),sharing=new Set(),discarded=new Set();
+  const append=(path,chunk)=>{if(chunk.length)fs.appendFileSync(path,chunk.buffer.slice(chunk.byteOffset,chunk.byteOffset+chunk.byteLength));};
+  async function* chunks(path) {
+    const size=fs.statSync(path).size,fd=fs.openSync({filePath:path,flag:'r'});
+    try{for(let position=0;position<size;) {
+      const buffer=new ArrayBuffer(Math.min(CHUNK_BYTES,size-position));
+      const {bytesRead}=fs.readSync({fd,arrayBuffer:buffer,offset:0,length:buffer.byteLength,position});
+      if(!bytesRead)throw Error('文件读取未完成，请重新选择');
+      position+=bytesRead;yield new Uint8Array(buffer,0,bytesRead);
+    }}finally{fs.closeSync({fd});}
+  }
+  function transferError(error) {
+    const text=error.message||error.errMsg||'';
+    if(/full|quota|space|exceed.*storage/i.test(text))return Error('存储空间不足，本次操作未完成，原房源已保留');
+    if(/invalid zip|invalid (?:length|distance|block)|unexpected eof/i.test(text))return Error('ZIP 文件损坏或不完整，请重新导出');
+    if(/no such file|not exist|ENOENT/i.test(text))return Error('文件已不可用，请重新选择；原房源已保留');
+    return error instanceof Error?error:Error(text||'文件操作失败，请重试');
+  }
   async function chooseMedia(houseId,fieldId='') {
     const saved=await stageIssueMedia(houseId,fieldId);
     try{store.edit(houseId,h=>h.media.push(...saved));}
@@ -62,29 +87,81 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     for(const item of draft.media)if(!exists(item.path))throw Error('影像文件已不可用，请移除后重新选择');
     store.edit(houseId,h=>writeIssue(h,id,draft,isNew),true);
   }
-  async function exportFile(kind,houseId) {
+  async function exportFile(ids,job={}) {
+    job=accountJob(job);
     if(store.status().blocked)throw Error('当前记录读取失败，请先恢复后再导出');
-    const state=clone(store.get());if(houseId)state.houses=state.houses.filter(h=>h.id===houseId);
-    const bytes=kind==='backup'?makeBackup(state,p=>fs.readFileSync(p)):exportExcel(kind==='template'?[freshHouse('模板')]:state.houses,kind==='template');
-    const name=(kind==='backup'?'看房完整备份':kind==='template'?'看房导入模板':'看房记录')+'-'+Date.now()+(kind==='backup'?'.zip':'.xlsx');
-    const path=root+'/'+name;fs.writeFileSync(path,bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));
-    // Sharing opens WeChat's recipient chooser; the user decides where to send.
-    try{await api('shareFileMessage',{filePath:path,fileName:name});}catch(e){if(!/cancel/.test(e.errMsg||'')){if(kind!=='backup')await api('openDocument',{filePath:path,fileType:'xlsx',showMenu:true});else throw Error('备份已生成，但微信文件分享未成功，请重试');}}
-    return path;
+    if(!Array.isArray(ids)||!ids.length||new Set(ids).size!==ids.length)throw Error('请选择要导出的房源');
+    const houses=ids.map(id=>store.house(id));if(houses.some(h=>!h))throw Error('房源已变化，请重新选择');
+    const snapshot=clone(houses),path=root+'/transfer-'+uid()+'.zip',name='看房房源-'+ids.length+'套-'+Date.now()+'.zip';
+    try {
+      checkTransfer(job);fs.writeFileSync(path,new ArrayBuffer(0));
+      await writeBackup(snapshot,chunks,chunk=>append(path,chunk),job);checkTransfer(job);
+      exports.add(path);return {filePath:path,fileName:name};
+    }catch(error){unlink(path);throw transferError(error);}
   }
-  async function selectImport(){
-    const res=await api('chooseMessageFile',{count:1,type:'file',extension:['json','zip','xlsx']});const file=res.tempFiles[0];
-    if(file.size>MAX_BYTES)throw Error('文件超过 50 MB');
-    const bytes=new Uint8Array(fs.readFileSync(file.path));let parsed;
-    if(/\.json$/i.test(file.name)){const raw=JSON.parse(fs.readFileSync(file.path,'utf8'));parsed={houses:prepareImport(raw),files:{},warnings:['旧 HTML 备份中的照片编号会保留；它不含实际照片文件。']};if(parsed.houses.some(h=>h.media.length))throw Error('含实际影像的房源请使用 ZIP 完整备份');}
-    else parsed=/\.xlsx$/i.test(file.name)?readExcel(bytes):readBackup(bytes);
-    return {...parsed,fileName:file.name};
+  function discardExport(file) {
+    const path=file?.filePath;if(!exports.has(path))return;
+    if(sharing.has(path)){discarded.add(path);return;}
+    exports.delete(path);discarded.delete(path);unlink(path);
   }
-  function commitImport(pending) {
-    store.checkCapacity(activeHouseCount(pending.houses));
-    const houses=clone(pending.houses),created=[];
-    try{for(const h of houses)for(const m of h.media||[]){const bytes=pending.files[m.path];if(!bytes)throw Error('备份影像缺失');m.id=uid();m.path=root+'/media/'+m.id+(m.type==='video'?'.mp4':'.jpg');fs.writeFileSync(m.path,bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength));created.push(m.path);}store.import(houses);}
-    catch(e){for(const p of created)if(!store.get().houses.some(h=>h.media.some(m=>m.path===p)))try{fs.unlinkSync(p);}catch{}throw e;}
+  function shareExport(file) {
+    const path=file?.filePath;
+    if(!exports.has(path)||!exists(path)){
+      discardExport(file);const error=Error('ZIP 已不可用，请重新导出');error.fileUnavailable=true;return Promise.reject(error);
+    }
+    if(sharing.has(path))return Promise.reject(Error('正在发送 ZIP'));
+    if(typeof wx.shareFileMessage!=='function')return Promise.reject(Error('当前微信不支持文件发送，请更新微信后重试'));
+    sharing.add(path);
+    // No await here: retries from a tap retain that tap's invocation context.
+    // The prepared file belongs to the selection until the page discards it.
+    return api('shareFileMessage',{filePath:path,fileName:file.fileName}).then(()=>{
+      return {shared:true};
+    },error=>{
+      if(/cancel/i.test(error?.errMsg||error?.message||''))return {shared:false};
+      const reason=error?.errMsg||error?.message||'';
+      const failure=Error(/gesture|user\s*tap/i.test(reason)?'请点击“重试发送”打开微信分享':'发送 ZIP 失败，请重试');failure.cause=error;throw failure;
+    }).finally(()=>{sharing.delete(path);if(discarded.has(path))discardExport(file);});
+  }
+  async function selectImport(job={}){
+    job=accountJob(job);
+    const res=await api('chooseMessageFile',{count:1,type:'file',extension:['zip']}),file=res.tempFiles[0];
+    if(!file||!/\.zip$/i.test(file.name))throw Error('请选择本应用导出的 ZIP 文件');
+    const read=()=>chunks(file.path);
+    try{return {...await readBackup(read,job),read,fileName:file.name};}catch(error){throw transferError(error);}
+  }
+  async function commitImport(pending,selections,job={}) {
+    job=accountJob(job);
+    if(!pending||!Array.isArray(selections)||!selections.length||new Set(selections.map(s=>s.id)).size!==selections.length)throw Error('请选择要导入的房源');
+    const houses=[],replaceIds=[],oldMedia=[],created=[],sinks=new Map();
+    try {
+      checkTransfer(job);
+      // Once the next transaction rotates previous.json, older recovery media
+      // may be reclaimed, but only after checking both surviving snapshots.
+      try{oldMedia.push(...JSON.parse(fs.readFileSync(previous,'utf8')).houses.flatMap(h=>h.media||[]));}catch{}
+      for(const selection of selections) {
+        const source=pending.houses.find(h=>h.id===selection.id),existing=store.house(selection.id);
+        if(!source)throw Error('房源选择无效');
+        if(!['add','copy','replace'].includes(selection.mode)||existing&&selection.mode==='add'||!existing&&selection.mode==='replace')throw Error('请选择覆盖或新增副本');
+        const h=clone(source);
+        if(selection.mode==='copy'){h.id=uid();h.name+='（副本）';}
+        if(selection.mode==='replace'){replaceIds.push(h.id);oldMedia.push(...existing.media);}
+        houses.push(h);
+      }
+      const additional=activeHouseCount(houses)-activeHouseCount(replaceIds.map(id=>store.house(id)));
+      store.checkCapacity(Math.max(0,additional));
+      for(const h of houses)for(const m of h.media||[]) {
+          const archive=m.path;m.id=uid();m.path=root+'/media/'+m.id+(m.type==='video'?'.mp4':'.jpg');
+          created.push(m.path);fs.writeFileSync(m.path,new ArrayBuffer(0));sinks.set(archive,chunk=>append(m.path,chunk));
+      }
+      const checked=await readBackup(pending.read,job,sinks);
+      if(JSON.stringify(checked.houses)!==JSON.stringify(pending.houses))throw Error('ZIP 已变化，请重新选择');
+      checkTransfer(job);store.import(houses,replaceIds);
+    }catch(error){for(const path of created)unlink(path);throw transferError(error);}
+    // The previous-save recovery snapshot still owns its old media files.
+    let previousHouses=[];try{previousHouses=JSON.parse(fs.readFileSync(previous,'utf8')).houses;}catch{}
+    const retained=new Set([...store.get().houses,...previousHouses].flatMap(h=>(h.media||[]).map(m=>m.path)));
+    for(const m of oldMedia)if(m.path.startsWith(root+'/media/')&&!retained.has(m.path))unlink(m.path);
+    return {added:houses.length-replaceIds.length,replaced:replaceIds.length};
   }
   function removeHouse(id) {
     const h=store.house(id);if(!h?.archived)throw Error('请先归档房源');
@@ -94,7 +171,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,profile,billing,api,setActive(value){if(active!==value)epoch++;active=value;},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,selectImport,commitImport,removeHouse,root,
+  return {store,profile,billing,api,setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),commute:createCommute(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }

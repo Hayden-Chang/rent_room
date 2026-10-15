@@ -13,6 +13,8 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   await mini.mockWxMethod('login',{code:'ui-fixture-code'});
   await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:0,limit:2}});
   assert.equal(await mini.evaluate(()=>getApp().auth.login()),true);
+  // The login page schedules switchTab; do not let it overwrite the next route.
+  await mini.evaluate(()=>new Promise((resolve,reject)=>{let n=0;function check(){const p=getCurrentPages().slice(-1)[0];if(p?.route==='pages/home/index'&&p.data.accountReady){resolve();return;}if(++n>60){reject(Error('Login navigation not settled'));return;}setTimeout(check,100);}check();}));
   // Fixture creation only; all tested choices, folds and search use visible controls.
   const id = await mini.evaluate(() => getApp().service.store.add('停车选项验收'));
   const route='/pages/detail/index?id='+encodeURIComponent(id);
@@ -62,9 +64,9 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   await (await (await station()).$('button[data-value="不涉及"]')).tap();
   assert.equal(await (await (await group('topic_11')).$('button.selected[data-value]')).text(),'是');
   await mini.screenshot({path:output('parking-station.png')});
-  await (await page.$('input.grow')).input('通勤时间');
+  await (await page.$('input.grow')).input('通');
   await page.waitFor('.field-branch');
-  for(const [fieldId,label] of [['21255282-3663-4abe-b7de-d91eeb3825ed','公共交通通勤时间（分钟）'],['3c70cda2-7c6c-4fa6-b2db-b647af24ba72','开车通勤时间（分钟）']]){
+  for(const [fieldId,label] of [['21255282-3663-4abe-b7de-d91eeb3825ed','公交地铁通行时间（分钟）'],['3c70cda2-7c6c-4fa6-b2db-b647af24ba72','开车通勤时间（分钟）']]){
    const row=await page.$('.field-branch[data-scroll-key="field-f-'+fieldId+'"] field-row');
    assert.equal(await (await row.$('.label')).text(),label);
   }

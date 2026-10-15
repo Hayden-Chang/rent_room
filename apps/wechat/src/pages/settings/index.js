@@ -18,8 +18,8 @@ Page(protectedPage({data:{profile:{nickname:'',avatarUrl:''},limit:2,used:0,sett
  logout(){return attempt(async()=>{if(await confirm('退出登录','本机记录会保留，再次登录同一微信账号后可继续查看。')){getApp().auth.logout();getApp().pendingImport=null;wx.reLaunch({url:'/pages/home/index'});}});},
  open(e){wx.navigateTo({url:'/pages/'+e.currentTarget.dataset.page+'/index'});},
  workplace(){wx.navigateTo({url:'/pages/workplace/index'});},
- export(e){attempt(async()=>{wx.showLoading({title:'正在生成',mask:true});try{await service().exportFile(e.currentTarget.dataset.kind);}finally{wx.hideLoading();}});},
- importFile(){attempt(async()=>{getApp().pendingImport=await service().selectImport();wx.navigateTo({url:'/pages/import/index'});});},
+ export(){wx.navigateTo({url:'/pages/import/index?mode=export'});},
+ importFile(){wx.navigateTo({url:'/pages/import/index'});},
  onboarding(e){attempt(()=>{service().store.change(s=>s.settings.onboarding=e.detail.value);this.refresh();});},
  permissions(){attempt(()=>service().api('openSetting'));},retry(){service().store.save();},
  recover(){if(!service().store.status().blocked)return;return attempt(async()=>{if(await confirm('恢复本机记录','将先保留当前文件副本，再恢复上一份成功保存，最近的修改可能无法恢复。')){service().store.recover();this.refresh();notify('已恢复，请核对记录');}});}

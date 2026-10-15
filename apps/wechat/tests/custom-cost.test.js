@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import {pageContextFixture} from './helpers/account-fixture.js';
 import * as model from '../src/lib/model.js';
 import {createStore} from '../src/lib/store.js';
-import {makeBackup,readBackup,exportExcel,readExcel} from '../src/lib/files.js';
+import {makeBackup,readBackup} from './helpers/backup.js';
 
 const groups=[['019886c9-e108-45b4-a0c5-c20d594379e5','周期费用','公摊费'],['538ea220-cf80-418e-a492-8cc3792654be','一次性费用','搬家费']];
 const rows=h=>model.formView(h,{query:'费用'}).flatMap(s=>s.rows);
@@ -40,11 +40,11 @@ it('rejects blank, duplicate and oversized names, unrelated groups and archived 
  for(const [group,label] of [[groups[0][0],' '],[groups[0][0],'电费'],[groups[0][0],'字'.repeat(51)],['topic_11','新费用']])expect(()=>model.addCostField(h,group,label)).toThrow();
  expect(JSON.stringify(h)).toBe(before);h.archived=true;expect(()=>model.addCostField(h,groups[0][0],'公摊费')).toThrow('只读');
 });
-it('round-trips both custom cost groups through ZIP and Excel without losing their numeric values',()=>{
+it('round-trips both custom cost groups through ZIP without losing their numeric values',async()=>{
  const h=model.freshHouse('费用备份');const fields=groups.map(([id,,label])=>model.addCostField(h,id,label));
  fields.forEach((f,i)=>model.updateAnswer(h,f.id,'value',String(30+i)));
  const before=JSON.stringify(h);
- for(const restored of [readBackup(makeBackup({...model.emptyState(),houses:[h]},()=>new Uint8Array())).houses[0],readExcel(exportExcel([h])).houses[0]]){
+ for(const restored of [(await readBackup(makeBackup({...model.emptyState(),houses:[h]},()=>new Uint8Array()))).houses[0]]){
   expect(restored.extras).toHaveLength(2);
   fields.forEach((f,i)=>{expect(rows(restored).find(r=>r.id===f.id)).toMatchObject({type:'n',value:String(30+i)});expect(restored.extras[i].path.at(-1).id).toBe(groups[i][0]);});
  }

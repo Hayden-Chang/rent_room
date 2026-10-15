@@ -5,11 +5,12 @@ import vm from 'node:vm';
 import {createPlatform} from '../src/lib/platform.js';
 import {emptyState,freshHouse,validateState,stats} from '../src/lib/model.js';
 import {issueDraft,writeIssue} from '../src/lib/issues.js';
-import {makeBackup,readBackup} from '../src/lib/files.js';
+import {makeBackup,readBackup,streamFs} from './helpers/backup.js';
 
 function setup() {
  const disk=new Map(),toasts=[],guards=[],routes=[],previews=[];let full=false,failAt='',choose,modal=true;
  const io={mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync(p){if(!disk.has(p))throw Error('missing');return disk.get(p);},writeFileSync(p,v){if(full)throw Error('full');disk.set(p,v);},copyFileSync(a,b){if(full||a===failAt)throw Error('full');if(!disk.has(a))throw Error('missing');disk.set(b,disk.get(a));},renameSync(a,b){if(full)throw Error('full');disk.set(b,disk.get(a));disk.delete(a);},unlinkSync:p=>disk.delete(p)};
+ streamFs(disk,io);
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>io,setNavigationBarTitle(){},showToast:o=>toasts.push(o.title),enableAlertBeforeUnload:o=>guards.push(o.message),disableAlertBeforeUnload(o){guards.push(false);o.success?.({});},navigateBack(o={}){routes.push('back');o.success?.({});},navigateTo(o){routes.push(o.url);o.success({});},chooseMedia:o=>choose(o),showModal:o=>o.success({confirm:modal}),previewMedia(o){previews.push(o);o.success({});}};
  const service=createPlatform(wx),id=service.store.add('测试房源');
  function load(name='issue',options={id}){let page;const context=vm.createContext(pageContextFixture({wx,Page:o=>page=o,getApp:()=>({service}),console,setTimeout,clearTimeout}));vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};page.onLoad(options);return page;}
@@ -93,9 +94,9 @@ describe('issue form and transactional media',()=>{
 });
 
 describe('issue data portability',()=>{
- it('round-trips notes, status and real photo/video bytes with stable issue links after import and reload',()=>{
+ it('round-trips notes, status and real photo/video bytes with stable issue links after import and reload',async()=>{
   const s=setup(),house=freshHouse('备份');house.issues=[{id:'issue-a',title:'窗户',note:'第一行\n第二行',resolved:true}];house.media=[{id:'photo',type:'image',path:'/a',issueId:'issue-a',fieldId:''},{id:'video',type:'video',path:'/b',issueId:'issue-a',fieldId:''}];const state={...emptyState(),houses:[house]},before=JSON.stringify(state),blobs={'/a':new Uint8Array([1,2]),'/b':new Uint8Array([3,4])};
-  const pending=readBackup(makeBackup(state,path=>blobs[path]));s.service.commitImport(pending);const h=s.reload().store.get().houses[1];expect(h.id).not.toBe(house.id);expect(h.issues).toEqual(house.issues);expect(h.media.map(m=>m.issueId)).toEqual(['issue-a','issue-a']);expect(h.media.every(m=>m.id!=='photo'&&m.id!=='video')).toBe(true);expect(h.media.map(m=>[...new Uint8Array(s.disk.get(m.path))])).toEqual([[1,2],[3,4]]);expect(issueDraft(h,'issue-a').media).toHaveLength(2);expect(JSON.stringify(state)).toBe(before);
+  const pending=await readBackup(makeBackup(state,path=>blobs[path]));await s.service.commitImport(pending,[{id:house.id,mode:'copy'}]);const h=s.reload().store.get().houses[1];expect(h.id).not.toBe(house.id);expect(h.issues).toEqual(house.issues);expect(h.media.map(m=>m.issueId)).toEqual(['issue-a','issue-a']);expect(h.media.every(m=>m.id!=='photo'&&m.id!=='video')).toBe(true);expect(h.media.map(m=>[...new Uint8Array(s.disk.get(m.path))])).toEqual([[1,2],[3,4]]);expect(issueDraft(h,'issue-a').media).toHaveLength(2);expect(JSON.stringify(state)).toBe(before);
  });
  it('accepts old issues and rejects invalid optional notes and orphan media links',()=>{
   const h=freshHouse('A'),state={...emptyState(),houses:[h]};h.issues=[{id:'old',title:'Old',resolved:false}];expect(validateState(state)).toBe(state);

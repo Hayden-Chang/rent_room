@@ -2,11 +2,12 @@ import {it,expect,vi} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {freshHouse} from '../src/lib/model.js';
+import {makeBackup,readBackup} from './helpers/backup.js';
 import {localPageFixture} from './helpers/account-fixture.js';
 
 function runtime(){
  let app,page;const disk=new Map(),routes=[],toasts=[];
- const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync:(p,v)=>disk.set(p,v),copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),navigateTo:o=>routes.push(o.url),switchTab:o=>routes.push(o.url),showActionSheet:o=>o.success({tapIndex:0}),navigateBack(){},showToast:o=>toasts.push(o.title)};
+ const wx={setNavigationBarTitle(){},env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync:(p,v)=>disk.set(p,v),copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),navigateTo:o=>routes.push(o.url),switchTab:o=>routes.push(o.url),showActionSheet:o=>o.success({tapIndex:0}),navigateBack(){},showToast:o=>toasts.push(o.title)};
  const context=vm.createContext({wx,App:o=>{app=o;},Page:o=>{page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
  function load(name,query={}){vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(data){Object.assign(this.data,data);};page.onLoad?.(query);page.onShow?.();return page;}
@@ -22,11 +23,11 @@ it('routes the third-house action to capacity before requesting a name',async()=
 });
 
 it('keeps the complete pending import while opening the capacity page',async()=>{
- const r=runtime(),a=r.app.service.store.add('A'),b=r.app.service.store.add('B');
- r.app.pendingImport={fileName:'backup.zip',houses:[r.app.service.store.house(a),r.app.service.store.house(b)]};
- const pending=r.app.pendingImport,page=r.load('import');await page.commit();
- expect(r.routes).toEqual(['/pages/capacity/index?needed=2']);expect(r.app.pendingImport).toBe(pending);
- expect(page.data.importing).toBe(false);expect(r.app.service.store.capacity().used).toBe(2);
+ const r=runtime();r.app.service.store.add('A');r.app.service.store.add('B');
+ const pending={fileName:'backup.zip',houses:[freshHouse('C'),freshHouse('D')]};r.app.service.selectImport=async()=>pending;
+ const page=r.load('import');await new Promise(resolve=>setTimeout(resolve,0));await page.commit();
+ expect(r.routes).toEqual(['/pages/capacity/index?needed=2']);expect(page.pending).toBe(pending);
+ expect(page.data.busy).toBe(false);expect(page.data.houses.every(h=>h.selected)).toBe(true);expect(r.app.service.store.capacity().used).toBe(2);
 });
 
 it('shows released capacity and leaves purchase errors visible without clearing inputs',async()=>{
@@ -50,8 +51,9 @@ it('routes a full-capacity restore to capacity and leaves the record archived',a
 });
 it('imports a mixed batch using only its active slots and preserves archived copies',async()=>{
  const r=runtime();r.app.service.store.add('A');
- r.app.pendingImport={fileName:'backup.zip',houses:[freshHouse('B'),{...freshHouse('归档'),archived:true}],files:{}};
- const page=r.load('import');await page.commit();
- expect(r.routes).toEqual(['/pages/home/index']);expect(r.app.pendingImport).toBeNull();
+ const pending={...await readBackup(await makeBackup({houses:[freshHouse('B'),{...freshHouse('归档'),archived:true}]})),fileName:'backup.zip'};
+ r.app.service.selectImport=async()=>pending;
+ const page=r.load('import');await vi.waitFor(()=>expect(page.data.ready).toBe(true));await page.commit();
+ expect(r.routes).toEqual(['/pages/home/index']);
  expect(r.app.service.store.capacity()).toMatchObject({used:2,remaining:0});expect(r.app.service.store.get().houses).toHaveLength(3);
 });

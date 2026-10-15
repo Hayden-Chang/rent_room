@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import * as model from '../src/lib/model.js';
 import {createStore} from '../src/lib/store.js';
-import {makeBackup,readBackup,exportExcel,readExcel} from '../src/lib/files.js';
+import {makeBackup,readBackup} from './helpers/backup.js';
 const make=()=>{let disk='';const io={read:()=>disk,write:v=>{disk=v;}};const store=createStore(io),id=store.add('节点测试');return {store,id,io};};
 it('category, structural group and controlled group expose independent swipe targets',()=>{
  const h=model.freshHouse('A'),folds=Object.fromEntries(model.categories.map(c=>[c,true]));
@@ -22,14 +22,14 @@ it('parent annotations reload and survive folding without modifying child answer
  expect(model.formView(next,{filters:['有备注']}).map(s=>s.title)).toContain(category);
  expect(()=>store.answer(id,target,'value','是')).toThrow();store.archive(id,true);expect(()=>store.answer(id,target,'note','覆盖')).toThrow('只读');
 });
-it('group issue and media remain attached to the parent and are included in issue views and backups',()=>{
+it('group issue and media remain attached to the parent and are included in issue views and backups',async()=>{
  const {store,id,io}=make(),g=[...model.rules.inspectionGroups(model.houseTopics(store.house(id))).values()][0],target='node:group:'+g.id;
  store.answer(id,target,'note','父级备注');store.answer(id,target,'issueFlag',true);store.edit(id,h=>h.media.push({id:'parent-photo',type:'image',path:'/photo.jpg',fieldId:target}));
  const h=createStore(io).house(id);expect(model.issueEntries(h).some(e=>e.field.id===target)).toBe(true);
  const f=model.checklistTargets(h).find(f=>f.id===target);expect(model.fieldView(h,f).media[0].id).toBe('parent-photo');
- const restored=readBackup(makeBackup({version:2,houses:[h]},()=>new Uint8Array([1,2,3]))).houses[0];
+ const restored=(await readBackup(makeBackup({version:2,houses:[h]},()=>new Uint8Array([1,2,3])))).houses[0];
  expect(restored.answers[target]).toEqual(h.answers[target]);expect(restored.media[0].fieldId).toBe(target);
- const imported=readExcel(exportExcel([h])).houses[0];expect(imported.answers[target].note).toBe('父级备注');expect(imported.answers[target].issueFlag).toBe(true);
+ expect(restored.answers[target].note).toBe('父级备注');expect(restored.answers[target].issueFlag).toBe(true);
 });
 it('all checklist header kinds use the same gesture component instead of separate un-swipable markup',()=>{
  const markup=fs.readFileSync('src/pages/detail/index.wxml','utf8');
