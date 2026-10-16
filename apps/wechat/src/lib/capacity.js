@@ -1,4 +1,4 @@
-export const HOUSE_PACK = Object.freeze({id:'house-capacity-10',price:190,size:10});
+export const HOUSE_PACK = Object.freeze({id:'room_capacity_10',price:199,size:10,offerId:'1450681249'});
 
 export const activeHouseCount=houses=>houses.filter(h=>!h.archived).length;
 
