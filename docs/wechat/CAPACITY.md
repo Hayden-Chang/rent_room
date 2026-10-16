@@ -24,7 +24,7 @@ WECHAT_API_URL=https://api.keeline.xyz/api/rent-room npm run build
 
 配套后端在登录、权益刷新及每分钟后台任务中有界补查，订单保存下单商品和金额快照；旧 `house-capacity-10 / 190分` 订单按原金额核验。退款以验签解密后的最终结果和原支付单号核对，退款失败不扣容量，成功退款累计达到整单金额后回收该包。退款后的既有超额房源保留。
 
-联调目标回调为 `https://api.keeline.xyz/api/rent-room/wechat/notify`，后台选择安全模式并配置匹配的 Token、EncodingAESKey。2026-10-16 只读检查时线上仍返回旧商品且支付关闭，寻居独立 `private.env` 已有 AppSecret 和会话密钥；本轮已在该文件配置 OfferID、现网 AppKey 和新生成的回调 Token/AESKey；原配置和SQLite在线备份已保存；只重建寻居容器加载配置，现网仍使用原镜像且支付关闭，其他服务未变。服务端GET回调校验、AES推送探针、错误签名拒绝及微信只读查单差分自检通过，不代表微信后台已配置或实单成功。新业务代码尚未部署。上线前需补齐配置并完成小额购买、重复通知、漏通知补发、退出和换机权益恢复、成功/失败退款联调。后端已依据官方原文补全原支付单查单兜底：用户收款完成的状态8、数值零的剩余金额、匹配的原金额/订单/平台单号和生产环境均满足才回收整包；商户扣款阶段5、部分退款和不完整结果不扣权益。iOS继续默认关闭。
+联调目标回调为 `https://api.keeline.xyz/api/rent-room/wechat/notify`，后台选择安全模式并配置匹配的 Token、EncodingAESKey。2026-10-16部署前已在独立 `private.env` 配置服务端密钥，并保存配置和SQLite在线备份。随后按用户明确授权部署后端联调版本、开启通用及iOS支付，公网目录为199分、每包10套；微信后台回调已由用户保存成功。只更新寻居容器，其他服务不变。首笔iPhone实单已由后端正常补查确认，用户报告容量为1/12；退出与换机权益恢复、重复通知和退款实单仍单独验收。原支付单查单兜底要求：用户收款完成的状态8、数值零的剩余金额、匹配的原金额/订单/平台单号和生产环境均满足才回收整包；商户扣款阶段5、部分退款和不完整结果不扣权益。
 
 ## 验证选择
 
@@ -37,7 +37,7 @@ WECHAT_API_URL=https://api.keeline.xyz/api/rent-room npm run build
 | 构建后共享服务与页面编排 | `tests/runtime.test.js`；`tests/capacity-runtime.test.js` |
 | 真实第三套拦截、归档排除及未开放提示 | 通过固定池 runner 执行 `tests/e2e/capacity.cjs` |
 
-VM、模拟微信 API 的测试不代表真机付款；真实支付、微信后台账单、换机恢复及 iOS 商品价格仍需商户配置后实测。UI 截图与用户审批、代码合入、后端部署和小程序发布分别验收。
+VM、模拟微信 API 的测试不代表真机付款；已发生的首笔iPhone付款不代表换机恢复或退款通过。UI 截图与用户审批、代码合入、后端部署和小程序发布分别验收。
 
 2026-10-15 开发轮次：52 项定向逻辑/VM/文件测试通过；另有 12 项不相关源清单测试通过选择器排除。官方 wcc/wcsc 编译通过。真实工具能渲染列表和容量页面，但 SDK 元素查询在可见“添加”按钮处超时；原始失败保留。`CAPACITY_RENDER_ONLY=1` 是显式渲染夹具路径，仅提供实际像素，不证明点击、第三套导航或支付操作通过。当前仍待真实交互和用户 UI 审批。
 
@@ -52,3 +52,7 @@ VM、模拟微信 API 的测试不代表真机付款；真实支付、微信后�
 - 本地证据在 `apps/wechat/artifacts/virtual-payment/`；服务端测试及部署边界在配套model_server PR。渲染之后只改支付未知结果保护和文档，页面WXML/WXSS、商品常量及渲染夹具不变，截图仍可用于同一外观评审。
 
 签名与回调核对依据：[腾讯支付参考](https://github.com/TencentCloudBase/skills/blob/main/skills/cloudbase-wechat-integration/references/virtual-payment.md)、[维护者对自建推送和退款契约的勘误](https://github.com/TencentCloudBase/CloudBase-AI-Toolkit/issues/1132)。随后取得[官方查单原文](https://developers.weixin.qq.com/miniprogram/dev/server/API/VirtualPayment/api_query_order)，已据明确的用户收款阶段及剩余金额补全全额退款兜底。仍不把mock或只读自检称作实单退款验收。用户已确认本轮容量页界面。
+
+### 已到账后的错误提示恢复
+
+自动刷新成功时清除上一轮错误；新的查询失败仍显示原因，已确认的12套容量保留。回归先复现旧提示未清除（1失败、1通过），修复后5项受影响页面测试通过。固定池run `7012d4db8c0d48d5bbb5f19973ce4d2f` 使用真实登录和已购1包权益，注入一次刷新失败及后续成功，通过SDK切页返回触发onShow，截图验证错误消失且容量仍为12；这是局部生命周期验证，不代表真实订单查询或原生点击付款。配套后端另补微信令牌被拒绝后的单次刷新重试，真实原订单查询单独复验，整个修复不新增购买。
