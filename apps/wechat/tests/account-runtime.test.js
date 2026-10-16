@@ -24,6 +24,17 @@ it('does not create a guest store or invoke WeChat login before the button',asyn
   await p.login();expect(h.app.auth.isAuthenticated()).toBe(true);expect(p.data.accountReady).toBe(true);expect(p.data.houses).toEqual([]);expect(h.m.routes).toEqual([]);
   expect(h.m.calls.find(c=>c.url)).toEqual({url:'https://login.example.com/api/rent-room/session',method:'POST',data:{code:'test-one-time-code'}});
 });
+it('keeps the login backdrop modal during login and after a failed attempt',async()=>{
+  const h=harness(),home=h.page('home');home.onLoad();home.onShow();
+  const mask=fs.readFileSync('dist/pages/home/index.wxml','utf8').match(/<view\b[^>]*class="[^"]*\blogin-mask\b[^"]*"[^>]*>/)[0];
+  const handlers=['tap','touchmove'].map(event=>mask.match(new RegExp(`catch${event}="([^"]+)"`))?.[1]);
+  for(const handler of handlers)expect(typeof home[handler]).toBe('function');
+  const assertBlocked=()=>{for(const handler of handlers)home[handler]({});expect(loginMaskVisible(home.data)).toBe(true);expect(home.data.accountReady).toBe(false);expect(h.m.tabBarVisible).toBe(false);expect(h.app.service).toBeNull();expect(h.m.routes).toEqual([]);};
+  assertBlocked();let reject;h.m.respond(()=>new Promise((_,fail)=>{reject=fail;}));const login=home.login();
+  for(let n=0;!reject&&n<20;n++)await Promise.resolve();expect(reject).toBeTypeOf('function');expect(home.data.busy).toBe(true);assertBlocked();reject(Error('网络不可用'));await login;
+  expect(home.data.loginError).toContain('网络');assertBlocked();
+  h.m.respond(null);await home.login();expect(loginMaskVisible(home.data)).toBe(false);expect(home.data.accountReady).toBe(true);expect(h.m.tabBarVisible).toBe(true);home.onUnload();
+});
 it('blocks every business route and its handlers before authentication',async()=>{
   const h=harness(),routes=JSON.parse(fs.readFileSync('dist/app.json','utf8')).pages;
   for(const route of routes){const p=h.page(route.split('/')[1]);await p.onLoad({});await p.onShow();p.add?.();p.save?.();expect(p.data.accountReady).toBe(false);p.onUnload();}

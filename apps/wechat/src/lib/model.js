@@ -167,7 +167,7 @@ export function formView(h,view={},folds={}) {
       const g=groups.get(n.g.id),expanded=folds[n.g.id]??(n.rootGroup||!!filtered);
       if(filtered&&!entries.some(e=>(e.topic.path||[]).some(p=>p.id===n.g.id)))return;
       let options=[],selected='',skipped=false;
-      if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?['正常','有问题','没有']:g.aggregate?['是','否']:[];}
+      if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?(g.id==='topic_53'?['正常','有问题']:['正常','有问题','没有']):g.aggregate?['是','否']:[];}
       const title=(g?.aggregate||g?.presence)&&!g.permissionFieldId?normalTitle(n.g.title):n.g.title;
       const choices=options.map(value=>({value,label:g?.presence?resultLabel(value,g.absenceLabel):value,selected:value===selected}));
       const swipe={...fieldView(h,nodeById.get('node:group:'+n.g.id)),label:title,expanded,skippable:!!g?.skippable,skipped,options:skipped?[]:choices};

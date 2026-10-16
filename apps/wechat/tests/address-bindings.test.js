@@ -1,9 +1,19 @@
 import {it,expect,vi} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {XMLParser} from 'fast-xml-parser';
 function component(name,extra={}){let spec;vm.runInNewContext(fs.readFileSync(`dist/components/${name}/index.js`,'utf8'),{Component:o=>spec=o,Date,setTimeout,clearTimeout,...extra});const c={...spec.methods,data:structuredClone(spec.data),setData(p){Object.assign(this.data,p);},triggerEvent:vi.fn()};return {c,spec};}
-it('wires map selection and permits header gestures; the map surface remains outside the swipe shell',()=>{
- const {c}=component('field-row');c.data.field={id:'map',map:true};c.start({touches:[{clientX:100,clientY:10}]});expect(c.gesture).toBeTruthy();c.cancel();const place={address:'深圳',location:{latitude:22,longitude:114}};c.selectPlace({detail:place});expect(c.triggerEvent).toHaveBeenCalledWith('selectplace',place);c.data.readonly=true;c.selectPlace({detail:place});expect(c.triggerEvent).toHaveBeenCalledTimes(1);
+it('removes the map title row while keeping the embedded picker and ordinary field controls',()=>{
+ const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
+ function visit(children){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;nodes.push({tag,attrs:node[':@']||{}});visit(node[tag]);}}visit(tree);
+ const shell=nodes.find(n=>(n.attrs.class||'').split(' ').includes('swipe-shell')),picker=nodes.find(n=>n.tag==='address-picker');
+ const visible=(node,map)=>node.attrs['wx:if']?!!vm.runInNewContext(node.attrs['wx:if'].slice(2,-2),{field:{map}}):true;
+ expect(visible(shell,true)).toBe(false);expect(visible(picker,true)).toBe(true);
+ expect(visible(shell,false)).toBe(true);expect(visible(picker,false)).toBe(false);
+ expect(picker.attrs.bindselect).toBe('selectPlace');
+});
+it('wires map selection while the map surface remains outside the swipe shell',()=>{
+ const {c}=component('field-row');c.data.field={id:'map',map:true};const place={address:'深圳',location:{latitude:22,longitude:114}};c.selectPlace({detail:place});expect(c.triggerEvent).toHaveBeenCalledWith('selectplace',place);c.data.readonly=true;c.selectPlace({detail:place});expect(c.triggerEvent).toHaveBeenCalledTimes(1);
  const row=fs.readFileSync('dist/components/field-row/index.wxml','utf8'),page=fs.readFileSync('dist/pages/detail/index.wxml','utf8');expect(row).toContain('bindselect="selectPlace"');expect(page).toContain('bindselectplace="selectPlace"');expect(row).toContain('class="swipe-shell');
 });
 it('handles native drag and zoom end shapes while ignoring automatic region updates',()=>{

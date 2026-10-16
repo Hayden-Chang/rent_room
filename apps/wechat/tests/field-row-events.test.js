@@ -158,9 +158,8 @@ it.each(['category','group'])('%s heading swipes, folds only on a fresh title ta
  c.events=[];const skip=find('skip');dispatch(skip,'touchstart');dispatch(skip,'touchend');dispatch(skip,'tap');
  expect(c.events).toEqual([{name:'group',detail:{id:'parent',op:'skip'}}]);
 });
-it('the map header swipes while map dragging remains outside the recognizer',()=>{
- const {c,find,findTag,dispatch}=fixture();c.data.field.map=true;
- dispatch(find('label'),'touchstart',250);dispatch(find('label'),'touchmove',225);dispatch(find('label'),'touchend',225);expect(c.data.actions).toBe(true);
+it('map dragging dismisses open actions while remaining outside the recognizer',()=>{
+ const {c,findTag,dispatch}=fixture();c.data.field.map=true;c.reveal();
  const map=findTag('address-picker');dispatch(map,'touchstart',250);dispatch(map,'touchmove',150);dispatch(map,'touchend',150);
  expect(c.data.actions).toBe(false);expect(c.gesture).toBeFalsy();expect(c.events).toEqual([]);
 });

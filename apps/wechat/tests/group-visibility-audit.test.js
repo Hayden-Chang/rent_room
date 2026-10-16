@@ -28,7 +28,8 @@ it.each(groups.map(g=>[g.title,g]))('%s controls remain reachable while folding 
   if(!expanded)expect(result.some(r=>r.kind==='field'&&g.fields.some(f=>f.id===r.id))).toBe(false);
  }
  expect(JSON.stringify(h)).toBe(before);
- if(g.presence){updateGroup(h,g.id,'value','没有');expect(header()?.options.find(o=>o.value==='没有')?.selected).toBe(true);updateGroup(h,g.id,'value','没有');expect(header()).toBeTruthy();}
+ if(g.presence&&g.id!=='topic_53'){updateGroup(h,g.id,'value','没有');expect(header()?.options.find(o=>o.value==='没有')?.selected).toBe(true);updateGroup(h,g.id,'value','没有');expect(header()).toBeTruthy();}
+ if(g.id==='topic_53')expect(header().options.map(o=>o.label)).toEqual(['是','否']);
  if(g.skippable){updateGroup(h,g.id,'skip');expect(header()?.skipped).toBe(true);updateGroup(h,g.id,'skip');expect(header()?.skipped).toBe(false);}
  if(g.permissionFieldId){updateGroup(h,g.id,'value','不允许');expect(header()?.options.find(o=>o.value==='不允许')?.selected).toBe(true);updateGroup(h,g.id,'value','允许');expect(header()).toBeTruthy();}
 });
