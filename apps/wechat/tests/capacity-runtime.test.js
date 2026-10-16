@@ -57,6 +57,16 @@ it('keeps the latest refresh failure visible without removing confirmed capacity
  expect(page.data.limit).toBe(12);
 });
 
+it('does not let a superseded automatic refresh clear the latest purchase error',async()=>{
+ const r=runtime(),page=r.load('capacity'),billing=r.app.service.billing;let release;
+ billing.snapshot=()=>({configured:true,packs:0});
+ billing.refresh=vi.fn(()=>new Promise(resolve=>{release=resolve;}));
+ page.onShow();billing.purchase=async()=>{throw Error('支付结果正在确认');};
+ await page.purchase();expect(page.data.error).toBe('支付结果正在确认');
+ release({superseded:true,packs:0});await new Promise(resolve=>setTimeout(resolve,0));
+ expect(page.data.error).toBe('支付结果正在确认');expect(page.data.busy).toBe(false);
+});
+
 it('shows only active occupancy in settings and capacity and keeps archives separate',()=>{
  const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.add('正在看');r.app.service.store.archive(id,true);
  expect(r.load('settings').data).toMatchObject({archived:1,used:1,limit:2});

@@ -28,6 +28,18 @@ WECHAT_API_URL=https://api.keeline.xyz/api/rent-room npm run build
 
 ## 验证选择
 
+### 付款框调起耗时排查（2026-10-16）
+
+用户录屏中，微信「支付中」出现到苹果确认面板约 3 秒，取消后能自行恢复。小程序未调用 `showLoading` 显示该弹层；该段已进入 `requestVirtualPayment`。官方 API 只提供 success / fail / complete，没有付款框展示回调或预加载参数，不能将支付结束回调耗时当作弹框耗时。参考 [微信 API](https://developers.weixin.qq.com/miniprogram/dev/api/payment/wx.requestVirtualPayment.html)。
+
+另外发现两处小程序前置等待：购买先等待整个后台权益刷新，再重复请求商品目录。购买现在复用同一会话内 30 秒以内的商品目录及进行中的目录请求，显式刷新仍重新核对目录；后台权益请求不再阻塞新购买，过期响应不能覆盖新容量或清除新错误。下单仍由服务端校验开关，客户端继续核对签名商品和金额、查询未决原订单及阻止重复付款，不预创建订单。
+
+`getApp().service.billing.diagnostics()` 只在内存保留最近一次购买的阶段计时：`catalogReadyMs`、`previousOrderReadyMs`、`orderReadyMs`、`nativeInvokedMs`、`nativeReturnedMs`、`finishedMs` 均相对 `startedAt`。无账号、令牌、订单号或签名，不落盘、不上传。`nativeReturnedMs - nativeInvokedMs` 包含用户确认或取消的时间，不能用来宣称苹果面板耗时已测得。
+
+新增两项回归在旧代码均失败，分别证明重复目录请求和慢刷新阻塞。受控服务测试注入 2 秒旧权益刷新、100ms 目录和 80ms 下单，调用微信前的等待从约 2188ms 降到 83ms；这是模拟链路的改进，不是真机苹果面板的前后对比。Mac 对公开目录的单次实测约 96ms；同样不能替代手机时序。后端下单仍可能等待同账号正在进行的服务端查单锁，本轮没有修改服务端锁或支付账本。
+
+验证映射：`tests/billing.test.js` 覆盖目录复用/过期/失败、刷新竞态、签名、取消和未知结果；构建后的 `tests/capacity-runtime.test.js` 覆盖旧刷新不清除新错误；`tests/account-runtime.test.js` 覆盖共享服务、退出及账号隔离。实际手机付款框是否更早出现仍需同设备对比，未据模拟结果宣称三秒等待已消除。
+
 | 修改边界 | 精确验证入口 |
 | --- | --- |
 | 容量、归档、删除、保存、导入和旧状态 | `tests/capacity.test.js`；`tests/model.test.js` 的 `durable store and migrations` |
