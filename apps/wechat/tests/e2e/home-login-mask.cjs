@@ -38,7 +38,11 @@ const timeout=setTimeout(()=>process.exit(2),100000);
   await step('expand basic information fixture',()=>mini.evaluate(()=>{const page=getCurrentPages().slice(-1)[0];page.fold({detail:{id:page.data.sections[0].header.foldId,expanded:false}});}));
   report.map=await step('map native view',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{let tries=0,last;function poll(){const page=getCurrentPages().slice(-1)[0],rows=page.selectAllComponents('.field-row'),row=rows.find(c=>c.data.field.map);last={expanded:page.data.sections[0]?.expanded,fields:rows.map(c=>({id:c.data.field.id,map:c.data.field.map}))};if(!row){retry();return;}const q=row.createSelectorQuery();q.select('.swipe-shell').boundingClientRect();q.select('.field').boundingClientRect();q.exec(([title,body])=>{last={...last,title,body};if(!body?.width){retry();return;}resolve({title,body});});}function retry(){if(++tries>60){reject(Error('Map row missing: '+JSON.stringify(last)));return;}setTimeout(poll,100);}poll();})));
   assert.equal(report.map.title,null);assert(report.map.body.width>0&&report.map.body.height>=300,'Embedded map retains its native layout');
-  await mini.screenshot({path:path.join(out,'map-without-title.png')});report.passed=true;
+  await mini.screenshot({path:path.join(out,'map-without-title.png')});
+  await step('pest search fixture',()=>mini.evaluate(()=>getCurrentPages().slice(-1)[0].search({detail:{value:'虫害鼠害'}})));await mini.pageScrollTo(0);
+  report.pest=await step('pest native options',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{let tries=0;function poll(){const page=getCurrentPages().slice(-1)[0],row=page.selectAllComponents('.field-row').find(c=>c.data.field.id==='node:group:topic_53');if(!row){retry();return;}row.createSelectorQuery().selectAll('.choice').boundingClientRect(rects=>{if(!rects?.length){retry();return;}resolve({labels:row.data.field.options.map(o=>o.label),buttons:rects});}).exec();}function retry(){if(++tries>60){reject(Error('Pest group missing'));return;}setTimeout(poll,100);}poll();})));
+  assert.deepEqual(report.pest.labels,['是','否']);assert.equal(report.pest.buttons.length,2);
+  await mini.screenshot({path:path.join(out,'pest-yes-no.png')});report.passed=true;
  }catch(error){report.error=error.message;throw error;}
  finally{fs.writeFileSync(path.join(out,'login-mask.json'),JSON.stringify(report,null,2));clearTimeout(timeout);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});

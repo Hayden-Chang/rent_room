@@ -17,6 +17,7 @@ it('opens, folds and reopens the root pest group through the built page without 
  page.fold({currentTarget:{dataset:{id:'虫害鼠害',expanded:false}}});
  const rows=()=>page.data.sections.flatMap(s=>s.rows);
  expect(rows().find(r=>r.id==='topic_53').expanded).toBe(true);
+ expect(rows().find(r=>r.id==='topic_53').options.map(o=>o.label)).toEqual(['是','否']);
  for(const expanded of [false,true,false,true]){
   const header=rows().find(r=>r.id==='topic_53');
   page.fold({currentTarget:{dataset:{id:header.id,expanded:header.expanded}}});
