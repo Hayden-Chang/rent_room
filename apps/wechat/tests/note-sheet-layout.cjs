@@ -17,7 +17,7 @@ function render(nodes,scope){let html='',matched=false;for(const n of nodes){
  for(const [k,v] of Object.entries(a))if(['class','style','placeholder'].includes(k))attrs+=` ${k}="${escape(value(v,scope))}"`;
  html+=`<${mapped}${attrs}>`+(tag==='textarea'?escape(scope.note):render(n[tag],scope))+`</${mapped}>`;
  }return html;}
-function state(sheet,height){let page;vm.runInNewContext(fs.readFileSync(root+'/pages/detail/index.js','utf8'),{Page:p=>page=p});page.data={...page.data,house:{archived:false},sheet,noteTitle:'楼层',note:'第一行备注\n第二行仍然可见',saveError:''};page.setData=p=>Object.assign(page.data,p);page.noteKeyboard?.({detail:{height}});return page.data;}
+function state(sheet,height){let page;vm.runInNewContext(fs.readFileSync(root+'/pages/detail/index.js','utf8'),{Page:p=>{page=p;page.accountId='layout';},getApp:()=>({auth:{isAuthenticated:()=>true,snapshot:()=>({account:{id:'layout'}})}})});page.data={...page.data,house:{archived:false},sheet,noteTitle:'楼层',note:'第一行备注\n第二行仍然可见',saveError:''};page.setData=p=>Object.assign(page.data,p);page.noteKeyboard?.({detail:{height}});return page.data;}
 (async()=>{
  fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH});const results=[],failures=[];
  try{const page=await browser.newPage();for(const [width,height,keyboard] of [[320,480,284],[390,756,368],[430,844,400]])for(const sheet of ['note','mediaNote'])for(const k of [0,keyboard]){
@@ -27,6 +27,17 @@ function state(sheet,height){let page;vm.runInNewContext(fs.readFileSync(root+'/
   const name=`${width}-${sheet}-${k}`;await page.screenshot({path:path.join(out,name+'.png')});
   try{assert.equal(await page.locator('textarea').inputValue(),'第一行备注\n第二行仍然可见');assert(geometry.sheet.top>=0,'sheet must fit above keyboard');assert(geometry.input.top>=geometry.sheet.top&&geometry.input.height>=48,'editor stays usable');assert(geometry.input.bottom<=height-k,'editor is obscured by keyboard');for(const b of geometry.buttons){assert(b.height>=44,'action target is at least 44px');assert(b.bottom<=height-k&&b.top>=geometry.sheet.top,'actions must remain visible above keyboard');}}catch(e){failures.push({name,message:e.message});}
   results.push({name,geometry});
- }}finally{await browser.close();}
+ }
+ // A normal phone has room for the whole sheet above its keyboard. Moving it
+ // must not reflow the focused native textarea or its surrounding controls.
+ for(const width of [390,430])for(const sheet of ['note','mediaNote']){
+  const [closed,open]=results.filter(r=>r.name.startsWith(`${width}-${sheet}-`));
+  try{
+   assert.equal(open.geometry.sheet.height,closed.geometry.sheet.height,'keyboard opening must only move the sheet, not resize it');
+   assert.equal(open.geometry.input.height,closed.geometry.input.height,'focused textarea must retain its height');
+   assert.equal(open.geometry.input.top-open.geometry.sheet.top,closed.geometry.input.top-closed.geometry.sheet.top,'focused textarea must retain its position within the sheet');
+  }catch(e){failures.push({name:`${width}-${sheet}-stable`,message:e.message});}
+ }
+ }finally{await browser.close();}
  fs.writeFileSync(path.join(out,'geometry.json'),JSON.stringify({results,failures},null,2));assert.deepEqual(failures,[]);console.log('12 note-sheet states passed: editor and actions visible above keyboard.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
