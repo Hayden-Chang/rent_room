@@ -37,5 +37,5 @@ Page({...home,
     });
   },
   async login(){if(!this.data.busy)await getApp().auth.login();},
-  preventTouchMove(){}
+  preventBackgroundInteraction(){}
 });
