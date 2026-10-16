@@ -23,6 +23,53 @@ function fixture(options={}){
 }
 
 describe('server-confirmed capacity purchases',()=>{
+ it('reuses a fresh catalog from the capacity page before starting payment',async()=>{
+  const f=fixture();await f.billing.refresh();await f.billing.purchase();
+  expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/catalog'))).toHaveLength(1);
+  expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
+ });
+ it('starts payment without waiting for a slow older entitlement refresh',async()=>{
+  const f=fixture(),original=f.api.getMockImplementation();let release,entered;
+  const gate=new Promise(r=>{release=r;}),waiting=new Promise(r=>{entered=r;});
+  f.api.mockImplementation(async(name,args)=>{const response=await original(name,args);if(name==='request'&&args.url.endsWith('/entitlements')){entered();await gate;}return response;});
+  const refresh=f.billing.refresh();await waiting;const purchase=f.billing.purchase();
+  try{await vi.waitFor(()=>expect(f.calls.some(c=>c.name==='requestVirtualPayment')).toBe(true),{timeout:200,interval:10});}
+  finally{release();await Promise.all([refresh,purchase]);}
+  expect(f.billing.snapshot().packs).toBe(1);
+ });
+ it('shares an in-flight catalog and skips the superseded entitlement request',async()=>{
+  const f=fixture(),original=f.api.getMockImplementation();let release,entered;
+  const gate=new Promise(r=>{release=r;}),waiting=new Promise(r=>{entered=r;});
+  f.api.mockImplementation(async(name,args)=>{const response=await original(name,args);if(name==='request'&&args.url.endsWith('/catalog')){entered();await gate;}return response;});
+  const refresh=f.billing.refresh();await waiting;const purchase=f.billing.purchase();release();
+  expect(await refresh).toMatchObject({superseded:true});await purchase;
+  expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/catalog'))).toHaveLength(1);
+  expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/entitlements'))).toBe(false);
+  expect(f.billing.snapshot().packs).toBe(1);
+ });
+ it.each([[29999,1],[30000,2],[-1,2]])('revalidates the catalog at the cache boundary (%i ms)',async(age,count)=>{
+  let clock=100000;const f=fixture({now:()=>clock});await f.billing.refresh();clock+=age;await f.billing.purchase();
+  expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/catalog'))).toHaveLength(count);
+ });
+ it('rechecks the catalog on explicit refresh and discards it after a network failure',async()=>{
+  const f=fixture();await f.billing.refresh();const original=f.api.getMockImplementation();
+  f.api.mockRejectedValueOnce(Error('network offline'));await expect(f.billing.refresh()).rejects.toThrow('network offline');
+  f.api.mockImplementation(original);f.unavailable();await expect(f.billing.purchase()).rejects.toThrow('暂未开放');
+  expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toBe(false);
+ });
+ it('still requires server checkout when a recently cached catalog was enabled',async()=>{
+  const f=fixture();await f.billing.refresh();const original=f.api.getMockImplementation();
+  f.api.mockImplementation(async(name,args)=>name==='request'&&args.url.endsWith('/orders')?{statusCode:503,data:{detail:{message:'房源包暂未开放购买'}}}:original(name,args));
+  await expect(f.billing.purchase()).rejects.toThrow('暂未开放');
+  expect(f.calls.some(c=>c.name==='requestVirtualPayment')).toBe(false);expect(f.billing.snapshot().packs).toBe(0);
+ });
+ it('records the native invocation separately from the full payment callback duration',async()=>{
+  let clock=1000;const f=fixture({now:()=>clock}),original=f.api.getMockImplementation();
+  f.api.mockImplementation(async(name,args)=>{clock+=name==='requestVirtualPayment'?3000:args.url.endsWith('/catalog')?40:args.url.endsWith('/orders')?80:10;return original(name,args);});
+  expect(f.billing.diagnostics()).toBeNull();await f.billing.purchase();
+  expect(f.billing.diagnostics()).toEqual({startedAt:1000,catalogReadyMs:40,previousOrderReadyMs:40,orderReadyMs:120,nativeInvokedMs:120,nativeReturnedMs:3120,finishedMs:3130});
+  const copy=f.billing.diagnostics();copy.nativeInvokedMs=9999;expect(f.billing.diagnostics().nativeInvokedMs).toBe(120);
+ });
  it('passes the exact signed payment string and grants only server-confirmed packs',async()=>{
   const f=fixture();await f.billing.purchase();expect(f.billing.snapshot().packs).toBe(1);
   expect(f.calls.find(c=>c.name==='requestVirtualPayment').args).toEqual(f.payment);
@@ -82,13 +129,22 @@ describe('server-confirmed capacity purchases',()=>{
   expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/entitlements'))).toBe(false);
   expect(f.billing.snapshot().packs).toBe(1);
  });
- it('finishes an older background response before confirming a new payment',async()=>{
+ it.each([false,true])('ignores an older background result after confirming a new payment (failure: %s)',async(fail)=>{
   const f=fixture(),original=f.api.getMockImplementation();let release,entered;
   const gate=new Promise(r=>{release=r;}),waiting=new Promise(r=>{entered=r;});
-  f.api.mockImplementation(async(name,args)=>{const response=await original(name,args);if(name==='request'&&args.url.endsWith('/entitlements')){entered();await gate;}return response;});
-  const refresh=f.billing.refresh();await waiting;const purchase=f.billing.purchase();await new Promise(r=>setTimeout(r,0));
-  expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toBe(false);
-  release();await Promise.all([refresh,purchase]);expect(f.billing.snapshot().packs).toBe(1);
+  f.api.mockImplementation(async(name,args)=>{const response=await original(name,args);if(name==='request'&&args.url.endsWith('/entitlements')){entered();await gate;if(fail)throw Error('old refresh offline');}return response;});
+  const refresh=f.billing.refresh();await waiting;await f.billing.purchase();
+  expect(f.billing.snapshot().packs).toBe(1);release();
+  expect(await refresh).toMatchObject({superseded:true});expect(f.billing.snapshot().packs).toBe(1);
+ });
+ it('ignores an older order query after a newer query confirms the payment',async()=>{
+  const f=fixture();f.timeout();f.state('unpaid');await expect(f.billing.purchase()).rejects.toBeDefined();
+  const original=f.api.getMockImplementation();let release,entered,hold=true;
+  const gate=new Promise(r=>{release=r;}),waiting=new Promise(r=>{entered=r;});
+  f.api.mockImplementation(async(name,args)=>{const response=await original(name,args);if(hold&&name==='request'&&args.url.includes('/orders/request/')){hold=false;entered();await gate;}return response;});
+  const refresh=f.billing.refresh();await waiting;f.state('paid');await f.billing.purchase();release();await refresh;
+  expect(f.billing.snapshot()).toMatchObject({packs:1,pending:false});
+  expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
  });
  it('refuses a signed checkout for a different price before invoking payment',async()=>{
   const f=fixture();f.payment.signData=f.payment.signData.replace('199','1990');
