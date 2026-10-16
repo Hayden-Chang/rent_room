@@ -38,6 +38,25 @@ it('shows released capacity and leaves purchase errors visible without clearing 
  const settings=r.load('settings');expect(settings.data).toMatchObject({used:1,limit:2});
 });
 
+it('clears an earlier order error when a later automatic refresh succeeds',async()=>{
+ const r=runtime(),page=r.load('capacity'),billing=r.app.service.billing;
+ billing.snapshot=()=>({configured:true,packs:1});
+ billing.refresh=vi.fn().mockRejectedValueOnce(Error('微信订单暂时无法确认，请稍后重试')).mockResolvedValue({packs:1,pending:false});
+ page.onShow();await vi.waitFor(()=>expect(page.data.error).toContain('微信订单暂时无法确认'));
+ expect(page.data.limit).toBe(12);
+ page.onShow();await vi.waitFor(()=>expect(billing.refresh).toHaveBeenCalledTimes(2));
+ await vi.waitFor(()=>expect(page.data.error).toBe(''));
+ expect(page.data.limit).toBe(12);
+});
+
+it('keeps the latest refresh failure visible without removing confirmed capacity',async()=>{
+ const r=runtime(),page=r.load('capacity'),billing=r.app.service.billing;
+ billing.snapshot=()=>({configured:true,packs:1});
+ billing.refresh=vi.fn().mockRejectedValue(Error('微信订单暂时无法确认，请稍后重试'));
+ page.onShow();await vi.waitFor(()=>expect(page.data.error).toContain('微信订单暂时无法确认'));
+ expect(page.data.limit).toBe(12);
+});
+
 it('shows only active occupancy in settings and capacity and keeps archives separate',()=>{
  const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.add('正在看');r.app.service.store.archive(id,true);
  expect(r.load('settings').data).toMatchObject({archived:1,used:1,limit:2});

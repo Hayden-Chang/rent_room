@@ -3,13 +3,13 @@ import {createBilling} from '../src/lib/billing.js';
 
 function fixture(options={}){
  let saved=options.saved||'',state='paid',packs=0,account='account-A',failPayment=null,failRequest=false,ready=true;
- const calls=[],payment={mode:'short_series_goods',signData:'{"currencyType":"CNY","goodsPrice":190,"buyQuantity":1,"env":0,"productId":"house-capacity-10","outTradeNo":"order-test"}',paySig:'server-signature',signature:'user-signature'};
+ const calls=[],payment={mode:'short_series_goods',signData:'{"offerId":"1450681249","currencyType":"CNY","goodsPrice":199,"buyQuantity":1,"env":0,"productId":"room_capacity_10","outTradeNo":"order-test"}',paySig:'server-signature',signature:'user-signature'};
  const api=vi.fn(async(name,args)=>{
   calls.push({name,args});if(name==='login')return {code:'wx-code'};
   if(name==='requestVirtualPayment'){if(failPayment)throw failPayment;return {};}
   if(failRequest)throw Error('network offline');
   const path=args.url.replace('https://capacity.test/api/rent-room','');let data;
-  if(path==='/catalog')data={available:ready,iosAvailable:false,product:{price:190,size:10}};
+  if(path==='/catalog')data={available:ready,iosAvailable:false,product:{id:'room_capacity_10',price:199,size:10}};
   else if(path==='/session')data={token:'opaque-token',account,packs};
   else if(path==='/orders')data={orderId:'order-test',status:'unpaid',payment};
   else if(path==='/entitlements')data={packs};
@@ -19,7 +19,7 @@ function fixture(options={}){
  });
  const config={url:'https://capacity.test/api/rent-room',session:{token:'opaque-token',account,packs},read:()=>saved,write:v=>{saved=v;},wait:async()=>{},...options};
  const billing=createBilling(api,config);
- return {billing,api,calls,payment,cache:()=>saved,reload:()=>createBilling(api,{...config,session:{token:'opaque-token',account,packs},read:()=>saved}),state:v=>{state=v;},packs:v=>{packs=v;},account:v=>{account=v;},cancel:()=>{failPayment={errMsg:'requestVirtualPayment:fail cancel'};},fail:()=>{failRequest=true;},unavailable:()=>{ready=false;}};
+ return {billing,api,calls,payment,cache:()=>saved,reload:()=>createBilling(api,{...config,session:{token:'opaque-token',account,packs},read:()=>saved}),state:v=>{state=v;},packs:v=>{packs=v;},account:v=>{account=v;},cancel:()=>{failPayment={errMsg:'requestVirtualPayment:fail cancel'};},timeout:()=>{failPayment={errMsg:'requestVirtualPayment:fail timeout'};},fail:()=>{failRequest=true;},unavailable:()=>{ready=false;}};
 }
 
 describe('server-confirmed capacity purchases',()=>{
@@ -27,7 +27,7 @@ describe('server-confirmed capacity purchases',()=>{
   const f=fixture();await f.billing.purchase();expect(f.billing.snapshot().packs).toBe(1);
   expect(f.calls.find(c=>c.name==='requestVirtualPayment').args).toEqual(f.payment);
   const checkout=f.calls.find(c=>c.name==='request'&&c.args.url.endsWith('/orders'));
-  expect(checkout.args.data).toMatchObject({productId:'house-capacity-10',platform:'unknown'});
+  expect(checkout.args.data).toMatchObject({productId:'room_capacity_10',platform:'unknown'});
   expect(checkout.args.data.price).toBeUndefined();expect(f.cache()).not.toContain('opaque-token');expect(f.cache()).not.toContain('signature');
  });
  it('never grants capacity from the client success callback alone',async()=>{
@@ -42,6 +42,13 @@ describe('server-confirmed capacity purchases',()=>{
  it('blocks a second checkout while a previous payment is still pending',async()=>{
   const f=fixture();f.state('pending');await expect(f.billing.purchase()).rejects.toThrow();await expect(f.billing.purchase()).rejects.toThrow('上一笔');
   expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
+ });
+ it('keeps the same unknown order when WeChat temporarily reports unpaid',async()=>{
+  const f=fixture();f.timeout();f.state('unpaid');await expect(f.billing.purchase()).rejects.toMatchObject({errMsg:expect.stringContaining('timeout')});
+  const saved=f.cache();await expect(f.billing.purchase()).rejects.toThrow('上一笔');
+  expect(f.cache()).toBe(saved);expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toHaveLength(1);
+  expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
+  f.state('paid');await f.billing.refresh();expect(f.billing.snapshot()).toMatchObject({packs:1,pending:false});
  });
  it('cancelling does not grant capacity and permits a deliberate retry',async()=>{
   const f=fixture();f.cancel();await expect(f.billing.purchase()).rejects.toMatchObject({errMsg:expect.stringContaining('cancel')});
@@ -84,12 +91,26 @@ describe('server-confirmed capacity purchases',()=>{
   release();await Promise.all([refresh,purchase]);expect(f.billing.snapshot().packs).toBe(1);
  });
  it('refuses a signed checkout for a different price before invoking payment',async()=>{
-  const f=fixture();f.payment.signData=f.payment.signData.replace('190','1900');
+  const f=fixture();f.payment.signData=f.payment.signData.replace('199','1990');
   await expect(f.billing.purchase()).rejects.toThrow('支付金额或商品不一致');
   expect(f.calls.some(c=>c.name==='requestVirtualPayment')).toBe(false);expect(f.billing.snapshot().packs).toBe(0);
  });
  it('does not silently succeed when service configuration is missing',async()=>{
   const billing=createBilling(async()=>{throw Error('should not call');});await expect(billing.purchase()).rejects.toThrow('暂未开放');
   expect(billing.snapshot()).toMatchObject({packs:0,configured:false});
+ });
+ it.each([
+  {offerId:'other-offer'},{productId:'house-capacity-10'},{goodsPrice:190},
+  {buyQuantity:2},{env:1},{outTradeNo:'different-order'},{currencyType:'USD'}
+ ])('rejects checkout fields outside the fixed production product: %j',async fields=>{
+  const f=fixture();f.payment.signData=JSON.stringify({...JSON.parse(f.payment.signData),...fields});
+  await expect(f.billing.purchase()).rejects.toThrow('支付金额或商品不一致');
+  expect(f.calls.some(c=>c.name==='requestVirtualPayment')).toBe(false);
+ });
+ it('rejects a stale catalog product before creating an order',async()=>{
+  const f=fixture(),original=f.api.getMockImplementation();
+  f.api.mockImplementation(async(name,args)=>{const r=await original(name,args);if(name==='request'&&args.url.endsWith('/catalog'))r.data.product.id='house-capacity-10';return r;});
+  await expect(f.billing.purchase()).rejects.toThrow('房源包信息已更新');
+  expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toBe(false);
  });
 });

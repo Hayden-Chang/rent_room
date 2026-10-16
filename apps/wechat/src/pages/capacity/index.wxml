@@ -1,7 +1,7 @@
 <view hidden="{{!accountReady}}">
 <view class="page capacity-page">
  <view class="card capacity-summary"><view class="subtitle">房源容量</view><view class="capacity-number">{{used}}<text> / {{limit}} 套</text></view></view>
- <view class="card pack-card"><view class="pack-heading"><view class="subtitle">房源包</view><view class="pack-price">¥1.90</view></view><view class="pack-size">增加 10 套房源容量</view><button class="primary purchase-pack" loading="{{busy}}" disabled="{{busy}}" bindtap="purchase">¥1.90 购买房源包</button></view>
+ <view class="card pack-card"><view class="pack-heading"><view class="subtitle">房源包</view><view class="pack-price">¥1.99</view></view><view class="pack-size">增加 10 套房源容量</view><button class="primary purchase-pack" loading="{{busy}}" disabled="{{busy}}" bindtap="purchase">¥1.99 扩容10个</button></view>
  <view wx:if="{{error}}" class="error">{{error}}</view>
  <button class="link restore-purchases" disabled="{{busy}}" bindtap="restore">刷新容量</button>
 </view>

@@ -46,6 +46,7 @@ async function step(label,action){
   assert.match(await (await page.$('.capacity-number')).text(),/2\s*\/\s*2/);
   assert.equal(await page.$('.capacity-notice'),null);
   assert.equal(await (await page.$('.purchase-pack')).property('disabled'),false);
+  assert.equal(await (await page.$('.purchase-pack')).text(),'¥1.99 扩容10个');
   await mini.screenshot({path:path.join(process.env.WECHAT_ARTIFACT_DIR,'capacity-limit.png')});
   await (await page.$('.purchase-pack')).tap();
   for(let n=0;n<50;n++){if(!await mini.evaluate(()=>getCurrentPages().slice(-1)[0].data.busy))break;await new Promise(r=>setTimeout(r,100));}

@@ -3,7 +3,7 @@ import {service,notify} from '../../lib/ui.js';
 
 Page(protectedPage({
   data:{used:0,limit:2,over:0,busy:false,error:'',configured:false},
-  onShow(){this.refresh();if(this.data.configured)service().billing.refresh().then(()=>this.refresh()).catch(error=>this.setData({error:error.message||'购买记录暂时无法确认，请稍后重试'}));},
+  onShow(){this.refresh();if(this.data.configured)service().billing.refresh().then(()=>{this.setData({error:''});this.refresh();}).catch(error=>this.setData({error:error.message||'购买记录暂时无法确认，请稍后重试'}));},
   refresh(){const info=service().store.capacity();this.setData({...info,configured:service().billing.snapshot().configured});},
   async purchase(){
     if(this.data.busy)return;

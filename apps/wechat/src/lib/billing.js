@@ -34,7 +34,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
     if(refreshTask)return refreshTask;
     refreshTask=(async()=>{
       const catalog=await request('/catalog','GET',undefined,false);
-      available=!!catalog.available&&(platform()!=='ios'||!!catalog.iosAvailable)&&catalog.product?.price===HOUSE_PACK.price&&catalog.product?.size===HOUSE_PACK.size;
+      available=!!catalog.available&&(platform()!=='ios'||!!catalog.iosAvailable)&&catalog.product?.id===HOUSE_PACK.id&&catalog.product?.price===HOUSE_PACK.price&&catalog.product?.size===HOUSE_PACK.size;
       accept(await request('/entitlements'));await orderState();return snapshot();})().finally(()=>{refreshTask=null;});
     return refreshTask;
   }
@@ -49,10 +49,10 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       const catalog=await request('/catalog','GET',undefined,false);
       if(!catalog.available)throw Error('房源包暂未开放购买，请稍后再试');
       if(platform()==='ios'&&!catalog.iosAvailable)throw Error('当前暂不支持在 iPhone 上购买，请稍后再试');
-      if(catalog.product?.price!==HOUSE_PACK.price||catalog.product?.size!==HOUSE_PACK.size)throw Error('房源包信息已更新，请稍后重试');
+      if(catalog.product?.id!==HOUSE_PACK.id||catalog.product?.price!==HOUSE_PACK.price||catalog.product?.size!==HOUSE_PACK.size)throw Error('房源包信息已更新，请稍后重试');
       const old=await orderState();
       if(old?.status==='paid')return snapshot();
-      if(old?.status==='pending')throw Error('上一笔支付正在确认，请点击刷新容量查询，避免重复付款');
+      if(old&&['pending','unpaid'].includes(old.status))throw Error('上一笔支付正在确认，请点击刷新容量查询，避免重复付款');
       cached.pending={requestId:'cp'+Date.now().toString(36)+Math.random().toString(36).slice(2,14)};persist();
       const order=await request('/orders','POST',{requestId:cached.pending.requestId,productId:HOUSE_PACK.id,platform:platform()});
       if(order.status==='paid'){accept(order);cached.pending=null;persist();return snapshot();}
@@ -60,7 +60,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       if(!p||p.mode!=='short_series_goods'||typeof p.signData!=='string'||!p.paySig||!p.signature)throw Error('支付信息无效，请稍后重试');
       let signed;
       try{signed=JSON.parse(p.signData);}catch{throw Error('支付信息无效，请稍后重试');}
-      if(signed.goodsPrice!==HOUSE_PACK.price||signed.buyQuantity!==1||signed.productId!==HOUSE_PACK.id||signed.currencyType!=='CNY'||signed.env!==0||signed.outTradeNo!==order.orderId)throw Error('支付金额或商品不一致，已取消本次购买');
+      if(signed.offerId!==HOUSE_PACK.offerId||signed.goodsPrice!==HOUSE_PACK.price||signed.buyQuantity!==1||signed.productId!==HOUSE_PACK.id||signed.currencyType!=='CNY'||signed.env!==0||signed.outTradeNo!==order.orderId)throw Error('支付金额或商品不一致，已取消本次购买');
       let failure;
       try{await api('requestVirtualPayment',{mode:p.mode,signData:p.signData,paySig:p.paySig,signature:p.signature});}catch(error){failure=error;}
       if(failure&&/cancel/i.test(failure.errMsg||failure.message||'')){cached.pending=null;persist();throw failure;}
