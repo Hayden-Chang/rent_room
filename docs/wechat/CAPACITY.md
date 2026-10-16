@@ -24,7 +24,7 @@ WECHAT_API_URL=https://api.keeline.xyz/api/rent-room npm run build
 
 配套后端在登录、权益刷新及每分钟后台任务中有界补查，订单保存下单商品和金额快照；旧 `house-capacity-10 / 190分` 订单按原金额核验。退款以验签解密后的最终结果和原支付单号核对，退款失败不扣容量，成功退款累计达到整单金额后回收该包。退款后的既有超额房源保留。
 
-联调目标回调为 `https://api.keeline.xyz/api/rent-room/wechat/notify`，后台选择安全模式并配置匹配的 Token、EncodingAESKey。2026-10-16 只读检查时线上仍返回旧商品且支付关闭，寻居独立 `private.env` 已有 AppSecret 和会话密钥；本轮已在该文件配置 OfferID、现网 AppKey 和新生成的回调 Token/AESKey；原配置和SQLite在线备份已保存；只重建寻居容器加载配置，现网仍使用原镜像且支付关闭，其他服务未变。服务端GET回调校验、AES推送探针、错误签名拒绝及微信只读查单差分自检通过，不代表微信后台已配置或实单成功。新业务代码尚未部署。上线前需补齐配置并完成小额购买、重复通知、漏通知补发、退出和换机权益恢复、成功/失败退款联调。退款查单的单号映射和全额判定仍须用真实商户回包核实，不能用支付单状态 `5/8` 直接推断整包退款；iOS 继续默认关闭。
+联调目标回调为 `https://api.keeline.xyz/api/rent-room/wechat/notify`，后台选择安全模式并配置匹配的 Token、EncodingAESKey。2026-10-16 只读检查时线上仍返回旧商品且支付关闭，寻居独立 `private.env` 已有 AppSecret 和会话密钥；本轮已在该文件配置 OfferID、现网 AppKey 和新生成的回调 Token/AESKey；原配置和SQLite在线备份已保存；只重建寻居容器加载配置，现网仍使用原镜像且支付关闭，其他服务未变。服务端GET回调校验、AES推送探针、错误签名拒绝及微信只读查单差分自检通过，不代表微信后台已配置或实单成功。新业务代码尚未部署。上线前需补齐配置并完成小额购买、重复通知、漏通知补发、退出和换机权益恢复、成功/失败退款联调。后端已依据官方原文补全原支付单查单兜底：用户收款完成的状态8、数值零的剩余金额、匹配的原金额/订单/平台单号和生产环境均满足才回收整包；商户扣款阶段5、部分退款和不完整结果不扣权益。iOS继续默认关闭。
 
 ## 验证选择
 
@@ -51,4 +51,4 @@ VM、模拟微信 API 的测试不代表真机付款；真实支付、微信后�
 - 实际按钮用例 `tests/e2e/capacity.cjs` 在run `aa05d311e25640ea8b6b68e5ffe9a6e2` 查询已渲染的 `.add` 按钮时超时，后续支付点击未执行。失败receipt与截图保留；未用直接调用handler代替点击验收。
 - 本地证据在 `apps/wechat/artifacts/virtual-payment/`；服务端测试及部署边界在配套model_server PR。渲染之后只改支付未知结果保护和文档，页面WXML/WXSS、商品常量及渲染夹具不变，截图仍可用于同一外观评审。
 
-签名与回调核对依据：[腾讯支付参考](https://github.com/TencentCloudBase/skills/blob/main/skills/cloudbase-wechat-integration/references/virtual-payment.md)、[维护者对自建推送和退款契约的勘误](https://github.com/TencentCloudBase/CloudBase-AI-Toolkit/issues/1132)。生产退款查单缺失的单号映射仍待实际契约确认，本轮不会据不明状态自动回收整包权益。
+签名与回调核对依据：[腾讯支付参考](https://github.com/TencentCloudBase/skills/blob/main/skills/cloudbase-wechat-integration/references/virtual-payment.md)、[维护者对自建推送和退款契约的勘误](https://github.com/TencentCloudBase/CloudBase-AI-Toolkit/issues/1132)。随后取得[官方查单原文](https://developers.weixin.qq.com/miniprogram/dev/server/API/VirtualPayment/api_query_order)，已据明确的用户收款阶段及剩余金额补全全额退款兜底。仍不把mock或只读自检称作实单退款验收。用户已确认本轮容量页界面。
