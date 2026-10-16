@@ -8,6 +8,7 @@
 | --- | --- |
 | [apps/wechat](apps/wechat/README.md) | 微信小程序源码、测试、构建脚本与清单源数据 |
 | [docs/wechat](docs/wechat/VALIDATION.md) | 小程序验证记录、Figma 核对与交互审计 |
+| [后端与服务器说明](docs/wechat/BACKEND.md) | 登录与容量实现、服务器、服务配置、代码仓和维护入口 |
 | [docs/product](docs/product/产品设计.md) | 产品设计文档 |
 | [docs/research](docs/research/看房指南.md) | 看房研究、素材文字整理 |
 | [design](design/README.md) | Figma 入口和必要设计说明 |
