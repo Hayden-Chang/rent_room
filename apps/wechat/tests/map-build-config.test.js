@@ -28,6 +28,12 @@ it('keeps explicit environment key precedence',()=>{
  const key='b'.repeat(32),result=build({TIANDITU_KEY:key,TIANDITU_KEY_FILE:path.join(fixture,'missing-key')});
  expect(result.status,result.stderr).toBe(0);expect(fs.readFileSync(path.join(fixture,'dist/app.js'),'utf8')).toContain(key);
 });
+it.each([['1',true],['0',false],['yes',false]])('only includes the payment diagnostic entry for an explicit opt-in (%s)',(value,enabled)=>{
+ const result=build({TIANDITU_KEY:'c'.repeat(32),WECHAT_PAYMENT_DIAGNOSTICS:value});expect(result.status,result.stderr).toBe(0);
+ const view=fs.readFileSync(path.join(fixture,'dist/pages/capacity/index.wxml'),'utf8');
+ const code=fs.readFileSync(path.join(fixture,'dist/pages/capacity/index.js'),'utf8');
+ expect(view.includes('showPaymentTiming')).toBe(enabled);expect(code.includes('paymentTimings')).toBe(enabled);
+});
 it('uses shared user configuration from a fresh worktree and prefers local overrides',async()=>{
  const {loadMapKey}=await import('../scripts/map-config.mjs');
  const homeDirectory=path.join(fixture,'user'),appDirectory=path.join(fixture,'fresh-app');

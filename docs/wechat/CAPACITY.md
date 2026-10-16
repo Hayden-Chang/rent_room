@@ -40,6 +40,10 @@ WECHAT_API_URL=https://api.keeline.xyz/api/rent-room npm run build
 
 验证映射：`tests/billing.test.js` 覆盖目录复用/过期/失败、刷新竞态、签名、取消和未知结果；构建后的 `tests/capacity-runtime.test.js` 覆盖旧刷新不清除新错误；`tests/account-runtime.test.js` 覆盖共享服务、退出及账号隔离。实际手机付款框是否更早出现仍需同设备对比，未据模拟结果宣称三秒等待已消除。
 
+用户随后反馈同一预览首次约 7 秒、取消后第二次约 3 秒。计时起点尚未确认，不能归因于微信/苹果的首次准备、网络连接或同账号服务端查单锁。为取得手机分段数据，单独使用 `WECHAT_PAYMENT_DIAGNOSTICS=1` 构建诊断预览；取消付款、按钮恢复后，长按顶部容量数字卡片，显示当前页面最近三次调用微信前的目录/旧单/下单耗时及微信接管至返回的时间。选择「复制记录」才写入剪贴板，内容只有阶段计时和微信版本/基础库/平台，不含账号、令牌、订单或签名，也不上传。微信接管至返回仍包含用户停留与取消，不能直接等同弹框时间。
+
+普通构建移除长按绑定、记录逻辑及诊断弹窗。`tests/payment-diagnostics.test.js` 覆盖普通包排除、空记录、连续两次计时、复制范围及三条历史上限；`tests/map-build-config.test.js` 验证只有显式开关 `1` 才打入诊断入口。诊断入口不预调用支付、不自动创建订单，生产付款逻辑不因诊断入口变更。
+
 | 修改边界 | 精确验证入口 |
 | --- | --- |
 | 容量、归档、删除、保存、导入和旧状态 | `tests/capacity.test.js`；`tests/model.test.js` 的 `durable store and migrations` |
