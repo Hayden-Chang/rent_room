@@ -14,8 +14,8 @@ const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/
    const geometry=await mini.evaluate(({sheet,height})=>new Promise(resolve=>{
     const p=getCurrentPages().slice(-1)[0];
     p.setData({tab:'影像',sheet,noteFocus:false,noteKeyboardHeight:height,noteTitle:'地址',note:'第一行备注\n第二行保持可见'},()=>wx.nextTick(()=>{
-     const q=wx.createSelectorQuery();q.select('.note-sheet').boundingClientRect();q.select('.note-sheet textarea').boundingClientRect();q.select('.note-sheet .primary').boundingClientRect();
-     q.exec(([sheet,input,save])=>resolve({sheet,input,save,viewport:wx.getWindowInfo().windowHeight}));
+     const q=wx.createSelectorQuery();q.select('.mask').boundingClientRect();q.select('.note-sheet').boundingClientRect();q.select('.note-input').boundingClientRect();q.select('.note-sheet .primary').boundingClientRect();
+     q.exec(([mask,sheet,input,save])=>resolve({sheet,input,save,viewport:mask.bottom,platformViewport:wx.getWindowInfo().windowHeight}));
     }));
    }),{sheet,height});
    report.states.push({sheet,height,geometry});await mini.screenshot({path:path.join(out,`${sheet}-${height}.png`)});

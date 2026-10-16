@@ -9,7 +9,7 @@ async function step(name,fn){let timer;console.log(name);try{return await Promis
  const current=()=>mini.currentPage();
  const tap=selector=>step('tap '+selector,async()=>{const element=await (await current()).$(selector);assert(element,'Missing '+selector);await element.tap();});
  const settled=()=>mini.evaluate(()=>new Promise((resolve,reject)=>{let tries=0;function check(){const p=getCurrentPages().slice(-1)[0];if(p?.route==='pages/detail/index'&&p.data.house&&p.data.accountReady){wx.nextTick(resolve);return;}if(++tries>60){reject(Error('Detail not ready'));return;}setTimeout(check,100);}check();}));
- const editor=()=>mini.evaluate(()=>new Promise(resolve=>wx.createSelectorQuery().select('.note-sheet').boundingClientRect().select('.note-sheet textarea').fields({rect:true,size:true,properties:['focus','value']}).exec(([sheet,input])=>{const p=getCurrentPages().slice(-1)[0];resolve({sheet,input,note:p.data.note,noteFocus:p.data.noteFocus,keyboardHeight:p.data.noteKeyboardHeight});})));
+ const editor=()=>mini.evaluate(()=>new Promise(resolve=>wx.createSelectorQuery().select('.note-sheet').boundingClientRect().select('.note-input').fields({rect:true,size:true,properties:['focus','value']}).exec(([sheet,input])=>{const p=getCurrentPages().slice(-1)[0];resolve({sheet,input,note:p.data.note,noteFocus:p.data.noteFocus,keyboardHeight:p.data.noteKeyboardHeight});})));
  try{
   await mini.mockWxMethod('login',{code:'note-fixture'});await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:0,limit:2}});
   assert.equal(await mini.evaluate(()=>getApp().auth.login()),true,'Build with WECHAT_API_URL for the mocked login fixture');
