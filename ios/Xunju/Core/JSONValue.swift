@@ -1,7 +1,7 @@
 import Foundation
 
 /// Lossless access to the shared mini-program schema, including old backup fields.
-enum JSONValue: Codable, Equatable, Hashable {
+enum JSONValue: Codable, Equatable, Hashable, Sendable {
     case object([String: JSONValue]), array([JSONValue]), string(String), number(Double), bool(Bool), null
 
     init(from decoder: Decoder) throws {
@@ -33,6 +33,11 @@ enum JSONValue: Codable, Equatable, Hashable {
     func setting(_ key: String, to value: JSONValue) -> JSONValue {
         guard case .object(var object) = self else { return self }
         object[key] = value
+        return .object(object)
+    }
+    func removing(_ key: String) -> JSONValue {
+        guard case .object(var object) = self else { return self }
+        object.removeValue(forKey: key)
         return .object(object)
     }
     var array: [JSONValue] { if case .array(let value) = self { return value }; return [] }

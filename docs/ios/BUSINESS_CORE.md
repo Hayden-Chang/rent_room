@@ -48,4 +48,27 @@ iOS 已有短信与 Apple 的网络协议客户端以及仅本机 Keychain 会�
 
 ## 剩余工作
 
-完整房源/清单/对比/设置页面、影像拍摄/预览/编辑、问题编辑、ZIP备份/恢复、上班地点/通勤/测速、引导、账号状态切换和StoreKit均需继续实现与原生操作验收。普通启动暂仍显示准备页；本轮不能称为 iOS 全功能交付，也不能发布。
+完整房源/清单/对比/设置页面、影像拍摄/预览/编辑、问题编辑、ZIP页面接入、上班地点/通勤/测速、引导、账号状态切换和StoreKit均需继续实现与原生操作验收。普通启动暂仍显示准备页；本轮不能称为 iOS 全功能交付，也不能发布。
+
+
+## ZIP 核心：双向兼容已验证
+
+固定依赖 ZIPFoundation 0.9.20，声明在 `ios/project.yml`，许可证随原生资源保留。归档任务在独立 actor 中运行，每块256 KiB；manifest上限32 MiB，媒体总量没有50 MiB的人工上限。只读预览验证文件头/中央目录、重复路径、压缩方式、加密、文件类型、大小/CRC元数据，仅读取manifest，不展开未选择的媒体。确认导入时二次读取并校验文件指纹，只解出选中的媒体到随机私有文件名；schema和规则继续通过原小程序的 `prepareImport` 验证。
+
+导入前后核对账号scope与状态revision，存储失败/容量不足/文件损坏/取消或账号切换均不提交；暂存媒体随失败清理。允许按净增容量覆盖选中房源，保留本机全局设置。导出只含房源与其影像，不带账号归属、Keychain或全局设置；不修改原始房源/媒体。文件选择、分享与进度UI尚未接入，不能据此声明完整备份操作验收。
+
+`xunju-ios-backup-scopes-20261019-05.xcresult`：21UT通过，0失败（11项新备份、6项受影响的认领、4项路径隔离/规范化）。首次引入时的两次编译失败保留：缺少try、Swift6对第三方Entry捕获的隔离诊断；之后仅读取可发送的size/CRC标量。未以编译失败作为回归证明。
+
+双向实证：
+
+- `ios/scripts/create-wechat-backup-fixture.mjs` 直接调用未修改的小程序 `writeBackup`，生成真实协议fixture `XunjuTests/Fixtures/wechat-backup.zip`。iOS实际导入并验证中文标题、租金备注、手动问题及影像的issueId、备注和原始字节。
+- 原生XCTest实际生成并作为附件保留 `native-cross-platform.zip`。从上述05结果bundle导出后，使用 `ios/scripts/verify-native-backup.mjs` 调用未修改的小程序 `readBackup` 两遍（预览/带sink校验）。房源字段、数字0、总结、媒体关联、800000个媒体字节的SHA256及CRC均通过。
+- 另有52 MiB总媒体的真实写入/预览测试，证明没有误加50 MiB总体积限制。未以此代表真机峰值内存或超4 GiB场景已验收。
+
+## 路径回归与保留证据
+
+独立审查发现初版目录解析允许整个media目录通过符号链接指向其他scope。新增3项精确回归，在 `xunju-ios-path-regression-20261019-before.xcresult` 均因错误接受跨scope读取/导出/暂存而失败；数据全部为本测试创建的临时目录。统一通过 `LocalMediaFiles` 校验规范目录后，同3项在05全部通过。
+
+首次收紧后正常新目录被误拒绝：已有目录测试通过，精确首次创建测试在 `xunju-ios-url-regression-20261019-before-create.xcresult` 复现失败；日志显示预创建URL无尾斜杠、创建后解析URL有尾斜杠，但规范path相同。改为比较规范path后，正常创建、认领、ZIP流程及隔离回归共21项同时通过。04的正常路径失败、诊断先仅覆盖已有目录的通过结果及全部修正前证据均保留。
+
+本轮累计新增iOS业务UT为32个（核心8、认领6、认证3、备份11、路径4），另有2个新增UI方法；均为分边界开发验证，不声称一次最终head全量运行。日志、计划、receipt和源码文件哈希副本在本worktree忽略目录 `artifacts/ios-business-20261019/`，原生结果bundle仍以 `/Volumes/mac2/codex-builds/` 下绝对路径为准。

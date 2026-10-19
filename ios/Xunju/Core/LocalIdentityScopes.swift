@@ -84,7 +84,7 @@ final class LocalIdentityScopes {
                     let name = "\(UUID().uuidString).\(item["type"].string == "video" ? "mp4" : "jpg")"
                     let relative = "media/" + name
                     let destination = target.records.directory.appending(path: relative)
-                    try files.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+                    _ = try LocalMediaFiles.directory(in: target.records.directory, create: true)
                     try files.copyItem(at: original, to: destination)
                     created.append(destination)
                     return item.setting("path", to: .string(relative))
@@ -100,13 +100,7 @@ final class LocalIdentityScopes {
     }
 
     func mediaURL(_ path: String, in directory: URL) throws -> URL {
-        guard path.range(of: "\\Amedia/[A-Za-z0-9_-]+\\.(jpg|mp4)\\z", options: .regularExpression) != nil else {
-            throw CoreFailure(message: "本机影像路径无效，原记录已保留")
-        }
-        let mediaRoot = directory.appendingPathComponent("media").standardizedFileURL.resolvingSymlinksInPath()
-        let url = directory.appending(path: path).standardizedFileURL.resolvingSymlinksInPath()
-        guard url.deletingLastPathComponent() == mediaRoot else { throw CoreFailure(message: "本机影像路径无效，原记录已保留") }
-        return url
+        try LocalMediaFiles.file(path, in: directory)
     }
     private func claimed(_ id: String, by target: NativeStore) -> Bool {
         target.state["guestClaims"].array.contains(.string(id))
