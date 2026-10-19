@@ -1,0 +1,69 @@
+import {dataRoot,validAccountId} from './account-storage.js';
+import {clone,emptyState,uid,validateState} from './model.js';
+
+function files(wx){
+ const fs=wx.getFileSystemManager();
+ const exists=path=>{try{fs.accessSync(path);return true;}catch{return false;}};
+ const write=(path,value)=>{const pending=path+'.pending';fs.writeFileSync(pending,JSON.stringify(value),'utf8');fs.renameSync(pending,path);};
+ return {fs,exists,write,read:path=>JSON.parse(fs.readFileSync(path,'utf8'))};
+}
+
+// A claimed guest directory is never reused by another guest or account.
+export function guestStorage(wx){
+ const {fs,exists,write,read}=files(wx),base=dataRoot(wx);
+ if(!exists(base+'/account-owner.json')&&(exists(base+'/state.json')||exists(base+'/previous.json')))return {root:base};
+ try{fs.mkdirSync(base,true);}catch{fs.accessSync(base);}
+ const pointer=base+'/guest-current.json';let id;
+ if(exists(pointer)){
+  id=read(pointer).id;
+  if(typeof id!=='string'||!/^h[a-z0-9]+$/.test(id))throw Error('本机未登录记录目录读取失败，请勿清理小程序数据');
+ }
+ if(!id||exists(base+'/guests/'+id+'/account-owner.json')){id=uid();write(pointer,{id});}
+ return {root:base+'/guests/'+id};
+}
+
+// Journal first, reserve the source, then atomically commit the merged state.
+// Originals remain as recovery copies; a retry uses the committed batch ID.
+export function claimGuestRecords(wx,accountId,target,source){
+ if(!validAccountId(accountId))throw Error('账号校验失败，请重新登录');
+ const {fs,exists,write,read}=files(wx),base=dataRoot(wx),journal=target+'/guest-claim.json';
+ try{fs.mkdirSync(target,true);}catch{fs.accessSync(target);}
+ function transfer(root){
+  if(root===target)return;
+  const batch=root.slice((base+'/guests/').length);
+  if(!root.startsWith(base+'/guests/')||!/^h[a-z0-9]+$/.test(batch))throw Error('未登录记录目录无效，原记录已保留');
+  const marker=root+'/account-owner.json';
+  if(exists(marker)){
+   const owner=read(marker).accountId;
+   if(!validAccountId(owner))throw Error('未登录记录归属信息损坏，原记录已保留');
+   if(owner!==accountId)throw Error('这些本机记录已关联其他微信账号，请切回原账号');
+  }
+  const current=target+'/state.json',state=exists(current)?validateState(read(current)):emptyState();
+  if(state.guestClaims?.includes(batch))return;
+  const incoming=exists(root+'/state.json')?validateState(read(root+'/state.json')):emptyState();
+  if(!incoming.houses.length)return;
+  write(journal,{root});write(marker,{version:1,accountId});
+  const next=clone(state),ids=new Set(next.houses.map(h=>h.id));
+  try{fs.mkdirSync(target+'/media',true);}catch{fs.accessSync(target+'/media');}
+  for(const original of incoming.houses){
+   const house=clone(original);if(ids.has(house.id))house.id=uid();ids.add(house.id);
+   for(const media of house.media||[]){
+    if(!media.path.startsWith(root+'/media/')||media.path.includes('/../'))throw Error('本机影像路径无效，原记录已保留');
+    const path=target+'/media/'+batch+'-'+encodeURIComponent(media.id)+(media.type==='video'?'.mp4':'.jpg');
+    fs.copyFileSync(media.path,path);media.path=path;
+   }
+   next.houses.push(house);
+  }
+  if(!state.houses.length)next.settings=clone(incoming.settings||next.settings);
+  next.guestClaims=[...(state.guestClaims||[]),batch];next.updatedAt=new Date().toISOString();validateState(next);
+  // Association preserves all records, even if their combined count exceeds
+  // current capacity. Normal additions/restores continue to enforce the limit.
+  if(exists(current))fs.copyFileSync(current,target+'/previous.json');
+  write(current,next);
+ }
+ if(exists(journal))transfer(read(journal).root);
+ if(source&&source!==target)transfer(source);
+ // A leftover journal is safe: the destination's committed batch prevents a
+ // duplicate import. Cleanup failure must not revive an already claimed source.
+ if(exists(journal))try{fs.unlinkSync(journal);}catch{}
+}

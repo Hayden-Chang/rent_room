@@ -146,7 +146,9 @@ it('does not reuse a failed commute navigation snapshot or open twice while meas
 it('ignores pending commute navigation after the detail page is unloaded or account changes',async()=>{
   for(const reason of ['unload','account']){
     const h=harness();h.scroll(1120);h.defer();commute(h);
-    if(reason==='unload')h.page.onUnload();else h.app.auth.isAuthenticated=()=>false;
+    // A real account transition revokes the previous service. Being signed out
+    // alone now permits guest recording and is not a revoked data scope.
+    if(reason==='unload')h.page.onUnload();else{h.app.auth.isAuthenticated=()=>false;h.app.auth.service=null;}
     h.flush();await settle();expect(h.navigations).toHaveLength(0);
   }
 });

@@ -8,8 +8,8 @@
 
 | 路径 | 当前职责与协作边界 |
 | --- | --- |
-| `src/app.js` | 应用生命周期；登录后创建当前账号的唯一 `service`，后台触发保存；页面从 `getApp().service` 取得共享服务 |
-| `src/lib/account-session.js`、`account-storage.js`、`auth-page.js` | 微信登录、自有后端身份核验、本地账号归属和页面守卫；详见 [账号说明](ACCOUNT_LOGIN.md) |
+| `src/app.js` | 应用生命周期；为当前未登录目录或已验证账号创建唯一 `service`，后台触发保存；页面从 `getApp().service` 取得共享服务 |
+| `src/lib/account-session.js`、`account-storage.js`、`guest-storage.js`、`auth-page.js` | 微信登录、自有后端身份核验、本地账号归属和页面守卫；详见 [账号说明](ACCOUNT_LOGIN.md) |
 | `src/lib/source-model.js`、`src/lib/model.js` | 字段、条件、分组、模板、统计、对比及导入状态校验；规则优先在此集中实现 |
 | `src/lib/store.js` | 状态修改、订阅和保存，通过 adapter 访问持久化；保留写入失败可恢复语义 |
 | `src/lib/platform.js` | 组装 store 与微信文件、媒体、权限及导入导出调用；平台失败在此与业务结果衔接 |
