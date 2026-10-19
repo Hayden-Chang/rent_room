@@ -36,12 +36,15 @@ final class ComponentReviewTests: XCTestCase {
 
     func testChecklistDisclosureSelectionAndSwipe() {
         let app = launch("checklist")
-        let group = app.buttons["group.家电"]
+        let group = app.buttons["group.墙面地面与门窗"]
         XCTAssertTrue(group.waitForExistence(timeout: 10))
-        XCTAssertFalse(app.buttons["choice.空调.正常"].exists)
+        XCTAssertFalse(app.buttons["choice.纱窗正常.正常"].exists)
         group.tap()
-        let normal = app.buttons["choice.空调.正常"]
+        let normal = app.buttons["choice.纱窗正常.正常"]
         XCTAssertTrue(normal.waitForExistence(timeout: 3))
+        XCTAssertEqual(normal.label, "是")
+        XCTAssertEqual(app.buttons["choice.纱窗正常.有问题"].label, "否")
+        XCTAssertEqual(app.buttons["choice.纱窗正常.没有"].label, "没有")
         normal.tap()
         XCTAssertTrue(normal.isSelected)
         capture("03-checklist-selection", app: app)
@@ -49,12 +52,12 @@ final class ComponentReviewTests: XCTestCase {
         XCTAssertFalse(normal.exists)
         group.tap()
         XCTAssertTrue(normal.isSelected)
-        app.otherElements["row.空调"].firstMatch.swipeLeft()
-        let note = app.buttons["row.空调.备注"]
+        app.otherElements["row.纱窗正常"].firstMatch.swipeLeft()
+        let note = app.buttons["row.纱窗正常.备注"]
         XCTAssertTrue(note.waitForExistence(timeout: 3))
         capture("04-checklist-swipe", app: app)
         note.tap()
-        XCTAssertEqual(app.staticTexts["review.event"].label, "已触发空调备注")
+        XCTAssertEqual(app.staticTexts["review.event"].label, "已触发纱窗备注")
     }
 
     func testLoginEntriesAndPhoneFailureKeepsInput() {

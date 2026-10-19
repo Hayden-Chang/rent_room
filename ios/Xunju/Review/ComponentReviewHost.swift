@@ -17,8 +17,8 @@ struct ComponentReviewHost: View {
     let surface: ReviewSurface
     @State private var empty = false
     @State private var expanded = false
-    @State private var airConditioner = ""
-    @State private var refrigerator = "正常"
+    @State private var windowScreen = ""
+    @State private var windowSeal = "是"
     @State private var flagged = false
     @State private var phoneVisible = false
     @State private var event = ""
@@ -88,10 +88,11 @@ struct ComponentReviewHost: View {
     }
 
     private var checklist: some View {
-        ChecklistDisclosure(title: "家电", progress: "\(airConditioner.isEmpty ? 1 : 2) / 2", expanded: $expanded) {
-            InspectionChoiceRow(title: "空调", options: ["正常", "有问题", "没有"], value: $airConditioner,
-                                flagged: $flagged, note: { event = "已触发空调备注" }, capture: { event = "已触发空调拍摄" })
-            InspectionChoiceRow(title: "冰箱", options: ["正常", "有问题", "没有"], value: $refrigerator,
+        ChecklistDisclosure(title: "墙面地面与门窗", progress: "\(windowScreen.isEmpty ? 1 : 2) / 2", expanded: $expanded) {
+            InspectionChoiceRow(title: "纱窗正常", options: ["正常", "有问题", "没有"],
+                                choiceLabels: ["正常": "是", "有问题": "否"], value: $windowScreen,
+                                flagged: $flagged, note: { event = "已触发纱窗备注" }, capture: { event = "已触发纱窗拍摄" })
+            InspectionChoiceRow(title: "密封条正常", options: ["是", "否"], value: $windowSeal,
                                 flagged: .constant(false), note: {}, capture: {})
         }
     }

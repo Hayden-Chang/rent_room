@@ -9,6 +9,7 @@ enum InspectionSelection {
 struct InspectionChoiceRow: View {
     let title: String
     let options: [String]
+    var choiceLabels: [String: String] = [:]
     @Binding var value: String
     @Binding var flagged: Bool
     var readonly = false
@@ -36,7 +37,7 @@ struct InspectionChoiceRow: View {
                             Button {
                                 value = InspectionSelection.toggled(current: value, choice: choice)
                             } label: {
-                                Text(choice).font(.system(size: 13)).padding(.horizontal, 10)
+                                Text(choiceLabels[choice] ?? choice).font(.system(size: 13)).padding(.horizontal, 10)
                                     .frame(minWidth: 44, minHeight: 44)
                                     .foregroundStyle(value == choice ? XJTheme.primary : XJTheme.ink)
                                     .background(value == choice ? XJTheme.soft : XJTheme.background)
