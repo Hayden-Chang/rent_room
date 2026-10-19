@@ -1,12 +1,13 @@
-// Apply to every business page, including routes opened directly from a share.
+// Guard the current local data scope, including guest records and stale pages.
 export function protectedPage(definition) {
   const result={...definition,data:{...definition.data,accountReady:false}};
-  function allowed(page){const auth=getApp().auth;return auth.isAuthenticated()&&page.accountId===auth.snapshot().account.id;}
+  const scope=auth=>auth.scope??auth.snapshot().account?.id;
+  function allowed(page){const auth=getApp().auth;return !!getApp().service&&page.accountId===scope(auth);}
   function redirect(){wx.reLaunch({url:'/pages/home/index'});}
   function load(page,args){
     const auth=getApp().auth;
-    if(!auth.isAuthenticated()){redirect();return;}
-    page.accountId=auth.snapshot().account.id;page.accountLoaded=true;
+    if(!getApp().service){redirect();return;}
+    page.accountId=scope(auth);page.accountLoaded=true;
     page.setData({accountReady:true});const result=definition.onLoad?.apply(page,args);
     if(page.accountPageReady)definition.onReady?.call(page);return result;
   }
@@ -15,7 +16,7 @@ export function protectedPage(definition) {
   }
   result.onLoad=function(...args){
     this.accountArgs=args;
-    if(getApp().auth.isAuthenticated())return load(this,args);
+    if(getApp().service)return load(this,args);
     this.accountLoad=getApp().auth.ready.then(()=>{if(!this.accountUnloaded)return load(this,args);});
     return this.accountLoad;
   };
@@ -26,7 +27,7 @@ export function protectedPage(definition) {
       if(!allowed(this)){this.setData({accountReady:false});redirect();return;}
       this.setData({accountReady:true});return definition.onShow?.apply(this,args);
     };
-    if(getApp().auth.isAuthenticated()&&this.accountLoaded)return show();
+    if(getApp().service&&this.accountLoaded)return show();
     this.setData({accountReady:false});
     return Promise.all([this.accountLoad,getApp().auth.ready]).then(show);
   };

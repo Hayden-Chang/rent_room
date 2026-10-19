@@ -1,9 +1,10 @@
 import {accountStorage,dataRoot,validAccountId} from './account-storage.js';
 import {createPlatform} from './platform.js';
+import {guestStorage,claimGuestRecords} from './guest-storage.js';
 
 export function createAccountSession(wx) {
   const fs=wx.getFileSystemManager(),base=dataRoot(wx),rememberPath=base+'/login.json';
-  let account=null,active=null,state='signed-out',error='',pending=null,generation=0;
+  let account=null,active=createPlatform(wx,guestStorage(wx)),state='signed-out',error='',pending=null,generation=0,restoreAttempted=false;
   const listeners=new Set();
   const snapshot=()=>({state,error,account:state==='authenticated'?account:null});
   const emit=()=>{for(const fn of listeners)fn(snapshot());};
@@ -35,42 +36,56 @@ export function createAccountSession(wx) {
   }
   function login(){
     if(pending)return pending;
+    const previous=active,previousAccount=account;
     const version=++generation;state='checking';error='';active?.setActive(false);emit();
     pending=(async()=>{
       try{
         const identity=await identify(),next=identity.profile;if(version!==generation)return false;
         const storage=accountStorage(wx,next.id);
-        if(storage.needsClaim)storage.claim();
+        let blocked=false;
         if(active){
           active.setActive(true);
-          const saved=active.store.status().blocked||active.store.save();active.setActive(false);
+          blocked=active.store.status().blocked;
+          const saved=blocked||active.store.save();active.setActive(false);
           if(!saved)throw Error('上一账号的内容尚未保存，请切回原微信账号重试');
         }
+        if(!previousAccount&&blocked)throw Error('本机记录读取失败，请先恢复记录后再登录');
+        // Persist the login preference before a record-claim transaction commits.
+        remember(true);
+        if(storage.needsClaim)storage.claim();
+        claimGuestRecords(wx,next.id,storage.root,!previousAccount?previous.root:null);
         const nextService=createPlatform(wx,{root:storage.root,session:identity.credentials,onExpired:()=>{
           if(active!==nextService)return;
           if(!active.store.status().blocked)active.store.save();
-          generation++;pending=null;active.setActive(false);state='signed-out';error='登录已过期，请重新登录';emit();
+          generation++;pending=null;active.setActive(false);active=createPlatform(wx,guestStorage(wx));account=null;state='signed-out';error='登录已过期，可继续使用免费记录，购买时请重新登录';emit();
           wx.reLaunch({url:'/pages/home/index'});
         }});
         // Remembering consent is not authentication: every cold launch rechecks identity.
-        remember(true);active=nextService;account=next;active.setActive(true);state='authenticated';emit();return true;
+        active=nextService;account=next;active.setActive(true);state='authenticated';emit();return true;
       }catch(e){
         if(version!==generation)return false;
-        state='signed-out';error=e.message||'微信登录失败，请检查网络后重试';active?.setActive(false);emit();return false;
+        account=previousAccount;active=previous;active?.setActive(true);state=account?'authenticated':'signed-out';error=e.message||'微信登录失败，请检查网络后重试';emit();return false;
       }finally{if(version===generation)pending=null;}
     })();
     return pending;
   }
   return {
     snapshot,login,get ready(){return pending||Promise.resolve(state==='authenticated');},
-    get service(){return state==='authenticated'?active:null;},
+    get service(){return state==='checking'?null:active;},
+    get scope(){return state==='checking'?null:account?.id||active?.root;},
     isAuthenticated:()=>state==='authenticated',
     subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},
-    restore(){return state==='authenticated'?Promise.resolve(true):remembered()?login():Promise.resolve(false);},
-    save(){if(state==='authenticated'&&active&&!active.store.status().blocked)active.store.save();},
+    restore(){
+      if(pending)return pending;
+      if(state==='authenticated')return Promise.resolve(true);
+      if(restoreAttempted)return Promise.resolve(false);
+      restoreAttempted=true;return remembered()?login():Promise.resolve(false);
+    },
+    save(){if(state!=='checking'&&active&&!active.store.status().blocked)active.store.save();},
     logout(){
-      if(active&&state==='authenticated'&&!active.store.status().blocked&&!active.store.save())throw Error('保存失败，请重试保存后再退出');
-      remember(false);generation++;pending=null;active?.setActive(false);active=null;account=null;state='signed-out';error='';emit();
+      const checking=state==='checking';active?.setActive(true);
+      if(active&&!active.store.status().blocked&&!active.store.save()){if(checking)active.setActive(false);throw Error('保存失败，请重试保存后再退出');}
+      const guest=createPlatform(wx,guestStorage(wx));remember(false);generation++;pending=null;active?.setActive(false);active=guest;account=null;state='signed-out';error='';emit();
     }
   };
 }

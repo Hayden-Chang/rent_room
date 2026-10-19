@@ -12,30 +12,21 @@ const home=protectedPage({data:{query:'',pending:false,houses:[],saveError:''},
 });
 
 Page({...home,
-  data:{...home.data,busy:false,loginError:'',loginVisible:false},
+  data:{...home.data},
   onLoad(){this.unsubscribeAuth=getApp().auth.subscribe(state=>this.renderSession(state));this.renderSession(getApp().auth.snapshot());},
   onShow(){this.visible=true;this.renderSession(getApp().auth.snapshot());},
-  onHide(){this.visible=false;if(this.data.loginVisible)this.setData({loginVisible:false});home.onHide.call(this);},
+  onHide(){this.visible=false;home.onHide.call(this);},
   onUnload(){this.unsubscribeAuth?.();home.onUnload.call(this);},
-  renderSession(state){
+  renderSession(){
     if(this.accountUnloaded)return;
-    const render=this.sessionRender=(this.sessionRender||0)+1;
-    this.setData({busy:state.state==='checking',loginError:state.error||''});
-    if(state.state!=='authenticated'){
+    const auth=getApp().auth,scope=auth.scope??auth.snapshot().account?.id;
+    if(!getApp().service){
       unwatch(this);this.accountLoaded=false;this.accountId=null;
-      this.setData({accountReady:false,loginVisible:!!this.visible&&(state.state==='signed-out'||this.data.loginVisible),houses:[],query:'',pending:false,saveError:''});
-      if(this.visible&&this.tabBarShown!==false){wx.hideTabBar?.({animation:false});this.tabBarShown=false;}
+      this.setData({accountReady:false,houses:[],query:'',pending:false,saveError:''});
       return;
     }
-    if(this.accountId!==state.account.id){unwatch(this);this.accountLoaded=false;}
+    if(this.accountId!==scope){unwatch(this);this.accountLoaded=false;this.setData({houses:[],query:'',pending:false,saveError:''});}
     if(!this.accountLoaded)home.onLoad.call(this);
     if(this.visible)home.onShow.call(this);
-    // Remove the sheet and finish rendering the houses before native UI changes.
-    this.setData({loginVisible:false},()=>{
-      if(this.accountUnloaded||!this.visible||this.sessionRender!==render||!getApp().auth.isAuthenticated()||this.tabBarShown)return;
-      this.tabBarShown=true;wx.showTabBar?.({animation:false,fail:()=>{this.tabBarShown=false;}});
-    });
-  },
-  async login(){if(!this.data.busy)await getApp().auth.login();},
-  preventBackgroundInteraction(){}
+  }
 });
