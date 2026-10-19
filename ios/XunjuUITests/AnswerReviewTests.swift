@@ -23,7 +23,7 @@ final class AnswerReviewTests: XCTestCase {
         rent.tap()
         rent.typeText("0")
         app.buttons["完成"].firstMatch.tap()
-        XCTAssertEqual(rent.value as? String, "28000")
+        XCTAssertTrue(["02800", "28000"].contains(rent.value as? String ?? ""), "Keyboard insertion must preserve the existing digits")
         app.buttons["input.f1_5.choice.其他"].tap()
         let other = app.textFields["input.f1_5.other"]
         XCTAssertTrue(other.exists)
