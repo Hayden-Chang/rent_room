@@ -2,7 +2,7 @@
 
 # 首批原生组件验收证据
 
-2026-10-19，状态 `REVIEW_READY`，待用户确认。对应 [Draft PR #39](https://github.com/Hayden-Chang/rent_room/pull/39)。这是第一批组件的证据，不是完整 iOS 应用的交付或发布证明。
+2026-10-19，首批状态 `APPROVED`，用户已明确确认。对应 [Draft PR #39](https://github.com/Hayden-Chang/rent_room/pull/39)。这是第一批组件的证据，不是完整 iOS 应用的交付或发布证明。
 
 ## 源码与环境
 
@@ -54,4 +54,4 @@ PR创建后，主 agent 通过Connector读取实际PR完整patch，再对照本�
 
 Connector返回该提交的远程statuses为空，未据此声称远程CI通过。本轮源码验证后只补充本文、PARITY状态文档、SOURCE_PARITY_AUDIT源码审计及根README的iOS入口；如后续HEAD仅包含这四个Markdown文件的非执行性变更，可依据逐文件diff复用证据，不把截图改称来自新SHA。
 
-用户尚未批准；完整页面与业务仍受iOS组件审批门禁约束。本阶段未实现房源持久化/对比/媒体/备份/地图等完整功能，短信、微信SDK、Apple服务端会话及StoreKit尚未接通；真实Apple账号授权、短信收发、真实设备相机/GPS/键盘、只读归档、其他表单类型和完整页面像素对照未验收。默认普通启动仅显示准备页，不能发布。UI批准只允许继续集成，合并、真机安装和发布仍单独执行。
+首批已获批准，允许保持现有外观继续业务集成；后续新增组件单独评审。首批证据不覆盖后续业务。当前业务核心、iOS认证协议与后端的进展见 [BUSINESS_CORE.md](BUSINESS_CORE.md)；完整媒体/备份/地图、微信SDK及StoreKit仍待完成；真实Apple账号授权、短信收发、真实设备相机/GPS/键盘、只读归档、其他表单类型和完整页面像素对照未验收。默认普通启动仅显示准备页，不能发布。UI批准只允许继续集成，合并、真机安装和发布仍单独执行。

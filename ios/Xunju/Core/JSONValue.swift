@@ -30,6 +30,11 @@ enum JSONValue: Codable, Equatable, Hashable {
         if case .object(let value) = self { return value[key] ?? .null }
         return .null
     }
+    func setting(_ key: String, to value: JSONValue) -> JSONValue {
+        guard case .object(var object) = self else { return self }
+        object[key] = value
+        return .object(object)
+    }
     var array: [JSONValue] { if case .array(let value) = self { return value }; return [] }
     var string: String {
         switch self {

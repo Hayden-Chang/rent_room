@@ -2,8 +2,9 @@ import {createStore} from '../../apps/wechat/src/lib/store.js';
 import * as model from '../../apps/wechat/src/lib/model.js';
 import {writeIssue, mediaWithIssues} from '../../apps/wechat/src/lib/issues.js';
 
-let store;
+let store, sessionPacks = 0, claimPacks = null;
 export function initialize(raw, packs = 0) {
+  sessionPacks = packs;
   store = createStore({
     read: () => raw,
     previous() {
@@ -19,7 +20,7 @@ export function initialize(raw, packs = 0) {
       const error = nativeWrite(text, !!options?.keepPrevious);
       if (error) throw Error(error);
     }
-  }, {getPacks: () => packs});
+  }, {getPacks: () => claimPacks ?? sessionPacks});
   return dispatch('{"operation":"snapshot"}');
 }
 
@@ -90,6 +91,25 @@ function execute({operation, id, field, property, value, group, view, folds, ids
       const selected = ids.map(house);
       if (selected.some(h => h.archived)) throw Error('归档房源不可对比');
       return model.comparison(selected, differences);
+    }
+    case 'claimGuest': {
+      if (!/^h[a-f0-9]{32}$/.test(id)) throw Error('未登录记录目录无效');
+      if (store.get().guestClaims?.includes(id)) return null;
+      const incoming = model.validateState(model.clone(value));
+      // Association must preserve every record, even when combined usage exceeds capacity.
+      claimPacks = Math.max(sessionPacks, Math.ceil(Math.max(0, [...store.get().houses, ...incoming.houses].filter(h => !h.archived).length - 2) / 10));
+      try {
+        return store.change(state => {
+          const existing = new Set(state.houses.map(h => h.id));
+          for (const h of incoming.houses) {
+            if (existing.has(h.id)) h.id = model.uid();
+            existing.add(h.id); state.houses.push(h);
+          }
+          if (isNew) state.settings = model.clone(incoming.settings || state.settings);
+          state.guestClaims = [...(state.guestClaims || []), id];
+          model.validateState(state);
+        }, true);
+      } finally { claimPacks = null; }
     }
     case 'prepareImport': return model.prepareImport(value);
     case 'import': return store.import(houses, replaceIds);
