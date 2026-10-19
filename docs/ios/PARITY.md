@@ -4,7 +4,7 @@
 
 ## 目标与当前阶段
 
-以 SwiftUI 原生实现同一套功能与 UI。保留现有免费两套有效房源、免登录本机使用、归档不占容量、账号隔离以及本机记录和媒体边界，增加手机号短信验证码及 Apple 登录入口。
+以 SwiftUI 原生实现同一套功能与 UI。保留现有免费两套有效房源、免登录本机使用、微信登录、归档不占容量、账号隔离以及本机记录和媒体边界，增加手机号短信验证码及 Apple 登录入口。
 
 当前为 `COMPONENT_BUILDING`：只建立独立原生组件、DEBUG 评审宿主和测试，未接入完整业务。Release 不提供评审入口。本阶段产物不是可发布的完整应用。组件需要真实 XCUITest 截图及用户明确批准后才能接入业务。
 
@@ -50,6 +50,7 @@
 
 | 边界 | 精确测试选择器 |
 | --- | --- |
+| 原有 PNG 在原生 Bundle 中可解码 | `XunjuTests/ComponentLogicTests/testParityImagesAreAvailableToNativeViews` |
 | 手机号和验证码格式，含空/长度/非ASCII/换行边界 | `XunjuTests/ComponentLogicTests/testPhoneRequiresElevenMainlandDigits`；`testCodeRequiresSixASCIIDigits` |
 | 单选反选/切换，不删除其他附属状态 | `XunjuTests/ComponentLogicTests/testChoiceCanClearAndSwitchWithoutCouplingProblemFlag` |
 | 仅显式参数启用 DEBUG 评审宿主 | `XunjuTests/ComponentLogicTests/testReviewHostRequiresExplicitKnownSurface` |

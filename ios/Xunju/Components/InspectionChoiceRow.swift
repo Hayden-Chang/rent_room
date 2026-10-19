@@ -58,6 +58,7 @@ struct InspectionChoiceRow: View {
             .background(flagged ? XJTheme.dangerBackground : .clear)
             .clipShape(RoundedRectangle(cornerRadius: flagged ? 8 : 0))
             .foregroundStyle(flagged ? XJTheme.danger : XJTheme.ink)
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("row.\(title)")
     }
 

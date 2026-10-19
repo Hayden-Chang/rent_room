@@ -12,6 +12,7 @@ enum PhoneLoginValidation {
 }
 
 struct LoginEntryCard: View {
+    var wechat: () -> Void
     var phone: () -> Void
     var appleRequest: (ASAuthorizationAppleIDRequest) -> Void
     var appleCompletion: (Result<ASAuthorization, Error>) -> Void
@@ -22,8 +23,10 @@ struct LoginEntryCard: View {
                 Text("未登录也可记录看房").font(.system(size: 18, weight: .semibold)).padding(.bottom, 8)
                 Text("登录后可购买扩容或恢复已购容量")
                     .font(.system(size: 13)).foregroundStyle(XJTheme.muted)
-                Button("手机号登录", action: phone).buttonStyle(XJButtonStyle(primary: true))
-                    .accessibilityIdentifier("login.phone").padding(.top, 16)
+                Button("微信登录", action: wechat).buttonStyle(XJButtonStyle(primary: true))
+                    .accessibilityIdentifier("login.wechat").padding(.top, 16)
+                Button("手机号登录", action: phone).buttonStyle(XJButtonStyle())
+                    .accessibilityIdentifier("login.phone").padding(.top, 12)
                 SignInWithAppleButton(.signIn, onRequest: appleRequest, onCompletion: appleCompletion)
                     .signInWithAppleButtonStyle(.black).frame(height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
                     .accessibilityIdentifier("login.apple").padding(.top, 12)

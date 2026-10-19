@@ -97,7 +97,7 @@ struct ComponentReviewHost: View {
     }
 
     private var account: some View {
-        LoginEntryCard(phone: { phoneVisible = true }, appleRequest: { request in
+        LoginEntryCard(wechat: { event = "已触发微信登录入口" }, phone: { phoneVisible = true }, appleRequest: { request in
             request.requestedScopes = [.email, .fullName]
         }, appleCompletion: { result in
             switch result {

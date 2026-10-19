@@ -61,6 +61,7 @@ final class ComponentReviewTests: XCTestCase {
         let app = launch("account")
         let phone = app.buttons["login.phone"]
         XCTAssertTrue(phone.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["login.wechat"].exists)
         XCTAssertTrue(app.buttons["login.apple"].exists)
         capture("05-login-entries", app: app)
         phone.tap()
@@ -85,5 +86,7 @@ final class ComponentReviewTests: XCTestCase {
         capture("07-phone-service-error", app: app)
         app.buttons["phone.close"].tap()
         XCTAssertTrue(phone.waitForExistence(timeout: 3))
+        app.buttons["login.wechat"].tap()
+        XCTAssertEqual(app.staticTexts["review.event"].label, "已触发微信登录入口")
     }
 }
