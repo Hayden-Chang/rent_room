@@ -41,20 +41,21 @@ export function claimGuestRecords(wx,accountId,target,source){
   const current=target+'/state.json',state=exists(current)?validateState(read(current)):emptyState();
   if(state.guestClaims?.includes(batch))return;
   const incoming=exists(root+'/state.json')?validateState(read(root+'/state.json')):emptyState();
-  if(!incoming.houses.length)return;
+  const defaults=emptyState().settings;
+  if(!incoming.houses.length&&JSON.stringify(incoming.settings||defaults)===JSON.stringify(defaults))return;
   write(journal,{root});write(marker,{version:1,accountId});
   const next=clone(state),ids=new Set(next.houses.map(h=>h.id));
   try{fs.mkdirSync(target+'/media',true);}catch{fs.accessSync(target+'/media');}
-  for(const original of incoming.houses){
+  for(const [houseIndex,original] of incoming.houses.entries()){
    const house=clone(original);if(ids.has(house.id))house.id=uid();ids.add(house.id);
-   for(const media of house.media||[]){
+   for(const [mediaIndex,media] of (house.media||[]).entries()){
     if(!media.path.startsWith(root+'/media/')||media.path.includes('/../'))throw Error('本机影像路径无效，原记录已保留');
-    const path=target+'/media/'+batch+'-'+encodeURIComponent(media.id)+(media.type==='video'?'.mp4':'.jpg');
+    const path=target+'/media/'+batch+'-'+houseIndex+'-'+mediaIndex+(media.type==='video'?'.mp4':'.jpg');
     fs.copyFileSync(media.path,path);media.path=path;
    }
    next.houses.push(house);
   }
-  if(!state.houses.length)next.settings=clone(incoming.settings||next.settings);
+  if(!exists(current))next.settings=clone(incoming.settings||next.settings);
   next.guestClaims=[...(state.guestClaims||[]),batch];next.updatedAt=new Date().toISOString();validateState(next);
   // Association preserves all records, even if their combined count exceeds
   // current capacity. Normal additions/restores continue to enforce the limit.

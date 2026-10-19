@@ -35,3 +35,17 @@ it('does not overwrite corrupt source or destination records during association'
   expect(()=>claimGuestRecords(m.wx,A,target,guest.root)).toThrow();expect(m.disk.get(kind==='current'?target+'/state.json':guest.root+'/state.json')).toBe('{broken');
  }
 });
+it('copies distinct photos even when different records reuse the same media ID',()=>{
+ const {m,guest,target}=fixture(),second=guest.store.add('另一条');m.disk.set(guest.root+'/media/second.jpg','second-photo');guest.store.edit(second,h=>h.media.push({id:'p',type:'image',path:guest.root+'/media/second.jpg'}));
+ claimGuestRecords(m.wx,A,target,guest.root);const houses=createPlatform(m.wx,{root:target}).store.get().houses;
+ expect(houses.map(h=>m.disk.get(h.media[0].path))).toEqual(['photo','second-photo']);
+});
+it('preserves existing account settings and also associates guest settings before any record is created',()=>{
+ for(const existing of [false,true]){
+  const m=accountWx(),guest=createPlatform(m.wx,guestStorage(m.wx)),target=accountStorage(m.wx,A).root;
+  guest.store.change(s=>s.settings.workplace='新地点');
+  if(existing)createPlatform(m.wx,{root:target}).store.change(s=>s.settings.workplace='原地点');
+  claimGuestRecords(m.wx,A,target,guest.root);
+  expect(createPlatform(m.wx,{root:target}).store.get().settings.workplace).toBe(existing?'原地点':'新地点');
+ }
+});
