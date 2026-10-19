@@ -1,3 +1,5 @@
+> 用户已明确批准本批：“确认通过，继续完整业务开发”。状态：APPROVED。后续完整业务验收另行记录。
+
 # 首批原生组件验收证据
 
 2026-10-19，状态 `REVIEW_READY`，待用户确认。对应 [Draft PR #39](https://github.com/Hayden-Chang/rent_room/pull/39)。这是第一批组件的证据，不是完整 iOS 应用的交付或发布证明。

@@ -2,7 +2,7 @@
 import SwiftUI
 
 enum ReviewSurface: String {
-    case homes, checklist, account
+    case homes, checklist, account, fields, summary
 
     static func parse(_ arguments: [String]) -> ReviewSurface? {
         guard let index = arguments.firstIndex(of: "--component-review"),
@@ -31,6 +31,8 @@ struct ComponentReviewHost: View {
                     case .homes: homes
                     case .checklist: checklist
                     case .account: account
+                    case .fields: AnswerReviewHost()
+                    case .summary: SummaryReviewHost()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -67,6 +69,8 @@ struct ComponentReviewHost: View {
         case .homes: "我的房源"
         case .checklist: "清单组件"
         case .account: "登录组件"
+        case .fields: "清单输入组件"
+        case .summary: "看房总结组件"
         }
     }
 

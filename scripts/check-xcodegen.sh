@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 TASK_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+node "$TASK_ROOT/ios/scripts/build-core.mjs" --check
 TASK_VERSION="$(tr -d '[:space:]' < "$TASK_ROOT/.xcodegen-version")"
 TASK_INSTALLED="$(xcodegen --version | awk '{print $NF}')"
 if [[ "$TASK_INSTALLED" != "$TASK_VERSION" ]]; then
