@@ -87,4 +87,22 @@ import XCTest
         next.tap(); XCTAssertFalse(next.exists)
         XCTAssertEqual(app.staticTexts["review.coachEvent"].label, "引导结束，下次不再自动显示")
     }
+
+    func testSpeedRequiresWifiAndMobileConsentBeforeContinuing() {
+        let app = launch("speed-consent")
+        let wifi = app.alerts["是否已连接 WiFi"]
+        XCTAssertTrue(wifi.waitForExistence(timeout: 5)); capture("36-speed-wifi-consent", app)
+        wifi.buttons["是"].tap()
+        let mobile = app.alerts["使用当前网络测速？"]
+        XCTAssertTrue(mobile.waitForExistence(timeout: 4)); capture("37-speed-mobile-consent", app)
+        mobile.buttons["暂不测试"].tap()
+        let event = app.staticTexts["review.consentEvent"]
+        XCTAssertTrue(event.waitForExistence(timeout: 3)); XCTAssertEqual(event.label, "暂不测试，原答案保持不变")
+        app.buttons["重新检查网络"].tap(); XCTAssertTrue(wifi.waitForExistence(timeout: 3)); wifi.buttons["是"].tap()
+        XCTAssertTrue(mobile.waitForExistence(timeout: 4)); mobile.buttons["开始测速"].tap()
+        let ready = expectation(for: NSPredicate(format: "label == %@", "网络确认完成；评审不会下载数据"), evaluatedWith: event)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 3), .completed)
+        app.buttons["重新检查网络"].tap(); XCTAssertTrue(wifi.waitForExistence(timeout: 3)); wifi.buttons["否"].tap()
+        XCTAssertEqual(event.label, "暂不测试，原答案保持不变")
+    }
 }
