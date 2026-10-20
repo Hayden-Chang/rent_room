@@ -1,6 +1,12 @@
 import SwiftUI
 import UIKit
 
+struct MeasurementAction {
+    enum Kind: Equatable { case commute, speed }
+    let kind: Kind
+    let perform: () -> Void
+}
+
 /// Free text, numeric, date and longer choices retain the original field contract.
 /// The caller owns persistence and choice rules; this view never changes a record.
 struct AnswerInput: View {
@@ -11,6 +17,7 @@ struct AnswerInput: View {
     var showsKeyboardToolbar = true
     var choose: (String) -> Void
     var action: (String) -> Void
+    var measurement: MeasurementAction? = nil
     @State private var actionsOpen = false
     @State private var datePicker = false
 
@@ -26,8 +33,20 @@ struct AnswerInput: View {
                         tray("拍摄", icon: "swipe-camera", color: XJTheme.primary)
                     }
                 } else if field["options"].array.isEmpty && field["type"].string != "d" {
+                    if let measurement {
+                        HStack(spacing: 6) {
+                            input.frame(width: measurement.kind == .speed ? 68 : 72)
+                            if measurement.kind == .speed { Text("Mbps").font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
+                            Button(measurement.kind == .speed ? "测试" : "查询", action: measurement.perform)
+                                .font(.system(size: 13)).foregroundStyle(XJTheme.primary).frame(width: 48, height: 44)
+                                .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)).disabled(readonly)
+                                .accessibilityLabel((measurement.kind == .speed ? "测试" : "查询") + field["label"].string)
+                                .accessibilityIdentifier("measurement.\(field.id)")
+                        }
+                    } else {
                     input
                         .frame(maxWidth: field["type"].string == "n" ? 96 : .infinity)
+                    }
                 }
             }.frame(minHeight: 44).contentShape(Rectangle())
                 .simultaneousGesture(DragGesture(minimumDistance: 24).onEnded { gesture in
@@ -84,7 +103,7 @@ struct AnswerInput: View {
     }
 
     private var input: some View {
-        TextField(field["type"].string == "n" ? "填写数值" : "填写信息", text: $text)
+        TextField(measurement.map { $0.kind == .speed ? "网速" : "分钟" } ?? (field["type"].string == "n" ? "填写数值" : "填写信息"), text: $text)
             .font(.system(size: 13)).keyboardType(field["type"].string == "n" ? .decimalPad : .default)
             .multilineTextAlignment(field["type"].string == "n" ? .trailing : .leading)
             .padding(.horizontal, 12).frame(minHeight: 44)

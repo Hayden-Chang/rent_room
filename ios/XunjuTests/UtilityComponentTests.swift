@@ -11,7 +11,7 @@ final class UtilityComponentTests: XCTestCase {
 
     func testReviewRoutesRequireExplicitKnownDebugArgument() {
         #if DEBUG
-        for surface in ["place", "routes", "speed", "coach", "speed-consent"] {
+        for surface in ["place", "routes", "speed", "coach", "speed-consent", "measurements"] {
             XCTAssertEqual(ReviewSurface.parse(["--component-review", surface])?.rawValue, surface)
         }
         XCTAssertNil(ReviewSurface.parse(["--component-review"]))

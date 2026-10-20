@@ -105,4 +105,18 @@ import XCTest
         app.buttons["重新检查网络"].tap(); XCTAssertTrue(wifi.waitForExistence(timeout: 3)); wifi.buttons["否"].tap()
         XCTAssertEqual(event.label, "暂不测试，原答案保持不变")
     }
+
+    func testMeasurementRowsKeepManualValuesAndTriggerExplicitActions() {
+        let app = launch("measurements")
+        let transit = app.buttons["measurement.21255282-3663-4abe-b7de-d91eeb3825ed"]
+        XCTAssertTrue(transit.waitForExistence(timeout: 5)); transit.tap()
+        XCTAssertEqual(app.staticTexts["review.measurementEvent"].label, "已触发通勤查询，保留手工值")
+        let speed = app.textFields["input.d244dc92-351e-4f3c-8738-45295fec9ff9.value"]
+        speed.tap(); speed.typeText("0"); app.buttons["完成"].firstMatch.tap()
+        XCTAssertTrue((speed.value as? String ?? "").contains("10"))
+        app.buttons["measurement.d244dc92-351e-4f3c-8738-45295fec9ff9"].tap()
+        XCTAssertEqual(app.staticTexts["review.measurementEvent"].label, "已触发网速测试，尚未下载")
+        capture("38-measurement-inputs-and-actions", app)
+        XCTAssertEqual(app.textFields["input.21255282-3663-4abe-b7de-d91eeb3825ed.value"].value as? String, "24")
+    }
 }

@@ -16,6 +16,18 @@ enum UtilityNetworkFixture {
             let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
             let post = items.first { $0.name == "postStr" }?.value ?? "{}"
             let value = try JSONDecoder().decode(JSONValue.self, from: Data(post.utf8))
+            if url.path == "/geocoder" {
+                guard let latitude = value["lat"].number, let longitude = value["lon"].number,
+                      (30...32).contains(latitude), (121...123).contains(longitude) else {
+                    throw CoreFailure(message: "测试地图中心未保持所选位置")
+                }
+            }
+            if !value["pointLonlat"].string.isEmpty {
+                let parts = value["pointLonlat"].string.split(separator: ",").compactMap { Double($0) }
+                guard parts.count == 2, (121...123).contains(parts[0]), (30...32).contains(parts[1]) else {
+                    throw CoreFailure(message: "测试地图中心未保持所选位置")
+                }
+            }
             let text: String
             switch url.path {
             case "/v2/search":

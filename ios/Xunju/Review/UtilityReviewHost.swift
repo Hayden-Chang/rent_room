@@ -12,6 +12,7 @@ struct UtilityReviewHost: View {
         case .speed: SpeedReviewHost()
         case .coach: CoachReviewHost()
         case .speedConsent: SpeedConsentReviewHost()
+        case .measurements: MeasurementReviewHost()
         default: EmptyView()
         }
     }

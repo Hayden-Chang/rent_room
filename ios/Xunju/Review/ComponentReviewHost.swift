@@ -4,8 +4,9 @@ import SwiftUI
 enum ReviewSurface: String {
     case homes, checklist, account, fields, summary, place, routes, speed, coach
     case speedConsent = "speed-consent"
+    case measurements
 
-    var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent].contains(self) }
+    var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent, .measurements].contains(self) }
 
     static func parse(_ arguments: [String]) -> ReviewSurface? {
         guard let index = arguments.firstIndex(of: "--component-review"),
@@ -39,7 +40,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -84,6 +85,7 @@ struct ComponentReviewHost: View {
         case .speed: "测速组件"
         case .coach: "操作引导组件"
         case .speedConsent: "测速网络确认"
+        case .measurements: "通勤与网速输入"
         }
     }
 
