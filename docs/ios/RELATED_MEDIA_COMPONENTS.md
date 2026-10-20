@@ -1,12 +1,12 @@
 # 第七批：问题卡片与关联影像独立评审（2026-10-20）
 
-状态 **REVIEW_READY，等待用户确认**。前六批均已批准，第六批已接入实际业务，19项定向UT/4条业务UI证据见 [MEDIA_INTEGRATION.md](MEDIA_INTEGRATION.md)，不重复请求批准。本页第七批尚未接入业务页面。
+状态 **APPROVED**。用户已明确回复“确认通过，继续业务接入”。前七批均已批准，不重复请求批准。第七批已接入清单/问题页，9项定向UT与8条业务UI有效通过，见 [RELATED_MEDIA_INTEGRATION.md](RELATED_MEDIA_INTEGRATION.md)。以下保留独立评审阶段的证据与失败记录。
 
 遵循 [ios-ui-component-review-gate](/Users/pc/.agents/skills/ios-ui-component-review-gate/SKILL.md) 的明确要求：
 
 > Do not integrate it into the complete page or continue the downstream business flow before approval.
 
-当前仅DEBUG且显式 `--component-review issue-cards|field-media` 进入独立宿主，使用本地写明测试图片的JPEG及既有12秒H.264测试图案。该分支不创建AppWorkspace、不读取用户房源/Keychain、不打开系统选择器或发请求。普通Debug/Release仍使用已批准的业务页面。未执行Release归档。
+当前仅DEBUG且显式 `--component-review issue-cards|field-media` 进入独立宿主，使用本地写明测试图片的JPEG及既有12秒H.264测试图案。该分支不创建AppWorkspace、不读取用户房源/Keychain、不打开系统选择器或发请求。独立评审时普通Debug/Release使用此前已批准的业务页面；批准后的接入另见业务记录。未执行Release归档。
 
 ## 新组件与同源契约
 
@@ -19,7 +19,7 @@
 | 自动问题内容 | 分类文字及已批准的选项/输入/备注组件组合；示例正常/有问题/没有底层值不变。实际输入、备注编辑及只读切换均验证。示例内容只在宿主内存变化，不证明房源保存或自动问题列表刷新 |
 | 只读 | 解决、选项、输入禁用，仍允许影像预览及查看详情；保留已选值、原输入和备注，不通过切换状态清空数据 |
 
-`RelatedMediaSurface.swift` 为可复用组件；`RelatedMediaReviewHost.swift` 是DEBUG独立组合，不调用store。尚未把卡片/缩略图/自动问题原位编辑接到 `IssuesPage`、`ChecklistPage`。图库已有预览/备注组件仅复用其显示和回调，不把回调当成完整业务验收。
+`RelatedMediaSurface.swift` 为可复用组件；`RelatedMediaReviewHost.swift` 是DEBUG独立组合，不调用store。独立评审阶段未把卡片/缩略图/自动问题原位编辑接到业务；批准后已接到 `IssuesPage`、`ChecklistPage`。图库已有预览/备注组件仅复用其显示和回调，不把回调当成完整业务验收。
 
 ## 定向测试与失败记录
 
@@ -60,4 +60,4 @@ Xcode26.6 / iOS26.5 / XcodeGen2.45.4；UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D
 | 全部关联影像同顺序 | ![全部关联影像](/Users/pc/.codex/visualizations/2026/10/19/01a153f1-2c5b-7130-9ac8-1717a9eabf0c/ios-related-components/76-related-all-media.png) |
 | 修改后只读保留 | ![自动问题只读](/Users/pc/.codex/visualizations/2026/10/19/01a153f1-2c5b-7130-9ac8-1717a9eabf0c/ios-related-components/77-automatic-issue-readonly.png) |
 
-业务接入与重启/失败保护须在批准后验证。全清单统一左滑、图库时长、永久删除的文件回收、原生StoreKit/微信SDK、真实短信/Apple及真机/系统媒体/文件分享仍待完成。本批没有新增天地图请求、真机安装、后端部署、合并或发布。
+批准后的业务接入、重启及失败保护现已验证，见 [业务证据](RELATED_MEDIA_INTEGRATION.md)。全清单统一左滑、图库时长、永久删除的文件回收、原生StoreKit/微信SDK、真实短信/Apple及真机/系统媒体/文件分享仍待完成。本批没有新增天地图请求、真机安装、后端部署、合并或发布。
