@@ -32,7 +32,7 @@ struct AnswerInput: View {
                         tray("备注", icon: "swipe-note", color: XJTheme.soft)
                         tray("拍摄", icon: "swipe-camera", color: XJTheme.primary)
                     }
-                } else if field["options"].array.isEmpty && field["type"].string != "d" {
+                } else if field["heading"].string.isEmpty && field["options"].array.isEmpty && field["type"].string != "d" {
                     if let measurement {
                         HStack(spacing: 6) {
                             input.frame(width: measurement.kind == .speed ? 68 : 72)

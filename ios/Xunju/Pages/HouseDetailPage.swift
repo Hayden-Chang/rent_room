@@ -63,9 +63,6 @@ struct ChecklistPage: View {
     @State private var note: NoteTarget?
     @State private var cost: JSONValue?
     @State private var mediaTarget: String?
-    @State private var commuteField: String?
-    @State private var showSpeed = false
-    @State private var speedVisit = UUID()
     @State private var coachStep = 1
     @State private var coachSteps: [CoachStep] = []
     @State private var coachTarget: JSONValue = .null
@@ -121,6 +118,9 @@ struct ChecklistPage: View {
                                     expanded: Binding(get: { section["expanded"].bool }, set: { setFold(section["title"].string, $0) }),
                                     skipped: .constant(false), value: .constant(""), flagged: flagBinding(section["header"]), activeRow: $activeHeading,
                                     note: { openNote(section["header"]) }, capture: { mediaTarget = section["header"].id })
+                                if !section["header"]["media"].array.isEmpty {
+                                    FieldRelatedMedia(workspace: workspace, houseID: id, fieldID: section["header"].id)
+                                }
                                 if section["expanded"].bool {
                                     ForEach(section["rows"].array, id: \.rowKey) { row in
                                         checklistRow(row).padding(.leading, CGFloat(min(row["depth"].int, 2) * 12)).id(row.id)
@@ -173,10 +173,6 @@ struct ChecklistPage: View {
             .sheet(isPresented: Binding(get: { mediaTarget != nil }, set: { if !$0 { mediaTarget = nil } })) {
                 if let mediaTarget { MediaPickerSheet(workspace: workspace, houseID: id, fieldID: mediaTarget) }
             }
-            .navigationDestination(isPresented: Binding(get: { commuteField != nil }, set: { if !$0 { commuteField = nil } })) {
-                if let commuteField { CommutePage(workspace: workspace, houseID: id, fieldID: commuteField) }
-            }
-            .navigationDestination(isPresented: $showSpeed) { SpeedPage(workspace: workspace, houseID: id).id(speedVisit) }
     }
     private var progress: some View {
         XJCard {
@@ -204,29 +200,9 @@ struct ChecklistPage: View {
                     group(row, operation: "result", value: value.isEmpty ? prior : value)
                 }), flagged: flagBinding(row["swipe"]), activeRow: $activeHeading,
                 note: { openNote(row["swipe"]) }, capture: { mediaTarget = row["swipe"].id })
+            if !row["swipe"]["media"].array.isEmpty { FieldRelatedMedia(workspace: workspace, houseID: id, fieldID: row["swipe"].id) }
         } else {
-            field(row)
-        }
-    }
-    @ViewBuilder private func field(_ row: JSONValue) -> some View {
-        if row["map"].bool {
-            HousePlaceField(workspace: workspace, id: id)
-        } else if !row["options"].array.isEmpty && row["inline"].bool && !row["multiple"].bool {
-            VStack(alignment: .leading, spacing: 0) {
-                InspectionChoiceRow(title: row["label"].string, options: row["options"].array.map { $0["value"].string },
-                    choiceLabels: Dictionary(uniqueKeysWithValues: row["options"].array.map { ($0["value"].string, $0["label"].string) }),
-                    value: answerBinding(row.id), flagged: flagBinding(row), readonly: readonly,
-                    note: { openNote(row) }, capture: { mediaTarget = row.id })
-                if !row["note"].string.isEmpty { Button(row["note"].string) { openNote(row) }.font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
-            }
-        } else {
-            AnswerInput(field: row, text: answerBinding(row.id), otherText: answerBinding(row.id, property: "otherText"), readonly: readonly, showsKeyboardToolbar: false,
-                choose: { value in workspace.perform { try workspace.store.call("choose", ["id": .string(id), "field": .string(row.id), "value": .string(value)]) } },
-                action: { action in
-                    if action == "备注" { openNote(row) }
-                    else if action == "标记问题" { flag(row) }
-                    else { mediaTarget = row.id }
-                }, measurement: measurement(row.id))
+            InspectionFieldRow(workspace: workspace, houseID: id, field: row)
         }
     }
     private func group(_ row: JSONValue, operation: String, value: String = "") {
@@ -234,22 +210,11 @@ struct ChecklistPage: View {
             setFold(row.id, true)
         }
     }
-    private func measurement(_ field: String) -> MeasurementAction? {
-        if UtilityField.mode(field) != nil { return MeasurementAction(kind: .commute) { commuteField = field } }
-        if field == UtilityField.speed { return MeasurementAction(kind: .speed) { speedVisit = UUID(); showSpeed = true } }
-        return nil
-    }
-    private func answerBinding(_ field: String, property: String = "value") -> Binding<String> {
-        Binding(get: { workspace.store.house(id)["answers"][field][property].string }, set: { value in
-            workspace.perform { try workspace.store.answer(id, field: field, property: property, value: .string(String(value.prefix(10000)))) }
-        })
-    }
     private func flagBinding(_ field: JSONValue) -> Binding<Bool> {
         Binding(get: { field["problem"].bool }, set: { value in
             workspace.perform { try workspace.store.answer(id, field: field.id, property: "issueFlag", value: .bool(value)) }
         })
     }
-    private func flag(_ field: JSONValue) { flagBinding(field).wrappedValue.toggle() }
     private func openNote(_ field: JSONValue) { note = NoteTarget(id: field.id, title: field["label"].string, value: field["note"].string) }
     private func setFold(_ key: String, _ value: Bool) { folds[viewKey, default: [:]][key] = value; refresh() }
     private func refresh() { workspace.perform { sections = try workspace.store.form(id, phase: phase, query: query, filters: filters.sorted(), folds: folds[viewKey] ?? [:]) } }

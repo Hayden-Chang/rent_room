@@ -6,6 +6,7 @@ struct IssuesPage: View {
     let id: String
     @State private var automatic: [JSONValue] = []
     @State private var selection: IssueSelection?
+    @State private var preview: MediaTile?
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
     private var manual: [JSONValue] { workspace.store.house(id)["issues"].array }
     var body: some View {
@@ -20,32 +21,16 @@ struct IssuesPage: View {
                     }.frame(maxWidth: .infinity).padding(.top, 40)
                 }
                 ForEach(automatic, id: \.id) { field in
-                    XJCard {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(field["category"].string).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
-                            Text(field["label"].string).font(.system(size: 14, weight: .medium))
-                            Text(field["display"].string).font(.system(size: 13)).foregroundStyle(XJTheme.danger)
-                            if !field["note"].string.isEmpty { Text(field["note"].string).font(.system(size: 13)) }
-                            if !readonly { Button("取消问题标记") {
-                                workspace.perform { try workspace.store.answer(id, field: field.id, property: "issueFlag", value: .bool(false)) }
-                            }.font(.system(size: 13)) }
-                        }
+                    AutomaticIssueCard(category: field["category"].string) {
+                        InspectionFieldRow(workspace: workspace, houseID: id, field: field)
                     }
                 }
                 ForEach(manual, id: \.id) { issue in
-                    XJCard {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Button(issue["title"].string) { selection = IssueSelection(id: issue.id, isNew: false) }
-                                    .font(.system(size: 14, weight: .semibold)).frame(maxWidth: .infinity, alignment: .leading)
-                                Button(issue["resolved"].bool ? "已解决" : "待跟进") {
-                                    workspace.perform { try workspace.store.call("resolveIssue", ["id": .string(id), "issueId": .string(issue.id)]) }
-                                }.font(.system(size: 13)).disabled(readonly)
-                            }
-                            if !issue["note"].string.isEmpty { Text(issue["note"].string).font(.system(size: 13)) }
-                            Text(readonly ? "查看详情 ›" : "查看 / 编辑 ›").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
-                        }
-                    }
+                    ManualIssueCard(id: issue.id, title: issue["title"].string, note: issue["note"].string,
+                        media: workspace.store.house(id)["media"].array.filter { $0["issueId"].string == issue.id }.map { mediaTile($0, store: workspace.store) },
+                        resolved: issue["resolved"].bool, readonly: readonly,
+                        resolve: { workspace.perform { try workspace.store.call("resolveIssue", ["id": .string(id), "issueId": .string(issue.id)]) } },
+                        open: { selection = IssueSelection(id: issue.id, isNew: false) }, preview: { preview = $0 })
                 }
             }.padding(16)
         }.safeAreaInset(edge: .bottom) {
@@ -53,6 +38,12 @@ struct IssuesPage: View {
                 .buttonStyle(XJButtonStyle(primary: true)).padding(16).accessibilityIdentifier("issue.add") }
         }.onAppear(perform: refresh).onChange(of: workspace.store.status.revision) { _, _ in refresh() }
             .sheet(item: $selection) { selection in IssueEditor(workspace: workspace, houseID: id, issueID: selection.id, isNew: selection.isNew) }
+            .sheet(item: $preview) { MediaPreviewSheet(item: $0) }
+            .toolbar { ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                    .accessibilityIdentifier("issues.keyboard.done")
+            } }
     }
     private func refresh() { workspace.perform { automatic = try workspace.store.call("issues", ["id": .string(id)])["automatic"].array } }
 }
@@ -85,15 +76,7 @@ private struct IssueEditor: View {
                     MediaPickerSheet(workspace: workspace, houseID: draft.houseID, stage: { try draft.addImported($0) })
                 }
                 .sheet(item: $preview) { item in
-                    NavigationStack {
-                        Group {
-                            if item.kind == .video { InlineMediaVideo(url: item.url) }
-                            else if let url = item.url, let image = UIImage(contentsOfFile: url.path) {
-                                Image(uiImage: image).resizable().scaledToFit().accessibilityIdentifier("issueEditor.previewImage")
-                            }
-                        }.padding(16).navigationTitle("影像预览").navigationBarTitleDisplayMode(.inline)
-                            .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton() } }
-                    }
+                    MediaPreviewSheet(item: item, imageIdentifier: "issueEditor.previewImage")
                 }
         }.onChange(of: workspace.identityRevision) { _, _ in draft.discard(); dismiss() }
             .onDisappear { if !picking && preview == nil { draft.discard() } }
