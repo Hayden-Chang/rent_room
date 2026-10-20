@@ -116,4 +116,17 @@ import XCTest
         let row = try XCTUnwrap(try restored.form(id, query: "空调").flatMap { $0["rows"].array }.first { $0.id == group.id })
         XCTAssertFalse(row["skipped"].bool); XCTAssertEqual(row["swipe"]["note"].string, "整组备注"); XCTAssertTrue(row["swipe"]["problem"].bool)
     }
+    func testAliasCannotBeOwnedOrDeleteReferencedTarget() throws {
+        let store = try store(), id = try store.add("别名保护"), saved = try file("saved", store)
+        try store.call("addMedia", ["id": .string(id), "value": saved])
+        let original = try LocalMediaFiles.file(saved["path"].string, in: store.records.directory)
+        let alias = store.records.directory.appending(path: "media/alias.jpg")
+        try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: original)
+        let item = saved.setting("id", to: .string("alias")).setting("path", to: .string("media/alias.jpg"))
+        let draft = IssueDraft(store: store, houseID: id, issueID: "issue1", isNew: true, isCurrent: { true })
+        XCTAssertThrowsError(try draft.addImported(item), "An alias of a saved file is not draft-owned")
+        LocalMediaReferences.discard(["media/alias.jpg"], in: store)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: original.path), "Cleanup must preserve a referenced target under any name")
+    }
+
 }
