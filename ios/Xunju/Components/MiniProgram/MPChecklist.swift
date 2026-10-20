@@ -94,6 +94,7 @@ struct MPFieldRow: View {
                         tray("拍摄", icon: "swipe-camera", color: XJTheme.primary, action: capture)
                     }.offset(x: 132 + offset).opacity(offset < 0 ? 1 : 0)
                         .allowsHitTesting(coordinator.active == item.id && coordinator.dragging == nil)
+                        .accessibilityHidden(coordinator.active != item.id || coordinator.dragging != nil).zIndex(1)
                 }
                 HStack(spacing: 8) {
                     HStack(spacing: 8) {
@@ -105,7 +106,7 @@ struct MPFieldRow: View {
                         .contentShape(Rectangle()).onTapGesture { if !coordinator.consumeTap(), item.heading { state.expanded.toggle() } }
                         .accessibilityIdentifier("mp.field.title.\(item.id)")
                     if item.inline || item.heading {
-                        ZStack { answer.offset(x: offset) }.clipped()
+                        ZStack { answer.offset(x: offset) }.clipped().allowsHitTesting(offset == 0)
                     }
                 }.frame(minHeight: height)
             }.clipped().contentShape(Rectangle())
@@ -116,7 +117,9 @@ struct MPFieldRow: View {
                     guard !readonly else { return }
                     withAnimation(.easeOut(duration: 0.18)) { coordinator.finish(item.id, x: value.translation.width, y: value.translation.height, time: value.time.timeIntervalSinceReferenceDate) }
                 })
-                .onLongPressGesture { if !readonly { withAnimation(.easeOut(duration: 0.18)) { coordinator.reveal(item.id) } } }
+                .simultaneousGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                    if !readonly { withAnimation(.easeOut(duration: 0.18)) { coordinator.reveal(item.id) } }
+                })
             if !item.inline && !item.heading { answer.padding(.top, 6) }
             if state.selected.contains("其他") {
                 TextField(focused ? "" : "请填写其他内容", text: $state.otherText).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 44)
@@ -137,6 +140,7 @@ struct MPFieldRow: View {
             .onChange(of: focused) { if focused { coordinator.close() } }
             .onChange(of: readonly) { if readonly { coordinator.close() } }
             .accessibilityElement(children: .contain).accessibilityIdentifier("mp.field.\(item.id)")
+            .accessibilityValue(coordinator.active == item.id ? "操作已展开" : "操作已收起")
     }
     @ViewBuilder private var answer: some View {
         if item.kind == .text || item.kind == .number {

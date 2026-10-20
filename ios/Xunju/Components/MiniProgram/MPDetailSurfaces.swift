@@ -6,7 +6,8 @@ struct MPRetainedPage<Content: View>: View {
     let active: Bool
     @ViewBuilder var content: Content
     var body: some View {
-        content.opacity(active ? 1 : 0).allowsHitTesting(active).accessibilityHidden(!active)
+        content.opacity(active ? 1 : 0).allowsHitTesting(active)
+            .accessibilityElement(children: .contain).accessibilityHidden(!active).zIndex(active ? 1 : 0)
     }
 }
 
@@ -125,13 +126,28 @@ struct MPConfirmation: View {
                 Text(title).font(.system(size: 17, weight: .semibold)).padding(.top, 24)
                 Text(message).font(.system(size: 14)).foregroundStyle(XJTheme.muted).multilineTextAlignment(.center).padding(24)
                 HStack(spacing: 0) {
-                    Button("取消", action: cancel).frame(maxWidth: .infinity, minHeight: 52).foregroundStyle(XJTheme.muted)
+                    Button(action: cancel) { Text("取消").frame(maxWidth: .infinity, minHeight: 52).contentShape(Rectangle()) }
+                        .foregroundStyle(XJTheme.muted).accessibilityIdentifier("mp.confirm.cancel")
                     XJTheme.line.frame(width: 1, height: 52)
                     Button(confirmTitle, action: confirm).frame(maxWidth: .infinity, minHeight: 52).foregroundStyle(destructive ? XJTheme.danger : XJTheme.primary)
                         .accessibilityIdentifier("mp.confirm")
                 }.font(.system(size: 16, weight: .medium)).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
             }.background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).padding(.horizontal, 40)
         }
+    }
+}
+
+struct MPPressActions: ViewModifier {
+    let tap: () -> Void, hold: () -> Void
+    func body(content: Content) -> some View {
+        content.highPriorityGesture(
+            LongPressGesture(minimumDuration: 0.45).exclusively(before: TapGesture()).onEnded { event in
+                switch event {
+                case .first: hold()
+                case .second: tap()
+                }
+            }
+        ).accessibilityAction(perform: tap)
     }
 }
 

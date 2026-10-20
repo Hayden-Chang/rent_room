@@ -53,6 +53,7 @@ import XCTest
         capture("08-checklist", app)
         app.buttons["mp.field.choice.seal.是"].swipeLeft()
         wait(app.buttons["mp.field.action.seal.标记问题"])
+        XCTAssertTrue(app.buttons["mp.field.action.seal.标记问题"].isHittable)
         capture("09-field-swipe", app)
         app.buttons["mp.field.action.seal.标记问题"].tap()
         app.buttons["mp.field.choice.seal.是"].swipeLeft()
@@ -80,7 +81,13 @@ import XCTest
         app.buttons["mp.media.preview.image1"].tap()
         wait(app.staticTexts["mp.preview.index"]); label(app.staticTexts["mp.preview.index"], equals: "1 / 4")
         capture("14-media-preview", app)
-        app.otherElements["mp.preview.pages"].swipeLeft()
+        let photo = app.scrollViews["mp.preview.image.image1"]
+        XCTAssertEqual(photo.value as? String, "100%")
+        photo.pinch(withScale: 2, velocity: 1)
+        XCTAssertNotNil(photo.value as? String)
+        XCTAssertNotEqual(photo.value as? String, "100%"); capture("44-media-zoom", app)
+        photo.pinch(withScale: 0.5, velocity: -1)
+        app.collectionViews["mp.preview.pages"].swipeLeft()
         label(app.staticTexts["mp.preview.index"], equals: "2 / 4"); capture("15-media-preview-next", app)
         app.buttons["关闭预览"].tap()
         wait(app.buttons["mp.media.preview.image1"]); app.buttons["mp.media.preview.image1"].press(forDuration: 1)
@@ -105,9 +112,9 @@ import XCTest
         app.buttons["mp.issue.save"].tap()
         wait(app.staticTexts["mp.issue.title-error"]); capture("21-issue-validation", app)
         app.textFields["mp.issue.title"].tap(); app.textFields["mp.issue.title"].typeText("窗户关不严")
-        app.buttons["取消"].tap()
+        app.buttons["mp.issue.cancel"].tap()
         wait(app.buttons["mp.confirm"]); capture("22-issue-discard", app)
-        app.buttons["取消"].tap()
+        app.buttons["mp.confirm.cancel"].tap()
         XCTAssertEqual(app.textFields["mp.issue.title"].value as? String, "窗户关不严")
     }
     func testReadOnlyDetailAndEditorMedia() {
@@ -161,7 +168,7 @@ import XCTest
     }
     func testWorkplaceEmptyPermissionAndInlineCommutePicker() {
         let app = launch("workplace")
-        wait(app.textViews["mp.workplace.address"])
+        wait(app.textFields["mp.workplace.address"])
         XCTAssertTrue(app.staticTexts["搜索地址或点击定位，选择上班位置"].exists); capture("37-workplace", app)
         app.buttons["place.locate"].tap()
         wait(app.buttons["place.retry"]); capture("38-location-denied", app)
@@ -185,5 +192,39 @@ import XCTest
         app.launch(); wait(app.buttons["mp.capacity.purchase"])
         XCTAssertFalse(app.buttons["mp.capacity.purchase"].isEnabled)
         XCTAssertTrue(app.buttons["mp.capacity.restore"].isEnabled); capture("43-capacity-pending", app)
+    }
+    func testGuideCoversPageAndSpeedFeedback() {
+        let app = launch("guide")
+        wait(app.buttons["coach.next"])
+        for step in 1...4 {
+            if step == 4 {
+                wait(app.otherElements["coach.actions"])
+                app.buttons["coach.preference"].tap()
+                XCTAssertEqual(app.buttons["coach.preference"].value as? String, "已选中")
+            }
+            capture("45-guide-\(step)", app)
+            app.buttons["coach.next"].tap()
+        }
+        XCTAssertFalse(app.buttons["coach.next"].exists)
+        app.terminate()
+        app.launchArguments = ["--component-review", "parity-speed", "--parity-state", "done", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch(); wait(app.staticTexts["speed.message"])
+        XCTAssertEqual(app.staticTexts["speed.message"].label, "测速结果已回填")
+        capture("46-speed-done", app)
+    }
+    func testCapacityUnavailableGuestAndOverLimit() {
+        let app = XCUIApplication()
+        for state in ["guest", "loading", "unavailable", "over", "error"] {
+            app.launchArguments = ["--component-review", "parity-capacity", "--parity-state", state, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+            app.launch(); wait(app.buttons["mp.capacity.purchase"])
+            if state == "guest" { XCTAssertEqual(app.buttons["mp.capacity.purchase"].label, "登录后购买") }
+            if state == "unavailable" || state == "loading" { XCTAssertFalse(app.buttons["mp.capacity.purchase"].isEnabled) }
+            if state == "over" { XCTAssertEqual(app.staticTexts["mp.capacity.total"].label, "12 / 2 套") }
+            if state == "error" {
+                app.buttons["mp.capacity.restore"].tap()
+                XCTAssertFalse(app.buttons["mp.capacity.restore"].isEnabled)
+            }
+            capture("47-capacity-\(state)", app); app.terminate()
+        }
     }
 }

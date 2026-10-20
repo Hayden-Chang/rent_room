@@ -2,7 +2,7 @@
 import SwiftUI
 
 enum MPReviewRoute: String, CaseIterable {
-    case home, archive, detail, compare, settings, transfer, workplace, commute, capacity, editor, phone
+    case home, archive, detail, compare, settings, transfer, workplace, commute, capacity, editor, phone, guide, speed
     static func parse(_ args: [String]) -> MPReviewRoute? {
         guard let index = args.firstIndex(of: "--component-review"), args.indices.contains(index + 1),
               args[index + 1].hasPrefix("parity-") else { return nil }
@@ -47,6 +47,7 @@ struct MPReviewHost: View {
         _activity = State(initialValue: CapacityActivity(rawValue: state) ?? .idle)
     }
     private var rootPage: Bool { [.home, .compare, .settings].contains(route) }
+    private var modal: Bool { !prompt.isEmpty || !menu.isEmpty || !confirmation.isEmpty }
     private var title: String {
         switch route {
         case .home: "我的房源"
@@ -60,15 +61,18 @@ struct MPReviewHost: View {
         case .capacity: "房源容量"
         case .editor: "新建问题"
         case .phone: "手机号登录"
+        case .guide: "阳光小区"
+        case .speed: "网速测试"
         }
     }
     var body: some View {
         ZStack {
-            MPFrame(title: title, back: rootPage ? nil : { route = .home; mainTab = "房源" }) {
+            if route == .guide { MPGuideReviewHost() }
+            else { MPFrame(title: title, back: rootPage ? nil : { route = .home; mainTab = "房源" }) {
                 surface
             } footer: {
                 if rootPage { MPTabBar(selection: $mainTab) }
-            }
+            }.accessibilityHidden(modal).allowsHitTesting(!modal) }
             overlays
             if !toast.isEmpty { MPToast(text: toast) }
         }.tint(XJTheme.primary)
@@ -117,6 +121,14 @@ struct MPReviewHost: View {
             MPIssueReviewHost(state: state, close: { route = .detail })
         case .phone:
             PhoneLoginForm(requestCode: { _ in throw MPReviewError.serviceUnavailable }, submit: { _, _ in throw MPReviewError.serviceUnavailable })
+        case .guide: EmptyView()
+        case .speed:
+            ScrollView {
+                SpeedStatusCard(state: state == "done" ? .done : state == "error" ? .saveError("结果未能保存，请重试；原答案保持不变") : .testing,
+                    reading: SpeedReading(bytes: 8_388_608, elapsed: 3200, mbps: 20.97, progress: state == "done" ? 100 : 40),
+                    doneMessage: "测速结果已回填", cancel: { route = .detail }, retry: {}, save: { toast = "网速已回填" })
+                    .padding(.horizontal, 16).padding(.top, 24)
+            }
         }
     }
     private func placePicker(workplace: Bool = false) -> some View {

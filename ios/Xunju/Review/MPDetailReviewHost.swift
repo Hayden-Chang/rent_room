@@ -51,7 +51,7 @@ struct MPDetailReviewHost: View {
                 }
             } summary: {
                 MPSummarySurface(decision: $decision, note: $summaryNote, readonly: readonly)
-            }
+            }.accessibilityHidden(!noteTarget.isEmpty || source || !mediaMenu.isEmpty || association)
             if !noteTarget.isEmpty {
                 MPNoteSheet(title: noteTarget == "seal" ? "窗户密封" : "影像备注", text: $noteText, readonly: readonly,
                     close: { noteTarget = "" }, save: {
@@ -69,7 +69,8 @@ struct MPDetailReviewHost: View {
                 ], close: { mediaMenu = "" })
             }
             if association { MPAssociationSheet(items: [("seal", "门窗 / 窗户密封"), ("screen", "门窗 / 纱窗")], query: $associationQuery, close: { association = false }, select: { _ in association = false }) }
-            if !preview.isEmpty { MPMediaPreview(items: media, selected: $preview) { preview = "" } }
+        }.fullScreenCover(isPresented: Binding(get: { !preview.isEmpty }, set: { if !$0 { preview = "" } })) {
+            MPMediaPreview(items: media, selected: $preview) { preview = "" }
         }.fullScreenCover(isPresented: $editor) {
             MPFrame(title: readonly ? "问题详情" : "新建问题", back: { editor = false }) {
                 MPIssueReviewHost(state: readonly ? "readonly" : "", close: { editor = false })
@@ -128,9 +129,11 @@ struct MPIssueReviewHost: View {
                 preview: { preview = $0.id }, remove: { item in media.removeAll { $0.id == item.id } }, add: { source = true },
                 cancel: { if state == "readonly" || (title.isEmpty && note.isEmpty) { close() } else { discard = true } },
                 save: { if title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { titleError = "请填写问题标题" } else { saving = true } })
+                .accessibilityHidden(source || discard)
             if source { MPSourceSheet(close: { source = false }, library: { source = false }, camera: { source = false }) }
             if discard { MPConfirmation(title: "放弃修改", message: "本次未保存的修改将丢失", confirmTitle: "放弃", destructive: true, cancel: { discard = false }, confirm: close) }
-            if !preview.isEmpty { MPMediaPreview(items: media.map { MPMediaItem(id: $0.id, tile: $0) }, selected: $preview) { preview = "" } }
+        }.fullScreenCover(isPresented: Binding(get: { !preview.isEmpty }, set: { if !$0 { preview = "" } })) {
+            MPMediaPreview(items: media.map { MPMediaItem(id: $0.id, tile: $0) }, selected: $preview) { preview = "" }
         }.task {
             if state == "readonly" || state == "media" {
                 title = "卧室窗框有水渍"; note = "雨后再确认是否渗水"

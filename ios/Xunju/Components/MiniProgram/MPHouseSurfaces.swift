@@ -17,7 +17,7 @@ struct MPHomeSurface: View {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                     ForEach(houses) { house in
                         MPHouseCard(item: house) { open(house.id) }
-                            .onLongPressGesture { manage(house.id) }.accessibilityIdentifier("mp.house.\(house.id)")
+                            .modifier(MPPressActions(tap: { open(house.id) }, hold: { manage(house.id) })).accessibilityIdentifier("mp.house.\(house.id)")
                     }
                 }.padding(16).padding(.bottom, 68)
             }
@@ -37,7 +37,7 @@ struct MPArchiveSurface: View {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                     ForEach(houses) { house in
                         MPHouseCard(item: house, archived: true) { open(house.id) }
-                            .onLongPressGesture { manage(house.id) }.accessibilityIdentifier("mp.archive.\(house.id)")
+                            .modifier(MPPressActions(tap: { open(house.id) }, hold: { manage(house.id) })).accessibilityIdentifier("mp.archive.\(house.id)")
                     }
                 }
                 if !houses.isEmpty { Text("长按房源可还原或删除").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 10) }

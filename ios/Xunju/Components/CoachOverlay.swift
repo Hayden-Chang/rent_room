@@ -31,6 +31,7 @@ struct CoachOverlay: View {
     let fieldLabel: String
     @Binding var hideAutomatically: Bool
     var error = ""
+    var mediaIconSize: CGFloat = 26
     let next: () -> Void
     @State private var cardHeight: CGFloat = 220
     @State private var swiped = false
@@ -107,7 +108,7 @@ struct CoachOverlay: View {
                 HStack(spacing: 0) {
                     XJIcon(name: "swipe-issue", size: 26).frame(width: 44, height: 44).accessibilityLabel("标记问题")
                     XJIcon(name: "swipe-note", size: 26).frame(width: 44, height: 44).accessibilityLabel("备注")
-                    XJIcon(name: "coach-media", size: 26).frame(width: 44, height: 44).accessibilityLabel("影像")
+                    XJIcon(name: "coach-media", size: mediaIconSize).frame(width: 44, height: 44).accessibilityLabel("影像")
                 }.accessibilityElement(children: .ignore).accessibilityLabel("标记问题、备注、影像").accessibilityIdentifier("coach.actions")
                     .transition(.move(edge: .trailing))
             }

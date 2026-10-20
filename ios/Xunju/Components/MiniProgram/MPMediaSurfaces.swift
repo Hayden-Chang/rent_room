@@ -32,7 +32,7 @@ struct MPMediaGallery: View {
                     ForEach(items.filter { filter.includes($0.tile) }) { item in
                         VStack(spacing: 0) {
                             Button { preview(item.id) } label: { mediaThumbnail(item) }.buttonStyle(.plain)
-                                .onLongPressGesture { if !readonly { manage(item.id) } }
+                                .modifier(MPPressActions(tap: { preview(item.id) }, hold: { if !readonly { manage(item.id) } }))
                                 .accessibilityLabel(item.tile.kind == .video ? "播放视频" : "预览照片").accessibilityIdentifier("mp.media.preview.\(item.id)")
                             if readonly {
                                 if !item.tile.caption.isEmpty { Text(item.tile.caption).font(.system(size: 13)).frame(maxWidth: .infinity, minHeight: 44, alignment: .topLeading).padding(.vertical, 8) }
@@ -102,6 +102,7 @@ struct MPZoomImage: UIViewRepresentable {
         let scroll = ImageScroll()
         scroll.delegate = context.coordinator
         scroll.minimumZoomScale = 1; scroll.maximumZoomScale = 4
+        scroll.accessibilityValue = "100%"
         scroll.showsHorizontalScrollIndicator = false; scroll.showsVerticalScrollIndicator = false
         scroll.picture.contentMode = .scaleAspectFit; scroll.addSubview(scroll.picture)
         return scroll
@@ -116,6 +117,7 @@ struct MPZoomImage: UIViewRepresentable {
     }
     final class Coordinator: NSObject, UIScrollViewDelegate {
         func viewForZooming(in scrollView: UIScrollView) -> UIView? { (scrollView as? ImageScroll)?.picture }
+        func scrollViewDidZoom(_ scrollView: UIScrollView) { scrollView.accessibilityValue = "\(Int(scrollView.zoomScale * 100))%" }
     }
 }
 
@@ -227,7 +229,7 @@ struct MPIssueEditorSurface: View {
             GeometryReader { geometry in
                 let unit = max(0, geometry.size.width - 12) / 3
                 HStack(spacing: 12) {
-                    Button(readonly ? "返回" : "取消", action: cancel).buttonStyle(MPButtonStyle()).frame(width: readonly ? geometry.size.width : unit)
+                    Button(readonly ? "返回" : "取消", action: cancel).buttonStyle(MPButtonStyle()).frame(width: readonly ? geometry.size.width : unit).accessibilityIdentifier("mp.issue.cancel")
                     if !readonly { Button("保存问题", action: save).buttonStyle(MPButtonStyle(kind: .primary)).frame(width: unit * 2).accessibilityIdentifier("mp.issue.save") }
                 }
             }.frame(height: 44).disabled(busy).padding(.horizontal, 16).padding(.vertical, 12).background(.white).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }

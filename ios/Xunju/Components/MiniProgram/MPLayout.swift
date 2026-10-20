@@ -5,14 +5,15 @@ import SwiftUI
 struct MPButtonStyle: ButtonStyle {
     enum Kind { case primary, soft, plain, danger }
     var kind: Kind = .plain
+    var transferDisabled = false
     @Environment(\.isEnabled) private var enabled
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.system(size: 14, weight: .medium))
             .frame(maxWidth: .infinity, minHeight: 44)
-            .foregroundStyle(kind == .primary ? .white : kind == .danger ? XJTheme.danger : kind == .soft ? XJTheme.primary : XJTheme.ink)
-            .background(kind == .primary ? XJTheme.primary : kind == .soft ? XJTheme.soft : kind == .danger ? XJTheme.dangerBackground : .white)
+            .foregroundStyle(transferDisabled && !enabled ? Color(red: 108/255, green: 116/255, blue: 169/255) : kind == .primary ? .white : kind == .danger ? XJTheme.danger : kind == .soft ? XJTheme.primary : XJTheme.ink)
+            .background(transferDisabled && !enabled ? Color(red: 228/255, green: 231/255, blue: 250/255) : kind == .primary ? XJTheme.primary : kind == .soft ? XJTheme.soft : kind == .danger ? XJTheme.dangerBackground : .white)
             .clipShape(RoundedRectangle(cornerRadius: 8))
-            .opacity(enabled ? (configuration.isPressed ? 0.8 : 1) : 0.45)
+            .opacity(enabled ? (configuration.isPressed ? 0.8 : 1) : transferDisabled ? 1 : 0.45)
     }
 }
 
@@ -62,7 +63,7 @@ struct MPMenuRow: View {
             HStack(spacing: 16) {
                 Text(title).fontWeight(.medium).fixedSize()
                 Spacer(minLength: 0)
-                Text(detail + (detail.isEmpty ? "›" : " ›")).foregroundStyle(XJTheme.muted).lineLimit(1)
+                Text(detail + (detail.isEmpty ? "›" : " ›")).font(.system(size: 12)).foregroundStyle(XJTheme.muted).lineLimit(1)
             }.font(.system(size: 14)).frame(minHeight: 49).contentShape(Rectangle())
         }.buttonStyle(.plain).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
     }
@@ -130,7 +131,7 @@ struct MPInputDialog: View {
                     Button("保存", action: save).foregroundStyle(XJTheme.primary).frame(maxWidth: .infinity, minHeight: 52).accessibilityIdentifier("mp.prompt.save")
                 }.font(.system(size: 16, weight: .medium)).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }.padding(.top, 24)
             }.background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).padding(.horizontal, 40)
-        }.accessibilityIdentifier("mp.prompt")
+        }.accessibilityElement(children: .contain)
     }
 }
 

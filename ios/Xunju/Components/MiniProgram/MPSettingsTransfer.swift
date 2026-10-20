@@ -55,7 +55,7 @@ struct MPSettingsSurface: View {
                         }
                         XJTheme.line.frame(height: 1)
                         Button(action: capacity) {
-                            HStack { Text("房源容量"); Spacer(); Text("\(used) / \(limit) 套 ›").foregroundStyle(XJTheme.muted) }
+                            HStack { Text("房源容量"); Spacer(); Text("\(used) / \(limit) 套 ›").font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
                                 .font(.system(size: 14, weight: .medium)).padding(.top, 14)
                         }.buttonStyle(.plain)
                     }
@@ -119,12 +119,10 @@ struct MPTransferSurface: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text(exporting ? "选择要导出的房源" : "选择要导入的房源").font(.system(size: 22, weight: .semibold))
                     if !exporting {
-                        MPCard {
-                            VStack(spacing: 12) {
+                            VStack(spacing: 0) {
                                 Text(fileName.isEmpty ? "尚未选择 ZIP 文件" : fileName).font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading)
                                 Button(fileName.isEmpty ? "选择 ZIP 文件" : "重新选择 ZIP", action: choose).font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.primary).frame(minHeight: 44)
-                            }
-                        }
+                            }.padding(.horizontal, 16).padding(.vertical, 12).background(.white).clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                     if !error.isEmpty { Text(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12).frame(maxWidth: .infinity, alignment: .leading).background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 10)) }
                     if !items.isEmpty {
@@ -144,8 +142,12 @@ struct MPTransferSurface: View {
                 if busy || preparing { Text(progress).font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
                 HStack(spacing: 8) {
                     Button(busy ? "取消操作" : "取消", action: cancel).buttonStyle(MPButtonStyle())
-                    Button(exporting ? (retryShare ? "重试发送" : "导出 \(selected.count) 套") : "导入 \(selected.count) 套", action: commit)
-                        .buttonStyle(MPButtonStyle(kind: .primary)).disabled(busy || !ready).accessibilityIdentifier("mp.transfer.commit")
+                    Button(action: commit) {
+                        HStack(spacing: 8) {
+                            if busy || preparing { ProgressView() }
+                            Text(exporting ? (retryShare ? "重试发送" : "导出 \(selected.count) 套") : "导入 \(selected.count) 套")
+                        }
+                    }.buttonStyle(MPButtonStyle(kind: .primary, transferDisabled: true)).disabled(busy || !ready).accessibilityIdentifier("mp.transfer.commit")
                 }
             }.padding(16).background(.white).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
         }

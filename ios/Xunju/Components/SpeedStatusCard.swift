@@ -15,6 +15,7 @@ enum SpeedDisplayState: Equatable {
 struct SpeedStatusCard: View {
     let state: SpeedDisplayState
     let reading: SpeedReading?
+    var doneMessage = "测速结果已保存"
     let cancel: () -> Void, retry: () -> Void, save: () -> Void
     var body: some View {
         VStack(spacing: 0) {
@@ -29,7 +30,7 @@ struct SpeedStatusCard: View {
                 Capsule().fill(XJTheme.primary).frame(width: geometry.size.width * max(0, min(100, reading?.progress ?? 0)) / 100)
             }.frame(height: 6).accessibilityLabel("测速进度").accessibilityValue("\(Int(reading?.progress ?? 0))%")
             if !state.message.isEmpty {
-                Text(state.message).font(.system(size: 14)).foregroundStyle(XJTheme.muted).lineSpacing(4)
+                Text(state == .done ? doneMessage : state.message).font(.system(size: 14)).foregroundStyle(XJTheme.muted).lineSpacing(4)
                     .multilineTextAlignment(.center).padding(.top, 24).accessibilityIdentifier("speed.message")
             }
             if state != .done {

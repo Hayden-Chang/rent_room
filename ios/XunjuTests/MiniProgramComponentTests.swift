@@ -9,6 +9,9 @@ import XCTest
         XCTAssertNil(MPReviewRoute.parse(["--component-review"]))
         XCTAssertEqual(MPReviewRoute.parse(["app", "--component-review", "parity-detail"]), .detail)
         XCTAssertEqual(MPReviewRoute.state(["--parity-state", "readonly"]), "readonly")
+        for route in MPReviewRoute.allCases {
+            XCTAssertEqual(MPReviewRoute.parse(["--component-review", "parity-" + route.rawValue]), route)
+        }
     }
 
     func testSwipeFollowsFingerAndHandlesReverseAndVerticalScroll() {
