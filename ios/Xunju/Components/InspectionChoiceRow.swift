@@ -37,7 +37,7 @@ struct InspectionChoiceRow: View {
                             Button {
                                 value = InspectionSelection.toggled(current: value, choice: choice)
                             } label: {
-                                Text(choiceLabels[choice] ?? choice).font(.system(size: 13)).padding(.horizontal, 10)
+                                Text(choiceLabels[choice] ?? choice).font(.system(size: 13)).fixedSize(horizontal: true, vertical: false).padding(.horizontal, 10)
                                     .frame(minWidth: 44, minHeight: 44)
                                     .foregroundStyle(value == choice ? XJTheme.primary : XJTheme.ink)
                                     .background(value == choice ? XJTheme.soft : XJTheme.background)

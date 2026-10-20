@@ -36,7 +36,7 @@ struct AnswerInput: View {
                     if let measurement {
                         HStack(spacing: 6) {
                             input.frame(width: measurement.kind == .speed ? 68 : 72)
-                            if measurement.kind == .speed { Text("Mbps").font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
+                            if measurement.kind == .speed { Text("Mbps").font(.system(size: 12)).fixedSize(horizontal: true, vertical: false).foregroundStyle(XJTheme.muted) }
                             Button(measurement.kind == .speed ? "测试" : "查询", action: measurement.perform)
                                 .font(.system(size: 13)).foregroundStyle(XJTheme.primary).frame(width: 48, height: 44)
                                 .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)).disabled(readonly)

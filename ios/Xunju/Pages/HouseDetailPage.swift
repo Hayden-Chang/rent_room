@@ -64,6 +64,7 @@ struct ChecklistPage: View {
     @State private var mediaTarget: String?
     @State private var commuteField: String?
     @State private var showSpeed = false
+    @State private var speedVisit = UUID()
     @State private var coachStep = 1
     @State private var coachSteps: [CoachStep] = []
     @State private var coachTarget: JSONValue = .null
@@ -171,7 +172,7 @@ struct ChecklistPage: View {
             .navigationDestination(isPresented: Binding(get: { commuteField != nil }, set: { if !$0 { commuteField = nil } })) {
                 if let commuteField { CommutePage(workspace: workspace, houseID: id, fieldID: commuteField) }
             }
-            .navigationDestination(isPresented: $showSpeed) { SpeedPage(workspace: workspace, houseID: id) }
+            .navigationDestination(isPresented: $showSpeed) { SpeedPage(workspace: workspace, houseID: id).id(speedVisit) }
     }
     private var progress: some View {
         XJCard {
@@ -233,7 +234,7 @@ struct ChecklistPage: View {
     }
     private func measurement(_ field: String) -> MeasurementAction? {
         if UtilityField.mode(field) != nil { return MeasurementAction(kind: .commute) { commuteField = field } }
-        if field == UtilityField.speed { return MeasurementAction(kind: .speed) { showSpeed = true } }
+        if field == UtilityField.speed { return MeasurementAction(kind: .speed) { speedVisit = UUID(); showSpeed = true } }
         return nil
     }
     private func answerBinding(_ field: String, property: String = "value") -> Binding<String> {
