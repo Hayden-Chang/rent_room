@@ -57,7 +57,6 @@ struct PlacePickerSurface: View {
                     Map(position: $position, interactionModes: readonly ? [.zoom] : [.pan, .zoom]) {}
                         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
                         .mapControlVisibility(.hidden)
-                        .contentShape(.interaction, PlaceMapInteractionArea(coveredHeight: !readonly && query.isEmpty && !places.isEmpty ? 128 : 0))
                         .onMapCameraChange(frequency: .onEnd) { context in
                             if !readonly { moved(GeographicPoint(latitude: context.region.center.latitude, longitude: context.region.center.longitude)) }
                         }.accessibilityIdentifier("place.map")
@@ -74,17 +73,15 @@ struct PlacePickerSurface: View {
                     .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                     .padding(12).accessibilityIdentifier("place.locate")
                 }
-            }.frame(height: 300).background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
-                .overlay(alignment: .bottom) {
-                    if !readonly && query.isEmpty && !places.isEmpty {
-                        results(nearby: true).frame(height: 128)
-                            .background {
-                                #if DEBUG
-                                if MapHitTrace.enabled { MapHitProbe() }
-                                #endif
-                            }
-                    }
+                if !readonly && query.isEmpty && !places.isEmpty {
+                    results(nearby: true).frame(height: 128)
+                        .background {
+                            #if DEBUG
+                            if MapHitTrace.enabled { MapHitProbe() }
+                            #endif
+                        }.frame(maxHeight: .infinity, alignment: .bottom)
                 }
+            }.frame(height: 300).background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             if busy && !readonly { Text("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
             if center != nil || !places.isEmpty {
@@ -123,6 +120,7 @@ struct PlacePickerSurface: View {
                                 .background(nearby ? XJTheme.soft : .clear).clipShape(RoundedRectangle(cornerRadius: 6))
                         }.padding(.horizontal, 12).padding(.vertical, 10).frame(minHeight: 52)
                             .background(.white).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
+                            .contentShape(Rectangle())
                     }.buttonStyle(.plain).accessibilityIdentifier("place.result.\(place.id)")
                 }
             }
@@ -130,11 +128,3 @@ struct PlacePickerSurface: View {
     }
 }
 
-// The opaque nearby panel owns its 128pt of interaction, while the visible map
-// above it retains pan/zoom. MapKit must not hit-test underneath that panel.
-private struct PlaceMapInteractionArea: Shape {
-    let coveredHeight: CGFloat
-    func path(in rect: CGRect) -> Path {
-        Path(CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: max(0, rect.height - coveredHeight)))
-    }
-}
