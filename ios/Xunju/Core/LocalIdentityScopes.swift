@@ -37,9 +37,9 @@ final class LocalIdentityScopes {
         return guest(id!)
     }
 
-    func claim(account: String, from source: NativeStore?, packs: Int = 0) throws -> NativeStore {
+    func claim(account: String, from source: NativeStore?, packs: Int = 0, network: any MapTransport = NativeMapTransport()) throws -> NativeStore {
         let directory = try accountDirectory(account)
-        let target = try NativeStore(directory: directory, packs: packs)
+        let target = try NativeStore(directory: directory, packs: packs, network: network)
         guard !target.status.blocked else { throw CoreFailure(message: "账号记录读取失败，请先恢复记录") }
         let journal = directory.appendingPathComponent("guest-claim.json")
         if files.fileExists(atPath: journal.path) {

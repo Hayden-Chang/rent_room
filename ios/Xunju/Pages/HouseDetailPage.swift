@@ -3,7 +3,10 @@ import SwiftUI
 struct HouseDetailPage: View {
     let workspace: AppWorkspace
     let id: String
+    var newHouse = false
     @State private var tab = "清单"
+    @State private var showCoach = false
+    @State private var appeared = false
     var body: some View {
         VStack(spacing: 0) {
             if workspace.store.house(id)["archived"].bool {
@@ -22,13 +25,18 @@ struct HouseDetailPage: View {
                     }
                 case "问题": IssuesPage(workspace: workspace, id: id)
                 case "影像": HouseMediaPage(workspace: workspace, id: id)
-                default: ChecklistPage(workspace: workspace, id: id)
+                default: ChecklistPage(workspace: workspace, id: id, showCoach: $showCoach)
                 }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
         }.background(XJTheme.background).navigationTitle(workspace.store.house(id)["name"].string)
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 XJTabBar(selection: $tab, items: [("清单", "checklist"), ("影像", "media"), ("问题", "issues"), ("总结", "summary")])
+                    .disabled(showCoach)
+            }
+            .navigationBarBackButtonHidden(showCoach)
+            .onAppear {
+                if !appeared { appeared = true; showCoach = newHouse && !readonly && workspace.store.state["settings"]["onboarding"].bool }
             }
     }
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
@@ -44,6 +52,7 @@ private struct NoteTarget: Identifiable { let id: String; let title: String; let
 struct ChecklistPage: View {
     let workspace: AppWorkspace
     let id: String
+    @Binding var showCoach: Bool
     @State private var phase = "全部"
     @State private var query = ""
     @State private var filters: Set<String> = []
@@ -53,6 +62,13 @@ struct ChecklistPage: View {
     @State private var note: NoteTarget?
     @State private var cost: JSONValue?
     @State private var mediaTarget: String?
+    @State private var commuteField: String?
+    @State private var coachStep = 1
+    @State private var coachSteps: [CoachStep] = []
+    @State private var coachTarget: JSONValue = .null
+    @State private var coachHidden = false
+    @State private var coachError = ""
+    @State private var coachSavedFolds: [String: [String: Bool]]?
     private var viewKey: String { phase + "|" + query + "|" + filters.sorted().joined(separator: ",") }
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
     private var stats: InspectionStats? { workspace.store.houses.first { $0.id == id }?.stats }
@@ -69,6 +85,10 @@ struct ChecklistPage: View {
                             Button { phase = value } label: { Text(value).frame(maxWidth: .infinity) }
                                 .buttonStyle(FilterChip(selected: phase == value))
                                 .accessibilityIdentifier("phase.\(value)")
+                                .anchorPreference(key: CoachAnchors.self, value: .bounds) { anchor in
+                                    let step = value == "房源" ? 1 : value == "现场" ? 2 : value == "询问签约" ? 3 : 0
+                                    return step == 0 ? [:] : [step: anchor]
+                                }
                         }
                     }.frame(maxWidth: .infinity, alignment: .leading)
                     HStack {
@@ -95,7 +115,8 @@ struct ChecklistPage: View {
                                             expanded: Binding(get: { section["expanded"].bool }, set: { setFold(section["title"].string, $0) })) {
                             VStack(spacing: 4) {
                                 ForEach(section["rows"].array, id: \.rowKey) { row in
-                                    checklistRow(row).padding(.leading, CGFloat(min(row["depth"].int, 2) * 12))
+                                    checklistRow(row).padding(.leading, CGFloat(min(row["depth"].int, 2) * 12)).id(row.id)
+                                        .anchorPreference(key: CoachAnchors.self, value: .bounds) { row.id == coachTarget["field"].id ? [4: $0] : [:] }
                                 }
                             }
                         }.contextMenu {
@@ -111,13 +132,25 @@ struct ChecklistPage: View {
                         XJIcon(name: "up").frame(width: 48, height: 48).background(.white).clipShape(Circle())
                     }.padding(16).accessibilityLabel("回到顶部")
                 }
+                .overlayPreferenceValue(CoachAnchors.self) { anchors in
+                    if showCoach {
+                        GeometryReader { geometry in
+                            CoachOverlay(steps: coachSteps, step: coachStep, target: anchors[coachStep].map { geometry[$0] }, fieldLabel: coachTarget["field"]["label"].string,
+                                         hideAutomatically: $coachHidden, error: coachError) { advanceCoach(proxy) }
+                        }
+                    }
+                }
+                .onChange(of: showCoach) { if showCoach { prepareCoach() } }
+                .onChange(of: coachStep) {
+                    if coachStep == 4 { proxy.scrollTo(coachTarget["field"].id, anchor: .center) }
+                }
         }.toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
                     .accessibilityIdentifier("checklist.keyboard.done")
             }
-        }.onAppear(perform: refresh)
+        }.onAppear { refresh(); if showCoach { prepareCoach() } }
             .onChange(of: viewKey) { _, _ in refresh() }
             .onChange(of: workspace.store.status.revision) { _, _ in refresh() }
             .sheet(item: $note) { target in
@@ -133,6 +166,9 @@ struct ChecklistPage: View {
             }
             .sheet(isPresented: Binding(get: { mediaTarget != nil }, set: { if !$0 { mediaTarget = nil } })) {
                 if let mediaTarget { MediaPickerSheet(workspace: workspace, houseID: id, fieldID: mediaTarget) }
+            }
+            .navigationDestination(isPresented: Binding(get: { commuteField != nil }, set: { if !$0 { commuteField = nil } })) {
+                if let commuteField { CommutePage(workspace: workspace, houseID: id, fieldID: commuteField) }
             }
     }
     private var progress: some View {
@@ -173,7 +209,9 @@ struct ChecklistPage: View {
         }
     }
     @ViewBuilder private func field(_ row: JSONValue) -> some View {
-        if !row["options"].array.isEmpty && row["inline"].bool && !row["multiple"].bool {
+        if row["map"].bool {
+            HousePlaceField(workspace: workspace, id: id)
+        } else if !row["options"].array.isEmpty && row["inline"].bool && !row["multiple"].bool {
             VStack(alignment: .leading, spacing: 0) {
                 InspectionChoiceRow(title: row["label"].string, options: row["options"].array.map { $0["value"].string },
                     choiceLabels: Dictionary(uniqueKeysWithValues: row["options"].array.map { ($0["value"].string, $0["label"].string) }),
@@ -182,6 +220,7 @@ struct ChecklistPage: View {
                 if !row["note"].string.isEmpty { Button(row["note"].string) { openNote(row) }.font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
             }
         } else {
+            VStack(alignment: .trailing, spacing: 4) {
             AnswerInput(field: row, text: answerBinding(row.id), otherText: answerBinding(row.id, property: "otherText"), readonly: readonly, showsKeyboardToolbar: false,
                 choose: { value in workspace.perform { try workspace.store.call("choose", ["id": .string(id), "field": .string(row.id), "value": .string(value)]) } },
                 action: { action in
@@ -189,6 +228,11 @@ struct ChecklistPage: View {
                     else if action == "标记问题" { flag(row) }
                     else { mediaTarget = row.id }
                 })
+                if UtilityField.mode(row.id) != nil {
+                    Button("查询" + row["label"].string) { commuteField = row.id }
+                        .font(.system(size: 13)).disabled(readonly).accessibilityIdentifier("commute.open.\(row.id)")
+                }
+            }
         }
     }
     private func answerBinding(_ field: String, property: String = "value") -> Binding<String> {
@@ -205,6 +249,32 @@ struct ChecklistPage: View {
     private func openNote(_ field: JSONValue) { note = NoteTarget(id: field.id, title: field["label"].string, value: field["note"].string) }
     private func setFold(_ key: String, _ value: Bool) { folds[viewKey, default: [:]][key] = value; refresh() }
     private func refresh() { workspace.perform { sections = try workspace.store.form(id, phase: phase, query: query, filters: filters.sorted(), folds: folds[viewKey] ?? [:]) } }
+    private func prepareCoach() {
+        do {
+            let value = try workspace.store.call("coach", ["id": .string(id)])
+            coachSteps = value["steps"].array.map { CoachStep(title: $0["title"].string, body: $0["body"].string) }
+            coachTarget = value["target"]; coachStep = 1; coachError = ""
+        } catch { coachError = error.localizedDescription }
+    }
+    private func advanceCoach(_ proxy: ScrollViewProxy) {
+        if coachStep < 4 {
+            if coachStep == 3 {
+                coachSavedFolds = folds; phase = "全部"; query = ""; filters = []
+                if case .object(let expanded) = coachTarget["folds"] {
+                    folds[viewKey, default: [:]].merge(expanded.mapValues(\.bool), uniquingKeysWith: { _, new in new })
+                }
+                refresh()
+            }
+            coachStep += 1
+        } else {
+            do {
+                try workspace.store.call("coachFinish", ["value": .bool(coachHidden)])
+                showCoach = false; coachError = ""
+                if let saved = coachSavedFolds { folds = saved; coachSavedFolds = nil; refresh() }
+                proxy.scrollTo("top", anchor: .top)
+            } catch { coachError = "偏好未保存，请重试。" }
+        }
+    }
 }
 
 extension JSONValue: Identifiable {

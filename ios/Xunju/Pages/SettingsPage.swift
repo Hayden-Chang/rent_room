@@ -4,7 +4,6 @@ import AuthenticationServices
 struct SettingsPage: View {
     let workspace: AppWorkspace
     @State private var phone = false
-    @State private var workplace = false
     @State private var appleChallenge: AppleChallenge?
     @State private var appleRequestedAt = Date.distantPast
     @State private var appleError = ""
@@ -33,7 +32,8 @@ struct SettingsPage: View {
                 }
                 XJCard {
                     VStack(spacing: 0) {
-                        Button { workplace = true } label: { menu("上班地点", detail: workspace.store.state["settings"]["workplace"].string.isEmpty ? "未设置" : workspace.store.state["settings"]["workplace"].string) }
+                        NavigationLink { WorkplacePage(workspace: workspace) } label: { menu("上班地点", detail: workspace.store.state["settings"]["workplace"].string.isEmpty ? "未设置" : workspace.store.state["settings"]["workplace"].string) }
+                            .accessibilityIdentifier("settings.workplace")
                         NavigationLink { ArchivePage(workspace: workspace) } label: { menu("归档房源", detail: "\(workspace.store.archivedHouses.count) 套") }
                             .accessibilityIdentifier("settings.archive")
                         Toggle("操作引导", isOn: Binding(get: { workspace.store.state["settings"]["onboarding"].bool }, set: { value in
@@ -62,12 +62,6 @@ struct SettingsPage: View {
                     if workspace.perform({ try workspace.logout() }), let token { Task { try? await api.revoke(token) } }
                 }
             } message: { Text("账号记录保留在本机，重新登录同一账号后可继续查看。") }
-            .sheet(isPresented: $workplace) {
-                NoteEditor(title: "上班地点", text: workspace.store.state["settings"]["workplace"].string) { value in
-                    try workspace.store.call("settings", ["property": .string("workplace"), "value": .string(value)])
-                    if !workspace.store.status.error.isEmpty { throw CoreFailure(message: workspace.store.status.error) }
-                }
-            }
             .sheet(isPresented: $phone) { PhoneAuthenticationPage(workspace: workspace) }
     }
     private func prepareApple() async {

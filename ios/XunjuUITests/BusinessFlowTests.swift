@@ -1,7 +1,8 @@
 import XCTest
 
 @MainActor final class BusinessFlowTests: XCTestCase {
-    override func setUpWithError() throws { continueAfterFailure = false }
+    private var guideDismissed = false
+    override func setUpWithError() throws { continueAfterFailure = false; guideDismissed = false }
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
@@ -13,6 +14,13 @@ import XCTest
         XCTAssertTrue(input.waitForExistence(timeout: 3)); input.tap(); input.typeText(name)
         app.buttons["prompt.confirm"].tap()
         XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
+        if !guideDismissed {
+            let next = app.buttons["coach.next"]
+            XCTAssertTrue(next.waitForExistence(timeout: 3))
+            for _ in 0..<3 { next.tap() }
+            app.buttons["coach.preference"].tap(); next.tap()
+            XCTAssertFalse(next.exists); guideDismissed = true
+        }
     }
     private func home(_ app: XCUIApplication) { app.navigationBars.buttons.firstMatch.tap(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3)) }
     private func capture(_ name: String, _ app: XCUIApplication) {

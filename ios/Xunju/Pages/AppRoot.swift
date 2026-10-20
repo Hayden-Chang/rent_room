@@ -20,7 +20,18 @@ struct AppRoot: View {
             .environment(\.locale, Locale(identifier: "zh_CN")).preferredColorScheme(.light)
     }
     private func load() {
-        do { workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: AppWorkspace.isBusinessTest ? VolatileSessionStorage() : SessionKeychain()); launchError = "" }
+        do {
+            #if DEBUG
+            if UtilityNetworkFixture.enabled {
+                workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: VolatileSessionStorage(), mapTransport: UtilityNetworkFixture.transport, mapKey: "fixture")
+            } else {
+                workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: AppWorkspace.isBusinessTest ? VolatileSessionStorage() : SessionKeychain())
+            }
+            #else
+            workspace = try AppWorkspace(root: AppWorkspace.dataRoot())
+            #endif
+            launchError = ""
+        }
         catch { launchError = error.localizedDescription }
     }
 }

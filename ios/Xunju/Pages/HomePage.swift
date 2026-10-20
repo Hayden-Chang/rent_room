@@ -5,6 +5,7 @@ struct HomePage: View {
     @State private var adding = false
     @State private var rename: HouseSummary?
     @State private var path: [String] = []
+    @State private var newHouseID: String?
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -31,12 +32,12 @@ struct HomePage: View {
                         .accessibilityLabel("添加房源").accessibilityIdentifier("home.add")
                 }
             }
-            .navigationDestination(isPresented: Binding(get: { !path.isEmpty }, set: { if !$0 { path = [] } })) {
-                if let id = path.last { HouseDetailPage(workspace: workspace, id: id) }
+            .navigationDestination(isPresented: Binding(get: { !path.isEmpty }, set: { if !$0 { path = []; newHouseID = nil } })) {
+                if let id = path.last { HouseDetailPage(workspace: workspace, id: id, newHouse: newHouseID == id) }
             }
             .sheet(isPresented: $adding) {
                 TextPrompt(title: "添加房源", placeholder: "填写房源名称", text: "") { value in
-                    let id = try workspace.store.add(value); path = [id]
+                    let id = try workspace.store.add(value); newHouseID = id; path = [id]
                 }
             }
             .sheet(item: $rename) { house in

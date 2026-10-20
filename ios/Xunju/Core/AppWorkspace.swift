@@ -16,20 +16,23 @@ final class AppWorkspace {
     private(set) var session: LocalSession?
     var error = ""
     @ObservationIgnored private let keychain: any SessionStorage
+    @ObservationIgnored let mapKey: String
+    @ObservationIgnored private let mapTransport: any MapTransport
     private(set) var identityRevision = 0
 
-    init(root: URL, keychain: any SessionStorage = SessionKeychain()) throws {
+    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey) throws {
         self.keychain = keychain
+        self.mapTransport = mapTransport; self.mapKey = mapKey
         scopes = try LocalIdentityScopes(root: root)
-        let guest = try NativeStore(directory: scopes.guestDirectory())
+        let guest = try NativeStore(directory: scopes.guestDirectory(), network: mapTransport)
         if let saved = try keychain.read() {
             try saved.validateStored()
-            let account = try NativeStore(directory: scopes.accountDirectory(saved.account), packs: saved.packs)
+            let account = try NativeStore(directory: scopes.accountDirectory(saved.account), packs: saved.packs, network: mapTransport)
             if account.status.blocked {
                 // Expose the existing recovery banner without attempting a guest claim or write.
                 store = account
             } else {
-                store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs)
+                store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs, network: mapTransport)
             }
             session = saved
         } else { store = guest }
@@ -65,13 +68,13 @@ final class AppWorkspace {
         guard store.status.error.isEmpty else { throw CoreFailure(message: store.status.error) }
         // Persist verified identity first; claim's journal can resume after interruption.
         try keychain.write(verified)
-        let target = try scopes.claim(account: verified.account, from: session == nil ? store : nil, packs: verified.packs)
+        let target = try scopes.claim(account: verified.account, from: session == nil ? store : nil, packs: verified.packs, network: mapTransport)
         store = target; session = verified; identityRevision += 1
     }
     func logout() throws {
         try store.call("save")
         guard store.status.error.isEmpty else { throw CoreFailure(message: store.status.error) }
-        let guest = try NativeStore(directory: scopes.guestDirectory())
+        let guest = try NativeStore(directory: scopes.guestDirectory(), network: mapTransport)
         try keychain.remove()
         store = guest; session = nil; identityRevision += 1
     }
