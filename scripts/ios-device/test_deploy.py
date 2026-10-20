@@ -1,5 +1,6 @@
 import datetime as dt
 import importlib.util
+import json
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -82,6 +83,27 @@ class DeploymentGuards(unittest.TestCase):
                 execution.execute()
             self.assertEqual([x.args[0] for x in device.call_args_list], ["device"])
             self.assertEqual(execution.receipt["status"], "failed")
+
+    def test_launch_has_no_options_accidentally_forwarded_to_app(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}):
+            args = SimpleNamespace(copy_id="testcopy", team=self.team, output=f"{folder}/run",
+                branch="codex/test", expected_head="sha", device="chosen-device",
+                device_name="chosen phone", udid=self.udid)
+            execution = deploy.Deployment(args)
+            execution.output.mkdir()
+
+            def fake_run(step, command):
+                # Model devicectl's launch parser: tokens after Bundle ID go to App.
+                self.assertEqual(command[command.index(execution.bundle) + 1:], [])
+                self.assertLess(command.index("--device"), command.index(execution.bundle))
+                path = Path(command[command.index("--json-output") + 1])
+                path.write_text(json.dumps({"info": {"outcome": "success"},
+                                            "result": {"process": {"processIdentifier": 42}}}))
+
+            with patch.object(execution, "run", side_effect=fake_run):
+                result = execution.device_command("launch", ["device", "process", "launch", execution.bundle])
+            self.assertEqual(result["process"]["processIdentifier"], 42)
 
 
 if __name__ == "__main__":

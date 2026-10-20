@@ -111,8 +111,10 @@ class Deployment:
 
     def device_command(self, step, command):
         path = self.output / f"{step}.json"
-        self.run(step, ["/usr/bin/xcrun", "devicectl", *command, "--device", self.args.device,
-                        "--timeout", "60", "--json-output", str(path)])
+        # launch treats every token after its bundle identifier as an App argument.
+        # Keep device/options before the positional payload for every subcommand.
+        self.run(step, ["/usr/bin/xcrun", "devicectl", *command[:3], "--device", self.args.device,
+                        "--timeout", "60", "--json-output", str(path), *command[3:]])
         result = json.loads(path.read_text())
         require(result.get("info", {}).get("outcome") == "success", f"{step}: unsuccessful receipt")
         return result["result"]
