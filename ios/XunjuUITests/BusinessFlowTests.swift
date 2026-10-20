@@ -28,6 +28,13 @@ import XCTest
         XCTAssertTrue(rent.waitForExistence(timeout: 3)); rent.tap(); rent.typeText("2800")
         app.buttons["完成"].firstMatch.tap()
         XCTAssertEqual(rent.value as? String, "2800")
+        app.otherElements["input.f1_6"].firstMatch.swipeLeft(); app.buttons["备注"].firstMatch.tap()
+        let fieldNote = app.textViews["note.text"]
+        XCTAssertTrue(fieldNote.waitForExistence(timeout: 3)); fieldNote.tap(); fieldNote.typeText("含物业费")
+        capture("11a-native-field-note", app)
+        app.buttons["保存备注"].tap()
+        XCTAssertTrue(app.buttons["含物业费"].waitForExistence(timeout: 3))
+        app.scrollViews.firstMatch.swipeDown()
         capture("11-native-checklist-saved", app)
         app.buttons["tab.总结"].tap()
         app.buttons["summary.考虑租住"].tap()
@@ -41,6 +48,10 @@ import XCTest
         XCTAssertTrue(app.buttons["summary.考虑租住"].isSelected)
         XCTAssertEqual(app.textViews["summary.note"].value as? String, "采光好，入住时间待确认")
         capture("13-native-summary-restored", app)
+        app.buttons["tab.清单"].tap()
+        let restoredSearch = app.textFields["checklist.search"]; restoredSearch.tap(); restoredSearch.typeText("租金")
+        app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertTrue(app.buttons["含物业费"].exists)
     }
     func testCompareThenArchiveReadOnlyAndRestore() {
         let app = launch(); add("第一套", app); app.buttons["tab.总结"].tap(); app.buttons["summary.考虑租住"].tap(); home(app)
@@ -73,6 +84,7 @@ import XCTest
         let app = launch(); add("问题检查", app); app.buttons["tab.问题"].tap(); app.buttons["issue.add"].tap()
         let title = app.textFields["issue.title"]; XCTAssertTrue(title.waitForExistence(timeout: 3)); title.tap(); title.typeText("漏水待修")
         let note = app.textViews["issue.note"]; note.tap(); note.typeText("确认修复时间")
+        capture("16a-native-issue-editor", app)
         app.buttons["保存"].tap(); XCTAssertTrue(app.buttons["待跟进"].waitForExistence(timeout: 3))
         capture("16-native-manual-issue", app)
         app.buttons["待跟进"].tap(); XCTAssertTrue(app.buttons["已解决"].waitForExistence(timeout: 3))

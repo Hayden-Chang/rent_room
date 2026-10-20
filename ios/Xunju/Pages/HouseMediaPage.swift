@@ -128,8 +128,11 @@ struct MediaPickerSheet: View {
         let destination = store.records.directory.appending(path: relative)
         var committed = false
         defer { if !committed { try? FileManager.default.removeItem(at: destination) } }
+        var duration = 0.0
         if let video {
             let asset = AVURLAsset(url: video)
+            duration = try await asset.load(.duration).seconds
+            guard duration.isFinite, duration >= 0 else { throw CoreFailure(message: "视频时长无法读取") }
             guard let export = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else { throw CoreFailure(message: "视频无法转换") }
             if #available(iOS 18.0, *) { try await export.export(to: destination, as: .mp4) }
             else {
@@ -144,7 +147,7 @@ struct MediaPickerSheet: View {
         let size = try destination.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
         guard size > 0, size <= 50 * 1024 * 1024 else { throw CoreFailure(message: "影像超过 50 MiB，请选择较短视频") }
         guard workspace.store === store else { throw CoreFailure(message: "账号已变化，请重新添加影像") }
-        try store.call("addMedia", ["id": .string(houseID), "value": .object(["id": .string(mediaID), "type": .string(video == nil ? "image" : "video"), "path": .string(relative), "fieldId": .string(fieldID), "caption": .string(""), "createdAt": .string(ISO8601DateFormatter().string(from: Date()))])])
+        try store.call("addMedia", ["id": .string(houseID), "value": .object(["id": .string(mediaID), "type": .string(video == nil ? "image" : "video"), "path": .string(relative), "fieldId": .string(fieldID), "caption": .string(""), "duration": .number(duration), "createdAt": .string(ISO8601DateFormatter().string(from: Date()))])])
         committed = true
     }
 }

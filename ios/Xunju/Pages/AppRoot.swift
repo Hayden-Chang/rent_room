@@ -40,6 +40,7 @@ private struct WorkspaceRoot: View {
                 XJTabBar(selection: $tab, items: [("房源", "home"), ("对比", "compare"), ("我的", "settings")])
             }.background(XJTheme.background)
         }.id(workspace.identityRevision).tint(XJTheme.primary)
+            .toolbarBackground(XJTheme.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
             .alert("提示", isPresented: Binding(get: { !workspace.error.isEmpty }, set: { if !$0 { workspace.error = "" } })) {
                 Button("知道了", role: .cancel) { workspace.error = "" }
             } message: { Text(workspace.error) }
@@ -55,8 +56,8 @@ struct XJTabBar: View {
                 Button { selection = name } label: {
                     VStack(spacing: 4) {
                         XJIcon(name: icon + (selection == name ? "-selected" : "-default"))
-                        Text(name).font(.system(size: 10))
-                    }.frame(maxWidth: .infinity, minHeight: 56)
+                        Text(name).font(.system(size: items.count == 4 ? 13 : 10))
+                    }.frame(maxWidth: .infinity, minHeight: items.count == 4 ? 48 : 56).contentShape(Rectangle())
                         .foregroundStyle(selection == name ? XJTheme.primary : XJTheme.muted)
                 }.buttonStyle(.plain).accessibilityIdentifier("tab.\(name)")
                     .accessibilityAddTraits(selection == name ? .isSelected : [])

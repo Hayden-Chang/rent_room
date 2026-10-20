@@ -66,7 +66,8 @@ struct ChecklistPage: View {
                     progress
                     HStack(spacing: 8) {
                         ForEach(["全部", "房源", "现场", "询问签约"], id: \.self) { value in
-                            Button(value) { phase = value }.buttonStyle(FilterChip(selected: phase == value))
+                            Button { phase = value } label: { Text(value).frame(maxWidth: .infinity) }
+                                .buttonStyle(FilterChip(selected: phase == value))
                                 .accessibilityIdentifier("phase.\(value)")
                         }
                     }.frame(maxWidth: .infinity, alignment: .leading)
@@ -76,7 +77,7 @@ struct ChecklistPage: View {
                             .clipShape(RoundedRectangle(cornerRadius: 8)).accessibilityIdentifier("checklist.search")
                             .submitLabel(.search)
                         Button("筛选" + (filters.isEmpty ? "" : " \(filters.count)")) { showFilters.toggle() }
-                            .buttonStyle(XJButtonStyle(primary: false))
+                            .buttonStyle(XJButtonStyle(primary: false)).frame(width: filters.isEmpty ? 64 : 76)
                     }
                     if showFilters {
                         ChoiceFlow {
@@ -213,9 +214,9 @@ extension JSONValue: Identifiable {
 struct FilterChip: ButtonStyle {
     let selected: Bool
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 12)).padding(.horizontal, 12).frame(minHeight: 44)
+        configuration.label.font(.system(size: 13)).padding(.horizontal, 12).frame(minHeight: 44)
             .foregroundStyle(selected ? XJTheme.primary : XJTheme.muted)
-            .background(selected ? XJTheme.soft : .white).clipShape(RoundedRectangle(cornerRadius: 8))
+            .background(selected ? XJTheme.soft : .white).clipShape(RoundedRectangle(cornerRadius: 22))
             .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
