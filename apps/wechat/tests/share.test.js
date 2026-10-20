@@ -4,8 +4,9 @@ import vm from 'node:vm';
 import {withAppShare} from '../src/lib/share.js';
 
 afterEach(()=>vi.unstubAllGlobals());
-const title='看房搭子｜看房记录，轻松对比';
-const imageUrl='/assets/icons/empty-art.png';
+const title='看房搭子｜看房清单，避坑指南';
+const imageUrl='/assets/share/inspection-cover-v2.jpg';
+const timelineImageUrl='/assets/share/inspection-cover-square-v2.jpg';
 const expected={title,path:'/pages/home/index',imageUrl};
 const routes=JSON.parse(fs.readFileSync('dist/app.json','utf8')).pages;
 
@@ -22,7 +23,7 @@ it.each(routes)('%s shares only the app entry even when identity is unavailable'
     expect(page.onShareAppMessage({from:'button',target:{dataset:{id:'private-house-id'}}})).toEqual(expected);
     expect(JSON.stringify(page)).toBe(before);
   }
-  if(route==='pages/home/index')expect(page.onShareTimeline()).toEqual({title,query:'',imageUrl});
+  if(route==='pages/home/index')expect(page.onShareTimeline()).toEqual({title,query:'',imageUrl:timelineImageUrl});
   else expect(page.onShareTimeline).toBeUndefined();
 });
 
@@ -40,7 +41,7 @@ it('enables timeline only on an opted-in page and clears inherited private query
   const wx={showShareMenu:vi.fn(),hideShareMenu:vi.fn()};vi.stubGlobal('wx',wx);
   const home=withAppShare({options:{id:'private-house-id'}},{timeline:true});home.onShow();
   expect(wx.showShareMenu).toHaveBeenCalledWith({menus:['shareAppMessage','shareTimeline']});expect(wx.hideShareMenu).not.toHaveBeenCalled();
-  expect(home.onShareTimeline()).toEqual({title,query:'',imageUrl});
+  expect(home.onShareTimeline()).toEqual({title,query:'',imageUrl:timelineImageUrl});
   const detail=withAppShare({});detail.onShow();
   expect(detail.onShareTimeline).toBeUndefined();expect(wx.hideShareMenu).toHaveBeenCalledWith({menus:['shareTimeline']});
 });
@@ -52,9 +53,16 @@ it('keeps pages usable without optional menu APIs and gives each share a fresh p
   expect(page.onShareAppMessage()).toEqual(expected);
 });
 
-it('ships a static PNG cover rather than the default current-page screenshot',()=>{
-  const cover=fs.readFileSync('dist'+imageUrl);
-  expect(cover.subarray(0,8)).toEqual(Buffer.from([137,80,78,71,13,10,26,10]));
-  expect(cover.readUInt32BE(16)).toBeGreaterThan(0);expect(cover.readUInt32BE(20)).toBeGreaterThan(0);
-  expect(cover).toEqual(fs.readFileSync('src'+imageUrl));
+it.each([[imageUrl,5,4],[timelineImageUrl,1,1]])('ships a compact correctly sized static JPEG cover at %s', (path,widthRatio,heightRatio)=>{
+  const cover=fs.readFileSync('dist'+path);
+  expect(cover.subarray(0,3)).toEqual(Buffer.from([255,216,255]));
+  expect(cover.length).toBeLessThanOrEqual(256*1024);
+  let size;
+  for(let offset=2;offset+8<cover.length;){
+    if([0xc0,0xc1,0xc2].includes(cover[offset+1])){size={width:cover.readUInt16BE(offset+7),height:cover.readUInt16BE(offset+5)};break;}
+    offset+=2+cover.readUInt16BE(offset+2);
+  }
+  expect(size).toBeDefined();expect(size.width).toBeGreaterThanOrEqual(500);expect(size.height).toBeGreaterThanOrEqual(400);
+  expect(size.width*heightRatio).toBe(size.height*widthRatio);
+  expect(cover).toEqual(fs.readFileSync('src'+path));
 });

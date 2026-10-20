@@ -1,5 +1,6 @@
-const title='看房搭子｜看房记录，轻松对比';
-const imageUrl='/assets/icons/empty-art.png';
+const title='看房搭子｜看房清单，避坑指南';
+const imageUrl='/assets/share/inspection-cover-v2.jpg';
+const timelineImageUrl='/assets/share/inspection-cover-square-v2.jpg';
 
 // Install outside the account guard so sharing never falls back to private page screenshots.
 export function withAppShare(definition,{timeline=false}={}){
@@ -12,6 +13,6 @@ export function withAppShare(definition,{timeline=false}={}){
     onShareAppMessage(){return {title,path:'/pages/home/index',imageUrl};}
   };
   // Timeline cannot override the page path. Only the home page opts in.
-  if(timeline)page.onShareTimeline=()=>({title,query:'',imageUrl});
+  if(timeline)page.onShareTimeline=()=>({title,query:'',imageUrl:timelineImageUrl});
   return page;
 }
