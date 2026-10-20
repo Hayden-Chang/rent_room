@@ -1,12 +1,12 @@
 # 第八批：房源扩容与恢复组件独立评审（2026-10-20）
 
-状态 **REVIEW_READY，等待用户确认**。前七批均已批准，第七批业务9项定向UT/8条UI有效通过，见 [RELATED_MEDIA_INTEGRATION.md](RELATED_MEDIA_INTEGRATION.md)，不重复请求批准。
+状态 **APPROVED**。用户已明确回复“确认通过，继续购买业务接入”。本批已接业务及独立服务端账本，验证与尚未通过的 StoreKit SDK 测试见 [CAPACITY_INTEGRATION.md](CAPACITY_INTEGRATION.md)。以下保留独立评审时的范围和原始证据；不重复请求批准。前七批均已批准，第七批业务9项定向UT/8条UI有效通过，见 [RELATED_MEDIA_INTEGRATION.md](RELATED_MEDIA_INTEGRATION.md)，不重复请求批准。
 
 依据 [ios-ui-component-review-gate](/Users/pc/.agents/skills/ios-ui-component-review-gate/SKILL.md)：
 
 > Do not integrate it into the complete page or continue the downstream business flow before approval.
 
-本批只通过DEBUG显式 `--component-review capacity` 使用真实SwiftUI栈。`CapacityReviewHost`不创建AppWorkspace、不读房源/Keychain，不调用StoreKit、认证或网络，也不授予容量。普通业务仍没有扩容页面接线；Release没有评审路由。测试价格“¥1.99”与回调次数在宿主中明确标注，不能视为App Store商品定价、登录、购买或恢复成功。
+本批只通过DEBUG显式 `--component-review capacity` 使用真实SwiftUI栈。`CapacityReviewHost`不创建AppWorkspace、不读房源/Keychain，不调用StoreKit、认证或网络，也不授予容量。独立评审阶段普通业务没有扩容页面接线；获准后的业务接入另记，Release没有评审路由。测试价格“¥1.99”与回调次数在宿主中明确标注，不能视为App Store商品定价、登录、购买或恢复成功。
 
 ## 与原版对齐
 
@@ -52,7 +52,7 @@
 
 ## 后续真实支付边界
 
-正式价格将使用Apple [`Product.displayPrice`](https://developer.apple.com/documentation/storekit/product/displayprice) 的商店本地化字符串，API可用于iOS15及以后，覆盖本项目最低iOS17；没有正式商品时不回退到示例价格。实际商品配置、客户端交易、服务端验签/幂等授予、退款/撤销与恢复仍未实现或验收，本次不创建App Store商品、不发起支付。
+正式价格将使用Apple [`Product.displayPrice`](https://developer.apple.com/documentation/storekit/product/displayprice) 的商店本地化字符串，API可用于iOS15及以后，覆盖本项目最低iOS17；没有正式商品时不回退到示例价格。本次独立评审不创建App Store商品、不发起支付。批准后已实现客户端与服务端交易/幂等/退款及恢复代码，实际商品和真实支付仍未验收，见业务接入记录。
 
 已读官方 [`AppStore.sync()`](https://developer.apple.com/documentation/storekit/appstore/sync())：该调用可能出现App Store认证提示，只由明确用户操作触发。重复购买房源包的历史与恢复不能仅依赖当前设备：[`SKIncludeConsumableInAppPurchaseHistory`](https://developer.apple.com/documentation/bundleresources/information-property-list/skincludeconsumableinapppurchasehistory) 从iOS18提供已完成消耗型交易历史，启用前需服务端对账防重复授予，不能据此覆盖最低iOS17；服务端 [`Get Transaction History`](https://developer.apple.com/documentation/appstoreserverapi/get-transaction-history) 可返回各产品类型及退款/撤销状态。后续接线需要交易账本，不能将本组件点击回调当成权益。
 
