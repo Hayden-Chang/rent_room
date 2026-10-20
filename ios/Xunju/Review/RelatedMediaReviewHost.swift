@@ -53,7 +53,7 @@ struct RelatedMediaReviewHost: View {
                 }
                 .sheet(isPresented: $all) {
                     NavigationStack {
-                        ScrollView { MediaGallerySurface(items: media, filter: $filter, readonly: readonly,
+                        ScrollView { MediaGallerySurface(items: relatedMedia, filter: $filter, readonly: readonly,
                             preview: { event = "预览关联影像 \($0.id)" }, caption: { _ in event = "备注回调" }).padding(16) }
                             .navigationTitle("全部关联影像").navigationBarTitleDisplayMode(.inline)
                             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { all = false }.accessibilityIdentifier("review.allClose") } }
@@ -70,6 +70,7 @@ struct RelatedMediaReviewHost: View {
                 resolve: { event = "切换无影像问题" }, open: { opens += 1 }, preview: { preview = $0 })
         }
     }
+    private var relatedMedia: [MediaTile] { media.count == 4 ? [media[0], media[3], media[1], media[2]] : media }
     private var fields: some View {
         VStack(spacing: 16) {
             AutomaticIssueCard(category: "门窗") {
@@ -78,7 +79,7 @@ struct RelatedMediaReviewHost: View {
                     .accessibilityIdentifier("review.automaticChoice")
                 Button(note) { editingNote = true }.font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                     .accessibilityIdentifier("review.automaticNote")
-                FieldMediaStrip(items: media.count == 4 ? [media[0], media[3], media[1], media[2]] : media, preview: { preview = $0 }, all: { all = true })
+                FieldMediaStrip(items: relatedMedia, preview: { preview = $0 }, all: { all = true })
             }
             AutomaticIssueCard(category: "周边与小区") {
                 AnswerInput(field: .object(["id": .string("relatedFee"), "label": .string("停车费（元/月）"), "type": .string("n")]),

@@ -51,16 +51,19 @@ import XCTest
         photo.tap(); XCTAssertTrue(app.images["review.relatedImage"].waitForExistence(timeout: 3)); close("review.previewClose", app)
         video.tap(); XCTAssertTrue(app.buttons["review.previewClose"].waitForExistence(timeout: 3)); capture("75-related-video-preview", app); close("review.previewClose", app)
         app.buttons["related.all"].tap(); XCTAssertTrue(app.buttons["review.allClose"].waitForExistence(timeout: 3))
-        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "gallery.preview.")).count, 4)
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "gallery.preview.")).allElementsBoundByIndex.map(\.identifier),
+                       ["gallery.preview.image1", "gallery.preview.video", "gallery.preview.image2", "gallery.preview.image3"])
         capture("76-related-all-media", app); close("review.allClose", app)
         let normal = app.buttons["choice.纱窗正常.正常"]; normal.tap(); XCTAssertTrue(normal.isSelected)
+        // The center tap is before this right-aligned value: keep the exact
+        // inserted string, including its leading zero, through readonly mode.
         let fee = app.textFields["input.relatedFee.value"]; fee.tap(); fee.typeText("0"); app.buttons["完成"].tap()
-        XCTAssertEqual(fee.value as? String, "1500")
+        XCTAssertEqual(fee.value as? String, "0150")
         app.otherElements["review.automaticChoice"].firstMatch.swipeLeft(); app.buttons["备注"].tap()
         let note = app.textViews["note.text"]; XCTAssertTrue(note.waitForExistence(timeout: 3)); note.tap(); note.typeText("；待复查"); app.buttons["保存备注"].tap()
         XCTAssertTrue(app.buttons["review.automaticNote"].waitForExistence(timeout: 3)); XCTAssertTrue(app.buttons["review.automaticNote"].label.contains("待复查"))
         app.buttons["review.readonly"].tap(); XCTAssertFalse(normal.isEnabled); XCTAssertFalse(fee.isEnabled)
-        XCTAssertTrue(normal.isSelected); XCTAssertEqual(fee.value as? String, "1500")
+        XCTAssertTrue(normal.isSelected); XCTAssertEqual(fee.value as? String, "0150")
         capture("77-automatic-issue-readonly", app)
     }
 }
