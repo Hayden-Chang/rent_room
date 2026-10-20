@@ -4,6 +4,7 @@ import AuthenticationServices
 struct SettingsPage: View {
     let workspace: AppWorkspace
     @State private var phone = false
+    @State private var capacity = false
     @State private var appleChallenge: AppleChallenge?
     @State private var appleRequestedAt = Date.distantPast
     @State private var appleError = ""
@@ -19,7 +20,7 @@ struct SettingsPage: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(session.provider == "phone" ? "已通过手机号登录" : session.provider == "apple" ? "已通过 Apple 登录" : "已通过微信登录").font(.system(size: 16, weight: .semibold))
                             if session.expiresAt <= Date() { Text("登录已过期，本机记录已保留，请重新登录后购买扩容。").font(.system(size: 13)).foregroundStyle(XJTheme.muted) }
-                            Text("房源容量  \(workspace.store.capacity.used) / \(workspace.store.capacity.limit) 套").font(.system(size: 14))
+                            Button { capacity = true } label: { Text("房源容量  \(workspace.store.capacity.used) / \(workspace.store.capacity.limit) 套").font(.system(size: 14)) }.buttonStyle(.plain).accessibilityIdentifier("settings.capacity")
                             Button("退出登录") { loggingOut = true }.buttonStyle(XJButtonStyle(primary: false))
                         }
                     }
@@ -27,7 +28,7 @@ struct SettingsPage: View {
                     LoginEntryCard(used: workspace.store.capacity.used, limit: workspace.store.capacity.limit, appleReady: appleChallenge != nil,
                         wechat: { workspace.error = "微信登录暂不可用，请稍后重试" }, phone: { phone = true },
                         appleRequest: { request in request.nonce = appleChallenge?.nonce },
-                        appleCompletion: { result in finishApple(result) })
+                        appleCompletion: { result in finishApple(result) }, capacity: { capacity = true })
                     if !appleError.isEmpty { Text(appleError).font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
                 }
                 XJCard {
@@ -54,6 +55,7 @@ struct SettingsPage: View {
                 XJCard { HStack { Text("版本"); Spacer(); Text("0.1.0").foregroundStyle(XJTheme.muted) }.font(.system(size: 14)).frame(minHeight: 44) }
             }.padding(16)
         }.navigationTitle("我的").navigationBarTitleDisplayMode(.inline)
+            .navigationDestination(isPresented: $capacity) { CapacityPage(workspace: workspace) }
             .task { await prepareApple() }
             .onDisappear { appleTask?.cancel(); appleChallenge = nil }
             .confirmationDialog("退出登录？", isPresented: $loggingOut, titleVisibility: .visible) {

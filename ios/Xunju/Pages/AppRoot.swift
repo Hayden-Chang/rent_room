@@ -22,7 +22,9 @@ struct AppRoot: View {
     private func load() {
         do {
             #if DEBUG
-            if UtilityNetworkFixture.enabled {
+            if let mode = CapacityBusinessFixture.mode() {
+                workspace = try CapacityBusinessFixture.workspace(root: AppWorkspace.dataRoot(), mode: mode)
+            } else if UtilityNetworkFixture.enabled {
                 workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: VolatileSessionStorage(), mapTransport: UtilityNetworkFixture.transport, mapKey: "fixture")
             } else {
                 workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: AppWorkspace.isBusinessTest ? VolatileSessionStorage() : SessionKeychain())
@@ -51,6 +53,9 @@ private struct WorkspaceRoot: View {
                 XJTabBar(selection: $tab, items: [("房源", "home"), ("对比", "compare"), ("我的", "settings")])
             }.background(XJTheme.background)
         }.id(workspace.identityRevision).tint(XJTheme.primary)
+            .task(id: workspace.identityRevision) {
+                if !AppWorkspace.isBusinessTest { workspace.billing.start(); await workspace.billing.load() }
+            }
             .toolbarBackground(XJTheme.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
             .alert("提示", isPresented: Binding(get: { !workspace.error.isEmpty }, set: { if !$0 { workspace.error = "" } })) {
                 Button("知道了", role: .cancel) { workspace.error = "" }

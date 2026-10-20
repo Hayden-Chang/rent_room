@@ -29,6 +29,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: ""
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: 寻居
+        INFOPLIST_KEY_SKIncludeConsumableInAppPurchaseHistory: YES
         INFOPLIST_KEY_NSCameraUsageDescription: 拍摄看房照片和视频，保存在本机房源记录中
         INFOPLIST_KEY_NSMicrophoneUsageDescription: 录制看房视频时收录现场声音
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 获取当前位置，选择房源或上班地点

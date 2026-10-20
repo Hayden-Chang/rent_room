@@ -19,8 +19,9 @@ final class AppWorkspace {
     @ObservationIgnored let mapKey: String
     @ObservationIgnored private let mapTransport: any MapTransport
     private(set) var identityRevision = 0
+    @ObservationIgnored private(set) var billing: CapacityController!
 
-    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey) throws {
+    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, capacityAPI: any CapacityServicing = CapacityAPI(), storefront: (any CapacityStorefront)? = nil) throws {
         self.keychain = keychain
         self.mapTransport = mapTransport; self.mapKey = mapKey
         scopes = try LocalIdentityScopes(root: root)
@@ -36,6 +37,7 @@ final class AppWorkspace {
             }
             session = saved
         } else { store = guest }
+        billing = CapacityController(workspace: self, api: capacityAPI, storefront: storefront ?? NativeStorefront())
     }
 
     static func dataRoot(arguments: [String] = ProcessInfo.processInfo.arguments) throws -> URL {
@@ -69,14 +71,27 @@ final class AppWorkspace {
         // Persist verified identity first; claim's journal can resume after interruption.
         try keychain.write(verified)
         let target = try scopes.claim(account: verified.account, from: session == nil ? store : nil, packs: verified.packs, network: mapTransport)
-        store = target; session = verified; identityRevision += 1
+        store = target; session = verified; identityRevision += 1; billing.identityChanged()
     }
     func logout() throws {
         try store.call("save")
         guard store.status.error.isEmpty else { throw CoreFailure(message: store.status.error) }
         let guest = try NativeStore(directory: scopes.guestDirectory(), network: mapTransport)
         try keychain.remove()
-        store = guest; session = nil; identityRevision += 1
+        store = guest; session = nil; identityRevision += 1; billing.identityChanged()
+    }
+    func applyCapacity(_ balance: CapacityBalance) throws {
+        _ = try balance.validated()
+        guard let old = session, old.account == balance.account else { throw CoreFailure(message: "账号已变化，请重试") }
+        if let environment = old.capacityEnvironment, environment != balance.environment { throw CoreFailure(message: "购买环境已变化，请重新登录后恢复容量") }
+        if let revision = old.capacityRevision {
+            if balance.revision < revision { return }
+            guard balance.revision != revision || balance.packs == old.packs else { throw CoreFailure(message: "容量版本不一致，请稍后重试") }
+        }
+        let updated = old.withCapacity(balance)
+        try keychain.write(updated)
+        try store.call("setPacks", ["value": .number(Double(balance.packs))])
+        session = updated
     }
     func save() { perform { try store.call("save") } }
 }

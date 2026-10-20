@@ -39,6 +39,11 @@ function house(id) {
 function execute({operation, id, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds}) {
   switch (operation) {
     case 'snapshot': return null;
+    case 'setPacks': {
+      if (!Number.isSafeInteger(value) || value < 0 || !Number.isSafeInteger(2 + 10 * value)) throw new Error('容量无效');
+      sessionPacks = value;
+      return null;
+    }
     case 'catalog': return {fields: model.fields, categories: model.categories, count: model.fields.length};
     case 'add': return store.add(value);
     case 'rename': {

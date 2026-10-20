@@ -19,6 +19,7 @@ struct LoginEntryCard: View {
     var phone: () -> Void
     var appleRequest: (ASAuthorizationAppleIDRequest) -> Void
     var appleCompletion: (Result<ASAuthorization, Error>) -> Void
+    var capacity: () -> Void = {}
 
     var body: some View {
         XJCard {
@@ -34,11 +35,11 @@ struct LoginEntryCard: View {
                     .signInWithAppleButtonStyle(.black).frame(height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
                     .accessibilityIdentifier("login.apple").padding(.top, 12).disabled(!appleReady)
                 Rectangle().fill(XJTheme.line).frame(height: 1).padding(.top, 16)
-                HStack {
+                Button(action: capacity) { HStack {
                     Text("房源容量").font(.system(size: 14, weight: .medium))
                     Spacer()
                     Text("\(used) / \(limit) 套 ›").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
-                }.padding(.top, 14)
+                }.contentShape(Rectangle()) }.buttonStyle(.plain).accessibilityIdentifier("settings.capacity").padding(.top, 14)
             }.foregroundStyle(XJTheme.ink)
         }
     }
