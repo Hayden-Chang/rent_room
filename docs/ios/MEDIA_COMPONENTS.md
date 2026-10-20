@@ -1,8 +1,8 @@
 # 第六批 iOS 独立组件评审（2026-10-20）
 
-本批状态为 **REVIEW_READY，等待用户明确批准**。前五批批准仍有效，不重复索要。最新远程 main 经 Connector 再查仍为 `6a07ecd97fe639e594a8cc5690196921cbe5574e`。小程序源码未修改。
+本批状态为 **APPROVED**。用户于2026-10-20明确回复“确认通过，继续业务接入”。前六批批准均有效，不重复索要。最新远程 main 经 Connector 再查仍为 `6a07ecd97fe639e594a8cc5690196921cbe5574e`。小程序源码未修改。
 
-遵循 [ios-ui-component-review-gate](/Users/pc/.agents/skills/ios-ui-component-review-gate/SKILL.md) 的组件先评审、批准后接入要求。本批尚未接入 `HouseMediaPage`、`IssuesPage` 或业务清单；普通启动仍使用此前页面。DEBUG 下仅显式 `--component-review media|issue-media|headings` 进入独立宿主，不读写房源、不打开相册或相机、不发网络请求。
+遵循 [ios-ui-component-review-gate](/Users/pc/.agents/skills/ios-ui-component-review-gate/SKILL.md) 的组件先评审、批准后接入要求。独立评审阶段尚未接入业务；批准后的实际接入与验证见 [MEDIA_INTEGRATION.md](MEDIA_INTEGRATION.md)。DEBUG 下仅显式 `--component-review media|issue-media|headings` 进入独立宿主，不读写房源、不打开相册或相机、不发网络请求。
 
 ## 对齐范围
 
@@ -55,7 +55,7 @@ Xcode26.6 / iOS26.5，独占UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`，逻辑
 
 ## 复用依据
 
-当前组件代码冻结于 `facf02c24b7adaf8acf4f723ffca6f489a5dac86`，之后本批只有文档变化。
+独立评审阶段组件代码冻结于 `facf02c24b7adaf8acf4f723ffca6f489a5dac86`，之后本批只有文档变化。
 
 - UT：`4773201..facf02c` 的上述UT文件、`ReviewSurface.parse`、`InspectionSelection`、工程配置、主题和资源均未改变；`MediaTile`、`MediaFilter`、`IssueMediaRows`定义未改变，复用6项通过。
 - 网格：`3ea044b..facf02c` 未改变网格/备注编辑组件、图片生成、缩略图/筛选元数据及用例。视频夹具时长改变，但该场景只预览照片，视频仅展示相同图标及元数据，不加载视频帧；其他改动为问题编辑和标题，故复用其2张截图及通过结果。
@@ -64,11 +64,11 @@ Xcode26.6 / iOS26.5，独占UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`，逻辑
 
 Apple依据：`.ignore`总是创建无初始属性的新AX元素，需补标签和按钮角色，见 [AccessibilityChildBehavior.ignore](https://developer.apple.com/documentation/swiftui/accessibilitychildbehavior/ignore)。标题采用 `PrimitiveButtonStyle` 的 `configuration.trigger()` 将点击与横滑组合，见 [Apple示例](https://developer.apple.com/documentation/swiftui/primitivebuttonstyleconfiguration/role)。播放器使用系统控件，未在屏幕显示期间反复设置 `showsPlaybackControls`，见 [AVKit说明](https://developer.apple.com/documentation/avkit/avplayerviewcontroller/showsplaybackcontrols)。失败与修正是本次观察，不归因为已确认的系统缺陷。
 
-## 待批准后的业务与证据边界
+## 独立评审的证据边界与后续接入
 
-本批只证明独立组件的真实SwiftUI/AVKit渲染和回调。标题校验与保存错误由宿主构造；添加/移除仅改变临时夹具数组，不证明正式问题持久化、文件回收、相册导入或相机拍摄。
+本页记录的独立组件证据只证明真实SwiftUI/AVKit渲染和回调。标题校验与保存错误由宿主构造；添加/移除仅改变临时夹具数组，不证明正式问题持久化、文件回收、相册导入或相机拍摄。
 
-批准后仍需接入：三列网格与关联/备注、正式问题媒体暂存/保存/放弃清理、分类/分组原始桥接及完整清单手势协调；再验证业务重启和失败保护。自动问题行内编辑、媒体关联缩略图、永久删除的物理文件/恢复副本回收、原生StoreKit及微信SDK等仍未完成。真实短信/Apple登录仍需正式配置与服务部署；当前任务、PR均不因此宣称完整交付。
+批准后已接入三列网格与关联/备注、正式问题媒体草稿/保存/放弃清理及分类/分组原始桥接；业务重启与失败保护验证见 [MEDIA_INTEGRATION.md](MEDIA_INTEGRATION.md)。普通字段与标题的统一手势协调仍待补齐。自动问题行内编辑、媒体关联缩略图、永久删除的物理文件/恢复副本回收、原生StoreKit及微信SDK等仍未完成。真实短信/Apple登录仍需正式配置与服务部署；当前任务、PR均不因此宣称完整交付。
 
 本批没有真实相册/相机/文件分享验收，没有新天地图探测，没有真机安装、合并、生产部署或发布。前五批业务接入和局限见 [UTILITIES.md](UTILITIES.md)。
 
