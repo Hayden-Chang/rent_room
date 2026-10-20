@@ -78,6 +78,14 @@ import XCTest
         let event = app.staticTexts["review.mediaEvent"]
         XCTAssertTrue(event.waitForExistence(timeout: 3)); XCTAssertEqual(event.label, "已放弃未保存的修改")
         XCTAssertEqual(title.value as? String, "例如：卧室窗户关不严")
+        app.buttons["评审状态"].tap(); app.buttons["保存中"].tap()
+        XCTAssertFalse(save.isEnabled); XCTAssertFalse(cancel.isEnabled); XCTAssertFalse(title.isEnabled)
+        capture("60-issue-saving", app)
+        app.buttons["评审状态"].tap(); app.buttons["选取中"].tap()
+        XCTAssertFalse(app.buttons["issueEditor.addMedia"].isEnabled)
+        XCTAssertFalse(save.isEnabled); XCTAssertFalse(cancel.isEnabled)
+        app.buttons["评审状态"].tap(); app.buttons["恢复编辑"].tap()
+        XCTAssertTrue(save.isEnabled); XCTAssertTrue(cancel.isEnabled)
     }
 
     func testIssuePhotosInlineVideoRemovalAndReadOnly() {
@@ -94,6 +102,7 @@ import XCTest
         let video = app.descendants(matching: .any)["issueEditor.video.video"].firstMatch
         reveal(video, app: app)
         XCTAssertEqual(video.frame.height, 190, accuracy: 1)
+        video.tap() // Reveal the system player's auto-hiding transport controls.
         let play = app.buttons.matching(NSPredicate(format: "label IN %@", ["Play", "播放"])).firstMatch
         XCTAssertTrue(play.waitForExistence(timeout: 5)); play.tap()
         let pause = app.buttons.matching(NSPredicate(format: "label IN %@", ["Pause", "暂停"])).firstMatch
@@ -114,26 +123,28 @@ import XCTest
     func testCategoryGroupSwipeSkipFoldAndReadOnlyPreserveSelection() {
         let app = launch("headings"), category = app.buttons["heading.category.fold"]
         XCTAssertTrue(category.waitForExistence(timeout: 10))
-        let choice = app.buttons["heading.group.choice.有"], skip = app.buttons["heading.group.skip"]
+        let choice = app.buttons["heading.group.choice.正常"], skip = app.buttons["heading.group.skip"]
         XCTAssertTrue(choice.isSelected)
         capture("56-heading-progress-and-choices", app)
-        skip.tap(); XCTAssertTrue(skip.isSelected); XCTAssertTrue(choice.isSelected)
+        skip.tap(); XCTAssertTrue(skip.isSelected); XCTAssertFalse(choice.exists)
+        capture("59-heading-skipped", app)
         XCTAssertFalse(app.buttons["choice.纱窗正常.是"].exists)
         category.tap(); XCTAssertFalse(skip.exists); category.tap()
         XCTAssertTrue(skip.isSelected); skip.tap(); XCTAssertFalse(skip.isSelected)
         XCTAssertTrue(choice.isSelected); XCTAssertTrue(app.buttons["choice.纱窗正常.是"].exists)
         category.swipeLeft()
         let flag = app.buttons["heading.category.标记问题"]
-        XCTAssertTrue(flag.waitForExistence(timeout: 3)); flag.tap()
+        XCTAssertTrue(flag.waitForExistence(timeout: 3))
         capture("57-heading-swipe-and-flag", app)
-        category.tap() // First tap dismisses the tray and keeps the category expanded.
+        category.tap() // Close the open tray before a later tap can fold.
+        XCTAssertTrue(skip.exists); XCTAssertFalse(flag.exists)
+        category.swipeLeft(); XCTAssertTrue(flag.waitForExistence(timeout: 3)); flag.tap()
         XCTAssertTrue(skip.exists); XCTAssertFalse(flag.exists)
         XCTAssertEqual(app.staticTexts["heading.category.stats"].label, "1 / 6 · 1 问题")
         app.buttons["heading.group.fold"].swipeLeft()
         let note = app.buttons["heading.group.备注"]
         XCTAssertTrue(note.waitForExistence(timeout: 3)); note.tap()
         XCTAssertEqual(app.staticTexts["review.mediaEvent"].label, "已触发分组备注")
-        app.buttons["heading.group.fold"].tap()
         app.buttons["review.readonly"].tap()
         XCTAssertFalse(skip.isEnabled); XCTAssertFalse(choice.isEnabled)
         category.tap(); XCTAssertFalse(choice.exists); category.tap(); XCTAssertTrue(choice.isSelected)

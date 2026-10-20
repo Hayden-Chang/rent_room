@@ -39,6 +39,7 @@ struct MediaThumbnail: View {
     let item: MediaTile
     var height: CGFloat = 114
     var radius: CGFloat = 12
+    var showsRelation = true
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
@@ -55,14 +56,14 @@ struct MediaThumbnail: View {
                     Image(systemName: "photo").foregroundStyle(XJTheme.muted)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-                if !item.relation.isEmpty {
+                if showsRelation && !item.relation.isEmpty {
                     Text(item.relation).font(.system(size: 10)).lineLimit(1)
                         .foregroundStyle(.white).padding(4).frame(maxWidth: .infinity)
                         .background(XJTheme.ink.opacity(0.53))
                 }
             }.frame(width: geometry.size.width, height: height)
                 .clipShape(RoundedRectangle(cornerRadius: radius))
-        }.frame(height: height).accessibilityHidden(true)
+        }.frame(height: height).contentShape(Rectangle()).accessibilityHidden(true)
     }
 }
 
@@ -98,7 +99,8 @@ struct MediaGallerySurface: View {
                     ForEach(visible) { item in
                         VStack(spacing: 0) {
                             Button { preview(item) } label: { MediaThumbnail(item: item) }
-                                .buttonStyle(.plain).accessibilityLabel(item.kind == .image ? "预览照片" : "播放视频")
+                                .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore)
+                                .accessibilityLabel(item.kind == .image ? "预览照片" : "播放视频")
                                 .accessibilityIdentifier("gallery.preview.\(item.id)")
                             Button { caption(item) } label: {
                                 Text(item.caption.isEmpty ? "＋" : item.caption)

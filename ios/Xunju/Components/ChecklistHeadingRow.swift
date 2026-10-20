@@ -9,6 +9,7 @@ struct ChecklistHeadingRow: View {
     var total = 0
     var issues = 0
     var options: [String] = []
+    var choiceLabels: [String: String] = [:]
     var skippable = false
     var readonly = false
     var noteText = ""
@@ -16,16 +17,17 @@ struct ChecklistHeadingRow: View {
     @Binding var skipped: Bool
     @Binding var value: String
     @Binding var flagged: Bool
+    @Binding var activeRow: String?
     let note: () -> Void
     let capture: () -> Void
-    @State private var actionsOpen = false
+    private var actionsOpen: Bool { activeRow == id }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             if kind == .group { Rectangle().fill(XJTheme.line).frame(height: 1).padding(.bottom, 4) }
             HStack(spacing: 8) {
                 Button {
-                    if actionsOpen { actionsOpen = false } else { expanded.toggle() }
+                    if activeRow != nil { activeRow = nil } else { expanded.toggle() }
                 } label: {
                     HStack(spacing: 8) {
                         Text(title).font(.system(size: 14, weight: .semibold)).multilineTextAlignment(.leading)
@@ -42,37 +44,43 @@ struct ChecklistHeadingRow: View {
                     }
                 } else {
                     HStack(spacing: 8) {
-                        (Text("\(done) / \(total)").foregroundStyle(XJTheme.muted) + Text(issues > 0 ? " · \(issues) 问题" : "").foregroundStyle(XJTheme.danger))
-                            .font(.system(size: 12)).fixedSize().accessibilityIdentifier("heading.\(id).stats")
+                        if kind == .category {
+                            (Text("\(done) / \(total)").foregroundStyle(XJTheme.muted) + Text(issues > 0 ? " · \(issues) 问题" : "").foregroundStyle(XJTheme.danger))
+                                .font(.system(size: 12)).fixedSize().accessibilityIdentifier("heading.\(id).stats")
+                        }
                         if skippable {
-                            Button("不涉及") { skipped.toggle() }.font(.system(size: 12))
+                            Button("不涉及") { if activeRow != nil { activeRow = nil } else { skipped.toggle() } }.font(.system(size: 12))
                                 .padding(.horizontal, 10).frame(minHeight: 44)
                                 .foregroundStyle(skipped ? XJTheme.primary : XJTheme.ink)
                                 .background(skipped ? XJTheme.soft : XJTheme.background)
                                 .clipShape(RoundedRectangle(cornerRadius: 6)).buttonStyle(.plain).disabled(readonly)
                                 .accessibilityIdentifier("heading.\(id).skip").accessibilityAddTraits(skipped ? .isSelected : [])
                         }
+                        if !skipped {
+                            ForEach(options, id: \.self) { choice in
+                                Button {
+                                    if activeRow != nil { activeRow = nil } else { value = InspectionSelection.toggled(current: value, choice: choice) }
+                                } label: {
+                                    Text(choiceLabels[choice] ?? choice).font(.system(size: 13, weight: .semibold)).fixedSize()
+                                        .padding(.horizontal, 10).frame(minWidth: 44, minHeight: 44)
+                                        .foregroundStyle(value == choice ? XJTheme.primary : XJTheme.ink)
+                                        .background(value == choice ? XJTheme.soft : XJTheme.background)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                                }.buttonStyle(.plain).disabled(readonly).accessibilityIdentifier("heading.\(id).choice.\(choice)")
+                                    .accessibilityAddTraits(value == choice ? .isSelected : [])
+                            }
+                        }
                     }
                 }
-            }.contentShape(Rectangle()).simultaneousGesture(DragGesture(minimumDistance: 24).onEnded { gesture in
+            }.contentShape(Rectangle()).highPriorityGesture(DragGesture(minimumDistance: 24).onEnded { gesture in
                 guard !readonly, abs(gesture.translation.width) > abs(gesture.translation.height) else { return }
-                withAnimation(.easeOut(duration: 0.18)) { actionsOpen = gesture.translation.width < 0 }
-            }).onLongPressGesture { if !readonly { actionsOpen = true } }
-            if !options.isEmpty {
-                ChoiceFlow(spacing: 8) {
-                    ForEach(options, id: \.self) { choice in
-                        Button { if actionsOpen { actionsOpen = false } else { value = InspectionSelection.toggled(current: value, choice: choice) } } label: {
-                            Text(choice).font(.system(size: 13, weight: .semibold)).padding(.horizontal, 10).frame(minHeight: 44)
-                                .foregroundStyle(value == choice ? XJTheme.primary : XJTheme.ink)
-                                .background(value == choice ? XJTheme.soft : XJTheme.background)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                        }.buttonStyle(.plain).disabled(readonly).accessibilityIdentifier("heading.\(id).choice.\(choice)")
-                            .accessibilityAddTraits(value == choice ? .isSelected : [])
-                    }
+                withAnimation(.easeOut(duration: 0.18)) {
+                    if gesture.translation.width < 0 { activeRow = id }
+                    else if activeRow == id { activeRow = nil }
                 }
-            }
+            }).onLongPressGesture { if !readonly { activeRow = id } }
             if !noteText.isEmpty {
-                Button(action: note) { Text(noteText).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                Button { if activeRow != nil { activeRow = nil } else { note() } } label: { Text(noteText).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                     .multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8) }
                     .buttonStyle(.plain).accessibilityIdentifier("heading.\(id).note")
             }
@@ -80,10 +88,11 @@ struct ChecklistHeadingRow: View {
             .padding(.horizontal, flagged ? 8 : 0).background(flagged ? XJTheme.dangerBackground : .clear)
             .clipShape(RoundedRectangle(cornerRadius: flagged ? 8 : 0)).foregroundStyle(flagged ? XJTheme.danger : XJTheme.ink)
             .accessibilityElement(children: .contain).accessibilityIdentifier("heading.\(id)")
+            .onChange(of: readonly) { _, value in if value && activeRow == id { activeRow = nil } }
     }
 
     private func action(_ label: String, icon: String, color: Color, perform: @escaping () -> Void) -> some View {
-        Button(action: perform) { XJIcon(name: icon).frame(width: 44, height: 44).background(color) }
+        Button { activeRow = nil; perform() } label: { XJIcon(name: icon).frame(width: 44, height: 44).background(color) }
             .buttonStyle(.plain).accessibilityLabel(label).accessibilityIdentifier("heading.\(id).\(label)")
     }
 }

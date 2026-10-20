@@ -20,8 +20,11 @@ struct MediaComponentReviewHost: View {
     @State private var expanded = true
     @State private var groupExpanded = true
     @State private var skipped = false
-    @State private var value = "有"
+    @State private var value = "正常"
     @State private var flagged = false
+    @State private var activeRow: String?
+    @State private var selecting = false
+    @State private var saving = false
 
     init(surface: ReviewSurface) {
         self.surface = surface
@@ -46,6 +49,15 @@ struct MediaComponentReviewHost: View {
                 .navigationTitle(surface == .media ? "影像组件" : surface == .issueMedia ? "新建问题" : "分类与分组组件")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
+                    if surface == .issueMedia {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Menu("评审状态") {
+                                Button("选取中") { selecting = true; saving = false }
+                                Button("保存中") { selecting = false; saving = true }
+                                Button("恢复编辑") { selecting = false; saving = false }
+                            }
+                        }
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         if surface == .media {
                             Button(items.isEmpty ? "恢复影像" : "空状态") { items = items.isEmpty ? fixtures : [] }
@@ -92,8 +104,8 @@ struct MediaComponentReviewHost: View {
     private var issue: some View {
         VStack(spacing: 0) {
             if !event.isEmpty { eventLabel.padding(8) }
-            IssueEditorSurface(title: $title, note: $note, media: items, titleError: titleError, error: error,
-                               readonly: readonly, dirty: !title.isEmpty || !note.isEmpty || !items.isEmpty,
+            IssueEditorSurface(title: $title, note: $note, media: items, titleError: $titleError, error: $error,
+                               readonly: readonly, selecting: selecting, saving: saving, dirty: !title.isEmpty || !note.isEmpty || !items.isEmpty,
                                addMedia: { items = fixtures }, removeMedia: { item in items.removeAll { $0.id == item.id } },
                                preview: { preview = $0 }, cancel: {
                 if readonly { event = "已触发返回" }
@@ -113,13 +125,13 @@ struct MediaComponentReviewHost: View {
                         ChecklistHeadingRow(id: "category", title: "墙面地面与门窗", kind: .category,
                             done: value.isEmpty ? 0 : 1, total: 6, issues: flagged ? 1 : 0,
                             readonly: readonly, noteText: "重点确认窗框渗水痕迹。\n雨后再看一次，拍照保留细节。",
-                            expanded: $expanded, skipped: .constant(false), value: .constant(""), flagged: $flagged,
+                            expanded: $expanded, skipped: .constant(false), value: .constant(""), flagged: $flagged, activeRow: $activeRow,
                             note: { event = "已触发分类备注" }, capture: { event = "已触发分类拍摄" })
                         if expanded {
                             ChecklistHeadingRow(id: "group", title: "窗户", done: value.isEmpty ? 0 : 1, total: 2,
-                                issues: flagged ? 1 : 0, options: ["有", "没有"], skippable: true, readonly: readonly,
+                                issues: flagged ? 1 : 0, options: ["正常", "有问题", "没有"], choiceLabels: ["正常": "是", "有问题": "否"], skippable: true, readonly: readonly,
                                 noteText: "卧室窗户检查密封条，客厅窗户确认开合。",
-                                expanded: $groupExpanded, skipped: $skipped, value: $value, flagged: $flagged,
+                                expanded: $groupExpanded, skipped: $skipped, value: $value, flagged: $flagged, activeRow: $activeRow,
                                 note: { event = "已触发分组备注" }, capture: { event = "已触发分组拍摄" })
                             if groupExpanded && !skipped {
                                 InspectionChoiceRow(title: "纱窗正常", options: ["是", "否", "没有"], value: .constant("是"),

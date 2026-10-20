@@ -4,10 +4,11 @@ struct IssueEditorSurface: View {
     @Binding var title: String
     @Binding var note: String
     let media: [MediaTile]
-    var titleError = ""
-    var error = ""
+    @Binding var titleError: String
+    @Binding var error: String
     var readonly = false
-    var busy = false
+    var selecting = false
+    var saving = false
     var dirty = false
     let addMedia: () -> Void
     let removeMedia: (MediaTile) -> Void
@@ -17,6 +18,7 @@ struct IssueEditorSurface: View {
     @State private var discarding = false
     @FocusState private var focused: Focus?
     private enum Focus { case title, note }
+    private var busy: Bool { selecting || saving }
 
     var body: some View {
         ScrollView {
@@ -32,7 +34,7 @@ struct IssueEditorSurface: View {
                                 .padding(.vertical, 2).padding(.horizontal, 6).background(XJTheme.dangerBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: 4))
                         }.padding(.bottom, 12)
-                        TextField("例如：卧室窗户关不严", text: limited($title, to: 200))
+                        TextField("例如：卧室窗户关不严", text: limited($title, to: 200, isTitle: true))
                             .font(.system(size: 14)).padding(.horizontal, 12).frame(height: 48)
                             .background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(titleError.isEmpty ? XJTheme.line : XJTheme.danger))
@@ -76,13 +78,17 @@ struct IssueEditorSurface: View {
                             }
                         }
                         if !readonly {
-                            Button("＋ 添加照片 / 视频", action: addMedia).buttonStyle(XJButtonStyle())
+                            Button(action: addMedia) {
+                                HStack { if selecting { ProgressView() }; Text("＋ 添加照片 / 视频") }
+                            }.buttonStyle(XJButtonStyle())
                                 .disabled(busy).accessibilityIdentifier("issueEditor.addMedia")
                         }
                     }
                 }
                 if !error.isEmpty {
                     Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger)
+                        .padding(.vertical, 12).padding(.horizontal, 16).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 10))
                         .accessibilityIdentifier("issueEditor.error")
                 }
             }.padding(16)
@@ -106,17 +112,20 @@ struct IssueEditorSurface: View {
             Text(hint).font(.system(size: 13)).foregroundStyle(XJTheme.muted)
         }
     }
-    private func limited(_ binding: Binding<String>, to count: Int) -> Binding<String> {
+    private func limited(_ binding: Binding<String>, to count: Int, isTitle: Bool = false) -> Binding<String> {
         // Limit typing only; opening an imported record never rewrites its text.
-        Binding(get: { binding.wrappedValue }, set: { binding.wrappedValue = String($0.prefix(count)) })
+        Binding(get: { binding.wrappedValue }, set: {
+            binding.wrappedValue = String($0.prefix(count)); error = ""
+            if isTitle { titleError = "" }
+        })
     }
     private func mediaCell(_ item: MediaTile) -> some View {
         VStack(spacing: 0) {
             if item.kind == .video {
                 InlineMediaVideo(url: item.url).accessibilityIdentifier("issueEditor.video.\(item.id)")
             } else {
-                Button { preview(item) } label: { MediaThumbnail(item: item, height: 104, radius: 8) }
-                    .buttonStyle(.plain).accessibilityLabel("预览影像")
+                Button { preview(item) } label: { MediaThumbnail(item: item, height: 104, radius: 8, showsRelation: false) }
+                    .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore).accessibilityLabel("预览影像")
                     .accessibilityIdentifier("issueEditor.preview.\(item.id)")
             }
             if !readonly {
@@ -135,7 +144,9 @@ struct IssueEditorSurface: View {
                 }.buttonStyle(XJButtonStyle()).frame(width: readonly ? geometry.size.width : (geometry.size.width - 12) / 3)
                     .accessibilityIdentifier("issueEditor.cancel")
                 if !readonly {
-                    Button("保存问题") { focused = nil; save() }.buttonStyle(XJButtonStyle(primary: true))
+                    Button { focused = nil; save() } label: {
+                        HStack { if saving { ProgressView().tint(.white) }; Text("保存问题") }
+                    }.buttonStyle(XJButtonStyle(primary: true))
                         .accessibilityIdentifier("issueEditor.save")
                 }
             }.disabled(busy)
