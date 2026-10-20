@@ -75,6 +75,7 @@ struct PlacePickerSurface: View {
                 }
                 if !readonly && query.isEmpty && !places.isEmpty {
                     results(nearby: true).frame(height: 128)
+                        .accessibilitySortPriority(1)
                         .background {
                             #if DEBUG
                             if MapHitTrace.enabled { MapHitProbe() }
