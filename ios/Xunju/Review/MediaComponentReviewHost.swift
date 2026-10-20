@@ -21,7 +21,8 @@ struct MediaComponentReviewHost: View {
     @State private var groupExpanded = true
     @State private var skipped = false
     @State private var value = "正常"
-    @State private var flagged = false
+    @State private var categoryFlagged = false
+    @State private var groupFlagged = false
     @State private var activeRow: String?
     @State private var selecting = false
     @State private var saving = false
@@ -123,15 +124,15 @@ struct MediaComponentReviewHost: View {
                 XJCard {
                     VStack(spacing: 0) {
                         ChecklistHeadingRow(id: "category", title: "墙面地面与门窗", kind: .category,
-                            done: value.isEmpty ? 0 : 1, total: 6, issues: flagged ? 1 : 0,
+                            done: value.isEmpty ? 0 : 1, total: 6, issues: (categoryFlagged ? 1 : 0) + (groupFlagged ? 1 : 0),
                             readonly: readonly, noteText: "重点确认窗框渗水痕迹。\n雨后再看一次，拍照保留细节。",
-                            expanded: $expanded, skipped: .constant(false), value: .constant(""), flagged: $flagged, activeRow: $activeRow,
+                            expanded: $expanded, skipped: .constant(false), value: .constant(""), flagged: $categoryFlagged, activeRow: $activeRow,
                             note: { event = "已触发分类备注" }, capture: { event = "已触发分类拍摄" })
                         if expanded {
                             ChecklistHeadingRow(id: "group", title: "窗户", done: value.isEmpty ? 0 : 1, total: 2,
-                                issues: flagged ? 1 : 0, options: ["正常", "有问题", "没有"], choiceLabels: ["正常": "是", "有问题": "否"], skippable: true, readonly: readonly,
+                                issues: groupFlagged ? 1 : 0, options: ["正常", "有问题", "没有"], choiceLabels: ["正常": "是", "有问题": "否"], skippable: true, readonly: readonly,
                                 noteText: "卧室窗户检查密封条，客厅窗户确认开合。",
-                                expanded: $groupExpanded, skipped: $skipped, value: $value, flagged: $flagged, activeRow: $activeRow,
+                                expanded: $groupExpanded, skipped: $skipped, value: $value, flagged: $groupFlagged, activeRow: $activeRow,
                                 note: { event = "已触发分组备注" }, capture: { event = "已触发分组拍摄" })
                             if groupExpanded && !skipped {
                                 InspectionChoiceRow(title: "纱窗正常", options: ["是", "否", "没有"], value: .constant("是"),

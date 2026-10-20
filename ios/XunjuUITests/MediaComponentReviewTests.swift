@@ -106,13 +106,20 @@ import XCTest
         let video = app.descendants(matching: .any)["issueEditor.video.video"].firstMatch
         reveal(video, app: app)
         XCTAssertEqual(video.frame.height, 190, accuracy: 1)
-        video.tap() // Reveal the system player's auto-hiding transport controls.
-        let play = app.buttons.matching(NSPredicate(format: "label IN %@", ["Play", "播放"])).firstMatch
-        XCTAssertTrue(play.waitForExistence(timeout: 5)); play.tap()
-        let pause = app.buttons.matching(NSPredicate(format: "label IN %@", ["Pause", "暂停"])).firstMatch
-        XCTAssertTrue(pause.waitForExistence(timeout: 3)); pause.tap()
-        XCTAssertTrue(app.buttons["Play/Pause"].exists)
+        let transport = app.buttons["Play/Pause"]
+        if transport.isHittable {
+            XCTAssertTrue(["Play", "播放"].contains(transport.label)); transport.tap()
+        } else {
+            // AVKit's center tap may start playback directly when its controls
+            // are hidden. Keep that real native action and observe the result.
+            video.tap()
+        }
+        let playing = expectation(for: NSPredicate(format: "label IN %@", ["Pause", "暂停"]), evaluatedWith: transport)
+        XCTAssertEqual(XCTWaiter.wait(for: [playing], timeout: 3), .completed)
         capture("54-issue-inline-video", app)
+        transport.tap()
+        let paused = expectation(for: NSPredicate(format: "label IN %@", ["Play", "播放"]), evaluatedWith: transport)
+        XCTAssertEqual(XCTWaiter.wait(for: [paused], timeout: 3), .completed)
         let removeVideo = app.buttons["issueEditor.remove.video"]
         reveal(removeVideo, app: app); removeVideo.tap(); XCTAssertFalse(video.exists)
         let removePhoto = app.buttons["issueEditor.remove.image1"]
@@ -148,9 +155,12 @@ import XCTest
         category.swipeLeft(); XCTAssertTrue(flag.waitForExistence(timeout: 3)); flag.tap()
         XCTAssertTrue(skip.exists); XCTAssertFalse(flag.exists)
         XCTAssertEqual(app.staticTexts["heading.category.stats"].label, "1 / 6 · 1 问题")
+        category.swipeLeft(); XCTAssertTrue(flag.waitForExistence(timeout: 3)); XCTAssertEqual(flag.label, "取消问题")
         app.buttons["heading.group.fold"].swipeLeft()
         let note = app.buttons["heading.group.备注"]
-        XCTAssertTrue(note.waitForExistence(timeout: 3)); note.tap()
+        XCTAssertTrue(note.waitForExistence(timeout: 3)); XCTAssertFalse(flag.exists)
+        XCTAssertEqual(app.buttons["heading.group.标记问题"].label, "标记问题")
+        capture("61-group-swipe", app); note.tap()
         XCTAssertEqual(app.staticTexts["review.mediaEvent"].label, "已触发分组备注")
         app.buttons["review.readonly"].tap()
         XCTAssertFalse(skip.isEnabled); XCTAssertFalse(choice.isEnabled)

@@ -93,7 +93,8 @@ struct ChecklistHeadingRow: View {
 
     private func action(_ label: String, icon: String, color: Color, perform: @escaping () -> Void) -> some View {
         Button { activeRow = nil; perform() } label: { XJIcon(name: icon).frame(width: 44, height: 44).background(color) }
-            .buttonStyle(.plain).accessibilityLabel(label).accessibilityIdentifier("heading.\(id).\(label)")
+            .buttonStyle(.plain).accessibilityLabel(label == "标记问题" && flagged ? "取消问题" : label)
+            .accessibilityIdentifier("heading.\(id).\(label)")
     }
 }
 
