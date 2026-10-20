@@ -43,7 +43,7 @@ struct HouseMediaPage: View {
     }
 }
 
-private func thumbnail(_ url: URL) -> UIImage? {
+func thumbnail(_ url: URL) -> UIImage? {
     guard let source = CGImageSourceCreateWithURL(url as CFURL, nil), let cg = CGImageSourceCreateThumbnailAtIndex(source, 0,
         [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: 600, kCGImageSourceCreateThumbnailWithTransform: true] as CFDictionary) else { return nil }
     return UIImage(cgImage: cg)
@@ -73,7 +73,7 @@ struct MediaPickerSheet: View {
         NavigationStack {
             VStack(spacing: 20) {
                 PhotosPicker(selection: $photo, matching: .any(of: [.images, .videos]), preferredItemEncoding: .compatible) { Text("从相册选择照片或视频").frame(maxWidth: .infinity, minHeight: 44) }
-                    .buttonStyle(XJButtonStyle(primary: true)).disabled(busy)
+                    .buttonStyle(XJButtonStyle(primary: true)).disabled(busy).accessibilityIdentifier("media.library")
                 Button("拍照或录视频") {
                     if UIImagePickerController.isSourceTypeAvailable(.camera) { camera = true }
                     else { error = "当前设备没有可用相机" }
@@ -89,7 +89,7 @@ struct MediaPickerSheet: View {
                 CameraPicker { result in
                     camera = false
                     switch result {
-                    case .success(let payload): save(image: payload.image, video: payload.video)
+                    case .success(let payload): if payload.image != nil || payload.video != nil { save(image: payload.image, video: payload.video) }
                     case .failure(let failure): error = failure.localizedDescription
                     }
                 }
@@ -163,7 +163,7 @@ private struct CameraPicker: UIViewControllerRepresentable {
     final class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
         let complete: (Result<CameraPayload, Error>) -> Void
         init(complete: @escaping (Result<CameraPayload, Error>) -> Void) { self.complete = complete }
-        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { picker.dismiss(animated: true) }
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { complete(.success(CameraPayload(image: nil, video: nil))) }
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
             complete(.success(CameraPayload(image: info[.originalImage] as? UIImage, video: info[.mediaURL] as? URL)))
         }
@@ -224,4 +224,9 @@ private struct MediaDetailPage: View {
     private func link(_ field: String) {
         if workspace.perform({ try workspace.store.call("editMedia", ["id": .string(houseID), "field": .string(mediaID), "property": .string("fieldId"), "value": .string(field)]) }) { linking = false }
     }
+}
+
+@MainActor func houseCover(_ house: HouseSummary, store: NativeStore) -> UIImage? {
+    guard !house.cover.isEmpty, let url = try? LocalMediaFiles.file(house.cover, in: store.records.directory) else { return nil }
+    return thumbnail(url)
 }

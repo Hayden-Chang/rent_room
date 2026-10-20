@@ -110,6 +110,12 @@ struct ChecklistPage: View {
                         XJIcon(name: "up").frame(width: 48, height: 48).background(.white).clipShape(Circle())
                     }.padding(16).accessibilityLabel("回到顶部")
                 }
+        }.toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                    .accessibilityIdentifier("checklist.keyboard.done")
+            }
         }.onAppear(perform: refresh)
             .onChange(of: viewKey) { _, _ in refresh() }
             .onChange(of: workspace.store.status.revision) { _, _ in refresh() }
@@ -175,7 +181,7 @@ struct ChecklistPage: View {
                 if !row["note"].string.isEmpty { Button(row["note"].string) { openNote(row) }.font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
             }
         } else {
-            AnswerInput(field: row, text: answerBinding(row.id), otherText: answerBinding(row.id, property: "otherText"), readonly: readonly,
+            AnswerInput(field: row, text: answerBinding(row.id), otherText: answerBinding(row.id, property: "otherText"), readonly: readonly, showsKeyboardToolbar: false,
                 choose: { value in workspace.perform { try workspace.store.call("choose", ["id": .string(id), "field": .string(row.id), "value": .string(value)]) } },
                 action: { action in
                     if action == "备注" { openNote(row) }

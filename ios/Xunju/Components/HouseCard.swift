@@ -13,6 +13,7 @@ struct HouseCardContent {
 
 struct HouseCard: View {
     let house: HouseCardContent
+    var cover: UIImage? = nil
     var open: () -> Void
 
     var body: some View {
@@ -20,14 +21,19 @@ struct HouseCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     XJTheme.soft
-                    XJIcon(name: "home-selected", size: 46)
-                        .opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity)
+                    if let cover {
+                        Image(uiImage: cover).resizable().scaledToFill()
+                            .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+                    } else {
+                        XJIcon(name: "home-selected", size: 46)
+                            .opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
                     Text(house.decision.isEmpty ? "待检查" : house.decision)
                         .font(.system(size: 11)).foregroundStyle(XJTheme.primary)
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6))
                         .padding(10)
-                }.frame(height: 142)
+                }.frame(height: 142).clipped()
                 VStack(alignment: .leading, spacing: 0) {
                     Text(house.name).font(.system(size: 14, weight: .semibold))
                         .lineLimit(1).frame(height: 20)

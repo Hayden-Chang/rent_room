@@ -52,6 +52,7 @@ struct PhoneLoginForm: View {
     @State private var busy = false
     @State private var error: String?
     @State private var codeRequested = false
+    @State private var operationTask: Task<Void, Never>?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -91,13 +92,14 @@ struct PhoneLoginForm: View {
             Spacer(minLength: 0)
         }.font(.system(size: 14)).foregroundStyle(XJTheme.ink).padding(20)
             .background(XJTheme.background)
+            .onDisappear { operationTask?.cancel() }
     }
 
     private func perform(_ operation: @escaping @MainActor () async throws -> Void) {
         guard !busy else { return }
         busy = true
         error = nil
-        Task { @MainActor in
+        operationTask = Task { @MainActor in
             defer { busy = false }
             do { try await operation() } catch { self.error = error.localizedDescription }
         }

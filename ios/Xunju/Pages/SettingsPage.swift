@@ -9,6 +9,7 @@ struct SettingsPage: View {
     @State private var appleRequestedAt = Date.distantPast
     @State private var appleError = ""
     @State private var loggingOut = false
+    @State private var appleTask: Task<Void, Never>?
     private let api = AuthenticationAPI()
     var body: some View {
         ScrollView {
@@ -25,7 +26,7 @@ struct SettingsPage: View {
                     }
                 } else {
                     LoginEntryCard(used: workspace.store.capacity.used, limit: workspace.store.capacity.limit, appleReady: appleChallenge != nil,
-                        wechat: { workspace.error = "微信原生登录尚待配置开放平台 App ID 和 Universal Link" }, phone: { phone = true },
+                        wechat: { workspace.error = "微信登录暂不可用，请稍后重试" }, phone: { phone = true },
                         appleRequest: { request in request.nonce = appleChallenge?.nonce },
                         appleCompletion: { result in finishApple(result) })
                     if !appleError.isEmpty { Text(appleError).font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
@@ -54,6 +55,7 @@ struct SettingsPage: View {
             }.padding(16)
         }.navigationTitle("我的").navigationBarTitleDisplayMode(.inline)
             .task { await prepareApple() }
+            .onDisappear { appleTask?.cancel(); appleChallenge = nil }
             .confirmationDialog("退出登录？", isPresented: $loggingOut, titleVisibility: .visible) {
                 Button("退出登录") {
                     let token = workspace.session?.token
@@ -76,8 +78,9 @@ struct SettingsPage: View {
     private func finishApple(_ result: Result<ASAuthorization, Error>) {
         let challenge = appleChallenge
         appleChallenge = nil
-        Task { @MainActor in
-            defer { Task { await prepareApple() } }
+        let store = workspace.store
+        appleTask = Task { @MainActor in
+            defer { if !Task.isCancelled { Task { await prepareApple() } } }
             do {
                 let authorization = try result.get()
                 guard let challenge, Date().timeIntervalSince(appleRequestedAt) < Double(challenge.expiresIn),
@@ -86,8 +89,10 @@ struct SettingsPage: View {
                     throw CoreFailure(message: "Apple 登录请求已失效，请重试")
                 }
                 let receipt = try await api.appleSession(token: token, challenge: challenge)
+                try Task.checkCancellation()
+                guard workspace.store === store else { throw CoreFailure(message: "账号已变化，请重新登录") }
                 try workspace.accept(receipt)
-            } catch let error as ASAuthorizationError where error.code == .canceled {} catch { workspace.error = error.localizedDescription }
+            } catch is CancellationError {} catch let error as ASAuthorizationError where error.code == .canceled {} catch { workspace.error = error.localizedDescription }
         }
     }
     private func menu(_ title: String, detail: String = "") -> some View {
@@ -115,6 +120,7 @@ struct PhoneAuthenticationPage: View {
                     throw CoreFailure(message: "请先获取当前手机号的验证码")
                 }
                 let receipt = try await api.phoneSession(phone: phone, code: code, challenge: challenge)
+                try Task.checkCancellation()
                 try workspace.accept(receipt)
             }).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton() } }

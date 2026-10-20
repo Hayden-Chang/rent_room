@@ -8,6 +8,7 @@ struct ComparisonPage: View {
     @State private var rows: [JSONValue] = []
     private var houses: [HouseSummary] { workspace.store.activeHouses }
     var body: some View {
+        VStack(spacing: 0) {
         ScrollView {
             VStack(spacing: 16) {
                 if comparing {
@@ -30,7 +31,7 @@ struct ComparisonPage: View {
                     Text("选择 2 至 3 套房源进行对比").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
                         ForEach(houses) { house in
-                            HouseCard(house: house.card) { toggle(house.id) }
+                            HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { toggle(house.id) }
                                 .overlay(alignment: .topTrailing) {
                                     Text(selected.contains(house.id) ? "✓" : "").font(.system(size: 18, weight: .semibold))
                                         .frame(width: 28, height: 28).foregroundStyle(.white)
@@ -42,14 +43,15 @@ struct ComparisonPage: View {
                     }
                 }
             }.padding(16)
-        }.navigationTitle("房源对比").navigationBarTitleDisplayMode(.inline)
-            .safeAreaInset(edge: .bottom) {
+        }
+        VStack(spacing: 0) {
                 Button(comparing ? "返回选择房源" : selected.count >= 2 ? "对比这 \(selected.count) 套房源" : selected.count == 1 ? "再选 1 套房源" : "选择 2–3 套房源对比") {
                     if comparing { comparing = false }
                     else { refresh(); comparing = true }
                 }.buttonStyle(XJButtonStyle(primary: true)).disabled(!comparing && selected.count < 2)
-                    .padding(16).background(XJTheme.background).accessibilityIdentifier("compare.start")
-            }
+                    .accessibilityIdentifier("compare.start")
+            }.padding(16).background(XJTheme.background)
+        }.navigationTitle("房源对比").navigationBarTitleDisplayMode(.inline)
             .onChange(of: differences) { _, _ in refresh() }
             .onChange(of: houses.map(\.id)) { _, ids in selected.removeAll { !ids.contains($0) }; if selected.count < 2 { comparing = false } }
             .onChange(of: workspace.store.status.revision) { _, _ in if comparing { refresh() } }

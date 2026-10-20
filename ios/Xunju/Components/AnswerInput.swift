@@ -8,6 +8,7 @@ struct AnswerInput: View {
     @Binding var text: String
     @Binding var otherText: String
     var readonly = false
+    var showsKeyboardToolbar = true
     var choose: (String) -> Void
     var action: (String) -> Void
     @State private var actionsOpen = false
@@ -70,8 +71,10 @@ struct AnswerInput: View {
             .accessibilityElement(children: .contain).accessibilityIdentifier("input.\(field.id)")
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
+                    if showsKeyboardToolbar {
                     Spacer()
                     Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                    }
                 }
             }
             .sheet(isPresented: $datePicker) {

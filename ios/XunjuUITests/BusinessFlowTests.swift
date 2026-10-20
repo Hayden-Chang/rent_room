@@ -22,6 +22,8 @@ import XCTest
         let app = launch(); add("朝阳路公寓", app)
         let search = app.textFields["checklist.search"]
         search.tap(); search.typeText("租金")
+        app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertFalse(app.keyboards.firstMatch.exists)
         let rent = app.textFields["input.f1_6.value"]
         XCTAssertTrue(rent.waitForExistence(timeout: 3)); rent.tap(); rent.typeText("2800")
         app.buttons["完成"].firstMatch.tap()
@@ -46,6 +48,9 @@ import XCTest
         app.buttons["tab.对比"].tap()
         let first = app.buttons["compare.select.第一套"]
         XCTAssertTrue(first.waitForExistence(timeout: 3)); first.tap(); app.buttons["compare.select.第二套"].tap()
+        XCTAssertTrue(app.buttons["compare.start"].isEnabled)
+        XCTAssertEqual(app.buttons["compare.start"].label, "对比这 2 套房源")
+        capture("14a-native-comparison-selection", app)
         app.buttons["compare.start"].tap()
         let differences = app.switches["隐藏相同属性"]; XCTAssertTrue(differences.waitForExistence(timeout: 3)); differences.tap()
         XCTAssertTrue(app.staticTexts["当前意向"].exists); XCTAssertTrue(app.staticTexts["待决定"].exists)
@@ -74,6 +79,18 @@ import XCTest
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.问题检查"].waitForExistence(timeout: 10))
         app.buttons["house.问题检查"].tap(); app.buttons["tab.问题"].tap()
         XCTAssertTrue(app.buttons["已解决"].exists); XCTAssertTrue(app.staticTexts["确认修复时间"].exists)
+    }
+    func testMediaEmptyStateAndSystemPickerCanCancel() {
+        let app = launch(); add("影像检查", app); app.buttons["tab.影像"].tap()
+        XCTAssertTrue(app.staticTexts["还没有影像"].exists)
+        app.buttons["拍照或录视频"].tap()
+        let library = app.buttons["media.library"]
+        XCTAssertTrue(library.waitForExistence(timeout: 3)); capture("18-native-media-source", app)
+        library.tap()
+        let cancel = app.buttons["取消"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5)); capture("19-native-system-photo-picker", app); cancel.tap()
+        XCTAssertTrue(library.waitForExistence(timeout: 3)); app.buttons["关闭"].tap()
+        XCTAssertTrue(app.staticTexts["还没有影像"].waitForExistence(timeout: 3))
     }
     func testExportSelectedHousePreparesRealZIPBeforeShare() {
         let app = launch(); add("原生备份房源", app); home(app); app.buttons["tab.我的"].tap()

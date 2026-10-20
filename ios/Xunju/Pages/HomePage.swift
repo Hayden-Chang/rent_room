@@ -13,7 +13,7 @@ struct HomePage: View {
                 else {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
                         ForEach(workspace.store.activeHouses) { house in
-                            HouseCard(house: house.card) { path.append(house.id) }
+                            HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { path.append(house.id) }
                                 .accessibilityIdentifier("house.\(house.name)")
                                 .contextMenu {
                                     Button("重命名") { rename = house }
