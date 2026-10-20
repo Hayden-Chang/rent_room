@@ -68,3 +68,5 @@
 地点、通勤、测速和四步引导的同源桥接、第四及第五批批准、业务接入和定向验证见 [UTILITIES.md](UTILITIES.md)。前五批均已批准，不重复索要批准；问题媒体、部分清单交互和原生购买仍需补齐。
 
 第六批三列影像、问题照片/视频草稿、分类/分组左滑与“不涉及”已获用户批准并接入完整业务。累计19项定向UT及4条业务UI场景通过，含真实文件转换/保存/预览/重启、放弃清理、失败重试与归档只读；历史失败和精确复用依据见 [MEDIA_INTEGRATION.md](MEDIA_INTEGRATION.md)。独立组件的15张截图与审批记录见 [MEDIA_COMPONENTS.md](MEDIA_COMPONENTS.md)。
+
+第七批问题卡片内嵌影像、44pt检查项缩略图与自动问题输入组合已完成独立渲染/操作验证（2UT/2UI有效通过、7张原始截图）。状态REVIEW_READY，等待用户确认，尚未接入业务；见 [RELATED_MEDIA_COMPONENTS.md](RELATED_MEDIA_COMPONENTS.md)。
