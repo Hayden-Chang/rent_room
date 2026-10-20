@@ -28,8 +28,12 @@ struct MapHitProbe: UIViewRepresentable {
             let point = convert(CGPoint(x: bounds.midX, y: 27), to: window)
             var lines = ["probe=\(convert(bounds, to: window)); point=\(point)",
                          "hit=\(window.hitTest(point, with: nil).map { NSStringFromClass(type(of: $0)) } ?? "nil")"]
+            for (name, local) in [("action-text", CGPoint(x: bounds.maxX - 28, y: 27)), ("title-text", CGPoint(x: 40, y: 18)), ("row-background", CGPoint(x: bounds.midX, y: 10))] {
+                let probe = convert(local, to: window)
+                lines.append("\(name) \(probe): \(window.hitTest(probe, with: nil).map { NSStringFromClass(type(of: $0)) } ?? "nil")")
+            }
             func visit(_ view: UIView, depth: Int) {
-                guard depth < 12, view.bounds.contains(view.convert(point, from: window)) else { return }
+                guard depth < 24, view.bounds.contains(view.convert(point, from: window)) else { return }
                 lines.append("\(depth): \(NSStringFromClass(type(of: view))) frame=\(view.convert(view.bounds, to: window)) interaction=\(view.isUserInteractionEnabled) hidden=\(view.isHidden) alpha=\(view.alpha)")
                 for child in view.subviews { visit(child, depth: depth + 1) }
             }

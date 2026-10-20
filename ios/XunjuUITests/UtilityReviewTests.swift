@@ -19,7 +19,10 @@ import XCTest
         capture("21-place-nearby", app)
         let trace = app.staticTexts["review.mapHitTrace"]
         XCTAssertTrue(trace.waitForExistence(timeout: 3))
-        let attachment = XCTAttachment(string: trace.label); attachment.name = "map-native-hit-trace"; attachment.lifetime = .keepAlways; add(attachment)
+        let row = app.buttons["place.result.one"]
+        let titleHittable = row.staticTexts["阳光小区"].isHittable, actionHittable = row.staticTexts["使用"].isHittable
+        let attachment = XCTAttachment(string: trace.label + "\nAX row hittable=\(row.isHittable); title hittable=\(titleHittable); action hittable=\(actionHittable)")
+        attachment.name = "map-native-hit-trace"; attachment.lifetime = .keepAlways; add(attachment)
         app.buttons["place.result.one"].tap()
         XCTAssertEqual(app.staticTexts["review.placeEvent"].label, "已选择：阳光小区")
         query.tap(); query.typeText("公寓\n")
