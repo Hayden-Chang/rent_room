@@ -21,6 +21,8 @@ import XCTest
         for section in expanded {
             let title = section["title"].string, rows = section["rows"].array
             XCTAssertEqual(ChecklistPresentation.item(section["header"]).kind, .category)
+            XCTAssertTrue(ChecklistPresentation.item(section["header"]).collapsible)
+            XCTAssertFalse(ChecklistPresentation.item(section["header"].removing("expanded")).collapsible)
             folds[title] = false
             XCTAssertEqual(try store.form(id, folds: folds).first { $0["title"].string == title }?["rows"].array.count, 0)
             folds[title] = true

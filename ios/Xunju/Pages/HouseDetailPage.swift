@@ -15,7 +15,7 @@ struct HouseDetailPage: View {
                     .frame(maxWidth: .infinity).background(XJTheme.soft).accessibilityIdentifier("house.readonly")
             }
             ZStack {
-                MPRetainedPage(active: tab == "清单") { ChecklistPage(workspace: workspace, id: id, showCoach: $showCoach) }
+                MPRetainedPage(active: tab == "清单") { ChecklistPage(workspace: workspace, id: id, showCoach: $showCoach, isActive: tab == "清单") }
                 Group { switch tab {
                 case "总结":
                     ScrollView {
@@ -54,6 +54,7 @@ struct ChecklistPage: View {
     let workspace: AppWorkspace
     let id: String
     @Binding var showCoach: Bool
+    var isActive = true
     @State private var phase = "全部"
     @State private var query = ""
     @State private var filters: Set<String> = []
@@ -109,23 +110,26 @@ struct ChecklistPage: View {
                         hideAutomatically: $coachHidden, error: coachError, mediaIconSize: 22) { advanceCoach() }
                 }
             }
-        }.allowsHitTesting(note == nil && cost == nil).accessibilityHidden(note != nil || cost != nil)
-            .overlay {
-                if let note {
-                    MPNoteSheet(title: note.title + " · 备注", text: $noteText, readonly: readonly,
-                        close: { self.note = nil }, save: { saveNote(note) })
-                }
-                if let cost {
-                    MPInputDialog(title: "添加" + cost["title"].string, placeholder: "填写费用名称", text: $costText,
-                        error: costError, cancel: { self.cost = nil }, save: { addCost(cost) })
-                }
+        }
+            .fullScreenCover(item: $note) { target in
+                MPNoteSheet(title: target.title + " · 备注", text: $noteText, readonly: readonly,
+                    close: { note = nil }, save: { saveNote(target) })
+                    .presentationBackground(.clear)
+            }
+            .fullScreenCover(item: $cost) { group in
+                MPInputDialog(title: "添加" + group["title"].string, placeholder: "填写费用名称", text: $costText,
+                    error: costError, cancel: { cost = nil }, save: { addCost(group) })
+                    .presentationBackground(.clear)
             }
             .toolbar { ToolbarItemGroup(placement: .keyboard) {
+                if isActive {
                 Spacer()
                 Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
                     .accessibilityIdentifier("checklist.keyboard.done")
+                }
             } }
             .onAppear { refresh(); if showCoach { prepareCoach() } }
+            .onChange(of: isActive) { if !isActive { coordinator.close() } }
             .onChange(of: showCoach) { if showCoach { prepareCoach() } }
             .onChange(of: coachStep) { if coachStep == 4 { scrollTarget = coachTarget["field"].id } }
             .onChange(of: viewKey) { coordinator.close(); refresh() }

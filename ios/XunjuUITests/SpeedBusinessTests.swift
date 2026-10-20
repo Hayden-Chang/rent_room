@@ -16,11 +16,11 @@ import XCTest
         XCTAssertTrue(app.descendants(matching: .any)["coach.actions"].waitForExistence(timeout: 3))
         app.buttons["coach.preference"].tap(); next.tap(); XCTAssertFalse(next.exists)
         searchSpeed(app)
-        let input = app.textFields["input.\(field).value"]; input.tap(); input.typeText("10")
+        let input = app.textFields["mp.field.input.\(field)"]; input.tap(); input.typeText("10")
         app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(input.value as? String, "10")
     }
     private func searchSpeed(_ app: XCUIApplication) {
-        let search = app.textFields["checklist.search"]; XCTAssertTrue(search.waitForExistence(timeout: 3)); search.tap(); search.typeText("实测网速")
+        let search = app.textFields["mp.checklist.search"]; XCTAssertTrue(search.waitForExistence(timeout: 3)); search.tap(); search.typeText("实测网速")
         app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.buttons["measurement.\(field)"].waitForExistence(timeout: 3))
     }
@@ -35,14 +35,14 @@ import XCTest
         app.buttons["measurement.\(field)"].tap(); wifi(app).buttons["是"].tap()
         let mobile = app.alerts["使用当前网络测速？"]; XCTAssertTrue(mobile.waitForExistence(timeout: 3))
         capture("43-business-mobile-speed-consent", app); mobile.buttons["开始测速"].tap()
-        let answer = app.textFields["input.\(field).value"]; XCTAssertTrue(answer.waitForExistence(timeout: 10))
+        let answer = app.textFields["mp.field.input.\(field)"]; XCTAssertTrue(answer.waitForExistence(timeout: 10))
         XCTAssertEqual(answer.value as? String, "8.39"); capture("44-business-speed-autofilled", app)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.网速回填"].waitForExistence(timeout: 10))
         app.buttons["house.网速回填"].tap(); searchSpeed(app); XCTAssertEqual(answer.value as? String, "8.39")
     }
     func testDeclineAndCancelMeasurementKeepManualValue() {
         let app = launch("slow"); addHouse("测速取消", app)
-        let answer = app.textFields["input.\(field).value"]
+        let answer = app.textFields["mp.field.input.\(field)"]
         app.buttons["measurement.\(field)"].tap(); wifi(app).buttons["否"].tap()
         XCTAssertTrue(answer.waitForExistence(timeout: 5)); XCTAssertEqual(answer.value as? String, "10")
         app.buttons["measurement.\(field)"].tap(); wifi(app).buttons["是"].tap()

@@ -99,6 +99,12 @@ import XCTest
         app.buttons["tab.总结"].tap(); app.buttons["tab.清单"].tap()
         XCTAssertEqual(app.textFields["mp.checklist.search"].value as? String, "空调")
         XCTAssertEqual(title.value as? String, "已折叠"); XCTAssertFalse(answer.exists)
+        app.buttons["回到顶部"].tap()
+        app.buttons["mp.phase.现场"].tap()
+        XCTAssertEqual(title.value as? String, "已展开")
+        app.buttons["mp.phase.全部"].tap()
+        XCTAssertEqual(title.value as? String, "已折叠")
+        reveal(title, app)
         title.tap(); reveal(answer, app); XCTAssertTrue(answer.isSelected)
         capture("conditional-aircon-restored", app)
     }

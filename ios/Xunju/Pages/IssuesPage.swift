@@ -5,6 +5,7 @@ struct IssuesPage: View {
     let workspace: AppWorkspace
     let id: String
     @State private var automatic: [JSONValue] = []
+    @State private var coordinator = MPSwipeCoordinator()
     @State private var selection: IssueSelection?
     @State private var preview: MediaTile?
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
@@ -22,7 +23,7 @@ struct IssuesPage: View {
                 }
                 ForEach(automatic, id: \.id) { field in
                     AutomaticIssueCard(category: field["category"].string) {
-                        InspectionFieldRow(workspace: workspace, houseID: id, field: field)
+                        InspectionFieldRow(workspace: workspace, houseID: id, field: field, coordinator: coordinator)
                     }
                 }
                 ForEach(manual, id: \.id) { issue in

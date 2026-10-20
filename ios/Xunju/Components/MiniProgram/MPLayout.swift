@@ -160,6 +160,7 @@ struct MPNoteSheet: View {
                 TextEditor(text: $text).font(.system(size: 14)).frame(height: 160).scrollContentBackground(.hidden)
                     .padding(12).background(XJTheme.background).clipShape(RoundedRectangle(cornerRadius: 8))
                     .disabled(readonly).accessibilityIdentifier("mp.note.text")
+                    .onChange(of: text) { if text.count > 10000 { text = String(text.prefix(10000)) } }
                 if !error.isEmpty { Text(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger) }
                 HStack(spacing: 8) {
                     Button(readonly ? "关闭" : "取消", action: close).buttonStyle(MPButtonStyle())

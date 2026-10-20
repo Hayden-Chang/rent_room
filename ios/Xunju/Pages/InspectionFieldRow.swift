@@ -31,7 +31,7 @@ struct InspectionFieldRow: View {
                     }, capture: { picking = true }, measurement: measurement)
             }
             FieldRelatedMedia(workspace: workspace, houseID: houseID, fieldID: field.id)
-        }.sheet(isPresented: $editingNote) {
+        }.fullScreenCover(isPresented: $editingNote) {
             MPNoteSheet(title: field["label"].string + " · 备注", text: $noteText, readonly: readonly,
                 close: { editingNote = false }, save: {
                     if workspace.perform({
