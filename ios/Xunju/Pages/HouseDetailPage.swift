@@ -59,6 +59,7 @@ struct ChecklistPage: View {
     @State private var showFilters = false
     @State private var folds: [String: [String: Bool]] = [:]
     @State private var sections: [JSONValue] = []
+    @State private var activeHeading: String?
     @State private var note: NoteTarget?
     @State private var cost: JSONValue?
     @State private var mediaTarget: String?
@@ -112,18 +113,21 @@ struct ChecklistPage: View {
                         }
                     }
                     ForEach(sections, id: \.id) { section in
-                        ChecklistDisclosure(title: section["title"].string,
-                                            progress: "\(section["stats"]["done"].int) / \(section["stats"]["total"].int)",
-                                            expanded: Binding(get: { section["expanded"].bool }, set: { setFold(section["title"].string, $0) })) {
+                        XJCard {
                             VStack(spacing: 4) {
-                                ForEach(section["rows"].array, id: \.rowKey) { row in
-                                    checklistRow(row).padding(.leading, CGFloat(min(row["depth"].int, 2) * 12)).id(row.id)
-                                        .anchorPreference(key: CoachAnchors.self, value: .bounds) { row.id == coachTarget["field"].id ? [4: $0] : [:] }
+                                ChecklistHeadingRow(id: section["header"].id, title: section["title"].string, kind: .category,
+                                    done: section["stats"]["done"].int, total: section["stats"]["total"].int, issues: section["stats"]["issues"].int,
+                                    readonly: readonly, noteText: section["header"]["note"].string,
+                                    expanded: Binding(get: { section["expanded"].bool }, set: { setFold(section["title"].string, $0) }),
+                                    skipped: .constant(false), value: .constant(""), flagged: flagBinding(section["header"]), activeRow: $activeHeading,
+                                    note: { openNote(section["header"]) }, capture: { mediaTarget = section["header"].id })
+                                if section["expanded"].bool {
+                                    ForEach(section["rows"].array, id: \.rowKey) { row in
+                                        checklistRow(row).padding(.leading, CGFloat(min(row["depth"].int, 2) * 12)).id(row.id)
+                                            .anchorPreference(key: CoachAnchors.self, value: .bounds) { row.id == coachTarget["field"].id ? [4: $0] : [:] }
+                                    }
                                 }
                             }
-                        }.contextMenu {
-                            Button("备注") { openNote(section["header"]) }
-                            Button(section["header"]["problem"].bool ? "取消问题标记" : "标记问题") { flag(section["header"]) }.disabled(readonly)
                         }
                     }
                     if sections.isEmpty { Text("没有符合条件的检查项").font(.system(size: 14)).foregroundStyle(XJTheme.muted).padding(32) }
@@ -153,7 +157,7 @@ struct ChecklistPage: View {
                     .accessibilityIdentifier("checklist.keyboard.done")
             }
         }.onAppear { refresh(); if showCoach { prepareCoach() } }
-            .onChange(of: viewKey) { _, _ in refresh() }
+            .onChange(of: viewKey) { _, _ in activeHeading = nil; refresh() }
             .onChange(of: workspace.store.status.revision) { _, _ in refresh() }
             .sheet(item: $note) { target in
                 NoteEditor(title: target.title + " · 备注", text: target.value, readonly: readonly) { value in
@@ -188,25 +192,18 @@ struct ChecklistPage: View {
         if row["kind"].string == "add-cost" {
             Button("＋") { cost = row }.buttonStyle(XJButtonStyle(primary: false)).disabled(readonly)
         } else if row["kind"].string == "group" {
-            VStack(spacing: 0) {
-                HStack(spacing: 8) {
-                    Button { setFold(row.id, !row["expanded"].bool) } label: {
-                        Text(row["expanded"].bool ? "⌃" : "⌄").font(.system(size: 13)).frame(width: 30, height: 44)
-                    }.buttonStyle(.plain).accessibilityLabel("展开或收起" + row["title"].string)
-                    InspectionChoiceRow(title: row["title"].string, options: row["options"].array.map { $0["value"].string },
-                        choiceLabels: Dictionary(uniqueKeysWithValues: row["options"].array.map { ($0["value"].string, $0["label"].string) }),
-                        value: Binding(get: { row["options"].array.first { $0["selected"].bool }?["value"].string ?? "" }, set: { value in
-                            let prior = row["options"].array.first { $0["selected"].bool }?["value"].string ?? ""
-                            workspace.perform { try workspace.store.call("group", ["id": .string(id), "group": .string(row.id), "property": .string("result"), "value": .string(value.isEmpty ? prior : value)]) }
-                        }), flagged: flagBinding(row["swipe"]), readonly: readonly,
-                        note: { openNote(row["swipe"]) }, capture: { mediaTarget = row["swipe"].id })
-                }
-                if !row["swipe"]["note"].string.isEmpty { Text(row["swipe"]["note"].string).font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
-            }.contextMenu {
-                if row["skippable"].bool { Button(row["skipped"].bool ? "恢复检查" : "不涉及") {
-                    workspace.perform { try workspace.store.call("group", ["id": .string(id), "group": .string(row.id), "property": .string("skip")]) }
-                }.disabled(readonly) }
-            }
+            ChecklistHeadingRow(id: row["swipe"].id, title: row["title"].string,
+                options: row["options"].array.map { $0["value"].string },
+                choiceLabels: Dictionary(uniqueKeysWithValues: row["options"].array.map { ($0["value"].string, $0["label"].string) }),
+                skippable: row["skippable"].bool, readonly: readonly, noteText: row["swipe"]["note"].string,
+                expanded: Binding(get: { row["expanded"].bool }, set: { setFold(row.id, $0) }),
+                skipped: Binding(get: { row["skipped"].bool }, set: { _ in group(row, operation: "skip") }),
+                value: Binding(get: { row["options"].array.first { $0["selected"].bool }?["value"].string ?? "" }, set: { value in
+                    let prior = row["options"].array.first { $0["selected"].bool }?["value"].string ?? ""
+                    // Canonical group commands toggle their selected result themselves.
+                    group(row, operation: "result", value: value.isEmpty ? prior : value)
+                }), flagged: flagBinding(row["swipe"]), activeRow: $activeHeading,
+                note: { openNote(row["swipe"]) }, capture: { mediaTarget = row["swipe"].id })
         } else {
             field(row)
         }
@@ -230,6 +227,11 @@ struct ChecklistPage: View {
                     else if action == "标记问题" { flag(row) }
                     else { mediaTarget = row.id }
                 }, measurement: measurement(row.id))
+        }
+    }
+    private func group(_ row: JSONValue, operation: String, value: String = "") {
+        if workspace.perform({ try workspace.store.call("group", ["id": .string(id), "group": .string(row.id), "property": .string(operation), "value": .string(value)]) }) {
+            setFold(row.id, true)
         }
     }
     private func measurement(_ field: String) -> MeasurementAction? {

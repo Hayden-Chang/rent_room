@@ -7,40 +7,39 @@ import ImageIO
 struct HouseMediaPage: View {
     let workspace: AppWorkspace
     let id: String
-    @State private var type = "全部"
+    @State private var filter: MediaFilter = .all
     @State private var picking = false
     @State private var selected: JSONValue?
-    private var media: [JSONValue] { workspace.store.house(id)["media"].array.filter { type == "全部" || $0["type"].string == (type == "照片" ? "image" : "video") } }
+    @State private var caption: JSONValue?
+    @State private var media: [JSONValue] = []
+    private var readonly: Bool { workspace.store.house(id)["archived"].bool }
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                HStack { ForEach(["全部", "照片", "视频"], id: \.self) { name in Button(name) { type = name }.buttonStyle(FilterChip(selected: type == name)) }; Spacer() }
-                if media.isEmpty {
-                    VStack(spacing: 12) { Text("还没有影像").font(.system(size: 16, weight: .semibold)); Text("把房间、细节和需要确认的地方拍下来。").font(.system(size: 13)).foregroundStyle(XJTheme.muted) }.padding(.top, 40)
-                }
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
-                    ForEach(media, id: \.id) { item in
-                        Button { selected = item } label: {
-                            VStack(alignment: .leading, spacing: 8) {
-                                ZStack {
-                                    XJTheme.soft
-                                    if item["type"].string == "image", let url = try? LocalMediaFiles.file(item["path"].string, in: workspace.store.records.directory), let image = thumbnail(url) {
-                                        Image(uiImage: image).resizable().scaledToFill()
-                                    } else { Text("▶ 视频").foregroundStyle(XJTheme.primary) }
-                                }.frame(height: 152).clipped().clipShape(RoundedRectangle(cornerRadius: 12))
-                                Text(item["caption"].string.isEmpty ? "＋ 添加影像备注" : item["caption"].string).font(.system(size: 12)).foregroundStyle(XJTheme.muted).lineLimit(2)
-                            }
-                        }.buttonStyle(.plain)
-                    }
-                }
-            }.padding(16)
+            MediaGallerySurface(items: media.map { mediaTile($0, store: workspace.store) }, filter: $filter, readonly: readonly,
+                preview: { tile in selected = media.first { $0.id == tile.id } },
+                caption: { tile in caption = media.first { $0.id == tile.id } }).padding(16)
         }.safeAreaInset(edge: .bottom) {
-            if !workspace.store.house(id)["archived"].bool {
+            if !readonly {
                 Button("拍照或录视频") { picking = true }.buttonStyle(XJButtonStyle(primary: true)).padding(16)
             }
-        }.sheet(isPresented: $picking) { MediaPickerSheet(workspace: workspace, houseID: id) }
+        }.onAppear(perform: refresh)
+            .onChange(of: workspace.store.status.revision) { _, _ in refresh() }
+            .sheet(isPresented: $picking) { MediaPickerSheet(workspace: workspace, houseID: id) }
             .sheet(item: $selected) { MediaDetailPage(workspace: workspace, houseID: id, mediaID: $0.id) }
+            .sheet(item: $caption) { item in
+                NoteEditor(title: "影像备注", text: item["caption"].string, readonly: readonly) { text in
+                    try workspace.store.call("editMedia", ["id": .string(id), "field": .string(item.id), "property": .string("caption"), "value": .string(text)])
+                }
+            }
     }
+    private func refresh() { workspace.perform { media = try workspace.store.call("media", ["id": .string(id)]).array } }
+}
+
+@MainActor func mediaTile(_ value: JSONValue, store: NativeStore) -> MediaTile {
+    MediaTile(id: value.id, kind: value["type"].string == "video" ? .video : .image,
+              url: try? LocalMediaFiles.file(value["path"].string, in: store.records.directory),
+              caption: value["caption"].string,
+              relation: !value["issueTitle"].string.isEmpty ? "问题 · " + value["issueTitle"].string : value["fieldId"].string.isEmpty ? "房源影像" : "已关联检查项")
 }
 
 func thumbnail(_ url: URL) -> UIImage? {
@@ -64,9 +63,11 @@ struct MediaPickerSheet: View {
     let workspace: AppWorkspace
     let houseID: String
     var fieldID = ""
+    var stage: ((JSONValue) throws -> Void)? = nil
     @State private var photo: PhotosPickerItem?
     @State private var camera = false
     @State private var busy = false
+    @State private var importTask: Task<Void, Never>?
     @State private var error = ""
     @Environment(\.dismiss) private var dismiss
     var body: some View {
@@ -78,13 +79,23 @@ struct MediaPickerSheet: View {
                     if UIImagePickerController.isSourceTypeAvailable(.camera) { camera = true }
                     else { error = "当前设备没有可用相机" }
                 }.buttonStyle(XJButtonStyle(primary: false)).disabled(busy)
+                #if DEBUG
+                if MediaImportFixture.enabled(ProcessInfo.processInfo.arguments) {
+                    HStack {
+                        Button("导入测试照片") { fixture(video: false) }.accessibilityIdentifier("media.fixture.image")
+                        Button("导入测试视频") { fixture(video: true) }.accessibilityIdentifier("media.fixture.video")
+                    }.disabled(busy)
+                }
+                #endif
                 Text("单个影像不超过 50 MiB").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                 if busy { ProgressView("正在保存影像…") }
                 if !error.isEmpty { Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger) }
                 Spacer()
             }.padding(20).background(XJTheme.background).navigationTitle("添加影像").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { dismiss() }.disabled(busy) } }
-        }.onChange(of: photo) { _, item in if let item { load(item) } }
+        }.interactiveDismissDisabled(busy)
+            .onDisappear { importTask?.cancel() }
+            .onChange(of: photo) { _, item in if let item { load(item) } }
             .fullScreenCover(isPresented: $camera) {
                 CameraPicker { result in
                     camera = false
@@ -98,7 +109,7 @@ struct MediaPickerSheet: View {
     private func load(_ item: PhotosPickerItem) {
         guard !busy else { return }; busy = true; error = ""
         let store = workspace.store
-        Task { @MainActor in
+        importTask = Task { @MainActor in
             defer { busy = false; photo = nil }
             do {
                 if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
@@ -115,41 +126,39 @@ struct MediaPickerSheet: View {
     }
     private func save(image: UIImage?, video: URL?) {
         busy = true; error = ""; let store = workspace.store
-        Task { @MainActor in
+        importTask = Task { @MainActor in
             defer { busy = false }
             do { try await persist(image: image, video: video, store: store); dismiss() }
             catch { self.error = error.localizedDescription }
         }
     }
     private func persist(image: UIImage?, video: URL?, store: NativeStore) async throws {
-        let mediaID = "m" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        let relative = "media/\(mediaID).\(video == nil ? "jpg" : "mp4")"
-        _ = try LocalMediaFiles.directory(in: store.records.directory, create: true)
-        let destination = store.records.directory.appending(path: relative)
-        var committed = false
-        defer { if !committed { try? FileManager.default.removeItem(at: destination) } }
-        var duration = 0.0
-        if let video {
-            let asset = AVURLAsset(url: video)
-            duration = try await asset.load(.duration).seconds
-            guard duration.isFinite, duration >= 0 else { throw CoreFailure(message: "视频时长无法读取") }
-            guard let export = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else { throw CoreFailure(message: "视频无法转换") }
-            if #available(iOS 18.0, *) { try await export.export(to: destination, as: .mp4) }
-            else {
-                export.outputURL = destination; export.outputFileType = .mp4
-                await export.export()
-                guard export.status == .completed else { throw CoreFailure(message: "视频转换失败") }
-            }
-        } else {
-            guard let image, let data = image.jpegData(compressionQuality: 0.9), data.count <= 50 * 1024 * 1024 else { throw CoreFailure(message: "照片无法保存或超过 50 MiB") }
-            try data.write(to: destination, options: .atomic)
-        }
-        let size = try destination.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-        guard size > 0, size <= 50 * 1024 * 1024 else { throw CoreFailure(message: "影像超过 50 MiB，请选择较短视频") }
-        guard workspace.store === store else { throw CoreFailure(message: "账号已变化，请重新添加影像") }
-        try store.call("addMedia", ["id": .string(houseID), "value": .object(["id": .string(mediaID), "type": .string(video == nil ? "image" : "video"), "path": .string(relative), "fieldId": .string(fieldID), "caption": .string(""), "duration": .number(duration), "createdAt": .string(ISO8601DateFormatter().string(from: Date()))])])
-        committed = true
+        let item = try await NativeMediaImport.stage(image: image, video: video, store: store, isCurrent: { workspace.store === store })
+            .setting("fieldId", to: .string(fieldID))
+        var accepted = false
+        defer { if !accepted { LocalMediaReferences.discard([item["path"].string], in: store) } }
+        try Task.checkCancellation()
+        if let stage { try stage(item) }
+        else { try store.call("addMedia", ["id": .string(houseID), "value": item]) }
+        accepted = true
     }
+    #if DEBUG
+    private func fixture(video: Bool) {
+        guard !busy, MediaImportFixture.enabled(ProcessInfo.processInfo.arguments) else { return }
+        busy = true; error = ""; let store = workspace.store
+        importTask = Task { @MainActor in
+            defer { busy = false }
+            do {
+                let fixtures = try MediaReviewFixtures.make()
+                defer { if let root = fixtures.first?.url?.deletingLastPathComponent() { try? FileManager.default.removeItem(at: root) } }
+                guard let source = fixtures.first(where: { $0.kind == (video ? .video : .image) })?.url else { throw CoreFailure(message: "测试影像缺失") }
+                try await persist(image: video ? nil : UIImage(contentsOfFile: source.path), video: video ? source : nil, store: store)
+                dismiss()
+            } catch { self.error = error.localizedDescription }
+        }
+    }
+    #endif
+
 }
 
 private struct CameraPayload { let image: UIImage?; let video: URL? }

@@ -59,37 +59,43 @@ struct IssuesPage: View {
 
 private struct IssueEditor: View {
     let workspace: AppWorkspace
-    let houseID: String
-    let issueID: String
     let isNew: Bool
-    @State private var title = ""
-    @State private var note = ""
-    @State private var error = ""
+    @State private var draft: IssueDraft
+    @State private var picking = false
+    @State private var preview: MediaTile?
     @Environment(\.dismiss) private var dismiss
-    private var readonly: Bool { workspace.store.house(houseID)["archived"].bool }
+
+    init(workspace: AppWorkspace, houseID: String, issueID: String, isNew: Bool) {
+        self.workspace = workspace; self.isNew = isNew
+        let store = workspace.store
+        _draft = State(initialValue: IssueDraft(store: store, houseID: houseID, issueID: issueID, isNew: isNew,
+                                               isCurrent: { workspace.store === store }))
+    }
     var body: some View {
         NavigationStack {
-            Form {
-                TextField("问题标题", text: $title).accessibilityIdentifier("issue.title").disabled(readonly)
-                    .onChange(of: title) { _, value in if value.count > 200 { title = String(value.prefix(200)) } }
-                TextEditor(text: $note).frame(minHeight: 160).accessibilityIdentifier("issue.note").disabled(readonly)
-                    .onChange(of: note) { _, value in if value.count > 10000 { note = String(value.prefix(10000)) } }
-                if !error.isEmpty { Text(error).foregroundStyle(XJTheme.danger) }
-            }.navigationTitle(isNew ? "新建问题" : "问题详情").navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button(readonly ? "关闭" : "取消") { dismiss() } }
-                    if !readonly { ToolbarItem(placement: .confirmationAction) { Button("保存") { save() }.disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) } }
-                }.onAppear {
-                    if let item = workspace.store.house(houseID)["issues"].array.first(where: { $0.id == issueID }) { title = item["title"].string; note = item["note"].string }
+            IssueEditorSurface(title: $draft.title, note: $draft.note,
+                media: draft.media.map { mediaTile($0, store: draft.store) }, titleError: $draft.titleError, error: $draft.error,
+                readonly: draft.readonly, selecting: picking, saving: draft.saving, dirty: draft.dirty,
+                addMedia: { picking = true },
+                removeMedia: { tile in if let item = draft.media.first(where: { $0.id == tile.id }) { draft.remove(item) } },
+                preview: { preview = $0 }, cancel: { draft.discard(); dismiss() }, save: { if draft.save() { dismiss() } })
+                .navigationTitle(isNew ? "新建问题" : "问题详情").navigationBarTitleDisplayMode(.inline)
+                .interactiveDismissDisabled(draft.dirty || picking || draft.saving)
+                .sheet(isPresented: $picking) {
+                    MediaPickerSheet(workspace: workspace, houseID: draft.houseID, stage: { try draft.addImported($0) })
                 }
-        }
-    }
-    private func save() {
-        do {
-            let media = workspace.store.house(houseID)["media"].array.filter { $0["issueId"].string == issueID }
-            try workspace.store.call("writeIssue", ["id": .string(houseID), "issueId": .string(issueID), "isNew": .bool(isNew),
-                "draft": .object(["title": .string(title), "note": .string(note), "media": .array(media)])])
-            dismiss()
-        } catch { self.error = error.localizedDescription }
+                .sheet(item: $preview) { item in
+                    NavigationStack {
+                        Group {
+                            if item.kind == .video { InlineMediaVideo(url: item.url) }
+                            else if let url = item.url, let image = UIImage(contentsOfFile: url.path) {
+                                Image(uiImage: image).resizable().scaledToFit().accessibilityIdentifier("issueEditor.previewImage")
+                            }
+                        }.padding(16).navigationTitle("影像预览").navigationBarTitleDisplayMode(.inline)
+                            .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton() } }
+                    }
+                }
+        }.onChange(of: workspace.identityRevision) { _, _ in draft.discard(); dismiss() }
+            .onDisappear { if !picking && preview == nil { draft.discard() } }
     }
 }

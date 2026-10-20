@@ -70,6 +70,7 @@ struct MediaThumbnail: View {
 struct MediaGallerySurface: View {
     let items: [MediaTile]
     @Binding var filter: MediaFilter
+    var readonly = false
     let preview: (MediaTile) -> Void
     let caption: (MediaTile) -> Void
     private var visible: [MediaTile] { items.filter(filter.includes) }
@@ -103,7 +104,7 @@ struct MediaGallerySurface: View {
                                 .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }
                                 .accessibilityLabel(item.kind == .image ? "预览照片" : "播放视频")
                                 .accessibilityIdentifier("gallery.preview.\(item.id)")
-                            Button { caption(item) } label: {
+                            if !readonly || !item.caption.isEmpty { Button { caption(item) } label: {
                                 Text(item.caption.isEmpty ? "＋" : item.caption)
                                     .font(.system(size: item.caption.isEmpty ? 22 : 13))
                                     .foregroundStyle(item.caption.isEmpty ? XJTheme.muted : XJTheme.ink)
@@ -111,6 +112,7 @@ struct MediaGallerySurface: View {
                                     .frame(maxWidth: .infinity, minHeight: 44, alignment: item.caption.isEmpty ? .center : .topLeading)
                             }.buttonStyle(.plain).accessibilityLabel(item.caption.isEmpty ? "添加影像备注" : item.caption)
                                 .accessibilityIdentifier("gallery.caption.\(item.id)")
+                            }
                         }
                     }
                 }

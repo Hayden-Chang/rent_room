@@ -3,9 +3,10 @@ import XCTest
 @MainActor final class BusinessFlowTests: XCTestCase {
     private var guideDismissed = false
     override func setUpWithError() throws { continueAfterFailure = false; guideDismissed = false }
-    private func launch() -> XCUIApplication {
+    private func launch(mediaFixture: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if mediaFixture { app.launchArguments.append("--media-import-fixture") }
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10)); return app
     }
     private func add(_ name: String, _ app: XCUIApplication) {
@@ -90,15 +91,97 @@ import XCTest
     }
     func testManualIssueSaveResolveAndRelaunch() {
         let app = launch(); add("问题检查", app); app.buttons["tab.问题"].tap(); app.buttons["issue.add"].tap()
-        let title = app.textFields["issue.title"]; XCTAssertTrue(title.waitForExistence(timeout: 3)); title.tap(); title.typeText("漏水待修")
-        let note = app.textViews["issue.note"]; note.tap(); note.typeText("确认修复时间")
+        let title = app.textFields["issueEditor.title"]; XCTAssertTrue(title.waitForExistence(timeout: 3)); title.tap(); title.typeText("漏水待修")
+        let note = app.textViews["issueEditor.note"]; note.tap(); note.typeText("确认修复时间")
+        app.buttons["完成"].tap()
         capture("16a-native-issue-editor", app)
-        app.buttons["保存"].tap(); XCTAssertTrue(app.buttons["待跟进"].waitForExistence(timeout: 3))
+        app.buttons["issueEditor.save"].tap(); XCTAssertTrue(app.buttons["待跟进"].waitForExistence(timeout: 3))
         capture("16-native-manual-issue", app)
         app.buttons["待跟进"].tap(); XCTAssertTrue(app.buttons["已解决"].waitForExistence(timeout: 3))
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.问题检查"].waitForExistence(timeout: 10))
         app.buttons["house.问题检查"].tap(); app.buttons["tab.问题"].tap()
         XCTAssertTrue(app.buttons["已解决"].exists); XCTAssertTrue(app.staticTexts["确认修复时间"].exists)
+    }
+    private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
+        for _ in 0..<4 { if element.isHittable { break }; app.scrollViews.firstMatch.swipeUp() }
+        XCTAssertTrue(element.isHittable)
+    }
+    private func importFixture(_ kind: String, _ app: XCUIApplication) {
+        let addMedia = app.buttons["issueEditor.addMedia"]; reveal(addMedia, app); addMedia.tap()
+        let source = app.buttons["media.fixture." + kind]; XCTAssertTrue(source.waitForExistence(timeout: 3)); source.tap()
+        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: source)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 10), .completed)
+    }
+    private func buttons(_ prefix: String, _ app: XCUIApplication) -> XCUIElementQuery {
+        app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", prefix))
+    }
+    func testIssueMediaSaveDiscardCaptionAndRelaunch() {
+        let app = launch(mediaFixture: true); add("影像业务", app)
+        app.buttons["tab.问题"].tap(); app.buttons["issue.add"].tap()
+        let title = app.textFields["issueEditor.title"]; XCTAssertTrue(title.waitForExistence(timeout: 3))
+        title.tap(); title.typeText("窗框渗水"); app.buttons["完成"].tap()
+        importFixture("image", app); importFixture("video", app)
+        XCTAssertEqual(buttons("issueEditor.remove.", app).count, 2)
+        capture("63-business-issue-media-draft", app)
+        app.buttons["issueEditor.save"].tap()
+        XCTAssertTrue(app.buttons["窗框渗水"].waitForExistence(timeout: 3))
+        app.buttons["tab.影像"].tap()
+        XCTAssertEqual(buttons("gallery.preview.", app).count, 2)
+        capture("64-business-three-column-gallery", app)
+        buttons("gallery.caption.", app).element(boundBy: 0).tap()
+        let caption = app.textViews["note.text"]; XCTAssertTrue(caption.waitForExistence(timeout: 3))
+        caption.tap(); caption.typeText("雨后复查窗框"); app.buttons["保存备注"].tap()
+        XCTAssertTrue(app.buttons["雨后复查窗框"].waitForExistence(timeout: 3))
+        app.buttons["gallery.filter.视频"].tap(); XCTAssertEqual(buttons("gallery.preview.", app).count, 1)
+        app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.影像业务"].waitForExistence(timeout: 10)); app.buttons["house.影像业务"].tap()
+        app.buttons["tab.影像"].tap(); XCTAssertEqual(buttons("gallery.preview.", app).count, 2)
+        XCTAssertTrue(app.buttons["雨后复查窗框"].exists)
+        app.buttons["tab.问题"].tap(); app.buttons["窗框渗水"].tap()
+        let remove = buttons("issueEditor.remove.", app).element(boundBy: 0); reveal(remove, app); remove.tap()
+        app.buttons["issueEditor.cancel"].tap(); app.alerts["放弃修改？"].buttons["放弃"].tap()
+        XCTAssertTrue(app.buttons["窗框渗水"].waitForExistence(timeout: 3)); app.buttons["窗框渗水"].tap()
+        XCTAssertEqual(buttons("issueEditor.remove.", app).count, 2)
+        capture("65-business-issue-media-restored", app)
+        app.buttons["issueEditor.cancel"].tap()
+        XCTAssertTrue(app.buttons["issue.add"].waitForExistence(timeout: 3)); app.buttons["issue.add"].tap()
+        title.tap(); title.typeText("放弃的新问题"); app.buttons["完成"].tap(); importFixture("image", app)
+        app.buttons["issueEditor.cancel"].tap(); app.alerts["放弃修改？"].buttons["放弃"].tap()
+        XCTAssertTrue(app.buttons["issue.add"].waitForExistence(timeout: 3)); XCTAssertFalse(app.buttons["放弃的新问题"].exists)
+        app.buttons["tab.影像"].tap(); XCTAssertEqual(buttons("gallery.preview.", app).count, 2)
+        home(app); app.buttons["house.影像业务"].press(forDuration: 1)
+        let archive = app.buttons["归档"]; XCTAssertTrue(archive.waitForExistence(timeout: 3)); archive.tap()
+        app.buttons["tab.我的"].tap(); let archives = app.buttons["settings.archive"]; reveal(archives, app); archives.tap()
+        let open = app.buttons["archive.open.影像业务"]; XCTAssertTrue(open.waitForExistence(timeout: 3)); open.tap()
+        app.buttons["tab.影像"].tap(); XCTAssertFalse(app.buttons["拍照或录视频"].exists)
+        XCTAssertEqual(buttons("gallery.caption.", app).count, 1)
+        app.buttons["tab.问题"].tap(); app.buttons["窗框渗水"].tap()
+        XCTAssertTrue(app.staticTexts["房源已归档，问题只读"].waitForExistence(timeout: 3))
+        XCTAssertFalse(title.isEnabled); XCTAssertFalse(app.buttons["issueEditor.save"].exists)
+        XCTAssertEqual(buttons("issueEditor.remove.", app).count, 0)
+        capture("69-business-archived-issue-media", app)
+    }
+    func testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails() {
+        let app = launch(); add("分组业务", app)
+        let query = app.textFields["checklist.search"]; query.tap(); query.typeText("停车"); app.buttons["checklist.keyboard.done"].tap()
+        let fee = app.textFields["input.f11_1.value"]; reveal(fee, app); fee.tap(); fee.typeText("150"); app.buttons["checklist.keyboard.done"].tap()
+        let groupID = "heading.node:group:topic_11", categoryID = "heading.node:category:周边与小区"
+        app.scrollViews.firstMatch.swipeDown()
+        let category = app.buttons[categoryID + ".fold"]; XCTAssertTrue(category.isHittable); category.swipeLeft()
+        XCTAssertTrue(app.buttons[categoryID + ".备注"].waitForExistence(timeout: 3)); capture("66-business-category-swipe", app)
+        let group = app.buttons[groupID + ".fold"]; reveal(group, app); group.tap()
+        XCTAssertEqual(group.value as? String, "已展开")
+        group.swipeLeft(); app.buttons[groupID + ".标记问题"].tap()
+        group.swipeLeft(); app.buttons[groupID + ".备注"].tap()
+        let note = app.textViews["note.text"]; XCTAssertTrue(note.waitForExistence(timeout: 3)); note.tap(); note.typeText("核实固定车位")
+        app.buttons["保存备注"].tap(); XCTAssertTrue(app.buttons[groupID + ".note"].waitForExistence(timeout: 3))
+        let absence = app.buttons[groupID + ".choice.没有"]; reveal(absence, app); absence.tap()
+        XCTAssertTrue(absence.isSelected); XCTAssertFalse(fee.exists); capture("67-business-group-not-applicable", app)
+        absence.tap(); reveal(fee, app); XCTAssertEqual(fee.value as? String, "150")
+        app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.分组业务"].waitForExistence(timeout: 10)); app.buttons["house.分组业务"].tap()
+        query.tap(); query.typeText("停车"); app.buttons["checklist.keyboard.done"].tap()
+        reveal(fee, app); XCTAssertEqual(fee.value as? String, "150"); XCTAssertTrue(app.buttons[groupID + ".note"].exists)
+        reveal(group, app); group.swipeLeft(); XCTAssertEqual(app.buttons[groupID + ".标记问题"].label, "取消问题")
+        capture("68-business-group-restored", app)
     }
     func testCapacityFailureKeepsNameAndExistingHouses() {
         let app = launch(); add("容量一", app); home(app); add("容量二", app); home(app)
