@@ -119,4 +119,15 @@ import XCTest
         capture("38-measurement-inputs-and-actions", app)
         XCTAssertEqual(app.textFields["input.21255282-3663-4abe-b7de-d91eeb3825ed.value"].value as? String, "24")
     }
+
+    func testReadOnlyMapHidesEditingAndLocationActions() {
+        let app = launch("place"), toggle = app.buttons["review.placeReadonly"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5)); XCTAssertTrue(app.textFields["place.query"].exists)
+        toggle.tap()
+        XCTAssertFalse(app.textFields["place.query"].exists); XCTAssertFalse(app.buttons["place.locate"].exists)
+        XCTAssertFalse(app.buttons["place.result.one"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["place.map"].exists)
+        capture("39-readonly-map", app)
+        toggle.tap(); XCTAssertTrue(app.textFields["place.query"].exists)
+    }
 }

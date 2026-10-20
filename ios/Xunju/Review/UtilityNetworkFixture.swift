@@ -36,7 +36,10 @@ enum UtilityNetworkFixture {
                 } else {
                     text = #"{"status":{"infocode":1000},"pois":[{"hotPointID":"house","name":"阳光小区","address":"朝阳路18号","city":"上海市","lonlat":"121.4737,31.2304"}]}"#
                 }
-            case "/geocoder": text = #"{"status":"0","result":{"formatted_address":"上海市朝阳路18号 阳光小区","addressComponent":{"poi":"阳光小区"}}}"#
+            case "/geocoder":
+                text = (value["lon"].number ?? 0) > 121.48
+                    ? #"{"status":"0","result":{"formatted_address":"上海市新城路8号 办公楼","addressComponent":{"poi":"办公楼"}}}"#
+                    : #"{"status":"0","result":{"formatted_address":"上海市朝阳路18号 阳光小区","addressComponent":{"poi":"阳光小区"}}}"#
             case "/transit": text = #"{"resultCode":0,"results":[{"lines":[{"segments":[{"segmentType":2,"segmentLine":[{"lineName":"地铁2号线","segmentTime":24,"segmentDistance":7200,"linePoint":"121.4737,31.2304;121.4787,31.2354;121.4837,31.2404"}]}]}]}]}"#
             default: throw CoreFailure(message: "测试夹具不支持此请求")
             }

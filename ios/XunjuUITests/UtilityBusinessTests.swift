@@ -1,4 +1,5 @@
 import XCTest
+import CoreLocation
 
 @MainActor final class UtilityBusinessTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
@@ -66,5 +67,24 @@ import XCTest
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
         XCTAssertFalse(app.buttons["workplace.clear"].exists)
+    }
+
+    func testSystemLocationWithSimulatedPointCanSelectWorkplace() {
+        let prior = XCUIDevice.shared.location
+        addTeardownBlock { @MainActor in XCUIDevice.shared.location = prior }
+        XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 31.2304, longitude: 121.4737))
+        let app = launch(); app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        let locate = app.buttons["place.locate"]; XCTAssertTrue(locate.waitForExistence(timeout: 3)); locate.tap()
+        let system = XCUIApplication(bundleIdentifier: "com.apple.springboard"), alert = system.alerts.firstMatch
+        if alert.waitForExistence(timeout: 2) {
+            let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+            attachment.name = "40-native-location-permission"; attachment.lifetime = .keepAlways; add(attachment)
+            let names = ["允许一次", "Allow Once", "使用App时允许", "使用 App 时允许", "Allow While Using App"]
+            guard let button = names.map({ alert.buttons[$0] }).first(where: \.exists) else { return XCTFail("Location permission action missing") }
+            button.tap()
+        }
+        let center = app.buttons["place.result.center"]
+        XCTAssertTrue(center.waitForExistence(timeout: 10)); capture("41-simulated-location-nearby", app); center.tap()
+        XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
     }
 }

@@ -20,6 +20,7 @@ struct PlacePickerSurface: View {
     var busy = false
     var message = ""
     var permissionDenied = false
+    var readonly = false
     var emptyText = "搜索地址或点击定位，选择房源位置"
     let search: () -> Void
     let locate: () -> Void
@@ -32,6 +33,7 @@ struct PlacePickerSurface: View {
 
     var body: some View {
         VStack(spacing: 10) {
+            if !readonly {
             HStack(spacing: 4) {
                 TextField("搜索地址，更快填写", text: $query)
                     .font(.system(size: 14)).submitLabel(.search)
@@ -45,17 +47,18 @@ struct PlacePickerSurface: View {
             }.padding(.horizontal, 12).frame(minHeight: 44)
                 .background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
-            if !query.isEmpty && !places.isEmpty {
+            }
+            if !readonly && !query.isEmpty && !places.isEmpty {
                 results(nearby: false).frame(height: 230).clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
             }
             ZStack(alignment: .topTrailing) {
                 if center != nil {
-                    Map(position: $position, interactionModes: [.pan, .zoom]) {}
+                    Map(position: $position, interactionModes: readonly ? [.zoom] : [.pan, .zoom]) {}
                         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
                         .mapControlVisibility(.hidden)
                         .onMapCameraChange(frequency: .onEnd) { context in
-                            moved(GeographicPoint(latitude: context.region.center.latitude, longitude: context.region.center.longitude))
+                            if !readonly { moved(GeographicPoint(latitude: context.region.center.latitude, longitude: context.region.center.longitude)) }
                         }.accessibilityIdentifier("place.map")
                     Text("●").font(.system(size: 22)).foregroundStyle(XJTheme.primary)
                         .frame(width: 24, height: 24).background(.white).clipShape(Circle())
@@ -65,20 +68,22 @@ struct PlacePickerSurface: View {
                         .multilineTextAlignment(.center).padding(.horizontal, 20).padding(.top, 65)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
+                if !readonly {
                 Button("定位", action: locate).font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                     .padding(12).accessibilityIdentifier("place.locate")
-                if query.isEmpty && !places.isEmpty {
+                }
+                if !readonly && query.isEmpty && !places.isEmpty {
                     results(nearby: true).frame(height: 128).frame(maxHeight: .infinity, alignment: .bottom)
                 }
             }.frame(height: 300).background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
-            if busy { Text("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
+            if busy && !readonly { Text("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
             if center != nil || !places.isEmpty {
                 Text("地点信息来源：天地图").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            if !message.isEmpty {
+            if !message.isEmpty && !readonly {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(message).font(.system(size: 12)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("place.message")
                     Button(permissionDenied ? "去设置开启" : "重试", action: permissionDenied ? settings : retry)
