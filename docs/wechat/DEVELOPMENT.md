@@ -16,6 +16,7 @@
 | `src/lib/capacity.js`、`src/lib/billing.js` | 房源容量计算、服务端权益缓存、复用账号令牌的房源包购买/恢复；[接口与验证映射](CAPACITY.md) |
 | `src/lib/files.js` | ZIP 流式编解码、清单校验、媒体大小与 CRC 校验 |
 | `src/lib/ui.js` | 页面取得 service、提示、确认及保存状态订阅的公共辅助 |
+| `src/lib/share.js` | 页面最外层安装微信原生分享菜单和固定小程序卡片；好友打开首页，只有首页启用朋友圈；[接口与验证](SHARING.md) |
 | `src/pages/` | 页面显示、局部交互状态与用户操作编排；共享业务状态通过 service 处理 |
 | `src/lib/commute.js`、`pages/commute/` | 房源到上班地点的公交/驾车查询、路线校验与确认回填；[契约与验证](COMMUTE_ROUTES.md) |
 | `src/components/field-row/` | 字段输入、焦点、左滑操作等组件行为及事件；与页面的事件接口保持明确 |
