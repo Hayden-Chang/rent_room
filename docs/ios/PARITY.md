@@ -66,3 +66,5 @@
 完整页面进展见 [BUSINESS_PAGES.md](BUSINESS_PAGES.md)。原生业务核心和认证测试、第二批组件证据及未完成边界见 [BUSINESS_CORE.md](BUSINESS_CORE.md)。首批 UI 的批准不代表完整 App 已交付。
 
 地点、通勤、测速和四步引导的同源桥接、第四及第五批批准、业务接入和定向验证见 [UTILITIES.md](UTILITIES.md)。前五批均已批准，不重复索要批准；问题媒体、部分清单交互和原生购买仍需补齐。
+
+第六批三列影像、含照片/视频的问题编辑、分类/分组左滑与跳过已形成独立组件及15张实际截图，6UT/4UI场景按影响复用通过。状态为REVIEW_READY，尚未获批或接入完整业务；精确SHA、失败记录、复用依据与未完成边界见 [MEDIA_COMPONENTS.md](MEDIA_COMPONENTS.md)。
