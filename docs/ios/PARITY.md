@@ -44,6 +44,8 @@
 
 ## 原生工程与测试
 
+真机隔离开发版的项目专用入口、设备与签名核验规则见 [真机部署](DEVICE_DEPLOY.md)。构建、安装、启动与正式登录/购买验收分别记录。
+
 工程真源为 `ios/project.yml`、`.xcodegen-version`、Swift 源码和测试。`scripts/run-xcodebuild.sh` 先运行本项目新建的 `scripts/check-xcodegen.sh`，核对固定版本2.45.4、生成确定性与三个 target。生成的 `ios/Xunju.xcodeproj` 不提交。最低 iOS 17；Bundle ID `com.keeline.xunju.ios` 暂用于开发，正式签名前再核对归属。
 
 使用共享 Simulator Management runner 的实时配置及租约，不直接操作其他模拟器。所有 DerivedData、`.xcresult` 和计划均位于外部唯一目录。下表是首批组件的精确选择，不是当前完整App的最终head计划；完整业务完成后按最终风险重新确定最多3项最终UI。所有新增测试在开发阶段执行。
