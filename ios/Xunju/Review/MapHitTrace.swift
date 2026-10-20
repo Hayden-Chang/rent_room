@@ -33,8 +33,10 @@ struct MapHitProbe: UIViewRepresentable {
                 lines.append("\(name) \(probe): \(window.hitTest(probe, with: nil).map { NSStringFromClass(type(of: $0)) } ?? "nil")")
             }
             func visit(_ view: UIView, depth: Int) {
-                guard depth < 24, view.bounds.contains(view.convert(point, from: window)) else { return }
-                lines.append("\(depth): \(NSStringFromClass(type(of: view))) frame=\(view.convert(view.bounds, to: window)) interaction=\(view.isUserInteractionEnabled) hidden=\(view.isHidden) alpha=\(view.alpha)")
+                let local = view.convert(point, from: window)
+                guard depth < 24, view.bounds.contains(local) else { return }
+                let hit = view.hitTest(local, with: nil).map { NSStringFromClass(type(of: $0)) } ?? "nil"
+                lines.append("\(depth): \(NSStringFromClass(type(of: view))) frame=\(view.convert(view.bounds, to: window)) bounds=\(view.bounds) inside=\(view.point(inside: local, with: nil)) hit=\(hit) interaction=\(view.isUserInteractionEnabled) hidden=\(view.isHidden) alpha=\(view.alpha)")
                 for child in view.subviews { visit(child, depth: depth + 1) }
             }
             visit(window, depth: 0)
