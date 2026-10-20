@@ -89,16 +89,35 @@ DEBUG的 `--utility-network-fixture` 必须同时有合法 `--business-test <UUI
 
 第五批4张真实1178×2556截图已经主agent检查并展示。未改像素副本位于前述可视化目录的 `ios-utility-business/`：`36-speed-wifi-consent.png`、`37-speed-mobile-consent.png` 来源cfc；`38-measurement-inputs-and-actions.png`、`39-readonly-map.png` 来源fcdd。结果bundle分别为 `/Volumes/mac2/codex-builds/xunju-ios-utilities-integration-20261020-01.xcresult`、`/Volumes/mac2/codex-builds/xunju-ios-final-utility-components-20261020-01.xcresult`，原始导出分别在 `/tmp/xunju-ios-20261019/utilities-integration-01-attachments/` 和 `final-utility-components-01-attachments/`。cfc至9e中网络确认和输入的布局/主题/宿主未改变；只读地图的隐藏输入/定位/结果及300pt视觉不变，后续命中形状覆盖高度为0，不改变该截图的像素布局。39在eb又独立通过，保留其实际来源，不改称新head截图。
 
-模拟定位使用XCTest公开的 `XCUIDevice.location`，测试后恢复原值；已经取得CoreLocation回调及候选结果，但选取尚未成功，不代表真机GPS验收。授权弹窗关闭后的截图和AX层级已检查，附近面板完整可见。第一轮将面板改为明确bottom overlay，第二轮用contentShape排除地图被面板覆盖的128pt，两次均未解决命中问题，失败证据保留。
+模拟定位使用XCTest公开的 `XCUIDevice.location`，测试后恢复原值；首次取得回调后附近选取失败，后续去除诊断的成功复验见下，不代表真机GPS验收。授权弹窗关闭后的截图和AX层级已检查，附近面板完整可见。第一轮将面板改为明确bottom overlay，第二轮用contentShape排除地图被面板覆盖的128pt，两次均未解决命中问题，失败证据保留。
 
 两轮失败后先按research-after-two-failed-attempts核查官方资料，再进行只读诊断，不做第三次盲改。[SwiftUI interaction形状](https://developer.apple.com/documentation/swiftui/contentshapekinds/interaction)控制命中与无障碍；[UIKit hitTest](https://developer.apple.com/documentation/uikit/uiview/hittest%28_%3Awith%3A%29)根据视图层级和bounds选择接收者，即使透明区域也可能命中。2026-10-20未找到足以确认本例为26.5已知系统缺陷的官方说明。后续用显式DEBUG隔离参数采集实际UIView命中路径，不触发选择回调、不改业务数据，也不使用坐标点击绕过失败。
 
 诊断与收敛：`place-hit-trace-20261020-01/02/03` 分别来自cb69772/b9aec93/8c6df9c。03完整记录各级bounds、pointInside和hitTest；后续补充返回视图frame，确认命中的是内层列表(32,371,329,109)，不是外层容器。此前仅凭同名UIKit类作出的“外层接收”判断被否定。叶子矩形点击区域的 `place-hit-20261020-03`（a6244e2）和对齐小程序独立“使用”按钮的04（85fd492）均未单独解决AX命中，2UI各自失败，完整证据保留。
 
-`place-ax-order-20261020-01`（8498c70）：1UI通过原附近“使用”、搜索选择和权限回退完整流程。UIKit原生点命中已正确，但AX排序仍将地图放在覆盖列表前；按[Apple同层无障碍排序说明](https://developer.apple.com/documentation/swiftui/view/accessibilitysortpriority%28_%3A%29)将附近列表priority设为1，未改变像素布局，语义按钮点击随后通过。移除了两次无效的地图布局/命中掩模；最终保留同源独立“使用”按钮及覆盖列表AX顺序。临时MapHitTrace及启动参数已从当前源码移除，诊断历史和原始附件仍保留。实际定位选点保存和重启尚待去除诊断后的复验，不把这1UI称为完整GPS验收。
+`place-ax-order-20261020-01`（8498c70）：1UI通过原附近“使用”、搜索选择和权限回退完整流程。UIKit原生点命中已正确，实验支持本例AX同层顺序影响命中的判断；按[Apple同层无障碍排序说明](https://developer.apple.com/documentation/swiftui/view/accessibilitysortpriority%28_%3A%29)将附近列表priority设为1，未改变像素布局，语义按钮点击随后通过。移除了两次无效的地图布局/命中掩模；最终保留同源独立“使用”按钮及覆盖列表AX顺序。临时MapHitTrace及启动参数已从当前源码移除，诊断历史和原始附件仍保留；去除诊断后的实际定位选点保存/重启验证见下。
 
 ## 第五批批准后的测速接入
 
 清单使用已批准的行内输入/查询/测试；归档地图隐藏输入、定位与结果选择，保留原产品允许的缩放。SpeedPage接入原生网络监测、两次明确同意、分段测速及受保护回填，完成后返回清单；拒绝或主动取消返回并保留手工值。退后台取消当前任务，离开停止监测并恢复所有等待；重试弹窗带请求UUID，过期授权回调不能接受新一轮测速。显示保存失败时仍保留读数并可重试保存。
 
 原生确认回调增加UUID，不改变已批准外观；旧回调、网络变化、离开、离线和正常移动网络顺序由新增SpeedFlowTests验证。`--speed-measurement-fixture wifi|mobile|offline|slow` 必须同时有合法 `--business-test UUID` 才启用，且与地图HTTP夹具独立。只在DEBUG注入可取消的假范围传输/单调时钟/网络状态；完整UI仍通过真实新建、引导、手工填写、原生弹窗、回填和重启。没有真实测速下载，也不能用8.39夹具读数证明实际网速。
+
+## 本轮业务验证结果
+
+| runId 后缀 | 来源 | 实际结果 |
+| --- | --- | --- |
+| `speed-business-map-20261020-01` | `94dffa0` | 8UT通过；6UI中5通过：移动网络确认/回填/重启，真实引导/地图/通勤/归档只读，模拟定位使用/保存/重启，附近使用/搜索/权限回退，原生两步确认。拒绝后第二次进入测速未再次确认，1UI失败 |
+| `speed-reentry-20261020-01` | `0018651` | 0UT重复；3UI全部通过：首次移动确认/回填/重启，拒绝后重进/取消/后台取消/重新确认/原值重启保留，以及受影响的原清单选择/折叠/左滑 |
+
+8UT为7项新增SpeedFlowTests及受影响的SpeedSession网络变化取消；NativeNetwork的3UT此前在eb95a2d已通过，源码未再改变。001对94d只改测速入口的页面身份、两个短文本的压缩优先和相应UI测试；SpeedFlow/Session/Network、HTTP桥接、持久化和单测未改，复用这8UT，不重复执行。所有新增/修改UI方法都已在development运行；不把不同来源累积为一次最终head全量验证。
+
+第二次进入失败前后证据：94d的实际层级和录屏末帧显示仍为上一轮“测速已取消，原值保持不变／重新测速”，不是首次原生弹窗未呈现。导航复用了已离开的State；001每次点击生成新页面标识，按[Apple View.id说明](https://developer.apple.com/documentation/swiftui/view/id%28_%3A%29)重建该轮状态。原失败方法不跳过第二次进入，新增按Home/重新激活、核对旧弹窗关闭、重新测速及拒绝返回，全部通过。初始重进计划因changedUITests清单不一致被验证器拒绝，未构建/测试，原错误日志另存；修正计划后才执行。
+
+主agent还在实际嵌套行截图发现Mbps和“没有”换行，001保持短文本固有宽度，实际业务截图确认两者单行；字重、字号和已批准颜色不变。没有为该低影响样式增加独立测试轮，复用本次必跑的测速业务UI和最小受影响清单组件。
+
+14张真实1178×2556截图已由主agent逐张查看，未改像素副本：`/Users/pc/.codex/visualizations/2026/10/19/01a153f1-2c5b-7130-9ac8-1717a9eabf0c/ios-utility-integration-final/`。30–35、40–42、45来自94d；43、44、46、47来自001；`provenance.json`记录原始附件、方法、SHA、像素尺寸与SHA256。地图/权限/只读页面及其控制器在94d至001未改变；这些图片保持原始来源，不能改称001截图。全清单旧截图可能仍有文本压缩差异，优先用001的44展示修正后的嵌套输入。
+
+本轮结果bundle位于 `/Volumes/mac2/codex-builds/xunju-ios-speed-business-map-20261020-01.xcresult` 和 `xunju-ios-speed-reentry-20261020-01.xcresult`，完整计划/日志/导出在 `/tmp/xunju-ios-20261019/`。本轮及前序失败、诊断、计划拒绝和receipt另存被忽略的 `artifacts/ios-utility-business-20261020/`，不含本机地图配置。实际UDID仍为5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9；runner结束后locks、run-slots、queue均为空，租约和执行slot已释放。
+
+当前仅开发验证：前五批已批准，PR保持Draft；问题媒体/部分清单交互/原生购买仍未完成，实际短信、Apple、微信、地图服务、相机和真实测速均不能由本轮夹具结果代替验收。没有合并、部署、真机安装或发布。
