@@ -15,7 +15,7 @@ enum ChecklistPresentation {
             multiple: field["multiple"].bool, inline: field["inline"].bool, skippable: field["skippable"].bool,
             hideDivider: hideDivider,
             stats: stats == .null ? "" : "\(stats["done"].int) / \(stats["total"].int)" + (stats["issues"].int > 0 ? " · \(stats["issues"].int) 问题" : ""),
-            photoRef: field["photoRef"].string)
+            photoRef: field["photoRef"].string, collapsible: field["expanded"] != .null)
     }
 
     static func state(_ field: JSONValue) -> MPFieldState {

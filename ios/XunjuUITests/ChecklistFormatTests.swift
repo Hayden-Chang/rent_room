@@ -59,6 +59,11 @@ import XCTest
                 group.tap(); XCTAssertEqual(group.value as? String, "已折叠", groupID)
                 capture("fold-\(groupID)", app)
                 group.tap(); XCTAssertEqual(group.value as? String, "已展开", groupID)
+                let choicePrefix = groupID.replacingOccurrences(of: "mp.field.title.", with: "mp.field.choice.") + "."
+                for button in app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", choicePrefix)).allElementsBoundByIndex {
+                    XCTAssertGreaterThanOrEqual(button.frame.minX, group.frame.maxX, button.identifier)
+                    XCTAssertLessThanOrEqual(button.frame.maxX, app.frame.width - 31, button.identifier)
+                }
                 capture("expand-\(groupID)", app)
             }
             app.buttons["回到顶部"].tap()
@@ -75,7 +80,7 @@ import XCTest
     func testAppliancesPestsNetworkCostsAndContractFormats() {
         checkCategories(["家电", "虫害鼠害", "电路网络与隐私", "费用与付款", "身份与合同"], launch())
     }
-    func testConditionalAbsenceSkipAndRetainedFoldDoNotClearAnswers() {
+    func testConditionalAbsenceAndRetainedFoldDoNotClearAnswers() {
         let app = launch()
         search("空调", app)
         let group = "node:group:topic_55"
@@ -90,15 +95,42 @@ import XCTest
         app.buttons["mp.field.choice.\(group).否"].tap()
         reveal(answer, app); XCTAssertTrue(answer.isSelected)
         reveal(app.staticTexts["mp.field.title.\(group)"], app)
-        let skip = app.buttons["mp.field.choice.\(group).不涉及"]
-        XCTAssertTrue(skip.exists); skip.tap(); XCTAssertFalse(answer.exists)
-        capture("conditional-aircon-skipped", app)
-        skip.tap(); reveal(answer, app); XCTAssertTrue(answer.isSelected)
         let title = app.staticTexts["mp.field.title.\(group)"]; reveal(title, app); title.tap()
         app.buttons["tab.总结"].tap(); app.buttons["tab.清单"].tap()
         XCTAssertEqual(app.textFields["mp.checklist.search"].value as? String, "空调")
         XCTAssertEqual(title.value as? String, "已折叠"); XCTAssertFalse(answer.exists)
         title.tap(); reveal(answer, app); XCTAssertTrue(answer.isSelected)
         capture("conditional-aircon-restored", app)
+    }
+    func testWrappedChoicesOtherAndDynamicCostFormats() {
+        let app = launch()
+        search("朝向", app)
+        let other = app.buttons["mp.field.choice.f1_5.其他"]
+        reveal(other, app); other.tap()
+        let detail = app.textFields["mp.field.other.f1_5"]
+        reveal(detail, app); detail.tap(); detail.typeText("南北双面采光"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertEqual(detail.value as? String, "南北双面采光")
+        let east = app.buttons["mp.field.choice.f1_5.东"]
+        XCTAssertGreaterThan(other.frame.minY, east.frame.minY)
+        capture("wrapped-direction-other", app)
+        search("宽带", app)
+        let absent = app.buttons["mp.field.choice.node:group:bb080b15-a843-4478-a4c6-5453ec0a2ac6.没有"]
+        reveal(absent, app); absent.tap()
+        search("运营商", app)
+        let mobile = app.buttons["mp.field.choice.f83_2.移动"], unicom = app.buttons["mp.field.choice.f83_2.联通"]
+        reveal(mobile, app); mobile.tap(); unicom.tap()
+        XCTAssertTrue(mobile.isSelected); XCTAssertTrue(unicom.isSelected)
+        capture("conditional-provider-multiple", app)
+        search("周期费用", app)
+        let cost = app.buttons["checklist.cost.019886c9-e108-45b4-a0c5-c20d594379e5"]
+        reveal(cost, app); cost.tap()
+        let input = app.textFields["mp.prompt.text"]; XCTAssertTrue(input.waitForExistence(timeout: 3))
+        input.tap(); input.typeText("车位管理费"); app.buttons["mp.prompt.save"].tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "车位管理费")).firstMatch.waitForExistence(timeout: 3))
+        XCTAssertEqual(app.textFields["mp.checklist.search"].value as? String, "搜索检查项、结果或备注")
+        let added = app.textFields.matching(NSPredicate(format: "identifier BEGINSWITH %@", "mp.field.input.cost_")).firstMatch
+        reveal(added, app); added.tap(); added.typeText("200"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertEqual(added.value as? String, "200")
+        capture("dynamic-cost-expanded-and-saved", app)
     }
 }

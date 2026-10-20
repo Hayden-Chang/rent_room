@@ -26,7 +26,7 @@ import XCTest
             folds[title] = true
             for (index, row) in rows.enumerated() {
                 XCTAssertLessThanOrEqual(ChecklistPresentation.indent(row), 24)
-                if row["depth"].int >= 2 { deepRows += 1 }
+                if row["depth"].int >= 1 { deepRows += 1 }
                 if row["kind"].string != "group" { continue }
                 groups += 1
                 XCTAssertEqual(ChecklistPresentation.item(row["swipe"]).kind, .group)
@@ -40,6 +40,8 @@ import XCTest
         }
         XCTAssertGreaterThan(groups, 50)
         XCTAssertGreaterThan(deepRows, 0)
+        // Imported/custom templates may be deeper than today's canonical tree.
+        XCTAssertEqual(ChecklistPresentation.indent(.object(["depth": .number(4)])), 24)
         XCTAssertEqual(store.state, before)
         XCTAssertEqual(try NativeStore(directory: store.records.directory).state, before)
     }

@@ -79,6 +79,7 @@ struct MPFieldItem {
     var labels: [String: String] = [:]
     var multiple = false, inline = true, skippable = false, hideDivider = false
     var stats = "", photoRef = ""
+    var collapsible = true
     var heading: Bool { kind == .category || kind == .group }
 }
 
@@ -118,11 +119,11 @@ struct MPFieldRow: View {
                         Text(item.title + (item.multiple ? " · 多选" : ""))
                             .font(.system(size: item.heading ? 14 : 13, weight: item.heading ? .semibold : .regular))
                             .foregroundStyle(problemInk).multilineTextAlignment(.leading)
-                        if item.heading { Text(state.expanded ? "⌃" : "⌄").font(.system(size: 11)).foregroundStyle(XJTheme.muted) }
+                            .accessibilityIdentifier("mp.field.title.\(item.id)")
+                            .accessibilityValue(item.heading && item.collapsible ? (state.expanded ? "已展开" : "已折叠") : "")
+                        if item.heading && item.collapsible { Text(state.expanded ? "⌃" : "⌄").font(.system(size: 11)).foregroundStyle(XJTheme.muted).accessibilityHidden(true) }
                     }.frame(maxWidth: item.kind == .text ? 104 : .infinity, minHeight: height, alignment: .leading)
-                        .contentShape(Rectangle()).onTapGesture { if !coordinator.consumeTap(), item.heading { state.expanded.toggle() } }
-                        .accessibilityIdentifier("mp.field.title.\(item.id)")
-                        .accessibilityValue(item.heading ? (state.expanded ? "已展开" : "已折叠") : "")
+                        .contentShape(Rectangle()).onTapGesture { if !coordinator.consumeTap(), item.heading && item.collapsible { state.expanded.toggle() } }
                     if item.inline || item.heading {
                         ZStack { answer.offset(x: offset) }.clipped().allowsHitTesting(offset == 0)
                     }
