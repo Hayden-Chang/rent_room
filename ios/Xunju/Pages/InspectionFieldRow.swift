@@ -40,7 +40,7 @@ struct InspectionFieldRow: View {
                         if !workspace.store.status.error.isEmpty { throw CoreFailure(message: workspace.store.status.error) }
                         editingNote = false
                     } catch { noteError = error.localizedDescription }
-                }).presentationBackground(.clear)
+                }).ignoresSafeArea(.container, edges: .bottom).presentationBackground(.clear)
         }.sheet(isPresented: $picking) { MediaPickerSheet(workspace: workspace, houseID: houseID, fieldID: field.id) }
             .navigationDestination(isPresented: $commute) { CommutePage(workspace: workspace, houseID: houseID, fieldID: field.id) }
             .navigationDestination(isPresented: $speed) { SpeedPage(workspace: workspace, houseID: houseID).id(speedVisit) }

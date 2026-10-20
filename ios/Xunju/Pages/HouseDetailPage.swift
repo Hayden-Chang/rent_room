@@ -115,6 +115,7 @@ struct ChecklistPage: View {
             .fullScreenCover(item: $note) { target in
                 MPNoteSheet(title: target.title + " · 备注", text: $noteText, readonly: readonly, error: noteError,
                     close: { note = nil }, save: { saveNote(target) })
+                    .ignoresSafeArea(.container, edges: .bottom)
                     .presentationBackground(.clear)
             }
             .fullScreenCover(item: $cost) { group in
@@ -123,7 +124,7 @@ struct ChecklistPage: View {
                     .presentationBackground(.clear)
             }
             .toolbar { ToolbarItemGroup(placement: .keyboard) {
-                if isActive {
+                if isActive && note == nil && cost == nil {
                 Spacer()
                 Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
                     .accessibilityIdentifier("checklist.keyboard.done")

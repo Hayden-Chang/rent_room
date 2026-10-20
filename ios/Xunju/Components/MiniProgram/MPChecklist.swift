@@ -183,7 +183,7 @@ struct MPFieldRow: View {
         } else {
             HStack(spacing: 4) {
                 if !item.stats.isEmpty { Text(item.stats).font(.system(size: 12)).foregroundStyle(XJTheme.muted).fixedSize() }
-                if item.skippable { option("不涉及", selected: state.skipped) { state.skipped.toggle() } }
+                if item.skippable { option("不涉及", selected: state.skipped, isSkip: true) { state.skipped.toggle() } }
                 if !state.skipped {
                     if item.inline || item.heading {
                         ForEach(item.options, id: \.self) { value in option(item.labels[value] ?? value, selected: state.selected.contains(value)) { select(value) } }
@@ -194,9 +194,9 @@ struct MPFieldRow: View {
             }.fixedSize(horizontal: item.inline || item.heading, vertical: false)
         }
     }
-    private func option(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+    private func option(_ title: String, selected: Bool, isSkip: Bool = false, action: @escaping () -> Void) -> some View {
         Button { if !coordinator.consumeTap() { action() } } label: {
-            Text(title).font(.system(size: title == "不涉及" ? 12 : 13, weight: item.heading && title != "不涉及" ? .semibold : .regular))
+            Text(title).font(.system(size: isSkip ? 12 : 13, weight: item.heading && !isSkip ? .semibold : .regular))
                 .fixedSize(horizontal: true, vertical: false).padding(.horizontal, item.inline ? 10 : 14).frame(minWidth: 44, minHeight: 44)
                 .foregroundStyle(selected ? XJTheme.primary : XJTheme.ink).background(selected ? XJTheme.soft : XJTheme.background)
                 .clipShape(RoundedRectangle(cornerRadius: 6))

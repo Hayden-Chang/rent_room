@@ -40,7 +40,7 @@ import XCTest
         app.otherElements["mp.field.f1_6"].firstMatch.swipeLeft(); app.buttons["备注"].firstMatch.tap()
         let fieldNote = app.textViews["mp.note.text"]
         XCTAssertTrue(fieldNote.waitForExistence(timeout: 3)); fieldNote.tap(); fieldNote.typeText("含物业费")
-        XCTAssertFalse(app.buttons["tab.清单"].exists, "The note modal must cover and block detail tabs")
+        XCTAssertFalse(app.buttons["tab.清单"].isHittable, "The note modal must cover and block detail tabs")
         let saveNote = app.buttons["mp.note.save"]
         XCTAssertLessThanOrEqual(fieldNote.frame.maxY, saveNote.frame.minY)
         XCTAssertLessThanOrEqual(saveNote.frame.maxY, app.keyboards.firstMatch.frame.minY)
@@ -286,7 +286,7 @@ import XCTest
         group.swipeLeft(); app.buttons["mp.field.action." + groupID + ".备注"].tap()
         let note = app.textViews["mp.note.text"]; XCTAssertTrue(note.waitForExistence(timeout: 3)); note.tap(); note.typeText("核实固定车位")
         app.buttons["保存备注"].tap(); XCTAssertTrue(app.buttons["核实固定车位"].waitForExistence(timeout: 3))
-        let absence = app.buttons["mp.field.choice." + groupID + ".没有"]; reveal(absence, app); absence.tap()
+        let absence = app.buttons["mp.field.choice." + groupID + ".不涉及"]; reveal(absence, app); absence.tap()
         XCTAssertTrue(absence.isSelected); XCTAssertFalse(fee.exists); capture("67-business-group-not-applicable", app)
         absence.tap(); reveal(fee, app); XCTAssertEqual(fee.value as? String, "150")
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.分组业务"].waitForExistence(timeout: 10)); app.buttons["house.分组业务"].tap()

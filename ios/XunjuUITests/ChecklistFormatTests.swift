@@ -139,4 +139,34 @@ import XCTest
         XCTAssertEqual(added.value as? String, "200")
         capture("dynamic-cost-expanded-and-saved", app)
     }
+    func testConditionalProviderAndContractGroupsFoldWithoutLosingAnswers() {
+        let app = launch()
+        func fold(_ id: String, choice: XCUIElement) {
+            let title = app.staticTexts["mp.field.title.node:group:" + id]
+            reveal(title, app); XCTAssertEqual(title.value as? String, "已展开")
+            title.tap(); XCTAssertEqual(title.value as? String, "已折叠"); XCTAssertFalse(choice.exists)
+            capture("fold-mp.field.title.node:group:" + id, app)
+            title.tap(); XCTAssertEqual(title.value as? String, "已展开"); XCTAssertTrue(choice.isSelected)
+            capture("expand-mp.field.title.node:group:" + id, app)
+        }
+        search("宽带", app)
+        let absent = app.buttons["mp.field.choice.node:group:bb080b15-a843-4478-a4c6-5453ec0a2ac6.没有"]
+        reveal(absent, app); absent.tap()
+        search("运营商", app)
+        let mobile = app.buttons["mp.field.choice.f83_2.移动"]
+        reveal(mobile, app); mobile.tap(); fold("topic_83", choice: mobile)
+        for (party, group, field) in [("二房东", "topic_99", "f99_0"), ("中介", "topic_100", "f100_0")] {
+            search("签约方身份", app)
+            let choice = app.buttons["mp.field.choice.f98_3." + party]
+            reveal(choice, app); choice.tap()
+            search(party == "二房东" ? "二房东出租权限" : "中介委托与主体", app)
+            let recorded = app.buttons["mp.field.choice." + field + ".是"]
+            reveal(recorded, app); recorded.tap(); fold(group, choice: recorded)
+        }
+        search("签约方身份", app)
+        let party = app.buttons["mp.field.choice.f98_3.二房东"]; reveal(party, app); party.tap()
+        search("二房东出租权限", app)
+        XCTAssertTrue(app.buttons["mp.field.choice.f99_0.是"].isSelected)
+        capture("conditional-contract-answer-restored", app)
+    }
 }
