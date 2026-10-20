@@ -16,6 +16,8 @@ import XCTest
         let app = launch("place"), query = app.textFields["place.query"]
         XCTAssertTrue(query.waitForExistence(timeout: 10))
         capture("21-place-nearby", app)
+        app.buttons["place.result.one"].tap()
+        XCTAssertEqual(app.staticTexts["review.placeEvent"].label, "已选择：阳光小区")
         query.tap(); query.typeText("公寓\n")
         let choice = app.buttons["place.result.two"]
         XCTAssertTrue(choice.isHittable)

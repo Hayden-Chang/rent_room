@@ -57,6 +57,7 @@ struct PlacePickerSurface: View {
                     Map(position: $position, interactionModes: readonly ? [.zoom] : [.pan, .zoom]) {}
                         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
                         .mapControlVisibility(.hidden)
+                        .contentShape(.interaction, PlaceMapInteractionArea(coveredHeight: !readonly && query.isEmpty && !places.isEmpty ? 128 : 0))
                         .onMapCameraChange(frequency: .onEnd) { context in
                             if !readonly { moved(GeographicPoint(latitude: context.region.center.latitude, longitude: context.region.center.longitude)) }
                         }.accessibilityIdentifier("place.map")
@@ -121,5 +122,14 @@ struct PlacePickerSurface: View {
                 }
             }
         }.background(.white)
+    }
+}
+
+// The opaque nearby panel owns its 128pt of interaction, while the visible map
+// above it retains pan/zoom. MapKit must not hit-test underneath that panel.
+private struct PlaceMapInteractionArea: Shape {
+    let coveredHeight: CGFloat
+    func path(in rect: CGRect) -> Path {
+        Path(CGRect(x: rect.minX, y: rect.minY, width: rect.width, height: max(0, rect.height - coveredHeight)))
     }
 }
