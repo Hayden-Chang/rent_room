@@ -15,7 +15,9 @@ enum UtilityField {
     private(set) var busy = false
     var message = ""
     @ObservationIgnored let store: NativeStore
-    @ObservationIgnored private let houseID: String, fieldID: String, key: String
+    @ObservationIgnored private let houseID: String
+    @ObservationIgnored private let fieldID: String
+    @ObservationIgnored private let key: String
     @ObservationIgnored private let validScope: () -> Bool
     @ObservationIgnored private let previous: JSONValue
     @ObservationIgnored private var stamp: JSONValue = .null
