@@ -12,6 +12,9 @@ enum PhoneLoginValidation {
 }
 
 struct LoginEntryCard: View {
+    var used = 0
+    var limit = 2
+    var appleReady = true
     var wechat: () -> Void
     var phone: () -> Void
     var appleRequest: (ASAuthorizationAppleIDRequest) -> Void
@@ -29,12 +32,12 @@ struct LoginEntryCard: View {
                     .accessibilityIdentifier("login.phone").padding(.top, 12)
                 SignInWithAppleButton(.signIn, onRequest: appleRequest, onCompletion: appleCompletion)
                     .signInWithAppleButtonStyle(.black).frame(height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
-                    .accessibilityIdentifier("login.apple").padding(.top, 12)
+                    .accessibilityIdentifier("login.apple").padding(.top, 12).disabled(!appleReady)
                 Rectangle().fill(XJTheme.line).frame(height: 1).padding(.top, 16)
                 HStack {
                     Text("房源容量").font(.system(size: 14, weight: .medium))
                     Spacer()
-                    Text("0 / 2 套 ›").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                    Text("\(used) / \(limit) 套 ›").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                 }.padding(.top, 14)
             }.foregroundStyle(XJTheme.ink)
         }

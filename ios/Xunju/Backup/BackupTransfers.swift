@@ -18,7 +18,7 @@ final class BackupTransfers {
         let houses = ids.map { store.house($0) }
         try await worker.export(houses: houses, root: store.records.directory, to: url, progress: progress)
     }
-    func importSelected(_ url: URL, preview: BackupPreview, selectedIDs: Set<String>, replacing: [String],
+    func importSelected(_ url: URL, preview: BackupPreview, selectedIDs: Set<String>, replacing: [String], copying: Set<String> = [],
                         store: NativeStore, progress: Progress? = nil, isCurrent: @MainActor () -> Bool) async throws {
         guard isCurrent() else { throw CoreFailure(message: "账号已变化，请重新选择") }
         let revision = store.status.revision
@@ -27,7 +27,11 @@ final class BackupTransfers {
             guard isCurrent(), revision == store.status.revision, progress?.isCancelled != true else {
                 throw CoreFailure(message: "账号或房源记录已变化，请重新选择导入")
             }
-            let prepared = try store.call("prepareImport", ["value": .object(["version": .number(2), "houses": .array(staged.houses)])])
+            guard copying.isSubset(of: selectedIDs), copying.isDisjoint(with: replacing) else { throw CoreFailure(message: "导入方式无效") }
+            let houses = staged.houses.map { house in
+                copying.contains(house.id) ? house.setting("id", to: .string("h" + UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased())) : house
+            }
+            let prepared = try store.call("prepareImport", ["value": .object(["version": .number(2), "houses": .array(houses)])])
             try store.call("import", ["houses": prepared, "replaceIds": .array(replacing.map(JSONValue.string))])
         } catch {
             await worker.discard(staged)

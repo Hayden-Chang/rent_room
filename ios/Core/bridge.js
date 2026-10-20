@@ -40,6 +40,11 @@ function execute({operation, id, field, property, value, group, view, folds, ids
       return store.edit(id, h => {h.name = name;}, true);
     }
     case 'answer': return store.answer(id, field, property, value);
+    case 'choose': {
+      const h = house(id), f = model.checklistTargets(h).find(f => f.id === field);
+      if (!f || !model.rules.choiceOptions(f).includes(value)) throw Error('选项不存在');
+      return store.answer(id, field, 'value', model.rules.toggleChoiceValue(f, h.answers[field], value));
+    }
     case 'group': return store.group(id, group, property, value);
     case 'addCost': return store.edit(id, h => model.addCostField(h, group, value), true);
     case 'archive': return store.archive(id, value);

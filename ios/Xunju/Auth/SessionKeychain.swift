@@ -14,6 +14,12 @@ struct LocalSession: Codable {
         account = receipt.account; token = receipt.token; provider = receipt.provider; packs = receipt.packs
         expiresAt = now.addingTimeInterval(TimeInterval(receipt.expiresIn))
     }
+    func validateStored() throws {
+        let receipt = LoginReceipt(account: account, token: token, provider: provider, expiresIn: 1, packs: packs,
+                                   limit: packs >= 0 && packs <= (Int.max - 2) / 10 ? 2 + 10 * packs : -1)
+        _ = try LocalSession(receipt: receipt)
+        guard expiresAt.timeIntervalSince1970.isFinite else { throw CoreFailure(message: "登录状态无效") }
+    }
 }
 
 /// Session tokens stay on this device and never enter state.json or ZIP exports.

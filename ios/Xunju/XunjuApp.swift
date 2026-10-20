@@ -10,18 +10,12 @@ struct XunjuApp: App {
                     .environment(\.locale, Locale(identifier: "zh_CN"))
                     .preferredColorScheme(.light)
             } else {
-                preparationView
+                AppRoot()
             }
             #else
-            preparationView
+            AppRoot()
             #endif
         }
     }
 
-    private var preparationView: some View {
-        Text("寻居 · 看房手记")
-            .foregroundStyle(XJTheme.ink)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(XJTheme.background)
-    }
 }
