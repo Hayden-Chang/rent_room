@@ -108,23 +108,35 @@ struct PlacePickerSurface: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(places) { place in
-                    Button { choose(place) } label: {
-                        HStack(spacing: 10) {
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(place.name).font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.ink)
-                                Text([place.distance, place.address].filter { !$0.isEmpty }.joined(separator: " "))
-                                    .font(.system(size: 12)).foregroundStyle(XJTheme.muted).lineLimit(2)
-                            }.frame(maxWidth: .infinity, alignment: .leading)
-                            Text(nearby ? "使用" : "选择").font(.system(size: 13)).foregroundStyle(XJTheme.primary)
-                                .padding(.horizontal, nearby ? 12 : 0).frame(minHeight: 32)
-                                .background(nearby ? XJTheme.soft : .clear).clipShape(RoundedRectangle(cornerRadius: 6))
-                        }.padding(.horizontal, 12).padding(.vertical, 10).frame(minHeight: 52)
-                            .background(.white).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
-                            .contentShape(Rectangle())
-                    }.buttonStyle(.plain).accessibilityIdentifier("place.result.\(place.id)")
+                    if nearby {
+                        resultRow(place) {
+                            Button { choose(place) } label: {
+                                Text("使用")
+                                .font(.system(size: 13)).foregroundStyle(XJTheme.primary)
+                                .padding(.horizontal, 12).frame(minHeight: 32).background(XJTheme.soft)
+                                .clipShape(RoundedRectangle(cornerRadius: 6)).contentShape(Rectangle())
+                            }.buttonStyle(.plain).accessibilityIdentifier("place.result.\(place.id)")
+                        }
+                    } else {
+                        Button { choose(place) } label: {
+                            resultRow(place) { Text("选择").font(.system(size: 13)).foregroundStyle(XJTheme.primary).frame(minHeight: 32) }
+                                .contentShape(Rectangle())
+                        }.buttonStyle(.plain).accessibilityIdentifier("place.result.\(place.id)")
+                    }
                 }
             }
         }.background(.white)
+    }
+    private func resultRow<Action: View>(_ place: PlaceChoice, @ViewBuilder action: () -> Action) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(place.name).font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.ink)
+                Text([place.distance, place.address].filter { !$0.isEmpty }.joined(separator: " "))
+                    .font(.system(size: 12)).foregroundStyle(XJTheme.muted).lineLimit(2)
+            }.frame(maxWidth: .infinity, alignment: .leading)
+            action()
+        }.padding(.horizontal, 12).padding(.vertical, 10).frame(minHeight: 52)
+            .background(.white).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
     }
 }
 

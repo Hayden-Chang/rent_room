@@ -27,7 +27,7 @@ struct MapHitProbe: UIViewRepresentable {
             guard let window, bounds.width > 0, bounds.height > 0 else { return }
             let point = convert(CGPoint(x: bounds.midX, y: 27), to: window)
             var lines = ["probe=\(convert(bounds, to: window)); point=\(point)",
-                         "hit=\(window.hitTest(point, with: nil).map { NSStringFromClass(type(of: $0)) } ?? "nil")"]
+                         "hit=\(window.hitTest(point, with: nil).map { NSStringFromClass(type(of: $0)) + " frame=" + String(describing: $0.convert($0.bounds, to: window)) } ?? "nil")"]
             for (name, local) in [("action-text", CGPoint(x: bounds.maxX - 28, y: 27)), ("title-text", CGPoint(x: 40, y: 18)), ("row-background", CGPoint(x: bounds.midX, y: 10))] {
                 let probe = convert(local, to: window)
                 lines.append("\(name) \(probe): \(window.hitTest(probe, with: nil).map { NSStringFromClass(type(of: $0)) } ?? "nil")")
