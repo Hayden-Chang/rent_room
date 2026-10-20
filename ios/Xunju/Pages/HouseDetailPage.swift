@@ -48,7 +48,7 @@ struct HouseDetailPage: View {
     }
 }
 
-private struct NoteTarget: Identifiable { let id: String; let title: String; let value: String }
+private struct NoteTarget: Identifiable { let id: String; let title: String }
 
 struct ChecklistPage: View {
     let workspace: AppWorkspace
@@ -64,6 +64,7 @@ struct ChecklistPage: View {
     @State private var coordinator = MPSwipeCoordinator()
     @State private var scrollTarget = ""
     @State private var noteText = ""
+    @State private var noteError = ""
     @State private var costText = ""
     @State private var costError = ""
     @State private var note: NoteTarget?
@@ -112,7 +113,7 @@ struct ChecklistPage: View {
             }
         }
             .fullScreenCover(item: $note) { target in
-                MPNoteSheet(title: target.title + " · 备注", text: $noteText, readonly: readonly,
+                MPNoteSheet(title: target.title + " · 备注", text: $noteText, readonly: readonly, error: noteError,
                     close: { note = nil }, save: { saveNote(target) })
                     .presentationBackground(.clear)
             }
@@ -166,10 +167,11 @@ struct ChecklistPage: View {
         }
     }
     private func saveNote(_ target: NoteTarget) {
-        if workspace.perform({
+        do {
             try workspace.store.answer(id, field: target.id, property: "note", value: .string(String(noteText.prefix(10000))))
             if !workspace.store.status.error.isEmpty { throw CoreFailure(message: workspace.store.status.error) }
-        }) { note = nil }
+            note = nil
+        } catch { noteError = error.localizedDescription }
     }
     private func addCost(_ row: JSONValue) {
         do {
@@ -191,7 +193,7 @@ struct ChecklistPage: View {
             workspace.perform { try workspace.store.answer(id, field: field.id, property: "issueFlag", value: .bool(value)) }
         })
     }
-    private func openNote(_ field: JSONValue) { noteText = field["note"].string; note = NoteTarget(id: field.id, title: field["label"].string, value: field["note"].string) }
+    private func openNote(_ field: JSONValue) { noteText = field["note"].string; noteError = ""; note = NoteTarget(id: field.id, title: field["label"].string) }
     private func setFold(_ key: String, _ value: Bool) { folds[viewKey, default: [:]][key] = value; refresh() }
     private func refresh() { workspace.perform { sections = try workspace.store.form(id, phase: phase, query: query, filters: filters.sorted(), folds: folds[viewKey] ?? [:]) } }
     private func prepareCoach() {

@@ -9,6 +9,7 @@ struct InspectionFieldRow: View {
     var hideDivider = false
     var editNote: ((JSONValue) -> Void)? = nil
     @State private var noteText = ""
+    @State private var noteError = ""
     @State private var editingNote = false
     @State private var picking = false
     @State private var commute = false
@@ -27,17 +28,18 @@ struct InspectionFieldRow: View {
                     }), readonly: readonly, coordinator: coordinator,
                     note: {
                         if let editNote { editNote(field) }
-                        else { noteText = field["note"].string; editingNote = true }
+                        else { noteText = field["note"].string; noteError = ""; editingNote = true }
                     }, capture: { picking = true }, measurement: measurement)
             }
             FieldRelatedMedia(workspace: workspace, houseID: houseID, fieldID: field.id)
         }.fullScreenCover(isPresented: $editingNote) {
-            MPNoteSheet(title: field["label"].string + " · 备注", text: $noteText, readonly: readonly,
+            MPNoteSheet(title: field["label"].string + " · 备注", text: $noteText, readonly: readonly, error: noteError,
                 close: { editingNote = false }, save: {
-                    if workspace.perform({
+                    do {
                         try workspace.store.answer(houseID, field: field.id, property: "note", value: .string(String(noteText.prefix(10000))))
                         if !workspace.store.status.error.isEmpty { throw CoreFailure(message: workspace.store.status.error) }
-                    }) { editingNote = false }
+                        editingNote = false
+                    } catch { noteError = error.localizedDescription }
                 }).presentationBackground(.clear)
         }.sheet(isPresented: $picking) { MediaPickerSheet(workspace: workspace, houseID: houseID, fieldID: field.id) }
             .navigationDestination(isPresented: $commute) { CommutePage(workspace: workspace, houseID: houseID, fieldID: field.id) }
