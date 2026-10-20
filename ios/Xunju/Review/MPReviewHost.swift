@@ -68,6 +68,7 @@ struct MPReviewHost: View {
     var body: some View {
         ZStack {
             if route == .guide { MPGuideReviewHost() }
+            else if route == .editor { MPIssueReviewHost(state: state, close: { route = .detail }) }
             else { MPFrame(title: title, back: rootPage ? nil : { route = .home; mainTab = "房源" }) {
                 surface
             } footer: {

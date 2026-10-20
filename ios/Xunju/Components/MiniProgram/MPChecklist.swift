@@ -52,10 +52,15 @@ struct MPSwipeMotion {
         motion.sample(x: x, y: y, time: time)
         if motion.axis == .vertical { active = nil }
     }
-    func finish(_ id: String, x: CGFloat, y: CGFloat, time: Double) {
+    func finish(_ id: String, x: CGFloat, y: CGFloat, time: Double, nativeVelocity: CGFloat? = nil) {
         trace("finish \(id) \(Int(x)),\(Int(y)) dragging=\(dragging ?? "-")")
         guard dragging == id else { return }
-        active = motion.finish(x: x, y: y, time: time) ? id : nil
+        let distanceDecision = motion.finish(x: x, y: y, time: time)
+        // UIKit can recognize a short flick at finger-up before delivering translation.
+        // Recognition already enforces touch slop; use its measured points/sec velocity.
+        if let nativeVelocity, motion.axis != .vertical, abs(nativeVelocity) >= 300 {
+            active = nativeVelocity < 0 ? id : nil
+        } else { active = distanceDecision ? id : nil }
         dragging = nil
     }
     func reveal(_ id: String) { dragging = nil; active = id }
@@ -271,7 +276,9 @@ private struct MPFieldSwipe: ViewModifier {
     let coordinator: MPSwipeCoordinator
     @ViewBuilder func body(content: Content) -> some View {
         if #available(iOS 18, *) {
-            content.gesture(MPHorizontalPan(enabled: !readonly, changed: move, ended: finish, cancelled: coordinator.close, trace: coordinator.trace))
+            content.gesture(MPHorizontalPan(enabled: !readonly, changed: move, ended: { translation, time, velocity in
+                finish(translation, time, velocity: velocity)
+            }, cancelled: coordinator.close, trace: coordinator.trace))
         } else {
             content.simultaneousGesture(DragGesture(minimumDistance: 8).onChanged { value in
                 move(value.translation, value.time.timeIntervalSinceReferenceDate)
@@ -284,9 +291,9 @@ private struct MPFieldSwipe: ViewModifier {
         guard !readonly else { return }
         coordinator.move(id, x: translation.width, y: translation.height, time: time)
     }
-    private func finish(_ translation: CGSize, _ time: Double) {
+    private func finish(_ translation: CGSize, _ time: Double, velocity: CGFloat? = nil) {
         guard !readonly else { return }
-        withAnimation(.easeOut(duration: 0.18)) { coordinator.finish(id, x: translation.width, y: translation.height, time: time) }
+        withAnimation(.easeOut(duration: 0.18)) { coordinator.finish(id, x: translation.width, y: translation.height, time: time, nativeVelocity: velocity) }
     }
 }
 
@@ -295,7 +302,7 @@ private struct MPFieldSwipe: ViewModifier {
 @available(iOS 18, *)
 private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
     let enabled: Bool
-    let changed: (CGSize, Double) -> Void, ended: (CGSize, Double) -> Void, cancelled: () -> Void
+    let changed: (CGSize, Double) -> Void, ended: (CGSize, Double, CGFloat) -> Void, cancelled: () -> Void
     let trace: (String) -> Void
     func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator(trace: trace) }
     func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
@@ -312,7 +319,7 @@ private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
         let translation = CGSize(width: point.x, height: point.y)
         switch pan.state {
         case .began, .changed: changed(translation, time)
-        case .ended: ended(translation, time)
+        case .ended: ended(translation, time, pan.velocity(in: nil).x)
         case .cancelled, .failed: cancelled()
         default: break
         }

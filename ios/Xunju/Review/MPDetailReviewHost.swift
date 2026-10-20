@@ -72,9 +72,7 @@ struct MPDetailReviewHost: View {
         }.fullScreenCover(isPresented: Binding(get: { !preview.isEmpty }, set: { if !$0 { preview = "" } })) {
             MPMediaPreview(items: media, selected: $preview) { preview = "" }
         }.fullScreenCover(isPresented: $editor) {
-            MPFrame(title: readonly ? "问题详情" : "新建问题", back: { editor = false }) {
-                MPIssueReviewHost(state: readonly ? "readonly" : "", close: { editor = false })
-            } footer: { EmptyView() }
+            MPIssueReviewHost(state: readonly ? "readonly" : "", close: { editor = false })
         }.task {
             if media.isEmpty && state != "empty" {
                 do { media = try MediaReviewFixtures.make().map { MPMediaItem(id: $0.id, tile: $0, duration: $0.kind == .video ? 12 : 0) } }
@@ -125,13 +123,15 @@ struct MPIssueReviewHost: View {
     @State private var preview = ""
     var body: some View {
         ZStack {
-            MPIssueEditorSurface(title: $title, note: $note, media: media, readonly: state == "readonly", busy: saving, error: error, titleError: titleError,
+            MPFrame(title: state == "readonly" ? "查看问题" : "新建问题", back: cancel) {
+                MPIssueEditorSurface(title: $title, note: $note, media: media, readonly: state == "readonly", busy: saving, error: error, titleError: titleError,
                 preview: { preview = $0.id }, remove: { item in media.removeAll { $0.id == item.id } }, add: { source = true },
-                cancel: { if state == "readonly" || (title.isEmpty && note.isEmpty) { close() } else { discard = true } },
+                cancel: cancel,
                 save: { if title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { titleError = "请填写问题标题" } else { saving = true } })
-                .accessibilityHidden(source || discard)
+            } footer: { EmptyView() }
+                .accessibilityHidden(source || discard).allowsHitTesting(!source && !discard)
             if source { MPSourceSheet(close: { source = false }, library: { source = false }, camera: { source = false }) }
-            if discard { MPConfirmation(title: "放弃修改", message: "本次未保存的修改将丢失", confirmTitle: "放弃", destructive: true, cancel: { discard = false }, confirm: close) }
+            if discard { MPConfirmation(title: "放弃修改？", message: "尚未保存的文字和新增影像将被放弃。", confirmTitle: "放弃", destructive: true, cancelTitle: "继续编辑", cancel: { discard = false }, confirm: close) }
         }.fullScreenCover(isPresented: Binding(get: { !preview.isEmpty }, set: { if !$0 { preview = "" } })) {
             MPMediaPreview(items: media.map { MPMediaItem(id: $0.id, tile: $0) }, selected: $preview) { preview = "" }
         }.task {
@@ -140,6 +140,11 @@ struct MPIssueReviewHost: View {
                 do { media = try MediaReviewFixtures.make() } catch { self.error = error.localizedDescription }
             }
         }
+        .onChange(of: title) { titleError = ""; error = "" }
+    }
+    private func cancel() {
+        if state == "readonly" || (title.isEmpty && note.isEmpty && media.isEmpty) { close() }
+        else { discard = true }
     }
 }
 #endif

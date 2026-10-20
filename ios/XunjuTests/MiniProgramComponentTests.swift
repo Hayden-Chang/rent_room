@@ -49,6 +49,19 @@ import XCTest
         XCTAssertFalse(ambiguous.finish(x: -6, y: 5, time: 1))
     }
 
+    func testNativeShortFlickUsesRecognizedVelocity() {
+        let coordinator = MPSwipeCoordinator()
+        coordinator.move("one", x: 0, y: 0, time: 1)
+        coordinator.finish("one", x: 0, y: 0, time: 1.01, nativeVelocity: -1109)
+        XCTAssertEqual(coordinator.active, "one")
+        coordinator.move("one", x: 0, y: 0, time: 2)
+        coordinator.finish("one", x: 0, y: 0, time: 2.01, nativeVelocity: 820)
+        XCTAssertNil(coordinator.active)
+        coordinator.move("one", x: 0, y: 0, time: 3)
+        coordinator.finish("one", x: 0, y: 0, time: 3.01, nativeVelocity: -100)
+        XCTAssertNil(coordinator.active, "A slow stationary gesture must not open actions")
+    }
+
     func testImportRequiresExplicitConflictChoiceOnlyForSelectedHouses() {
         let items = MPReviewFixtures.transfers
         XCTAssertFalse(MPTransferSelection.ready(items: items, selected: [], modes: [:], exporting: false))

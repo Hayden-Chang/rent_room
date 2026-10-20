@@ -118,6 +118,7 @@ struct MPComparisonResults: View {
 struct MPConfirmation: View {
     let title: String, message: String, confirmTitle: String
     var destructive = false
+    var cancelTitle = "取消"
     let cancel: () -> Void, confirm: () -> Void
     var body: some View {
         ZStack {
@@ -126,7 +127,7 @@ struct MPConfirmation: View {
                 Text(title).font(.system(size: 17, weight: .semibold)).padding(.top, 24)
                 Text(message).font(.system(size: 14)).foregroundStyle(XJTheme.muted).multilineTextAlignment(.center).padding(24)
                 HStack(spacing: 0) {
-                    Button(action: cancel) { Text("取消").frame(maxWidth: .infinity, minHeight: 52).contentShape(Rectangle()) }
+                    Button(action: cancel) { Text(cancelTitle).frame(maxWidth: .infinity, minHeight: 52).contentShape(Rectangle()) }
                         .foregroundStyle(XJTheme.muted).accessibilityIdentifier("mp.confirm.cancel")
                     XJTheme.line.frame(width: 1, height: 52)
                     Button(confirmTitle, action: confirm).frame(maxWidth: .infinity, minHeight: 52).foregroundStyle(destructive ? XJTheme.danger : XJTheme.primary)

@@ -103,6 +103,7 @@ struct MPZoomImage: UIViewRepresentable {
         scroll.delegate = context.coordinator
         scroll.minimumZoomScale = 1; scroll.maximumZoomScale = 4
         scroll.panGestureRecognizer.isEnabled = false
+        scroll.panGestureRecognizer.maximumNumberOfTouches = 1
         scroll.accessibilityValue = "100%"
         scroll.showsHorizontalScrollIndicator = false; scroll.showsVerticalScrollIndicator = false
         scroll.picture.contentMode = .scaleAspectFit; scroll.addSubview(scroll.picture)
@@ -113,7 +114,7 @@ struct MPZoomImage: UIViewRepresentable {
         let picture = UIImageView()
         override func layoutSubviews() {
             super.layoutSubviews()
-            if zoomScale == 1 { picture.frame = bounds; contentSize = bounds.size }
+            if zoomScale == 1 { picture.frame = CGRect(origin: .zero, size: bounds.size); contentSize = bounds.size }
         }
     }
     final class Coordinator: NSObject, UIScrollViewDelegate {
@@ -128,10 +129,13 @@ struct MPZoomImage: UIViewRepresentable {
         }
         func viewForZooming(in scrollView: UIScrollView) -> UIView? { (scrollView as? ImageScroll)?.picture }
         func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) { trace(scrollView, "begin") }
-        func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) { trace(scrollView, "end \(scale)") }
+        func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
+            scrollView.panGestureRecognizer.isEnabled = scale > scrollView.minimumZoomScale
+            scrollView.accessibilityValue = "\(Int((scale * 100).rounded()))%"
+            trace(scrollView, "end \(scale)")
+        }
         func scrollViewDidZoom(_ scrollView: UIScrollView) {
             scrollView.accessibilityValue = "\(Int(scrollView.zoomScale * 100))%"
-            scrollView.panGestureRecognizer.isEnabled = scrollView.zoomScale > scrollView.minimumZoomScale
             trace(scrollView, "zoom \(scrollView.zoomScale)")
         }
     }
