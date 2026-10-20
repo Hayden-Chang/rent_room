@@ -107,7 +107,8 @@ struct MediaComponentReviewHost: View {
             if !event.isEmpty { eventLabel.padding(8) }
             IssueEditorSurface(title: $title, note: $note, media: items, titleError: $titleError, error: $error,
                                readonly: readonly, selecting: selecting, saving: saving, dirty: !title.isEmpty || !note.isEmpty || !items.isEmpty,
-                               addMedia: { items = fixtures }, removeMedia: { item in items.removeAll { $0.id == item.id } },
+                               addMedia: { items = fixtures; error = ""; event = "" },
+                               removeMedia: { item in items.removeAll { $0.id == item.id }; error = "" },
                                preview: { preview = $0 }, cancel: {
                 if readonly { event = "已触发返回" }
                 else { title = ""; note = ""; items = []; titleError = ""; error = ""; event = "已放弃未保存的修改" }

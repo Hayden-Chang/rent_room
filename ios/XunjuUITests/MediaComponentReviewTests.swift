@@ -88,6 +88,7 @@ import XCTest
         app.buttons["评审状态"].tap(); app.buttons["选取中"].tap()
         XCTAssertFalse(app.buttons["issueEditor.addMedia"].isEnabled)
         XCTAssertFalse(save.isEnabled); XCTAssertFalse(cancel.isEnabled)
+        capture("62-issue-selecting", app)
         app.buttons["评审状态"].tap(); app.buttons["恢复编辑"].tap()
         XCTAssertTrue(save.isEnabled); XCTAssertTrue(cancel.isEnabled)
     }

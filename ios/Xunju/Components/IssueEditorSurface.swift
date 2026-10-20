@@ -132,7 +132,7 @@ struct IssueEditorSurface: View {
             if !readonly {
                 Button("移除") { removeMedia(item) }.font(.system(size: 12)).foregroundStyle(XJTheme.danger)
                     .frame(maxWidth: .infinity, minHeight: 44).background(XJTheme.background)
-                    .buttonStyle(.plain).disabled(busy).opacity(busy ? 0.45 : 1).accessibilityIdentifier("issueEditor.remove.\(item.id)")
+                    .buttonStyle(.plain).disabled(busy).accessibilityIdentifier("issueEditor.remove.\(item.id)")
             }
         }.clipShape(RoundedRectangle(cornerRadius: 8)).padding(.bottom, 12)
     }
