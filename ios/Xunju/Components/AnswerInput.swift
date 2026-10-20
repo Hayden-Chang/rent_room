@@ -142,7 +142,7 @@ struct ChoiceFlow: Layout {
     }
 }
 
-private struct DateInputSheet: View {
+struct DateInputSheet: View {
     @Binding var value: String
     @Environment(\.dismiss) private var dismiss
     @State private var date = Date()

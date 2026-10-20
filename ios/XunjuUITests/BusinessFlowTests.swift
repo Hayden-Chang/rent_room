@@ -29,16 +29,16 @@ import XCTest
     }
     func testCreateAnswerSummaryAndRelaunchPersistence() {
         let app = launch(); add("朝阳路公寓", app)
-        let search = app.textFields["checklist.search"]
+        let search = app.textFields["mp.checklist.search"]
         search.tap(); search.typeText("租金")
         app.buttons["checklist.keyboard.done"].tap()
         XCTAssertFalse(app.keyboards.firstMatch.exists)
-        let rent = app.textFields["input.f1_6.value"]
+        let rent = app.textFields["mp.field.input.f1_6"]
         XCTAssertTrue(rent.waitForExistence(timeout: 3)); rent.tap(); rent.typeText("2800")
         app.buttons["完成"].firstMatch.tap()
         XCTAssertEqual(rent.value as? String, "2800")
-        app.otherElements["input.f1_6"].firstMatch.swipeLeft(); app.buttons["备注"].firstMatch.tap()
-        let fieldNote = app.textViews["note.text"]
+        app.otherElements["mp.field.f1_6"].firstMatch.swipeLeft(); app.buttons["备注"].firstMatch.tap()
+        let fieldNote = app.textViews["mp.note.text"]
         XCTAssertTrue(fieldNote.waitForExistence(timeout: 3)); fieldNote.tap(); fieldNote.typeText("含物业费")
         capture("11a-native-field-note", app)
         app.buttons["保存备注"].tap()
@@ -58,7 +58,7 @@ import XCTest
         XCTAssertEqual(app.textViews["summary.note"].value as? String, "采光好，入住时间待确认")
         capture("13-native-summary-restored", app)
         app.buttons["tab.清单"].tap()
-        let restoredSearch = app.textFields["checklist.search"]; restoredSearch.tap(); restoredSearch.typeText("租金")
+        let restoredSearch = app.textFields["mp.checklist.search"]; restoredSearch.tap(); restoredSearch.typeText("租金")
         app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.buttons["含物业费"].exists)
     }
