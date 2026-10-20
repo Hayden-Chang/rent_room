@@ -36,7 +36,7 @@ private struct RelatedMediaGalleryPage: View {
                 MediaGallerySurface(items: items, filter: $filter, readonly: readonly,
                     preview: { preview = $0 }, caption: { caption = $0 }).padding(16)
             }.background(XJTheme.background).navigationTitle("全部关联影像").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton() } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton().accessibilityIdentifier("related.gallery.close") } }
                 .sheet(item: $preview) { MediaPreviewSheet(item: $0) }
                 .sheet(item: $caption) { item in
                     NoteEditor(title: "影像备注", text: item.caption, readonly: readonly) { text in
@@ -53,12 +53,12 @@ struct MediaPreviewSheet: View {
     var body: some View {
         NavigationStack {
             Group {
-                if item.kind == .video { InlineMediaVideo(url: item.url) }
+                if item.kind == .video { InlineMediaVideo(url: item.url).accessibilityIdentifier("media.preview.video") }
                 else if let url = item.url, let image = UIImage(contentsOfFile: url.path) {
                     Image(uiImage: image).resizable().scaledToFit().accessibilityIdentifier(imageIdentifier)
                 }
             }.padding(16).navigationTitle("影像预览").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton() } }
+                .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton().accessibilityIdentifier("media.preview.close") } }
         }
     }
 }

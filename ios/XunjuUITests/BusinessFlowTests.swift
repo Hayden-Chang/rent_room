@@ -127,6 +127,11 @@ import XCTest
     private func buttons(_ prefix: String, _ app: XCUIApplication) -> XCUIElementQuery {
         app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", prefix))
     }
+    private func closePreview(_ app: XCUIApplication) {
+        let close = app.buttons["media.preview.close"]; close.tap()
+        let dismissed = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: close)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 3), .completed)
+    }
     func testIssueMediaSaveDiscardCaptionAndRelaunch() {
         let app = launch(mediaFixture: true); add("影像业务", app)
         app.buttons["tab.问题"].tap(); app.buttons["issue.add"].tap()
@@ -143,10 +148,11 @@ import XCTest
         XCTAssertTrue(app.buttons["窗框渗水"].waitForExistence(timeout: 3))
         let cardPhoto = buttons("manualIssue.", app).matching(NSPredicate(format: "identifier CONTAINS %@", ".preview.")).firstMatch
         reveal(cardPhoto, app); cardPhoto.tap()
-        XCTAssertTrue(app.images["media.preview.image"].waitForExistence(timeout: 3)); app.buttons["关闭"].tap()
+        XCTAssertTrue(app.images["media.preview.image"].waitForExistence(timeout: 3)); closePreview(app)
         let cardVideo = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'manualIssue.' AND identifier CONTAINS '.video.'")).firstMatch
         reveal(cardVideo, app)
-        let play = cardVideo.buttons["Play/Pause"]; XCTAssertTrue(play.waitForExistence(timeout: 3)); play.tap()
+        let play = app.buttons["Play/Pause"]
+        if play.isHittable { play.tap() } else { cardVideo.tap() }
         let playing = expectation(for: NSPredicate(format: "label IN %@", ["Pause", "暂停"]), evaluatedWith: play)
         XCTAssertEqual(XCTWaiter.wait(for: [playing], timeout: 3), .completed)
         XCTAssertFalse(app.textFields["issueEditor.title"].exists)
@@ -213,26 +219,29 @@ import XCTest
         app.buttons["choice.纱窗正常.有问题"].tap()
         XCTAssertTrue(app.buttons["choice.纱窗正常.有问题"].isSelected)
         let autoStrip = app.otherElements["related.f38_result"].firstMatch
-        autoStrip.buttons[firstIDs[0]].tap(); XCTAssertTrue(app.images["media.preview.image"].waitForExistence(timeout: 3)); app.buttons["关闭"].tap()
+        autoStrip.buttons[firstIDs[0]].tap(); XCTAssertTrue(app.images["media.preview.image"].waitForExistence(timeout: 3)); closePreview(app)
         autoStrip.buttons[firstIDs[1]].tap()
-        let play = app.buttons["Play/Pause"]; XCTAssertTrue(play.waitForExistence(timeout: 3)); play.tap()
+        let video = app.descendants(matching: .any)["media.preview.video"].firstMatch
+        XCTAssertTrue(video.waitForExistence(timeout: 3))
+        let play = app.buttons["Play/Pause"]
+        if play.isHittable { play.tap() } else { video.tap() }
         let playing = expectation(for: NSPredicate(format: "label IN %@", ["Pause", "暂停"]), evaluatedWith: play)
         XCTAssertEqual(XCTWaiter.wait(for: [playing], timeout: 3), .completed)
-        capture("80-business-related-video-preview", app); app.buttons["关闭"].tap()
+        capture("80-business-related-video-preview", app); closePreview(app)
         autoStrip.buttons["related.all"].tap()
         let gallery = buttons("gallery.preview.", app); XCTAssertEqual(gallery.count, 4)
         XCTAssertEqual(gallery.allElementsBoundByIndex.prefix(3).map { $0.identifier.replacingOccurrences(of: "gallery.preview.", with: "") }, firstIDs.map { $0.replacingOccurrences(of: "related.preview.", with: "") })
-        gallery.element(boundBy: 3).tap(); XCTAssertTrue(app.images["media.preview.image"].waitForExistence(timeout: 3)); app.buttons["关闭"].tap()
+        gallery.element(boundBy: 3).tap(); XCTAssertTrue(app.images["media.preview.image"].waitForExistence(timeout: 3)); closePreview(app)
         buttons("gallery.caption.", app).element(boundBy: 3).tap()
         XCTAssertTrue(note.waitForExistence(timeout: 3)); note.tap(); note.typeText("纱窗第四张")
         app.buttons["保存备注"].tap(); XCTAssertTrue(app.buttons["纱窗第四张"].waitForExistence(timeout: 3))
         capture("81-business-related-all-caption", app)
-        app.buttons["gallery.filter.视频"].tap(); XCTAssertEqual(gallery.count, 1); app.buttons["关闭"].tap()
+        app.buttons["gallery.filter.视频"].tap(); XCTAssertEqual(gallery.count, 1); app.buttons["related.gallery.close"].tap()
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.自动问题影像"].waitForExistence(timeout: 10)); app.buttons["house.自动问题影像"].tap()
         app.buttons["tab.问题"].tap(); XCTAssertTrue(app.buttons["choice.纱窗正常.有问题"].isSelected); XCTAssertTrue(app.buttons["雨后再查纱窗"].exists)
         app.buttons["choice.纱窗正常.正常"].tap(); XCTAssertTrue(app.buttons["choice.纱窗正常.正常"].isSelected)
         autoStrip.buttons["related.all"].tap(); XCTAssertEqual(gallery.count, 4); XCTAssertTrue(app.buttons["纱窗第四张"].exists)
-        app.buttons["关闭"].tap(); capture("82-business-automatic-issue-restored", app)
+        app.buttons["related.gallery.close"].tap(); capture("82-business-automatic-issue-restored", app)
     }
     func testAutomaticNumericZeroAndArchiveReadOnly() {
         let app = launch(); add("自动数值问题", app)
@@ -270,6 +279,8 @@ import XCTest
         absence.tap(); reveal(fee, app); XCTAssertEqual(fee.value as? String, "150")
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.分组业务"].waitForExistence(timeout: 10)); app.buttons["house.分组业务"].tap()
         query.tap(); query.typeText("停车"); app.buttons["checklist.keyboard.done"].tap()
+        let hidden = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: app.keyboards.firstMatch)
+        XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 3), .completed, "Search keyboard must dismiss before inspecting restored fields")
         reveal(fee, app); XCTAssertEqual(fee.value as? String, "150"); XCTAssertTrue(app.buttons[groupID + ".note"].exists)
         reveal(group, app); group.swipeLeft(); XCTAssertEqual(app.buttons[groupID + ".标记问题"].label, "取消问题")
         capture("68-business-group-restored", app)
