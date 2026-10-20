@@ -21,12 +21,22 @@ struct MPReviewHost: View {
     let state: String
     @State private var mainTab = "房源"
     @State private var houses = MPReviewFixtures.houses
-    @State private var prompt = "", promptText = "", menu = "", confirmation = ""
-    @State private var nickname = "小林", onboarding = true
-    @State private var selected: Set<String> = [], modes: [String: MPConflictMode] = [:]
-    @State private var comparing = false, differences = false
+    @State private var prompt = ""
+    @State private var promptText = ""
+    @State private var menu = ""
+    @State private var confirmation = ""
+    @State private var nickname = "小林"
+    @State private var onboarding = true
+    @State private var selected: Set<String> = []
+    @State private var modes: [String: MPConflictMode] = [:]
+    @State private var comparing = false
+    @State private var differences = false
     @State private var transferBusy = false
-    @State private var address = "", placeQuery = "", placeError = "", picking = false, routeSelected = "one"
+    @State private var address = ""
+    @State private var placeQuery = ""
+    @State private var placeError = ""
+    @State private var picking = false
+    @State private var routeSelected = "one"
     @State private var activity: CapacityActivity = .idle
     @State private var toast = ""
     init(route: MPReviewRoute, state: String) {

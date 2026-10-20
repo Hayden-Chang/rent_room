@@ -4,20 +4,31 @@ import SwiftUI
 struct MPDetailReviewHost: View {
     let state: String
     let back: () -> Void
-    @State private var tab = "清单", phase = "全部", query = ""
+    @State private var tab = "清单"
+    @State private var phase = "全部"
+    @State private var query = ""
     @State private var filters: Set<String> = []
-    @State private var showFilters = false, coordinator = MPSwipeCoordinator()
+    @State private var showFilters = false
+    @State private var coordinator = MPSwipeCoordinator()
     @State private var category = MPFieldState(expanded: true)
     @State private var window = MPFieldState(expanded: true)
     @State private var seal = MPFieldState(selected: ["是"])
     @State private var screen = MPFieldState()
     @State private var rent = MPFieldState(text: "3200")
     @State private var address = MPFieldState(text: "朝阳路18号")
-    @State private var noteTarget = "", noteText = "", source = false, editor = false
-    @State private var decision = "继续比较", summaryNote = "", resolved = false
+    @State private var noteTarget = ""
+    @State private var noteText = ""
+    @State private var source = false
+    @State private var editor = false
+    @State private var decision = "继续比较"
+    @State private var summaryNote = ""
+    @State private var resolved = false
     @State private var filter: MediaFilter = .all
     @State private var media: [MPMediaItem] = []
-    @State private var preview = "", mediaMenu = "", association = false, associationQuery = ""
+    @State private var preview = ""
+    @State private var mediaMenu = ""
+    @State private var association = false
+    @State private var associationQuery = ""
     @State private var costs = 0
     private var readonly: Bool { state == "readonly" }
     var body: some View {
@@ -102,9 +113,14 @@ struct MPDetailReviewHost: View {
 struct MPIssueReviewHost: View {
     let state: String
     let close: () -> Void
-    @State private var title = "", note = "", titleError = "", error = ""
+    @State private var title = ""
+    @State private var note = ""
+    @State private var titleError = ""
+    @State private var error = ""
     @State private var media: [MediaTile] = []
-    @State private var source = false, discard = false, saving = false
+    @State private var source = false
+    @State private var discard = false
+    @State private var saving = false
     @State private var preview = ""
     var body: some View {
         ZStack {
