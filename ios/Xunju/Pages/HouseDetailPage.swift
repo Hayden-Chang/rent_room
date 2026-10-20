@@ -93,7 +93,7 @@ struct ChecklistPage: View {
                                             progress: "\(section["stats"]["done"].int) / \(section["stats"]["total"].int)",
                                             expanded: Binding(get: { section["expanded"].bool }, set: { setFold(section["title"].string, $0) })) {
                             VStack(spacing: 4) {
-                                ForEach(section["rows"].array, id: { $0["key"].string }) { row in
+                                ForEach(section["rows"].array, id: \.rowKey) { row in
                                     checklistRow(row).padding(.leading, CGFloat(min(row["depth"].int, 2) * 12))
                                 }
                             }
@@ -200,7 +200,9 @@ struct ChecklistPage: View {
     private func refresh() { workspace.perform { sections = try workspace.store.form(id, phase: phase, query: query, filters: filters.sorted(), folds: folds[viewKey] ?? [:]) } }
 }
 
-extension JSONValue: Identifiable {}
+extension JSONValue: Identifiable {
+    var rowKey: String { self["key"].string }
+}
 
 struct FilterChip: ButtonStyle {
     let selected: Bool
