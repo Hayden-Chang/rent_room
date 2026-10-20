@@ -42,6 +42,8 @@ import XCTest
         XCTAssertTrue(app.staticTexts["capacity.pending"].exists); capture("90-capacity-purchase-pending", app)
         restore.tap(); XCTAssertFalse(buy.isEnabled); XCTAssertFalse(restore.isEnabled)
         XCTAssertTrue(app.staticTexts["review.capacity.events"].label.contains("恢复回调 1 次"))
+        let restoring = app.buttons.matching(NSPredicate(format: "identifier == 'capacity.restore' AND label CONTAINS '正在恢复容量'")).firstMatch
+        XCTAssertTrue(restoring.waitForExistence(timeout: 3))
         capture("91-capacity-restore-waiting", app)
         state("恢复失败", app); XCTAssertTrue(buy.isEnabled); XCTAssertTrue(restore.isEnabled)
         XCTAssertTrue(app.staticTexts["capacity.error"].label.contains("购买记录暂时无法确认"))
