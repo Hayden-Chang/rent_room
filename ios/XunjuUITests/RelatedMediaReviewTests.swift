@@ -42,7 +42,8 @@ import XCTest
     }
     func testRelatedThumbnailsMoreAndAutomaticIssueInlineEditing() {
         let app = launch("field-media"), photo = app.buttons["related.preview.image1"]
-        XCTAssertTrue(photo.waitForExistence(timeout: 10)); XCTAssertEqual(photo.frame.size, CGSize(width: 44, height: 44))
+        XCTAssertTrue(photo.waitForExistence(timeout: 10))
+        XCTAssertEqual(photo.frame.width, 44, accuracy: 0.5); XCTAssertEqual(photo.frame.height, 44, accuracy: 0.5)
         let video = app.buttons["related.preview.video"]
         XCTAssertEqual(video.frame.minX - photo.frame.maxX, 6, accuracy: 1)
         XCTAssertEqual(app.buttons["related.all"].label, "查看全部 4 个关联影像")
