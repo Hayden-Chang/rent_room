@@ -39,7 +39,7 @@ import XCTest
         XCTAssertGreaterThan(app.buttons["route.cancel"].frame.width, 100)
         XCTAssertTrue(first.isSelected)
         capture("24-route-map-and-endpoints", app)
-        if second.frame.maxY > app.buttons["route.confirm"].frame.minY { app.scrollViews.firstMatch.swipeUp() }
+        if second.frame.maxY > app.buttons["route.confirm"].frame.minY { first.swipeUp() }
         XCTAssertLessThanOrEqual(second.frame.maxY, app.buttons["route.confirm"].frame.minY)
         second.tap()
         XCTAssertTrue(second.isSelected); XCTAssertFalse(first.isSelected)
@@ -82,6 +82,7 @@ import XCTest
         XCTAssertTrue(app.descendants(matching: .any)["coach.actions"].waitForExistence(timeout: 3))
         let preference = app.buttons["coach.preference"]
         preference.tap(); XCTAssertTrue(preference.isSelected)
+        XCTAssertEqual(preference.value as? String, "已选中")
         capture("29-coach-swipe-and-preference", app)
         next.tap(); XCTAssertFalse(next.exists)
         XCTAssertEqual(app.staticTexts["review.coachEvent"].label, "引导结束，下次不再自动显示")
