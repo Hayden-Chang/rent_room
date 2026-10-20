@@ -83,7 +83,7 @@ struct MPMediaPreview: View {
                     Spacer()
                     Text("\((items.firstIndex { $0.id == selected } ?? 0) + 1) / \(items.count)").font(.system(size: 14)).accessibilityIdentifier("mp.preview.index")
                     Spacer(); Color.clear.frame(width: 44, height: 44)
-                }.foregroundStyle(.white)
+                }.foregroundStyle(.white).zIndex(1)
                 // Keep the image's touch region below the header. An overlaid header
                 // intercepts one finger of a pinch that starts near the image's top edge.
                 TabView(selection: $selected) {
@@ -93,7 +93,7 @@ struct MPMediaPreview: View {
                             else if let url = item.tile.url, let image = UIImage(contentsOfFile: url.path) { MPZoomImage(image: image).accessibilityIdentifier("mp.preview.image.\(item.id)") }
                         }.tag(item.id)
                     }
-                }.tabViewStyle(.page(indexDisplayMode: .never)).accessibilityIdentifier("mp.preview.pages")
+                }.tabViewStyle(.page(indexDisplayMode: .never)).clipped().accessibilityIdentifier("mp.preview.pages")
             }
         }
     }
@@ -105,6 +105,7 @@ struct MPZoomImage: UIViewRepresentable {
     func makeUIView(context: Context) -> ImageScroll {
         let scroll = ImageScroll()
         scroll.delegate = context.coordinator
+        scroll.clipsToBounds = true
         scroll.minimumZoomScale = 1; scroll.maximumZoomScale = 4
         scroll.panGestureRecognizer.isEnabled = false
         scroll.panGestureRecognizer.maximumNumberOfTouches = 1
