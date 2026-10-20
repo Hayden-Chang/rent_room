@@ -65,7 +65,7 @@ struct PlacePickerSurface: View {
                         .multilineTextAlignment(.center).padding(.horizontal, 20).padding(.top, 65)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
-                Button("定位", action: locate).font(.system(size: 13)).padding(10).background(.white)
+                Button("定位", action: locate).font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                     .padding(12).accessibilityIdentifier("place.locate")
                 if query.isEmpty && !places.isEmpty {
@@ -82,7 +82,7 @@ struct PlacePickerSurface: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(message).font(.system(size: 12)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("place.message")
                     Button(permissionDenied ? "去设置开启" : "重试", action: permissionDenied ? settings : retry)
-                        .font(.system(size: 13)).padding(.horizontal, 14).frame(minHeight: 36).background(XJTheme.soft)
+                        .font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(.horizontal, 14).frame(minHeight: 36).background(XJTheme.soft)
                         .clipShape(RoundedRectangle(cornerRadius: 8)).accessibilityIdentifier("place.retry")
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }

@@ -35,9 +35,12 @@ import XCTest
     func testRouteSelectionAndExplicitConfirmation() {
         let app = launch("routes"), first = app.buttons["route.option.one"], second = app.buttons["route.option.two"]
         XCTAssertTrue(first.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["route.cancel"].isHittable)
+        XCTAssertGreaterThan(app.buttons["route.cancel"].frame.width, 100)
         XCTAssertTrue(first.isSelected)
         capture("24-route-map-and-endpoints", app)
-        if !second.isHittable { app.swipeUp() }
+        if second.frame.maxY > app.buttons["route.confirm"].frame.minY { app.scrollViews.firstMatch.swipeUp() }
+        XCTAssertLessThanOrEqual(second.frame.maxY, app.buttons["route.confirm"].frame.minY)
         second.tap()
         XCTAssertTrue(second.isSelected); XCTAssertFalse(first.isSelected)
         XCTAssertEqual(app.buttons["route.confirm"].label, "确定并填入 32 分钟")
@@ -76,7 +79,7 @@ import XCTest
         next.tap(); XCTAssertEqual(app.staticTexts["coach.title"].label, "询问与签约")
         next.tap(); XCTAssertEqual(app.staticTexts["coach.title"].label, "左滑检查项")
         app.otherElements["coach.demo"].swipeLeft()
-        XCTAssertTrue(app.otherElements["coach.actions"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.descendants(matching: .any)["coach.actions"].waitForExistence(timeout: 3))
         let preference = app.buttons["coach.preference"]
         preference.tap(); XCTAssertTrue(preference.isSelected)
         capture("29-coach-swipe-and-preference", app)

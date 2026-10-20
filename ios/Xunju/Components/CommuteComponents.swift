@@ -82,15 +82,18 @@ struct CommuteRouteFooter: View {
     let busy: Bool
     let cancel: () -> Void, confirm: () -> Void
     var body: some View {
+        GeometryReader { geometry in
+        let unit = max(0, geometry.size.width - 12) / 3
         HStack(spacing: 12) {
-            Button("取消", action: cancel).buttonStyle(XJButtonStyle()).frame(maxWidth: .infinity)
+            Button(action: cancel) { Text("取消").frame(minHeight: 46) }
+                .buttonStyle(XJButtonStyle()).frame(width: unit)
                 .accessibilityIdentifier("route.cancel")
-            Button(minutes.map { "确定并填入 \($0) 分钟" } ?? "确定并填入", action: confirm)
-                .buttonStyle(XJButtonStyle(primary: true)).frame(maxWidth: .infinity)
+            Button(action: confirm) { Text(minutes.map { "确定并填入 \($0) 分钟" } ?? "确定并填入").frame(minHeight: 46) }
+                .buttonStyle(XJButtonStyle(primary: true)).frame(width: unit * 2)
                 .disabled(busy || minutes == nil).opacity(busy || minutes == nil ? 0.45 : 1)
                 .accessibilityIdentifier("route.confirm")
-                .layoutPriority(1)
-        }.padding(.horizontal, 20).padding(.vertical, 14).background(.white)
+        }
+        }.frame(height: 46).padding(.horizontal, 20).padding(.vertical, 14).background(.white)
             .overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
     }
 }

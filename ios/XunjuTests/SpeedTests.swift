@@ -34,6 +34,23 @@ private final class SpeedProtocol: URLProtocol, @unchecked Sendable {
     override func stopLoading() {}
 }
 
+private final class SpeedProbeRegistry: @unchecked Sendable {
+    struct Probe: Sendable { let start: @Sendable () -> Void, stop: @Sendable () -> Void }
+    private let lock = NSLock()
+    private var probes: [String: Probe] = [:]
+    func set(_ key: String, _ probe: Probe?) { lock.withLock { probes[key] = probe } }
+    func get(_ key: String) -> Probe? { lock.withLock { probes[key] } }
+}
+
+private final class StalledSpeedProtocol: URLProtocol, @unchecked Sendable {
+    static let probes = SpeedProbeRegistry()
+    private var probe: SpeedProbeRegistry.Probe? { Self.probes.get(request.value(forHTTPHeaderField: "X-Probe") ?? "") }
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+    override func startLoading() { probe?.start() }
+    override func stopLoading() { probe?.stop() }
+}
+
 final class SpeedTests: XCTestCase {
     func testAdaptiveRangesUseMonotonicElapsedTimeAndRequireTwoSamples() async throws {
         let clock = SpeedClock(), ranges = SpeedRanges(clock: clock, duration: 1000)
@@ -93,5 +110,35 @@ final class SpeedTests: XCTestCase {
         catch { XCTAssertTrue(error is CancellationError) }
         let requests = await ranges.requests
         XCTAssertTrue(requests.isEmpty)
+    }
+
+    func testCancellationAfterProgressDoesNotStartAnotherRangeOrReturnSpeed() async throws {
+        let clock = SpeedClock(), ranges = SpeedRanges(clock: clock, duration: 1000)
+        let task = Task {
+            try await NativeSpeedTest(transport: ranges, now: { clock.read() }).run { _ in
+                withUnsafeCurrentTask { $0?.cancel() }
+            }
+        }
+        do { _ = try await task.value; XCTFail("Cancelled progress produced result") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        let requests = await ranges.requests
+        XCTAssertEqual(requests.count, 1)
+    }
+
+    func testInFlightNativeCancellationStopsURLSessionRequest() async throws {
+        let started = expectation(description: "Range request started"), stopped = expectation(description: "Cancelled request stopped")
+        let key = UUID().uuidString
+        StalledSpeedProtocol.probes.set(key, .init(start: { started.fulfill() }, stop: { stopped.fulfill() }))
+        defer { StalledSpeedProtocol.probes.set(key, nil) }
+        let transport = NativeSpeedTransport(configuration: {
+            let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StalledSpeedProtocol.self]
+            config.httpAdditionalHeaders = ["X-Probe": key]; return config
+        })
+        let task = Task { try await transport.download(offset: 0, size: 4096, timeout: 8) }
+        await fulfillment(of: [started], timeout: 3)
+        task.cancel()
+        do { _ = try await task.value; XCTFail("Cancelled network request returned a result") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        await fulfillment(of: [stopped], timeout: 3)
     }
 }

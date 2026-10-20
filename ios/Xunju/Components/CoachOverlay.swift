@@ -111,6 +111,6 @@ struct CoachOverlay: View {
                 if value.translation.width < -36 && abs(value.translation.width) > abs(value.translation.height) {
                     withAnimation(.easeOut(duration: 0.45)) { swiped = true }
                 }
-            }).accessibilityIdentifier("coach.demo")
+            }).accessibilityElement(children: .contain).accessibilityIdentifier("coach.demo")
     }
 }
