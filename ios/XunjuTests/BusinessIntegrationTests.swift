@@ -77,6 +77,23 @@ import XCTest
         XCTAssertEqual(store.state, state)
         XCTAssertEqual(try NativeStore(directory: store.records.directory).houses.count, 2)
     }
+    func testCorruptSignedInAccountStillOpensRecoveryAndRetainsOriginalFile() throws {
+        let root = try root(), keychain = VolatileSessionStorage(), workspace = try AppWorkspace(root: root, keychain: keychain)
+        let id = try workspace.store.add("账号记录")
+        try workspace.store.answer(id, field: "f1_6", value: .string("2800"))
+        try workspace.accept(receipt())
+        try workspace.store.answer(id, field: "f1_6", value: .string("3000"))
+        let file = workspace.store.records.directory.appending(path: "state.json")
+        try Data("broken-account-file".utf8).write(to: file)
+        let reopened = try AppWorkspace(root: root, keychain: keychain)
+        XCTAssertTrue(reopened.store.status.blocked)
+        XCTAssertNotNil(reopened.session)
+        XCTAssertEqual(try String(contentsOf: file, encoding: .utf8), "broken-account-file")
+        // The same recovery command used by the on-screen banner must remain reachable.
+        try reopened.store.call("recover")
+        XCTAssertEqual(reopened.store.houses.map(\.id), [id])
+        XCTAssertEqual(reopened.store.houses.first?.rent, "2800")
+    }
     func testOnlyExplicitUUIDArgumentEnablesIsolatedBusinessDirectory() throws {
         let id = UUID().uuidString
         XCTAssertTrue(try AppWorkspace.dataRoot(arguments: ["app", "--business-test", id]).path.hasSuffix("XunjuBusinessTests/" + id))

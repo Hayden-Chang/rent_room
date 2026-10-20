@@ -92,6 +92,22 @@ import XCTest
         app.buttons["house.问题检查"].tap(); app.buttons["tab.问题"].tap()
         XCTAssertTrue(app.buttons["已解决"].exists); XCTAssertTrue(app.staticTexts["确认修复时间"].exists)
     }
+    func testCapacityFailureKeepsNameAndExistingHouses() {
+        let app = launch(); add("容量一", app); home(app); add("容量二", app); home(app)
+        app.buttons["home.add"].tap()
+        let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3)); name.tap(); name.typeText("尚未新增的第三套")
+        app.buttons["prompt.confirm"].tap()
+        let error = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "房源容量不足")).firstMatch
+        XCTAssertTrue(error.waitForExistence(timeout: 4))
+        capture("20-native-capacity-failure", app)
+        if app.alerts.firstMatch.exists { app.alerts.firstMatch.buttons["知道了"].tap() }
+        XCTAssertEqual(name.value as? String, "尚未新增的第三套")
+        app.buttons["取消"].tap()
+        XCTAssertTrue(app.buttons["house.容量一"].exists); XCTAssertTrue(app.buttons["house.容量二"].exists)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["house.容量一"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["house.尚未新增的第三套"].exists)
+    }
     func testMediaEmptyStateAndSystemPickerCanCancel() {
         let app = launch(); add("影像检查", app); app.buttons["tab.影像"].tap()
         XCTAssertTrue(app.staticTexts["还没有影像"].exists)
