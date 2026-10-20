@@ -43,7 +43,7 @@ UI精确选择（target均为XunjuUITests）：
 
 ### 原始结果
 
-入口 `/tmp/xunju-ios-20261019/run-review.py`，计划 `related-integration-plan-01|02.json`（先validate-only）。项目包装脚本核对XcodeGen2.45.4确定性；project.yml未改，不提交生成工程。Xcode26.6 / iOS26.5，租约UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`。独立缓存为 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-57d1cd671f68343408c29f9f-simulator`，名称来自基础设施，哈希绑定本任务worktree。
+入口 `/tmp/xunju-ios-20261019/run-review.py`，计划 `related-integration-plan-01|02.json`（先validate-only）。项目包装脚本核对XcodeGen2.45.4确定性；project.yml未改，不提交生成工程。Xcode26.6 / iOS26.5；01租约UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`，02由runner分配 `759E28A9-21EB-4AA1-9F4F-EF1850989C56`，均为iPhone16。独立缓存为 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-57d1cd671f68343408c29f9f-simulator`，名称来自基础设施，哈希绑定本任务worktree。
 
 结果 `/Volumes/mac2/codex-builds/xunju-ios-related-integration-20261020-01|02.xcresult`，构建各另存同名 `.build.xcresult`。两轮均已结束并归还本任务租约，其他项目槽位不操作。计划、完整日志、原始附件、三个失败录屏/最后一帧、receipt与收集脚本留在忽略目录 `artifacts/ios-related-integration-20261020/`。
 
