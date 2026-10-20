@@ -80,7 +80,7 @@ actor CapacityTestAPI: CapacityServicing {
         XCTAssertEqual(reopened.store.capacity.limit, 12); XCTAssertEqual(storefront.finished, ["10001"])
         XCTAssertEqual(reopened.store.house(id)["answers"]["f1_6"]["value"].string, "0")
         XCTAssertEqual(reopened.session?.expiresAt, expiry)
-        XCTAssertEqual(try keychain.read()?.packs, 1)
+        XCTAssertEqual(keychain.read()?.packs, 1)
     }
     func testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct() async throws {
         let (workspace, api, storefront, _) = try fixture()
@@ -93,8 +93,9 @@ actor CapacityTestAPI: CapacityServicing {
         workspace.billing.start(); await storefront.receive?(storefront.transaction)
         XCTAssertEqual(workspace.store.capacity.limit, 12); XCTAssertEqual(workspace.billing.activity, .idle)
         await api.configure(unavailable: true); storefront.productFails = true
-        await workspace.billing.load(); XCTAssertNil(workspace.billing.product)
         await workspace.billing.restore(); XCTAssertTrue(workspace.billing.error.isEmpty)
+        XCTAssertNil(workspace.billing.product)
+        await workspace.billing.load(); XCTAssertNil(workspace.billing.product)
         XCTAssertEqual(workspace.store.capacity.limit, 12)
     }
     func testRefundAndOlderSnapshotsKeepAllHousesAndRejectInconsistentOrForeignBalances() async throws {
@@ -127,6 +128,30 @@ actor CapacityTestAPI: CapacityServicing {
         XCTAssertEqual(workspace.store.capacity.limit, 12)
         XCTAssertEqual(storefront.finished, ["10001"])
         let calls = await api.calls; XCTAssertEqual(calls, 1)
+    }
+    func testKeychainFailureKeepsPurchaseUnfinishedUntilCapacityCacheCanBeSaved() async throws {
+        final class FailingSessions: SessionStorage {
+            var value: LocalSession?; var fail = false
+            func read() -> LocalSession? { value }
+            func write(_ session: LocalSession) throws { if fail { throw CoreFailure(message: "保存失败") }; value = session }
+            func remove() { value = nil }
+        }
+        let root = FileManager.default.temporaryDirectory.appending(path: "CapacityTests/\(UUID())")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let sessions = FailingSessions(), api = CapacityTestAPI(), storefront = CapacityTestStorefront()
+        let workspace = try AppWorkspace(root: root, keychain: sessions, capacityAPI: api, storefront: storefront)
+        try workspace.accept(LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "phone", expiresIn: 7200, packs: 0, limit: 2))
+        await workspace.billing.load()
+        // Fail only when saving the confirmed increment, after the preflight context.
+        let waiting = expectation(description: "server confirming")
+        await api.gate { waiting.fulfill() }
+        let purchase = Task { await workspace.billing.purchase() }
+        await fulfillment(of: [waiting], timeout: 5)
+        sessions.fail = true; await api.resume(); await purchase.value
+        XCTAssertEqual(workspace.store.capacity.limit, 2); XCTAssertEqual(storefront.finished, [])
+        XCTAssertEqual(workspace.billing.activity, .pending)
+        sessions.fail = false; await workspace.billing.restore()
+        XCTAssertEqual(workspace.store.capacity.limit, 12); XCTAssertEqual(storefront.finished, ["10001"])
     }
     func testFixtureRequiresExplicitUUIDAndKnownMode() {
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: []))

@@ -81,7 +81,7 @@ import Observation
         let value = try await api.context(token: session.token)
         try apply(value.balance, session: session)
         context = value
-        if loadProduct { product = nil }
+        if loadProduct || !value.available { product = nil }
         if loadProduct, value.available, let id = value.productID {
             do {
                 let loaded = try await storefront.product(id)

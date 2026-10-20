@@ -4,12 +4,7 @@ import StoreKitTest
 
 @MainActor final class NativeStorefrontTests: XCTestCase {
     func testRealStoreKitConsumableUsesAccountTokenAndStaysUnfinishedUntilAcknowledged() async throws {
-        let configuration = """
-        {"identifier":"XUNJU-LOCAL-TEST","products":[{"displayPrice":"0.99","familyShareable":false,"internalID":"XUNJU10","localizations":[{"description":"Test capacity","displayName":"Test capacity","locale":"en_US"}],"productID":"test.capacity.10","referenceName":"Local capacity test","type":"Consumable"}],"settings":{"_storefront":"USA","_timeRate":0},"subscriptionGroups":[],"nonRenewingSubscriptions":[],"version":{"major":2,"minor":0}}
-        """
-        let file = FileManager.default.temporaryDirectory.appending(path: "\(UUID()).storekit")
-        try Data(configuration.utf8).write(to: file)
-        defer { try? FileManager.default.removeItem(at: file) }
+        let file = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Capacity", withExtension: "storekit"))
         let session = try SKTestSession(contentsOf: file)
         session.disableDialogs = true; session.clearTransactions()
         defer { session.clearTransactions() }

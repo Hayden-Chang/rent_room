@@ -76,3 +76,13 @@ schemes:
       targets:
         - XunjuTests
         - XunjuUITests
+  XunjuStoreKitTests:
+    build:
+      targets:
+        Xunju: all
+    run:
+      storeKitConfiguration: XunjuTests/Fixtures/Capacity.storekit
+    test:
+      gatherCoverageData: false
+      targets:
+        - XunjuTests
