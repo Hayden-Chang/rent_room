@@ -19,7 +19,10 @@ import XCTest
         capture("30-business-coach-phase", app)
         for _ in 0..<3 { next.tap() }
         let demo = app.otherElements["coach.demo"]
-        XCTAssertTrue(demo.isHittable); demo.swipeLeft()
+        XCTAssertTrue(app.descendants(matching: .any)["coach.actions"].waitForExistence(timeout: 3))
+        XCTAssertGreaterThan(demo.frame.minY, app.navigationBars.firstMatch.frame.maxY)
+        XCTAssertLessThan(demo.frame.maxY, app.buttons["tab.清单"].frame.minY)
+        demo.swipeLeft()
         app.buttons["coach.preference"].tap(); capture("31-business-coach-field", app); next.tap()
         XCTAssertFalse(next.exists)
         let checklist = app.textFields["checklist.search"]; checklist.tap(); checklist.typeText("地图")

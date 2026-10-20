@@ -94,5 +94,10 @@ extension GeographicPoint {
         return value
     }
     func didSelect(_ choice: PlaceChoice) { center = choice.point; query = ""; submit() }
+    func synchronizeLocation(_ value: JSONValue) {
+        let point = nativePoint(value)
+        if point != center { cancel(); center = point; choices = []; results = [:] }
+    }
+    func reset() { cancel(); center = nil; query = ""; choices = []; results = [:]; message = ""; permissionDenied = false }
     func cancel() { epoch += 1; operation?.cancel(); operation = nil; locator.cancel(); busy = false }
 }

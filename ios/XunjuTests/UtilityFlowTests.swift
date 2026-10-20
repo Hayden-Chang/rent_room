@@ -86,4 +86,17 @@ private actor DelayedMapHTTP: AuthTransport {
         }
         #endif
     }
+    func testClearingOrInvalidatingLocationRemovesDisplayedPointAndOldCandidates() async throws {
+        let store = try NativeStore(directory: root(), network: UtilityNetworkFixture.transport)
+        let search = PlaceSearch(store: store, key: "fixture", validScope: { true })
+        search.query = "阳光"; await search.submit()?.value
+        let place = try XCTUnwrap(search.choices.first)
+        search.synchronizeLocation(try search.selected(place)["location"])
+        XCTAssertNotNil(search.center)
+        search.synchronizeLocation(.null)
+        XCTAssertNil(search.center); XCTAssertTrue(search.choices.isEmpty)
+        search.query = "办公楼"; await search.submit()?.value
+        search.reset()
+        XCTAssertNil(search.center); XCTAssertEqual(search.query, ""); XCTAssertTrue(search.choices.isEmpty)
+    }
 }

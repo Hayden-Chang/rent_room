@@ -28,6 +28,7 @@ struct HousePlaceField: View {
             try search.store.call("place", ["id": .string(id), "value": place])
         }.disabled(workspace.store.house(id)["archived"].bool)
             .onAppear { if !workspace.store.house(id)["archived"].bool { search.start(address: workspace.store.house(id)["address"].string) } }
+            .onChange(of: workspace.store.house(id)["location"]) { _, value in search.synchronizeLocation(value) }
     }
 }
 
@@ -73,8 +74,11 @@ struct WorkplacePage: View {
     private func save(clear: Bool = false) {
         do {
             guard workspace.store === search.store else { throw CoreFailure(message: "账号已变化，请重新打开页面") }
-            if clear { try search.store.call("clearWorkplace"); text = ""; search.cancel() }
-            else { try search.store.call("settings", ["property": .string("workplace"), "value": .string(text)]); try search.store.call("save") }
+            if clear { try search.store.call("clearWorkplace"); text = ""; search.reset() }
+            else {
+                try search.store.call("settings", ["property": .string("workplace"), "value": .string(text)]); try search.store.call("save")
+                search.synchronizeLocation(search.store.state["settings"]["workplaceLocation"])
+            }
             error = ""
         } catch { self.error = error.localizedDescription }
     }
