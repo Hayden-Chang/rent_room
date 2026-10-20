@@ -7,7 +7,7 @@ enum ReviewSurface: String {
     case measurements
     case media, headings
     case issueMedia = "issue-media"
-    case issueCards = "issue-cards", fieldMedia = "field-media"
+    case issueCards = "issue-cards", fieldMedia = "field-media", capacity
 
     var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent, .measurements].contains(self) }
 
@@ -31,7 +31,9 @@ struct ComponentReviewHost: View {
     @State private var event = ""
 
     var body: some View {
-        if [.issueCards, .fieldMedia].contains(surface) {
+        if surface == .capacity {
+            CapacityReviewHost()
+        } else if [.issueCards, .fieldMedia].contains(surface) {
             RelatedMediaReviewHost(surface: surface)
         } else if [.media, .issueMedia, .headings].contains(surface) {
             MediaComponentReviewHost(surface: surface)
@@ -47,7 +49,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .issueCards, .fieldMedia: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .issueCards, .fieldMedia, .capacity: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -98,6 +100,7 @@ struct ComponentReviewHost: View {
         case .headings: "分类与分组组件"
         case .issueCards: "问题卡片组件"
         case .fieldMedia: "关联影像与自动问题"
+        case .capacity: "房源容量"
         }
     }
 
