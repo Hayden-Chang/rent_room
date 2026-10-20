@@ -86,11 +86,11 @@ struct MPMediaPreview: View {
                 }
             }.tabViewStyle(.page(indexDisplayMode: .never)).accessibilityIdentifier("mp.preview.pages")
             HStack {
-                Button(action: close) { Image(systemName: "chevron.left").frame(width: 44, height: 44) }.accessibilityLabel("关闭预览")
+                Button(action: close) { Image(systemName: "chevron.left").frame(width: 44, height: 44).contentShape(Rectangle()) }.accessibilityLabel("关闭预览")
                 Spacer()
                 Text("\((items.firstIndex { $0.id == selected } ?? 0) + 1) / \(items.count)").font(.system(size: 14)).accessibilityIdentifier("mp.preview.index")
                 Spacer(); Color.clear.frame(width: 44, height: 44)
-            }.foregroundStyle(.white).background(.black.opacity(0.4))
+            }.foregroundStyle(.white).background(.black.opacity(0.4)).zIndex(1)
         }
     }
 }
@@ -102,6 +102,7 @@ struct MPZoomImage: UIViewRepresentable {
         let scroll = ImageScroll()
         scroll.delegate = context.coordinator
         scroll.minimumZoomScale = 1; scroll.maximumZoomScale = 4
+        scroll.panGestureRecognizer.isEnabled = false
         scroll.accessibilityValue = "100%"
         scroll.showsHorizontalScrollIndicator = false; scroll.showsVerticalScrollIndicator = false
         scroll.picture.contentMode = .scaleAspectFit; scroll.addSubview(scroll.picture)
@@ -117,7 +118,10 @@ struct MPZoomImage: UIViewRepresentable {
     }
     final class Coordinator: NSObject, UIScrollViewDelegate {
         func viewForZooming(in scrollView: UIScrollView) -> UIView? { (scrollView as? ImageScroll)?.picture }
-        func scrollViewDidZoom(_ scrollView: UIScrollView) { scrollView.accessibilityValue = "\(Int(scrollView.zoomScale * 100))%" }
+        func scrollViewDidZoom(_ scrollView: UIScrollView) {
+            scrollView.accessibilityValue = "\(Int(scrollView.zoomScale * 100))%"
+            scrollView.panGestureRecognizer.isEnabled = scrollView.zoomScale > scrollView.minimumZoomScale
+        }
     }
 }
 

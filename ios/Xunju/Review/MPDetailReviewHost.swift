@@ -101,7 +101,7 @@ struct MPDetailReviewHost: View {
                     ForEach(0..<costs, id: \.self) { index in Text("其他费用 \(index + 1)").font(.system(size: 14)).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading) }
                     if !readonly {
                         Button { costs += 1; query = ""; filters = []; window.expanded = true }
-                            label: { Text("＋").font(.system(size: 24)).frame(width: 44, height: 44) }
+                            label: { Text("＋").font(.system(size: 24)).foregroundStyle(Color(red: 141/255, green: 149/255, blue: 163/255)).frame(width: 44, height: 44).contentShape(Rectangle()) }
                             .buttonStyle(.plain).frame(maxWidth: .infinity).accessibilityLabel("添加费用").accessibilityIdentifier("mp.cost.add")
                     }
                 }

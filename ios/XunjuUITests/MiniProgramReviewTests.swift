@@ -53,11 +53,16 @@ import XCTest
         capture("08-checklist", app)
         app.buttons["mp.field.choice.seal.是"].swipeLeft()
         wait(app.buttons["mp.field.action.seal.标记问题"])
+        XCTAssertEqual(app.otherElements["mp.field.seal"].value as? String, "操作已展开")
         XCTAssertTrue(app.buttons["mp.field.action.seal.标记问题"].isHittable)
         capture("09-field-swipe", app)
         app.buttons["mp.field.action.seal.标记问题"].tap()
+        XCTAssertTrue(app.buttons["mp.field.choice.seal.是"].isSelected)
         app.buttons["mp.field.choice.seal.是"].swipeLeft()
-        wait(app.buttons["mp.field.action.seal.备注"]); app.buttons["mp.field.action.seal.备注"].tap()
+        wait(app.buttons["mp.field.action.seal.备注"])
+        XCTAssertTrue(app.buttons["mp.field.action.seal.取消问题"].exists)
+        XCTAssertTrue(app.buttons["mp.field.action.seal.备注"].isHittable)
+        app.buttons["mp.field.action.seal.备注"].tap()
         wait(app.textViews["mp.note.text"]); capture("10-note-sheet", app)
         app.textViews["mp.note.text"].tap(); app.textViews["mp.note.text"].typeText("雨后再确认")
         app.buttons["mp.note.save"].tap()
@@ -86,7 +91,9 @@ import XCTest
         photo.pinch(withScale: 2, velocity: 1)
         XCTAssertNotNil(photo.value as? String)
         XCTAssertNotEqual(photo.value as? String, "100%"); capture("44-media-zoom", app)
-        photo.pinch(withScale: 0.5, velocity: -1)
+        photo.pinch(withScale: 0.25, velocity: -1)
+        let unzoomed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "100%"), object: photo)
+        XCTAssertEqual(XCTWaiter.wait(for: [unzoomed], timeout: 5), .completed)
         app.collectionViews["mp.preview.pages"].swipeLeft()
         label(app.staticTexts["mp.preview.index"], equals: "2 / 4"); capture("15-media-preview-next", app)
         app.buttons["关闭预览"].tap()
@@ -229,5 +236,33 @@ import XCTest
             }
             capture("47-capacity-\(state == "error" ? "restoring" : state)", app); app.terminate()
         }
+    }
+    func testChecklistVerticalScrollAndCostButton() {
+        let app = launch("detail")
+        let answer = app.buttons["mp.field.choice.seal.是"]
+        wait(answer)
+        let before = app.textFields["mp.field.input.address"].frame.minY
+        answer.swipeUp()
+        XCTAssertLessThan(app.textFields["mp.field.input.address"].frame.minY, before - 20)
+        XCTAssertTrue(app.buttons["mp.cost.add"].isHittable)
+        app.buttons["mp.cost.add"].tap()
+        wait(app.staticTexts["其他费用 1"]); capture("48-add-cost", app)
+        app.buttons["回到顶部"].tap()
+        wait(answer)
+        answer.swipeLeft()
+        wait(app.buttons["mp.field.action.seal.备注"])
+        app.staticTexts["mp.field.title.screen"].swipeUp()
+        XCTAssertFalse(app.buttons["mp.field.action.seal.备注"].exists)
+    }
+    func testSettingsRecoveryAndAccountWaiting() {
+        let app = launch("settings", state: "recovery")
+        wait(app.buttons["mp.profile.recover"]); capture("49-record-recovery", app)
+        app.buttons["mp.profile.recover"].tap()
+        wait(app.staticTexts["mp.toast"])
+        XCTAssertEqual(app.staticTexts["mp.toast"].label, "正在尝试恢复本机记录…")
+        app.terminate()
+        app.launchArguments = ["--component-review", "parity-settings", "--parity-state", "waiting", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch(); wait(app.staticTexts["mp.account.waiting"])
+        XCTAssertFalse(app.buttons["login.wechat"].exists); capture("50-account-waiting", app)
     }
 }

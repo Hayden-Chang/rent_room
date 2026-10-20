@@ -20,6 +20,7 @@ struct MPSettingsSurface: View {
     var status = "已通过微信登录"
     var used = 0, limit = 2, archived = 0
     var workplace = "", version = "0.1.0"
+    var accountReady = true, recoveryBlocked = false
     @Binding var onboarding: Bool
     let wechat: () -> Void, phone: () -> Void, appleRequest: (ASAuthorizationAppleIDRequest) -> Void
     let appleCompletion: (Result<ASAuthorization, Error>) -> Void
@@ -27,10 +28,18 @@ struct MPSettingsSurface: View {
     let avatarAction: () -> Void, nicknameCommit: () -> Void
     let capacity: () -> Void, openWorkplace: () -> Void, archive: () -> Void
     let importFile: () -> Void, export: () -> Void, permissions: () -> Void, logout: () -> Void
+    var recover: () -> Void = {}
     @FocusState private var editing: Bool
     var body: some View {
-        ScrollView {
+        if !accountReady {
+            Text("正在确认登录状态…").font(.system(size: 14)).foregroundStyle(XJTheme.muted)
+                .padding(.horizontal, 24).padding(.top, 64).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .accessibilityIdentifier("mp.account.waiting")
+        } else { ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                if recoveryBlocked {
+                    MPCard { MPMenuRow(title: "尝试恢复本机记录", action: recover).accessibilityIdentifier("mp.profile.recover") }
+                }
                 if !authenticated {
                     LoginEntryCard(used: used, limit: limit, appleReady: appleReady,
                         wechat: wechat, phone: phone, appleRequest: appleRequest,
@@ -86,7 +95,7 @@ struct MPSettingsSurface: View {
                         .accessibilityIdentifier("mp.profile.logout")
                 }
             }.padding(16).padding(.bottom, 16)
-        }
+        } }
     }
 }
 

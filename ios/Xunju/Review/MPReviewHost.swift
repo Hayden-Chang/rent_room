@@ -97,11 +97,13 @@ struct MPReviewHost: View {
                 MPComparisonResults(names: houses.filter { selected.contains($0.id) }.map(\.card.name), rows: MPReviewFixtures.comparison, differences: $differences) { comparing = false }
             } else { MPComparisonSelection(houses: houses, selected: $selected) { comparing = true } }
         case .settings:
-            MPSettingsSurface(authenticated: state != "guest", nickname: $nickname, used: 2, archived: 2, onboarding: $onboarding,
+            MPSettingsSurface(authenticated: state != "guest", nickname: $nickname, used: 2, archived: 2,
+                accountReady: state != "waiting", recoveryBlocked: state == "recovery", onboarding: $onboarding,
                 wechat: { toast = "微信登录服务暂不可用" }, phone: { route = .phone }, appleRequest: { _ in }, appleCompletion: { _ in },
                 avatarAction: { toast = "请选择头像" }, nicknameCommit: {}, capacity: { route = .capacity },
                 openWorkplace: { route = .workplace }, archive: { route = .archive }, importFile: { route = .transfer },
-                export: { route = .transfer }, permissions: { toast = "前往系统设置管理权限" }, logout: { confirmation = "logout" })
+                export: { route = .transfer }, permissions: { toast = "前往系统设置管理权限" }, logout: { confirmation = "logout" },
+                recover: { toast = "正在尝试恢复本机记录…" })
         case .transfer:
             MPTransferSurface(exporting: state == "export", items: state == "empty" ? [] : MPReviewFixtures.transfers, selected: $selected, modes: $modes,
                 fileName: state == "empty" ? "" : "寻居房源-2026-10-20.zip", busy: transferBusy, preparing: state == "preparing",

@@ -87,7 +87,7 @@ struct MPFieldRow: View {
         VStack(alignment: .leading, spacing: 0) {
             if item.kind == .group { XJTheme.line.frame(height: 1).padding(.bottom, 4) }
             ZStack(alignment: .topTrailing) {
-                if !readonly {
+                if !readonly && offset < 0 {
                     HStack(spacing: 0) {
                         tray(state.flagged ? "取消问题" : "标记问题", icon: state.flagged ? "swipe-issue-active" : "swipe-issue", color: state.flagged ? XJTheme.danger : XJTheme.dangerBackground) { state.flagged.toggle() }
                         tray("备注", icon: "swipe-note", color: XJTheme.soft, action: note)
@@ -110,13 +110,7 @@ struct MPFieldRow: View {
                     }
                 }.frame(minHeight: height)
             }.clipped().contentShape(Rectangle())
-                .simultaneousGesture(DragGesture(minimumDistance: 8).onChanged { value in
-                    guard !readonly else { return }
-                    coordinator.move(item.id, x: value.translation.width, y: value.translation.height, time: value.time.timeIntervalSinceReferenceDate)
-                }.onEnded { value in
-                    guard !readonly else { return }
-                    withAnimation(.easeOut(duration: 0.18)) { coordinator.finish(item.id, x: value.translation.width, y: value.translation.height, time: value.time.timeIntervalSinceReferenceDate) }
-                })
+                .modifier(MPFieldSwipe(id: item.id, readonly: readonly, coordinator: coordinator))
                 .simultaneousGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                     if !readonly { withAnimation(.easeOut(duration: 0.18)) { coordinator.reveal(item.id) } }
                 })
@@ -195,6 +189,7 @@ struct MPChecklistSurface<Content: View>: View {
     var coordinator: MPSwipeCoordinator
     let capture: () -> Void
     @ViewBuilder var content: Content
+    @State private var lastScrollY: CGFloat?
     var body: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -237,16 +232,87 @@ struct MPChecklistSurface<Content: View>: View {
                     }
                     content.padding(.top, 16)
                 }.padding(.horizontal, 16).padding(.bottom, 128)
+                    .background(GeometryReader { geometry in
+                        Color.clear.preference(key: MPChecklistScrollOrigin.self, value: geometry.frame(in: .named("mp.checklist")).minY)
+                    })
             }.scrollDismissesKeyboard(.interactively)
-                .simultaneousGesture(DragGesture(minimumDistance: 12).onChanged { value in
-                    if abs(value.translation.height) > abs(value.translation.width) * 1.2 { coordinator.close() }
-                })
+                .coordinateSpace(name: "mp.checklist")
+                .onPreferenceChange(MPChecklistScrollOrigin.self) { y in
+                    if let lastScrollY, abs(y - lastScrollY) > 1 { coordinator.close() }
+                    lastScrollY = y
+                }.accessibilityIdentifier("mp.checklist.scroll")
                 .overlay(alignment: .bottomTrailing) {
                     VStack(spacing: 12) {
                         MPFloatingButton(icon: "up", label: "回到顶部", size: 44) { coordinator.close(); withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo("top", anchor: .top) } }
                         if !readonly { MPFloatingButton(icon: "camera", label: "拍照或录视频", action: capture).accessibilityIdentifier("mp.checklist.capture") }
                     }.padding(16)
                 }
+        }
+    }
+}
+
+private struct MPChecklistScrollOrigin: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+private struct MPFieldSwipe: ViewModifier {
+    let id: String, readonly: Bool
+    let coordinator: MPSwipeCoordinator
+    @ViewBuilder func body(content: Content) -> some View {
+        if #available(iOS 18, *) {
+            content.gesture(MPHorizontalPan(enabled: !readonly, changed: move, ended: finish, cancelled: coordinator.close))
+        } else {
+            content.simultaneousGesture(DragGesture(minimumDistance: 8).onChanged { value in
+                move(value.translation, value.time.timeIntervalSinceReferenceDate)
+            }.onEnded { value in
+                finish(value.translation, value.time.timeIntervalSinceReferenceDate)
+            })
+        }
+    }
+    private func move(_ translation: CGSize, _ time: Double) {
+        guard !readonly else { return }
+        coordinator.move(id, x: translation.width, y: translation.height, time: time)
+    }
+    private func finish(_ translation: CGSize, _ time: Double) {
+        guard !readonly else { return }
+        withAnimation(.easeOut(duration: 0.18)) { coordinator.finish(id, x: translation.width, y: translation.height, time: time) }
+    }
+}
+
+// Reject vertical pans before recognition so the parent ScrollView keeps scrolling.
+// SwiftUI's simultaneousGesture no longer implies simultaneous ancestor gestures on iOS 26.
+@available(iOS 18, *)
+private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
+    let enabled: Bool
+    let changed: (CGSize, Double) -> Void, ended: (CGSize, Double) -> Void, cancelled: () -> Void
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
+    func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
+        let pan = UIPanGestureRecognizer()
+        pan.maximumNumberOfTouches = 1
+        pan.delegate = context.coordinator
+        pan.isEnabled = enabled
+        return pan
+    }
+    func updateUIGestureRecognizer(_ pan: UIPanGestureRecognizer, context: Context) { pan.isEnabled = enabled }
+    func handleUIGestureRecognizerAction(_ pan: UIPanGestureRecognizer, context: Context) {
+        let point = pan.translation(in: nil), time = ProcessInfo.processInfo.systemUptime
+        let translation = CGSize(width: point.x, height: point.y)
+        switch pan.state {
+        case .began, .changed: changed(translation, time)
+        case .ended: ended(translation, time)
+        case .cancelled, .failed: cancelled()
+        default: break
+        }
+    }
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return false }
+            let velocity = pan.velocity(in: nil)
+            return abs(velocity.x) > abs(velocity.y) * 1.2
+        }
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
+            other is UIPanGestureRecognizer
         }
     }
 }

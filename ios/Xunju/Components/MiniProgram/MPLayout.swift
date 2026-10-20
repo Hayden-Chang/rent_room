@@ -25,7 +25,7 @@ struct MPHeader: View {
             Text(title).font(.system(size: 17, weight: .semibold)).lineLimit(1).padding(.horizontal, 66)
             HStack {
                 if let back {
-                    Button(action: back) { Image(systemName: "chevron.left").font(.system(size: 20)).frame(width: 44, height: 44) }
+                    Button(action: back) { Image(systemName: "chevron.left").font(.system(size: 20)).frame(width: 44, height: 44).contentShape(Rectangle()) }
                         .buttonStyle(.plain).accessibilityLabel("返回").accessibilityIdentifier("mp.back")
                 }
                 Spacer()
