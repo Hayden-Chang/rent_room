@@ -78,8 +78,12 @@ import XCTest
         let event = app.staticTexts["review.mediaEvent"]
         XCTAssertTrue(event.waitForExistence(timeout: 3)); XCTAssertEqual(event.label, "已放弃未保存的修改")
         XCTAssertEqual(title.value as? String, "例如：卧室窗户关不严")
+        let add = app.buttons["issueEditor.addMedia"]
+        reveal(add, app: app); add.tap()
+        app.swipeUp()
         app.buttons["评审状态"].tap(); app.buttons["保存中"].tap()
         XCTAssertFalse(save.isEnabled); XCTAssertFalse(cancel.isEnabled); XCTAssertFalse(title.isEnabled)
+        XCTAssertFalse(app.buttons["issueEditor.remove.image1"].isEnabled)
         capture("60-issue-saving", app)
         app.buttons["评审状态"].tap(); app.buttons["选取中"].tap()
         XCTAssertFalse(app.buttons["issueEditor.addMedia"].isEnabled)
@@ -107,6 +111,7 @@ import XCTest
         XCTAssertTrue(play.waitForExistence(timeout: 5)); play.tap()
         let pause = app.buttons.matching(NSPredicate(format: "label IN %@", ["Pause", "暂停"])).firstMatch
         XCTAssertTrue(pause.waitForExistence(timeout: 3)); pause.tap()
+        XCTAssertTrue(app.buttons["Play/Pause"].exists)
         capture("54-issue-inline-video", app)
         let removeVideo = app.buttons["issueEditor.remove.video"]
         reveal(removeVideo, app: app); removeVideo.tap(); XCTAssertFalse(video.exists)

@@ -81,7 +81,7 @@ struct IssueEditorSurface: View {
                             Button(action: addMedia) {
                                 HStack { if selecting { ProgressView() }; Text("＋ 添加照片 / 视频") }
                             }.buttonStyle(XJButtonStyle())
-                                .disabled(busy).accessibilityIdentifier("issueEditor.addMedia")
+                                .disabled(busy).opacity(busy ? 0.45 : 1).accessibilityIdentifier("issueEditor.addMedia")
                         }
                     }
                 }
@@ -132,7 +132,7 @@ struct IssueEditorSurface: View {
             if !readonly {
                 Button("移除") { removeMedia(item) }.font(.system(size: 12)).foregroundStyle(XJTheme.danger)
                     .frame(maxWidth: .infinity, minHeight: 44).background(XJTheme.background)
-                    .buttonStyle(.plain).disabled(busy).accessibilityIdentifier("issueEditor.remove.\(item.id)")
+                    .buttonStyle(.plain).disabled(busy).opacity(busy ? 0.45 : 1).accessibilityIdentifier("issueEditor.remove.\(item.id)")
             }
         }.clipShape(RoundedRectangle(cornerRadius: 8)).padding(.bottom, 12)
     }
@@ -150,7 +150,7 @@ struct IssueEditorSurface: View {
                     }.buttonStyle(XJButtonStyle(primary: true))
                         .accessibilityIdentifier("issueEditor.save")
                 }
-            }.disabled(busy)
+            }.disabled(busy).opacity(busy ? 0.45 : 1)
         }.frame(height: 44).padding(.horizontal, 16).padding(.vertical, 12)
             .background(.white).overlay(alignment: .top) { Rectangle().fill(XJTheme.line).frame(height: 1) }
     }
