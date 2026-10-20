@@ -3,6 +3,13 @@ import StoreKitTest
 @testable import Xunju
 
 @MainActor final class NativeStorefrontTests: XCTestCase {
+    func testFinishedConsumableHistoryAndExistingPrivacyKeysReachBuiltApp() {
+        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "SKIncludeConsumableInAppPurchaseHistory") as? Bool, true)
+        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "寻居")
+        for key in ["NSCameraUsageDescription", "NSMicrophoneUsageDescription", "NSLocationWhenInUseUsageDescription"] {
+            XCTAssertFalse((Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "").isEmpty)
+        }
+    }
     func testRealStoreKitConsumableUsesAccountTokenAndStaysUnfinishedUntilAcknowledged() async throws {
         let file = try XCTUnwrap(Bundle(for: Self.self).url(forResource: "Capacity", withExtension: "storekit"))
         let session = try SKTestSession(contentsOf: file)
