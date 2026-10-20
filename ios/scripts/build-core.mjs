@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const result = await build({entryPoints: [path.join(root, 'ios/Core/bridge.js')], bundle: true, write: false,
-  format: 'iife', globalName: 'XunjuCore', target: 'safari17', platform: 'neutral', legalComments: 'none', metafile: true});
+  format: 'iife', globalName: 'XunjuCore', target: 'safari17', platform: 'neutral', mainFields: ['module', 'main'], legalComments: 'none', minifyWhitespace: true, metafile: true});
 const sources = {};
 for (const input of Object.keys(result.metafile.inputs).sort()) {
   const absolute = path.resolve(input);

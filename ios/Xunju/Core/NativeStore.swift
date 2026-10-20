@@ -39,7 +39,7 @@ final class NativeStore {
     let records: LocalRecords
     @ObservationIgnored private let context: JSContext
 
-    init(directory: URL, packs: Int = 0) throws {
+    init(directory: URL, packs: Int = 0, network: any MapTransport = NativeMapTransport()) throws {
         records = try LocalRecords(directory: directory)
         guard let context = JSContext(), let source = Bundle.main.url(forResource: "XunjuCore", withExtension: "js") else {
             throw CoreFailure(message: "清单规则资源缺失")
@@ -63,6 +63,16 @@ final class NativeStore {
         context.setObject(previous, forKeyedSubscript: "nativePrevious" as NSString)
         context.setObject(write, forKeyedSubscript: "nativeWrite" as NSString)
         context.setObject(preserve, forKeyedSubscript: "nativePreserveCorrupt" as NSString)
+        let request: @convention(block) (String, JSValue, JSValue) -> Void = { input, success, failure in
+            MainActor.assumeIsolated {
+                let callbacks = MapCallbacks(success: success, failure: failure)
+                Task { @MainActor in
+                    do { callbacks.resolve(try await network.request(input)) }
+                    catch { callbacks.reject(error.localizedDescription) }
+                }
+            }
+        }
+        context.setObject(request, forKeyedSubscript: "nativeMapRequest" as NSString)
         context.evaluateScript(try String(contentsOf: source, encoding: .utf8), withSourceURL: source)
         try checkException()
         let result = context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("initialize", withArguments: [
@@ -98,6 +108,20 @@ final class NativeStore {
             "filters": .array(filters.map(JSONValue.string))]), "folds": .object(folds.mapValues(JSONValue.bool))]).array
     }
 
+    func query(_ operation: String, _ parameters: [String: JSONValue]) async throws -> JSONValue {
+        var input = parameters; input["operation"] = .string(operation)
+        let json = String(decoding: try JSONEncoder().encode(JSONValue.object(input)), as: UTF8.self)
+        return try await withCheckedThrowingContinuation { continuation in
+            let once = MapReply(continuation: continuation)
+            let complete: @convention(block) (String) -> Void = { text in
+                MainActor.assumeIsolated { once.finish(text) }
+            }
+            context.exception = nil
+            context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("dispatchAsync", withArguments: [json, complete])
+            if let exception = context.exception, !exception.isUndefined { once.fail("地点查询未能启动") }
+        }
+    }
+
     private func checkException() throws {
         if let exception = context.exception, !exception.isUndefined {
             throw CoreFailure(message: "清单规则执行失败：\(exception.toString() ?? "未知错误")")
@@ -115,5 +139,29 @@ final class NativeStore {
         if capacity != reply.capacity { capacity = reply.capacity }
         guard reply.ok else { throw CoreFailure(message: reply.error) }
         return reply.value
+    }
+}
+
+@MainActor private final class MapCallbacks {
+    let success: JSValue
+    let failure: JSValue
+    init(success: JSValue, failure: JSValue) { self.success = success; self.failure = failure }
+    func resolve(_ text: String) { success.call(withArguments: [text]) }
+    func reject(_ text: String) { failure.call(withArguments: [text]) }
+}
+
+@MainActor private final class MapReply {
+    private var continuation: CheckedContinuation<JSONValue, Error>?
+    init(continuation: CheckedContinuation<JSONValue, Error>) { self.continuation = continuation }
+    func finish(_ text: String) {
+        guard let continuation else { return }; self.continuation = nil
+        do {
+            let reply = try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8))
+            guard reply["ok"].bool else { throw CoreFailure(message: reply["error"].string) }
+            continuation.resume(returning: reply["value"])
+        } catch { continuation.resume(throwing: error) }
+    }
+    func fail(_ text: String) {
+        continuation?.resume(throwing: CoreFailure(message: text)); continuation = nil
     }
 }

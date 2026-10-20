@@ -64,3 +64,6 @@ Thumbs.db
 /ios/Xunju.xcodeproj/
 /ios/Config/Local.xcconfig
 *.xcresult/
+
+# Generated local iOS map configuration; never commit service keys.
+/ios/Xunju/Resources/NativeConfiguration.json

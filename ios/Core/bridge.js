@@ -1,6 +1,13 @@
 import {createStore} from '../../apps/wechat/src/lib/store.js';
 import * as model from '../../apps/wechat/src/lib/model.js';
 import {writeIssue, mediaWithIssues} from '../../apps/wechat/src/lib/issues.js';
+import {createPlaces, point, applyPlace} from '../../apps/wechat/src/lib/places.js';
+import {toMap, fromMap} from '../../apps/wechat/src/lib/coordinates.js';
+import {createCommute, commuteEndpoints, endpointKey} from '../../apps/wechat/src/lib/commute.js';
+import {commuteMode} from '../../apps/wechat/src/lib/commute-fields.js';
+import {SPEED_FIELD_ID} from '../../apps/wechat/src/lib/speed-test.js';
+import {updateWorkplace, selectWorkplace, clearWorkplace} from '../../apps/wechat/src/lib/workplace.js';
+import {coachSteps, coachTarget} from '../../apps/wechat/src/lib/onboarding.js';
 
 let store, sessionPacks = 0, claimPacks = null;
 export function initialize(raw, packs = 0) {
@@ -53,6 +60,29 @@ function execute({operation, id, field, property, value, group, view, folds, ids
     case 'save': return store.save();
     case 'form': return model.formView(house(id), view, folds);
     case 'targets': return model.checklistTargets(house(id));
+    case 'coordinate': {
+      const p = point(value);
+      if (!p || !['toMap', 'fromMap'].includes(property)) throw Error('坐标无效');
+      return property === 'toMap' ? toMap(p) : fromMap(p);
+    }
+    case 'place': return store.edit(id, h => applyPlace(h, value, model.MAP_ID), true);
+    case 'workplacePlace': return store.change(s => selectWorkplace(s.settings, value), true);
+    case 'clearWorkplace': return store.change(s => clearWorkplace(s.settings), true);
+    case 'endpoints': {
+      const endpoints = commuteEndpoints(house(id), store.get().settings);
+      return {...endpoints, stamp: endpointKey(endpoints)};
+    }
+    case 'computed': {
+      if (!value || typeof value.amount !== 'number' || !Number.isFinite(value.amount) || value.amount <= 0 ||
+          !Object.prototype.hasOwnProperty.call(value, 'previous') || (!commuteMode(field) && field !== SPEED_FIELD_ID)) throw Error('测量结果无效');
+      return store.edit(id, h => {
+        if (commuteMode(field) && value.stamp !== endpointKey(commuteEndpoints(h, store.get().settings))) throw Error('地点已变化，请重新查询');
+        if (JSON.stringify(h.answers[field]?.value ?? null) !== JSON.stringify(value.previous)) throw Error('原数值已修改，未覆盖，请重新查询');
+        model.updateAnswer(h, field, 'value', String(value.amount));
+      }, true);
+    }
+    case 'coach': return {steps: coachSteps, target: coachTarget(house(id))};
+    case 'coachFinish': return value ? store.change(s => {s.settings.onboarding = false;}, true) : null;
     case 'summary':
       if (!['summary', 'decision'].includes(property)) throw Error('不支持的修改');
       if (typeof value !== 'string' || value.length > 10000) throw Error('文字内容过长');
@@ -61,7 +91,7 @@ function execute({operation, id, field, property, value, group, view, folds, ids
     case 'settings':
       if (!['workplace', 'onboarding'].includes(property)) throw Error('不支持的设置');
       if (property === 'onboarding' ? typeof value !== 'boolean' : typeof value !== 'string') throw Error('设置数据无效');
-      return store.change(s => {s.settings[property] = value;});
+      return store.change(s => {if (property === 'workplace') updateWorkplace(s.settings, value); else s.settings[property] = value;});
     case 'issues': {
       const h = house(id);
       return {automatic: model.issueEntries(h).map(e => ({...model.fieldView(h, e.field), category: e.topic.category})), manual: h.issues || []};
@@ -132,4 +162,25 @@ export function dispatch(json) {
     address: h.address || '', decision: h.decision || '', stats: model.stats(h),
     cover: h.media?.find(m => m.type === 'image')?.path || ''}));
   return JSON.stringify({ok: !error, error, value, state, status: store.status(), capacity: store.capacity(), summaries});
+}
+
+
+// Network-facing work is read-only; UI callers verify their scope and view epoch
+// before using a response. All parsing and route validation stays canonical.
+export async function dispatchAsync(json, complete) {
+  try {
+    const request = JSON.parse(json);
+    const api = (_name, options) => new Promise((resolve, reject) => nativeMapRequest(JSON.stringify(options),
+      text => { try {resolve(JSON.parse(text));} catch {reject(Error('地点查询结果无效'));} },
+      message => reject(Error(message || '网络连接失败，请重试'))));
+    const places = createPlaces(api, request.key || '');
+    let value;
+    switch (request.operation) {
+      case 'searchPlaces': value = await places.search(request.query || '', request.center || null); break;
+      case 'nearbyPlaces': value = await places.nearby(request.center); break;
+      case 'commuteRoutes': value = await createCommute(api, request.key || '').query(request.mode, request.origin, request.destination); break;
+      default: throw Error('不支持的查询');
+    }
+    complete(JSON.stringify({ok: true, error: '', value}));
+  } catch (error) { complete(JSON.stringify({ok: false, error: error.message || String(error), value: null})); }
 }
