@@ -86,5 +86,9 @@ import CoreLocation
         let center = app.buttons["place.result.center"]
         XCTAssertTrue(center.waitForExistence(timeout: 10)); capture("41-simulated-location-nearby", app); center.tap()
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
+        capture("42-simulated-location-selected", app)
+        app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
+        app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
     }
 }

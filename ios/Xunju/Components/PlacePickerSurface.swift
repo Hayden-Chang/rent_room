@@ -73,10 +73,12 @@ struct PlacePickerSurface: View {
                     .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                     .padding(12).accessibilityIdentifier("place.locate")
                 }
-                if !readonly && query.isEmpty && !places.isEmpty {
-                    results(nearby: true).frame(height: 128).frame(maxHeight: .infinity, alignment: .bottom)
-                }
             }.frame(height: 300).background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
+                .overlay(alignment: .bottom) {
+                    if !readonly && query.isEmpty && !places.isEmpty {
+                        results(nearby: true).frame(height: 128)
+                    }
+                }
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             if busy && !readonly { Text("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
             if center != nil || !places.isEmpty {
