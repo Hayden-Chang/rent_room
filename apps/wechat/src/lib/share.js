@@ -1,4 +1,4 @@
-const title='寻居 · 看房手记｜看房记录，轻松对比';
+const title='看房搭子｜看房记录，轻松对比';
 const imageUrl='/assets/icons/empty-art.png';
 
 // Install outside the account guard so sharing never falls back to private page screenshots.

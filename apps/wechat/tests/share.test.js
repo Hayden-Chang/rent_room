@@ -4,7 +4,7 @@ import vm from 'node:vm';
 import {withAppShare} from '../src/lib/share.js';
 
 afterEach(()=>vi.unstubAllGlobals());
-const title='寻居 · 看房手记｜看房记录，轻松对比';
+const title='看房搭子｜看房记录，轻松对比';
 const imageUrl='/assets/icons/empty-art.png';
 const expected={title,path:'/pages/home/index',imageUrl};
 const routes=JSON.parse(fs.readFileSync('dist/app.json','utf8')).pages;
