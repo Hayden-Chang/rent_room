@@ -304,7 +304,7 @@ private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
     let enabled: Bool
     let changed: (CGSize, Double) -> Void, ended: (CGSize, Double, CGFloat) -> Void, cancelled: () -> Void
     let trace: (String) -> Void
-    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator(trace: trace) }
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator(trace: trace, vertical: cancelled) }
     func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
         let pan = UIPanGestureRecognizer()
         pan.maximumNumberOfTouches = 1
@@ -326,11 +326,13 @@ private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
     }
     final class Coordinator: NSObject, UIGestureRecognizerDelegate {
         let trace: (String) -> Void
-        init(trace: @escaping (String) -> Void) { self.trace = trace }
+        let vertical: () -> Void
+        init(trace: @escaping (String) -> Void, vertical: @escaping () -> Void) { self.trace = trace; self.vertical = vertical }
         func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
             guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return false }
             let velocity = pan.velocity(in: nil)
             trace("shouldBegin \(Int(velocity.x)),\(Int(velocity.y))")
+            if abs(velocity.y) > abs(velocity.x) * 1.2 { vertical() }
             return abs(velocity.x) > abs(velocity.y) * 1.2
         }
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {

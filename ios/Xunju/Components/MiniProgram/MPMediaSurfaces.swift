@@ -75,22 +75,26 @@ struct MPMediaPreview: View {
     @Binding var selected: String
     let close: () -> Void
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack {
             Color.black.ignoresSafeArea()
-            TabView(selection: $selected) {
-                ForEach(items) { item in
-                    Group {
-                        if item.tile.kind == .video { InlineMediaVideo(url: item.tile.url) }
-                        else if let url = item.tile.url, let image = UIImage(contentsOfFile: url.path) { MPZoomImage(image: image).accessibilityIdentifier("mp.preview.image.\(item.id)") }
-                    }.tag(item.id)
-                }
-            }.tabViewStyle(.page(indexDisplayMode: .never)).accessibilityIdentifier("mp.preview.pages")
-            HStack {
-                Button(action: close) { Image(systemName: "chevron.left").frame(width: 44, height: 44).contentShape(Rectangle()) }.accessibilityLabel("关闭预览")
-                Spacer()
-                Text("\((items.firstIndex { $0.id == selected } ?? 0) + 1) / \(items.count)").font(.system(size: 14)).accessibilityIdentifier("mp.preview.index")
-                Spacer(); Color.clear.frame(width: 44, height: 44)
-            }.foregroundStyle(.white).background(.black.opacity(0.4)).zIndex(1)
+            VStack(spacing: 0) {
+                HStack {
+                    Button(action: close) { Image(systemName: "chevron.left").frame(width: 44, height: 44).contentShape(Rectangle()) }.accessibilityLabel("关闭预览")
+                    Spacer()
+                    Text("\((items.firstIndex { $0.id == selected } ?? 0) + 1) / \(items.count)").font(.system(size: 14)).accessibilityIdentifier("mp.preview.index")
+                    Spacer(); Color.clear.frame(width: 44, height: 44)
+                }.foregroundStyle(.white)
+                // Keep the image's touch region below the header. An overlaid header
+                // intercepts one finger of a pinch that starts near the image's top edge.
+                TabView(selection: $selected) {
+                    ForEach(items) { item in
+                        Group {
+                            if item.tile.kind == .video { InlineMediaVideo(url: item.tile.url) }
+                            else if let url = item.tile.url, let image = UIImage(contentsOfFile: url.path) { MPZoomImage(image: image).accessibilityIdentifier("mp.preview.image.\(item.id)") }
+                        }.tag(item.id)
+                    }
+                }.tabViewStyle(.page(indexDisplayMode: .never)).accessibilityIdentifier("mp.preview.pages")
+            }
         }
     }
 }
