@@ -103,8 +103,20 @@ import XCTest
         XCTAssertTrue(app.buttons["已解决"].exists); XCTAssertTrue(app.staticTexts["确认修复时间"].exists)
     }
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
-        for _ in 0..<4 { if element.isHittable { break }; app.scrollViews.firstMatch.swipeUp() }
-        XCTAssertTrue(element.isHittable)
+        // SwiftUI may report clipped content behind the inset tab/footer as
+        // hittable. Bring the whole control into the actual content area first.
+        let top = app.navigationBars.firstMatch.frame.maxY + 12
+        let bottom = app.buttons["issueEditor.save"].exists ? app.buttons["issueEditor.save"].frame.minY - 12
+            : app.buttons["tab.清单"].exists ? app.buttons["tab.清单"].frame.minY - 64 : app.frame.maxY - 96
+        for _ in 0..<5 {
+            if element.exists {
+                let frame = element.frame
+                if element.isHittable && frame.minY >= top && frame.maxY <= bottom { return }
+                if frame.minY < top { app.scrollViews.firstMatch.swipeDown(); continue }
+            }
+            app.scrollViews.firstMatch.swipeUp()
+        }
+        XCTFail("Control was not fully visible above the tab/footer: " + element.identifier)
     }
     private func importFixture(_ kind: String, _ app: XCUIApplication) {
         let addMedia = app.buttons["issueEditor.addMedia"]; reveal(addMedia, app); addMedia.tap()
@@ -122,7 +134,11 @@ import XCTest
         title.tap(); title.typeText("窗框渗水"); app.buttons["完成"].tap()
         importFixture("image", app); importFixture("video", app)
         XCTAssertEqual(buttons("issueEditor.remove.", app).count, 2)
+        let photo = buttons("issueEditor.preview.", app).firstMatch; reveal(photo, app); photo.tap()
+        XCTAssertTrue(app.images["issueEditor.previewImage"].waitForExistence(timeout: 3)); app.buttons["关闭"].tap()
         capture("63-business-issue-media-draft", app)
+        let video = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "issueEditor.video.")).firstMatch
+        reveal(video, app); capture("70-business-issue-video-file", app)
         app.buttons["issueEditor.save"].tap()
         XCTAssertTrue(app.buttons["窗框渗水"].waitForExistence(timeout: 3))
         app.buttons["tab.影像"].tap()

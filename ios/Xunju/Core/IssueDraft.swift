@@ -39,7 +39,7 @@ import Observation
         }
         let path = item["path"].string
         try requireFile(path)
-        guard !(try LocalMediaReferences.paths(in: store)).contains(path) else {
+        guard !(try LocalMediaReferences.isReferenced(path, in: store)) else {
             throw CoreFailure(message: "影像已被记录引用，请重新选择")
         }
         ownedPaths.insert(path); media.append(item); error = ""
@@ -87,6 +87,14 @@ import Observation
 }
 
 @MainActor enum LocalMediaReferences {
+    static func isReferenced(_ path: String, in store: NativeStore) throws -> Bool {
+        let referenced = try paths(in: store)
+        let url = try LocalMediaFiles.file(path, in: store.records.directory)
+        return referenced.contains(path) || targets(referenced, in: store).contains(url.path)
+    }
+    private static func targets(_ paths: Set<String>, in store: NativeStore) -> Set<String> {
+        Set(paths.compactMap { try? LocalMediaFiles.file($0, in: store.records.directory).path })
+    }
     static func paths(in store: NativeStore) throws -> Set<String> {
         var states = [store.state]
         for previous in [false, true] {
@@ -104,9 +112,14 @@ import Observation
     }
     static func discard(_ candidates: Set<String>, in store: NativeStore) {
         guard let referenced = try? paths(in: store) else { return }
+        let referencedTargets = targets(referenced, in: store)
         for path in candidates.subtracting(referenced) {
-            guard let url = try? LocalMediaFiles.file(path, in: store.records.directory) else { continue }
-            try? FileManager.default.removeItem(at: url)
+            guard let url = try? LocalMediaFiles.file(path, in: store.records.directory),
+                  !referencedTargets.contains(url.path) else { continue }
+            // Validate the resolved target, but unlink only the owned filename.
+            // A symbolic alias must never turn cleanup into deleting its target.
+            let ownedFile = url.deletingLastPathComponent().appendingPathComponent((path as NSString).lastPathComponent)
+            try? FileManager.default.removeItem(at: ownedFile)
         }
     }
 }

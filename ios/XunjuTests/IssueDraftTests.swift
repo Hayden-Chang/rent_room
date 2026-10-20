@@ -127,6 +127,11 @@ import XCTest
         XCTAssertThrowsError(try draft.addImported(item), "An alias of a saved file is not draft-owned")
         LocalMediaReferences.discard(["media/alias.jpg"], in: store)
         XCTAssertTrue(FileManager.default.fileExists(atPath: original.path), "Cleanup must preserve a referenced target under any name")
+        let unowned = try file("unowned", store)
+        let looseAlias = store.records.directory.appending(path: "media/loosealias.jpg")
+        try FileManager.default.createSymbolicLink(at: looseAlias, withDestinationURL: LocalMediaFiles.file(unowned["path"].string, in: store.records.directory))
+        LocalMediaReferences.discard(["media/loosealias.jpg"], in: store)
+        XCTAssertTrue(try exists(unowned, store)); XCTAssertFalse(FileManager.default.fileExists(atPath: looseAlias.path))
     }
 
 }
