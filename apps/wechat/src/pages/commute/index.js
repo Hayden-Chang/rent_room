@@ -1,3 +1,4 @@
+import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {commuteMode} from '../../lib/commute-fields.js';
 import {commuteEndpoints,endpointKey,routeViewport} from '../../lib/commute.js';
@@ -5,7 +6,7 @@ import {applyPlace} from '../../lib/places.js';
 import {houseTopics,updateAnswer,MAP_ID} from '../../lib/model.js';
 import {service,watch,unwatch} from '../../lib/ui.js';
 
-Page(protectedPage({
+Page(withAppShare(protectedPage({
   data:{mode:'',origin:{},destination:{},center:null,scale:13,markers:[],polyline:[],includePoints:[],mapReady:false,routes:[],selectedId:'',chosen:null,busy:false,message:'',picker:'',pickerAddress:'',pickerLocation:null,pickerAnchor:'',saveError:''},
   onLoad(options){
     this.houseId=options.id;this.fieldId=options.field;this.platform=service();this.run=0;this.active=true;this.results=[];
@@ -96,4 +97,4 @@ Page(protectedPage({
     finally{this.saving=false;}
   },
   back(){this.active=false;this.run++;wx.navigateBack({delta:1});}
-}));
+})));

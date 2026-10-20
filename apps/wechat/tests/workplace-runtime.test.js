@@ -25,8 +25,8 @@ function setup(initial){
   return {store,wx,load,adapter,app};
 }
 
-it('blocks the workplace route and edits before authentication',async()=>{
-  const {app,wx,load,store}=setup();app.auth.isAuthenticated=()=>false;
+it('blocks the workplace route and edits while the local data service is unavailable',async()=>{
+  const {app,wx,load,store}=setup();app.auth.isAuthenticated=()=>false;app.service=null;
   const page=load('workplace',{mount:false});await page.onLoad();await page.onShow();
   await page.input({detail:{value:'不应保存'}});
   expect(page.data.accountReady).toBe(false);expect(store.get().settings.workplace).toBe('');

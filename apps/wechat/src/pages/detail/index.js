@@ -1,3 +1,4 @@
+import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {SPEED_FIELD_ID} from '../../lib/speed-test.js';
 import {commuteMode} from '../../lib/commute-fields.js';
@@ -6,7 +7,7 @@ import {applyPlace} from '../../lib/places.js';
 import {coachSteps,coachMethods} from '../../lib/onboarding.js';
 import {stats,formView,houseTopics,rules,fieldView,checklistTargets,issueEntries,MAP_ID,costGroups,addCostField} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
-Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,noteFocus:false,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
+Page(withAppShare(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,noteFocus:false,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false},
   onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id||'',coach:options.id&&options.new&&service().store.get().settings.onboarding?1:0});watch(this);this.refresh();},
   onReady(){if(this.data.coach)this.coachPrepare();},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){
     this.speedOpening=false;this.commuteOpening=false;this.coachHidden=false;this.commuteRestoreRun=(this.commuteRestoreRun||0)+1;
@@ -173,4 +174,4 @@ Page(protectedPage({data:{id:'',house:null,mediaType:'all',visibleMedia:[],media
   export(){wx.navigateTo({url:'/pages/import/index?mode=export&id='+encodeURIComponent(this.data.id)});},
   top(){this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
   ...coachMethods,
-}));
+})));
