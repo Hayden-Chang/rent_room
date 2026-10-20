@@ -16,7 +16,8 @@ struct SpeedConsentReviewHost: View {
             }.padding(16).padding(.top, 8).background(XJTheme.background)
                 .navigationTitle("网速测试").navigationBarTitleDisplayMode(.inline)
                 .background {
-                    SpeedNetworkConsent(request: prompt) { accepted in
+                    SpeedNetworkConsent(request: prompt) { id, accepted in
+                        guard prompt?.id == id else { return }
                         let previous = prompt?.kind; prompt = nil
                         if accepted, previous == .wifi, mobile { prompt = SpeedConsentRequest(kind: .mobile) }
                         else { event = accepted ? "网络确认完成；评审不会下载数据" : "暂不测试，原答案保持不变" }

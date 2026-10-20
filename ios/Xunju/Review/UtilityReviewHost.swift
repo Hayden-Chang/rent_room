@@ -46,7 +46,6 @@ private struct PlaceReviewHost: View {
                         })
                     }
                     if !event.isEmpty { Text(event).font(.system(size: 13)).accessibilityIdentifier("review.placeEvent") }
-                    if MapHitTrace.enabled { Text(MapHitTrace.shared.report).font(.system(size: 8)).lineLimit(1).accessibilityIdentifier("review.mapHitTrace") }
                 }.padding(16)
             }.background(XJTheme.background).navigationTitle("地点组件").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(readonly ? "可编辑" : "只读") { readonly.toggle() }.accessibilityIdentifier("review.placeReadonly") } }

@@ -76,11 +76,7 @@ struct PlacePickerSurface: View {
                 if !readonly && query.isEmpty && !places.isEmpty {
                     results(nearby: true).frame(height: 128)
                         .accessibilitySortPriority(1)
-                        .background {
-                            #if DEBUG
-                            if MapHitTrace.enabled { MapHitProbe() }
-                            #endif
-                        }.frame(maxHeight: .infinity, alignment: .bottom)
+                        .frame(maxHeight: .infinity, alignment: .bottom)
                 }
             }.frame(height: 300).background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
                 .clipShape(RoundedRectangle(cornerRadius: 10))

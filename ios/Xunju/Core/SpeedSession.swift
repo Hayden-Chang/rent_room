@@ -70,7 +70,10 @@ struct NetworkStatus: Equatable, Sendable {
             throw CoreFailure(message: "房源不可编辑，请返回清单")
         }
     }
-    func networkChanged(to version: Int) { if operation != nil && version != networkVersion && state.active { cancel() } }
+    @discardableResult func networkChanged(to version: Int) -> Bool {
+        guard operation != nil && version != networkVersion && state.active else { return false }
+        cancel(); return true
+    }
     func cancel() {
         epoch += 1; operation?.cancel(); operation = nil; result = nil
         if state.active { state = .failed("测速已取消，原值保持不变") }

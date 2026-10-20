@@ -11,7 +11,7 @@ struct SpeedConsentRequest: Identifiable {
 // racing the first alert's automatic dismissal. No arbitrary delay or window lookup.
 struct SpeedNetworkConsent: UIViewControllerRepresentable {
     let request: SpeedConsentRequest?
-    let answer: (Bool) -> Void
+    let answer: (UUID, Bool) -> Void
 
     func makeUIViewController(context: Context) -> ConsentController { ConsentController() }
     func updateUIViewController(_ controller: ConsentController, context: Context) {
@@ -22,10 +22,10 @@ struct SpeedNetworkConsent: UIViewControllerRepresentable {
     @MainActor final class ConsentController: UIViewController {
         private var desired: SpeedConsentRequest?
         private var current: UUID?
-        private var answer: ((Bool) -> Void)?
+        private var answer: ((UUID, Bool) -> Void)?
         override func viewDidLoad() { super.viewDidLoad(); view.backgroundColor = .clear; view.isUserInteractionEnabled = false }
         override func viewDidAppear(_ animated: Bool) { super.viewDidAppear(animated); showIfReady() }
-        func update(request: SpeedConsentRequest?, answer: @escaping (Bool) -> Void) {
+        func update(request: SpeedConsentRequest?, answer: @escaping (UUID, Bool) -> Void) {
             desired = request; self.answer = answer
             if request == nil, current != nil { cancel() } else { showIfReady() }
         }
@@ -51,15 +51,15 @@ struct SpeedNetworkConsent: UIViewControllerRepresentable {
             current = nil
             let callback = answer
             desired = nil
-            callback?(accepted)
+            callback?(id, accepted)
         }
         func cancel() {
-            guard current != nil else { desired = nil; return }
+            guard let id = current else { desired = nil; answer = nil; return }
             // Cancelled presenters cannot start a measurement after disappearing.
             current = nil; desired = nil
             let callback = answer; answer = nil
             presentedViewController?.dismiss(animated: false)
-            callback?(false)
+            callback?(id, false)
         }
     }
 }

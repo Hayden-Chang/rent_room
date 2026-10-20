@@ -78,7 +78,7 @@ DEBUG的 `--utility-network-fixture` 必须同时有合法 `--business-test <UUI
 
 ## 第五批新增组件与定位回归
 
-新增评审范围为行内查询/测速输入、Wi-Fi及移动流量确认、只读地图。当前等待用户确认；未接生产测速页面，生产清单仍使用原先的通勤入口。
+第五批新增的行内查询/测速输入、Wi-Fi及移动流量确认、只读地图已获用户明确批准：“确认通过，继续接入”。随后接入生产清单、完整测速页及归档只读地图；新业务接入的定向验证待实际结果。
 
 | runId 后缀 | 来源 | 实际结果 |
 | --- | --- | --- |
@@ -92,3 +92,13 @@ DEBUG的 `--utility-network-fixture` 必须同时有合法 `--business-test <UUI
 模拟定位使用XCTest公开的 `XCUIDevice.location`，测试后恢复原值；已经取得CoreLocation回调及候选结果，但选取尚未成功，不代表真机GPS验收。授权弹窗关闭后的截图和AX层级已检查，附近面板完整可见。第一轮将面板改为明确bottom overlay，第二轮用contentShape排除地图被面板覆盖的128pt，两次均未解决命中问题，失败证据保留。
 
 两轮失败后先按research-after-two-failed-attempts核查官方资料，再进行只读诊断，不做第三次盲改。[SwiftUI interaction形状](https://developer.apple.com/documentation/swiftui/contentshapekinds/interaction)控制命中与无障碍；[UIKit hitTest](https://developer.apple.com/documentation/uikit/uiview/hittest%28_%3Awith%3A%29)根据视图层级和bounds选择接收者，即使透明区域也可能命中。2026-10-20未找到足以确认本例为26.5已知系统缺陷的官方说明。后续用显式DEBUG隔离参数采集实际UIView命中路径，不触发选择回调、不改业务数据，也不使用坐标点击绕过失败。
+
+诊断与收敛：`place-hit-trace-20261020-01/02/03` 分别来自cb69772/b9aec93/8c6df9c。03完整记录各级bounds、pointInside和hitTest；后续补充返回视图frame，确认命中的是内层列表(32,371,329,109)，不是外层容器。此前仅凭同名UIKit类作出的“外层接收”判断被否定。叶子矩形点击区域的 `place-hit-20261020-03`（a6244e2）和对齐小程序独立“使用”按钮的04（85fd492）均未单独解决AX命中，2UI各自失败，完整证据保留。
+
+`place-ax-order-20261020-01`（8498c70）：1UI通过原附近“使用”、搜索选择和权限回退完整流程。UIKit原生点命中已正确，但AX排序仍将地图放在覆盖列表前；按[Apple同层无障碍排序说明](https://developer.apple.com/documentation/swiftui/view/accessibilitysortpriority%28_%3A%29)将附近列表priority设为1，未改变像素布局，语义按钮点击随后通过。移除了两次无效的地图布局/命中掩模；最终保留同源独立“使用”按钮及覆盖列表AX顺序。临时MapHitTrace及启动参数已从当前源码移除，诊断历史和原始附件仍保留。实际定位选点保存和重启尚待去除诊断后的复验，不把这1UI称为完整GPS验收。
+
+## 第五批批准后的测速接入
+
+清单使用已批准的行内输入/查询/测试；归档地图隐藏输入、定位与结果选择，保留原产品允许的缩放。SpeedPage接入原生网络监测、两次明确同意、分段测速及受保护回填，完成后返回清单；拒绝或主动取消返回并保留手工值。退后台取消当前任务，离开停止监测并恢复所有等待；重试弹窗带请求UUID，过期授权回调不能接受新一轮测速。显示保存失败时仍保留读数并可重试保存。
+
+原生确认回调增加UUID，不改变已批准外观；旧回调、网络变化、离开、离线和正常移动网络顺序由新增SpeedFlowTests验证。`--speed-measurement-fixture wifi|mobile|offline|slow` 必须同时有合法 `--business-test UUID` 才启用，且与地图HTTP夹具独立。只在DEBUG注入可取消的假范围传输/单调时钟/网络状态；完整UI仍通过真实新建、引导、手工填写、原生弹窗、回填和重启。没有真实测速下载，也不能用8.39夹具读数证明实际网速。

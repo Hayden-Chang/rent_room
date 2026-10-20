@@ -63,6 +63,7 @@ struct ChecklistPage: View {
     @State private var cost: JSONValue?
     @State private var mediaTarget: String?
     @State private var commuteField: String?
+    @State private var showSpeed = false
     @State private var coachStep = 1
     @State private var coachSteps: [CoachStep] = []
     @State private var coachTarget: JSONValue = .null
@@ -170,6 +171,7 @@ struct ChecklistPage: View {
             .navigationDestination(isPresented: Binding(get: { commuteField != nil }, set: { if !$0 { commuteField = nil } })) {
                 if let commuteField { CommutePage(workspace: workspace, houseID: id, fieldID: commuteField) }
             }
+            .navigationDestination(isPresented: $showSpeed) { SpeedPage(workspace: workspace, houseID: id) }
     }
     private var progress: some View {
         XJCard {
@@ -220,20 +222,19 @@ struct ChecklistPage: View {
                 if !row["note"].string.isEmpty { Button(row["note"].string) { openNote(row) }.font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
             }
         } else {
-            VStack(alignment: .trailing, spacing: 4) {
             AnswerInput(field: row, text: answerBinding(row.id), otherText: answerBinding(row.id, property: "otherText"), readonly: readonly, showsKeyboardToolbar: false,
                 choose: { value in workspace.perform { try workspace.store.call("choose", ["id": .string(id), "field": .string(row.id), "value": .string(value)]) } },
                 action: { action in
                     if action == "备注" { openNote(row) }
                     else if action == "标记问题" { flag(row) }
                     else { mediaTarget = row.id }
-                })
-                if UtilityField.mode(row.id) != nil {
-                    Button("查询" + row["label"].string) { commuteField = row.id }
-                        .font(.system(size: 13)).disabled(readonly).accessibilityIdentifier("commute.open.\(row.id)")
-                }
-            }
+                }, measurement: measurement(row.id))
         }
+    }
+    private func measurement(_ field: String) -> MeasurementAction? {
+        if UtilityField.mode(field) != nil { return MeasurementAction(kind: .commute) { commuteField = field } }
+        if field == UtilityField.speed { return MeasurementAction(kind: .speed) { showSpeed = true } }
+        return nil
     }
     private func answerBinding(_ field: String, property: String = "value") -> Binding<String> {
         Binding(get: { workspace.store.house(id)["answers"][field][property].string }, set: { value in

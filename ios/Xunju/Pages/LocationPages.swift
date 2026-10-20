@@ -2,15 +2,16 @@ import SwiftUI
 
 struct PlacePicker: View {
     @Bindable var search: PlaceSearch
+    var readonly = false
     let choose: (JSONValue) throws -> Void
     var body: some View {
         PlacePickerSurface(query: $search.query, center: search.center, places: search.choices, busy: search.busy,
-                           message: search.message, permissionDenied: search.permissionDenied,
+                           message: search.message, permissionDenied: search.permissionDenied, readonly: readonly,
                            search: { search.submit() }, locate: { search.locate() }, retry: { search.submit() },
                            settings: { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } },
                            moved: search.moved, choose: { place in
             do { try choose(search.selected(place)); search.didSelect(place) } catch { search.message = error.localizedDescription }
-        }).onChange(of: search.query) { search.submit(debounce: true) }
+        }).onChange(of: search.query) { if !readonly { search.submit(debounce: true) } }
             .onDisappear { search.cancel() }
     }
 }
@@ -24,9 +25,9 @@ struct HousePlaceField: View {
         _search = State(initialValue: PlaceSearch(store: store, key: workspace.mapKey, location: store.house(id)["location"], validScope: { workspace.store === store }))
     }
     var body: some View {
-        PlacePicker(search: search) { place in
+        PlacePicker(search: search, readonly: workspace.store.house(id)["archived"].bool) { place in
             try search.store.call("place", ["id": .string(id), "value": place])
-        }.disabled(workspace.store.house(id)["archived"].bool)
+        }
             .onAppear { if !workspace.store.house(id)["archived"].bool { search.start(address: workspace.store.house(id)["address"].string) } }
             .onChange(of: workspace.store.house(id)["location"]) { _, value in search.synchronizeLocation(value) }
     }
