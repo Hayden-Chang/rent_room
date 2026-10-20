@@ -2,7 +2,9 @@
 import SwiftUI
 
 enum ReviewSurface: String {
-    case homes, checklist, account, fields, summary
+    case homes, checklist, account, fields, summary, place, routes, speed, coach
+
+    var utilities: Bool { [.place, .routes, .speed, .coach].contains(self) }
 
     static func parse(_ arguments: [String]) -> ReviewSurface? {
         guard let index = arguments.firstIndex(of: "--component-review"),
@@ -24,6 +26,9 @@ struct ComponentReviewHost: View {
     @State private var event = ""
 
     var body: some View {
+        if surface.utilities {
+            UtilityReviewHost(surface: surface)
+        } else {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
@@ -33,6 +38,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
+                    case .place, .routes, .speed, .coach: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -62,6 +68,7 @@ struct ComponentReviewHost: View {
                     }.presentationDetents([.large])
                 }
         }.tint(XJTheme.primary)
+        }
     }
 
     private var title: String {
@@ -71,6 +78,10 @@ struct ComponentReviewHost: View {
         case .account: "登录组件"
         case .fields: "清单输入组件"
         case .summary: "看房总结组件"
+        case .place: "地点组件"
+        case .routes: "通勤组件"
+        case .speed: "测速组件"
+        case .coach: "操作引导组件"
         }
     }
 
