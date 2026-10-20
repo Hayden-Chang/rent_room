@@ -265,4 +265,25 @@ import XCTest
         app.launch(); wait(app.staticTexts["mp.account.waiting"])
         XCTAssertFalse(app.buttons["login.wechat"].exists); capture("50-account-waiting", app)
     }
+    func testGestureDiagnostics() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--component-review", "parity-detail", "--parity-trace"]
+        app.launch()
+        wait(app.buttons["mp.field.choice.seal.是"])
+        app.buttons["mp.field.choice.seal.是"].swipeLeft()
+        let short = XCTAttachment(string: app.otherElements["mp.field.seal"].value as? String ?? "missing")
+        short.name = "short-swipe-trace"; short.lifetime = .keepAlways; add(short)
+        app.otherElements["mp.field.seal"].swipeLeft()
+        let row = XCTAttachment(string: app.otherElements["mp.field.seal"].value as? String ?? "missing")
+        row.name = "row-swipe-trace"; row.lifetime = .keepAlways; add(row)
+        app.buttons["mp.tab.影像"].tap()
+        app.buttons["mp.media.preview.image1"].tap()
+        wait(app.scrollViews["mp.preview.image.image1"])
+        let photo = app.scrollViews["mp.preview.image.image1"]
+        photo.pinch(withScale: 2, velocity: 1)
+        photo.pinch(withScale: 0.25, velocity: -1)
+        let zoom = XCTAttachment(string: photo.value as? String ?? "missing")
+        zoom.name = "zoom-trace"; zoom.lifetime = .keepAlways; add(zoom)
+        capture("diagnostic-zoom", app)
+    }
 }

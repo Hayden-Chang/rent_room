@@ -117,10 +117,22 @@ struct MPZoomImage: UIViewRepresentable {
         }
     }
     final class Coordinator: NSObject, UIScrollViewDelegate {
+        private var diagnostic = ""
+        private func trace(_ scroll: UIScrollView, _ message: String) {
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--parity-trace") {
+                diagnostic = String((diagnostic + " | " + message).suffix(1000))
+                scroll.accessibilityValue = "\(Int(scroll.zoomScale * 100))%" + diagnostic
+            }
+            #endif
+        }
         func viewForZooming(in scrollView: UIScrollView) -> UIView? { (scrollView as? ImageScroll)?.picture }
+        func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) { trace(scrollView, "begin") }
+        func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) { trace(scrollView, "end \(scale)") }
         func scrollViewDidZoom(_ scrollView: UIScrollView) {
             scrollView.accessibilityValue = "\(Int(scrollView.zoomScale * 100))%"
             scrollView.panGestureRecognizer.isEnabled = scrollView.zoomScale > scrollView.minimumZoomScale
+            trace(scrollView, "zoom \(scrollView.zoomScale)")
         }
     }
 }

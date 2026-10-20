@@ -33,8 +33,17 @@ struct MPSwipeMotion {
     private(set) var active: String?
     private(set) var dragging: String?
     private var motion = MPSwipeMotion()
+    private(set) var diagnostic = ""
+    func trace(_ message: String) {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--parity-trace") {
+            diagnostic = String((diagnostic + " | " + message).suffix(1500))
+        }
+        #endif
+    }
     func offset(_ id: String) -> CGFloat { dragging == id ? motion.offset : active == id ? -132 : 0 }
     func move(_ id: String, x: CGFloat, y: CGFloat, time: Double) {
+        trace("move \(id) \(Int(x)),\(Int(y))")
         if dragging != id {
             motion = MPSwipeMotion(base: active == id ? -132 : 0)
             if active != id { active = nil }
@@ -44,12 +53,13 @@ struct MPSwipeMotion {
         if motion.axis == .vertical { active = nil }
     }
     func finish(_ id: String, x: CGFloat, y: CGFloat, time: Double) {
+        trace("finish \(id) \(Int(x)),\(Int(y)) dragging=\(dragging ?? "-")")
         guard dragging == id else { return }
         active = motion.finish(x: x, y: y, time: time) ? id : nil
         dragging = nil
     }
     func reveal(_ id: String) { dragging = nil; active = id }
-    func close() { active = nil; dragging = nil }
+    func close() { trace("close"); active = nil; dragging = nil }
     @discardableResult func consumeTap() -> Bool {
         let wasOpen = active != nil || dragging != nil
         close(); return wasOpen
@@ -134,7 +144,7 @@ struct MPFieldRow: View {
             .onChange(of: focused) { if focused { coordinator.close() } }
             .onChange(of: readonly) { if readonly { coordinator.close() } }
             .accessibilityElement(children: .contain).accessibilityIdentifier("mp.field.\(item.id)")
-            .accessibilityValue(coordinator.active == item.id ? "操作已展开" : "操作已收起")
+            .accessibilityValue((coordinator.active == item.id ? "操作已展开" : "操作已收起") + coordinator.diagnostic)
     }
     @ViewBuilder private var answer: some View {
         if item.kind == .text || item.kind == .number {
@@ -238,7 +248,7 @@ struct MPChecklistSurface<Content: View>: View {
             }.scrollDismissesKeyboard(.interactively)
                 .coordinateSpace(name: "mp.checklist")
                 .onPreferenceChange(MPChecklistScrollOrigin.self) { y in
-                    if let lastScrollY, abs(y - lastScrollY) > 1 { coordinator.close() }
+                    if let lastScrollY, abs(y - lastScrollY) > 1 { coordinator.trace("scroll \(y - lastScrollY)"); coordinator.close() }
                     lastScrollY = y
                 }.accessibilityIdentifier("mp.checklist.scroll")
                 .overlay(alignment: .bottomTrailing) {
@@ -261,7 +271,7 @@ private struct MPFieldSwipe: ViewModifier {
     let coordinator: MPSwipeCoordinator
     @ViewBuilder func body(content: Content) -> some View {
         if #available(iOS 18, *) {
-            content.gesture(MPHorizontalPan(enabled: !readonly, changed: move, ended: finish, cancelled: coordinator.close))
+            content.gesture(MPHorizontalPan(enabled: !readonly, changed: move, ended: finish, cancelled: coordinator.close, trace: coordinator.trace))
         } else {
             content.simultaneousGesture(DragGesture(minimumDistance: 8).onChanged { value in
                 move(value.translation, value.time.timeIntervalSinceReferenceDate)
@@ -286,7 +296,8 @@ private struct MPFieldSwipe: ViewModifier {
 private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
     let enabled: Bool
     let changed: (CGSize, Double) -> Void, ended: (CGSize, Double) -> Void, cancelled: () -> Void
-    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator() }
+    let trace: (String) -> Void
+    func makeCoordinator(converter: CoordinateSpaceConverter) -> Coordinator { Coordinator(trace: trace) }
     func makeUIGestureRecognizer(context: Context) -> UIPanGestureRecognizer {
         let pan = UIPanGestureRecognizer()
         pan.maximumNumberOfTouches = 1
@@ -297,6 +308,7 @@ private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
     func updateUIGestureRecognizer(_ pan: UIPanGestureRecognizer, context: Context) { pan.isEnabled = enabled }
     func handleUIGestureRecognizerAction(_ pan: UIPanGestureRecognizer, context: Context) {
         let point = pan.translation(in: nil), time = ProcessInfo.processInfo.systemUptime
+        trace("pan \(pan.state.rawValue) xy=\(Int(point.x)),\(Int(point.y)) vx=\(Int(pan.velocity(in: nil).x))")
         let translation = CGSize(width: point.x, height: point.y)
         switch pan.state {
         case .began, .changed: changed(translation, time)
@@ -306,9 +318,12 @@ private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
         }
     }
     final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        let trace: (String) -> Void
+        init(trace: @escaping (String) -> Void) { self.trace = trace }
         func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
             guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return false }
             let velocity = pan.velocity(in: nil)
+            trace("shouldBegin \(Int(velocity.x)),\(Int(velocity.y))")
             return abs(velocity.x) > abs(velocity.y) * 1.2
         }
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
