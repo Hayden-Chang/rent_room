@@ -7,6 +7,7 @@ struct MPSwipeMotion {
     private(set) var offset: CGFloat = 0
     private(set) var axis: Axis = .undecided
     private var samples: [(CGFloat, Double)] = []
+    init(base: CGFloat = 0) { self.base = base; offset = base }
     mutating func sample(x: CGFloat, y: CGFloat, time: Double) {
         if axis == .undecided, max(abs(x), abs(y)) >= 8 {
             if abs(x) > abs(y) * 1.2 { axis = .horizontal }

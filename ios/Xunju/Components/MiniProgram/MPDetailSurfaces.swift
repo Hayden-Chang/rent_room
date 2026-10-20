@@ -156,6 +156,6 @@ struct MPAccountIcon: View {
             path.addCurve(to: CGPoint(x: 19*s, y: 18*s), control1: CGPoint(x: 5*s, y: 8.67*s), control2: CGPoint(x: 19*s, y: 8.67*s))
             path.addLine(to: CGPoint(x: 19*s, y: 20*s))
             context.stroke(path, with: .color(XJTheme.primary), style: StrokeStyle(lineWidth: 1.8*s, lineCap: .round, lineJoin: .round))
-        }.frame(width: 32, height: 32).accessibilityHidden(true)
+        }.frame(width: 30, height: 30).accessibilityHidden(true)
     }
 }
