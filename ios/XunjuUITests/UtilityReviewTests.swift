@@ -2,9 +2,10 @@ import XCTest
 
 @MainActor final class UtilityReviewTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch(_ surface: String) -> XCUIApplication {
+    private func launch(_ surface: String, diagnostics: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--component-review", surface, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if diagnostics { app.launchArguments += ["--map-hit-diagnostics"] }
         app.launch(); return app
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
@@ -13,9 +14,12 @@ import XCTest
     }
 
     func testPlaceSearchSelectionAndPermissionFallback() {
-        let app = launch("place"), query = app.textFields["place.query"]
+        let app = launch("place", diagnostics: true), query = app.textFields["place.query"]
         XCTAssertTrue(query.waitForExistence(timeout: 10))
         capture("21-place-nearby", app)
+        let trace = app.staticTexts["review.mapHitTrace"]
+        XCTAssertTrue(trace.waitForExistence(timeout: 3))
+        let attachment = XCTAttachment(string: trace.label); attachment.name = "map-native-hit-trace"; attachment.lifetime = .keepAlways; add(attachment)
         app.buttons["place.result.one"].tap()
         XCTAssertEqual(app.staticTexts["review.placeEvent"].label, "已选择：阳光小区")
         query.tap(); query.typeText("公寓\n")

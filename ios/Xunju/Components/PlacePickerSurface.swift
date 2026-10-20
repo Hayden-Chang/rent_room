@@ -78,6 +78,11 @@ struct PlacePickerSurface: View {
                 .overlay(alignment: .bottom) {
                     if !readonly && query.isEmpty && !places.isEmpty {
                         results(nearby: true).frame(height: 128)
+                            .background {
+                                #if DEBUG
+                                if MapHitTrace.enabled { MapHitProbe() }
+                                #endif
+                            }
                     }
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 10))

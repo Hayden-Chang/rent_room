@@ -72,4 +72,23 @@ DEBUG的 `--utility-network-fixture` 必须同时有合法 `--business-test <UUI
 
 `9304463` 新增独立UIKit网络确认组件和尚未接业务页面的 `SpeedSession`。每次需先确认Wi-Fi，移动网络再明确确认最多64MiB；拒绝、网络变化、离开、旧值变化、账号变化和保存失败均不得覆盖原答案。新弹窗仅在DEBUG `speed-consent` 宿主评审，通过后才接完整测速页。宿主不会下载数据。
 
-连续弹窗通过UIKit dismiss完成回调衔接，不用固定延时。依据 [Apple UIKit说明](https://developer.apple.com/documentation/uikit/uiviewcontroller/dismiss%28animated%3Acompletion%3A%29)：完成回调发生在被关闭页面的viewDidDisappear之后。首次7UT/1UI计划在排队期间因工作区文档变化被runner拒绝，未开始构建或测试；原计划与日志保留。重建计划后与地点后续复验合并为13UT/3UI，尚待实际结果，不声称通过。
+连续弹窗通过UIKit dismiss完成回调衔接，不用固定延时。依据 [Apple UIKit说明](https://developer.apple.com/documentation/uikit/uiviewcontroller/dismiss%28animated%3Acompletion%3A%29)：完成回调发生在被关闭页面的viewDidDisappear之后。首次7UT/1UI计划在排队期间因工作区文档变化被runner拒绝，未开始构建或测试；原计划与日志保留。
+
+`utilities-integration-20261020-01`（`cfcaf51`）：13UT和3UI全部通过。13UT为5项新增SpeedSession、6项UtilityFlow、2项评审路由；3UI为两项实际地点/通勤/手工地址业务流程和原生两步网络确认。证明了经固定HTTP响应、同源解析、实际点击保存、通勤确认回填24分钟和重启保留；没有真实供应商或测速下载。
+
+## 第五批新增组件与定位回归
+
+新增评审范围为行内查询/测速输入、Wi-Fi及移动流量确认、只读地图。当前等待用户确认；未接生产测速页面，生产清单仍使用原先的通勤入口。
+
+| runId 后缀 | 来源 | 实际结果 |
+| --- | --- | --- |
+| `map-center-20261020-before` | `28303e6` | 1UI通过：等待附近结果完成后，地图中心与所选地点及后续通勤正确；此前灰网格截图不足以证明坐标故障，未做坐标修复 |
+| `final-utility-components-20261020-01` | `fcdd9f8` | 1UT通过；5UI中行内输入、只读地图、完整地点/通勤和原输入回归4项通过，首次模拟定位选点在附近“使用”按钮命中失败 |
+| `place-hit-network-20261020-01` | `eb95a2d` | 新增3项NativeNetwork UT通过；3UI中普通搜索/权限回退及只读地图通过，定位附近按钮仍不可命中 |
+| `place-hit-20261020-02` | `9e96bf1` | 2UI均在附近按钮命中失败。独立宿主也复现，排除必须经过系统定位授权这一前提；不把两轮修复称为成功 |
+
+第五批4张真实1178×2556截图已经主agent检查并展示。未改像素副本位于前述可视化目录的 `ios-utility-business/`：`36-speed-wifi-consent.png`、`37-speed-mobile-consent.png` 来源cfc；`38-measurement-inputs-and-actions.png`、`39-readonly-map.png` 来源fcdd。结果bundle分别为 `/Volumes/mac2/codex-builds/xunju-ios-utilities-integration-20261020-01.xcresult`、`/Volumes/mac2/codex-builds/xunju-ios-final-utility-components-20261020-01.xcresult`，原始导出分别在 `/tmp/xunju-ios-20261019/utilities-integration-01-attachments/` 和 `final-utility-components-01-attachments/`。cfc至9e中网络确认和输入的布局/主题/宿主未改变；只读地图的隐藏输入/定位/结果及300pt视觉不变，后续命中形状覆盖高度为0，不改变该截图的像素布局。39在eb又独立通过，保留其实际来源，不改称新head截图。
+
+模拟定位使用XCTest公开的 `XCUIDevice.location`，测试后恢复原值；已经取得CoreLocation回调及候选结果，但选取尚未成功，不代表真机GPS验收。授权弹窗关闭后的截图和AX层级已检查，附近面板完整可见。第一轮将面板改为明确bottom overlay，第二轮用contentShape排除地图被面板覆盖的128pt，两次均未解决命中问题，失败证据保留。
+
+两轮失败后先按research-after-two-failed-attempts核查官方资料，再进行只读诊断，不做第三次盲改。[SwiftUI interaction形状](https://developer.apple.com/documentation/swiftui/contentshapekinds/interaction)控制命中与无障碍；[UIKit hitTest](https://developer.apple.com/documentation/uikit/uiview/hittest%28_%3Awith%3A%29)根据视图层级和bounds选择接收者，即使透明区域也可能命中。2026-10-20未找到足以确认本例为26.5已知系统缺陷的官方说明。后续用显式DEBUG隔离参数采集实际UIView命中路径，不触发选择回调、不改业务数据，也不使用坐标点击绕过失败。
