@@ -261,6 +261,13 @@ import XCTest
         let archive = app.buttons["归档"]; XCTAssertTrue(archive.waitForExistence(timeout: 3)); archive.tap()
         app.buttons["tab.我的"].tap(); let archives = app.buttons["settings.archive"]; reveal(archives, app); archives.tap()
         let open = app.buttons["archive.open.自动数值问题"]; XCTAssertTrue(open.waitForExistence(timeout: 3)); open.tap()
+        query.tap(); query.typeText("租金"); app.buttons["checklist.keyboard.done"].tap()
+        let category = app.staticTexts["mp.field.title.node:category:房源基本信息"]
+        XCTAssertEqual(category.value as? String, "已展开")
+        category.tap(); XCTAssertEqual(category.value as? String, "已折叠"); XCTAssertFalse(rent.exists)
+        capture("readonly-checklist-collapsed", app)
+        category.tap(); XCTAssertEqual(rent.value as? String, "0"); XCTAssertFalse(rent.isEnabled)
+        capture("readonly-checklist-expanded", app)
         app.buttons["tab.问题"].tap(); XCTAssertEqual(rent.value as? String, "0"); XCTAssertFalse(rent.isEnabled)
         app.otherElements["mp.field.f1_6"].firstMatch.swipeLeft(); XCTAssertFalse(app.buttons["标记问题"].exists)
         capture("84-business-automatic-numeric-readonly", app)
