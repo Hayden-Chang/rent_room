@@ -147,7 +147,7 @@ struct MPPressActions: ViewModifier {
                 case .second: tap()
                 }
             }
-        ).accessibilityAction(perform: tap)
+        ).accessibilityAction { tap() }
     }
 }
 

@@ -186,6 +186,7 @@ import XCTest
         let app = launch("capacity")
         wait(app.buttons["mp.capacity.purchase"]); capture("41-capacity", app)
         app.buttons["mp.capacity.purchase"].tap()
+        label(app.buttons["mp.capacity.purchase"], equals: "正在确认购买…")
         XCTAssertFalse(app.buttons["mp.capacity.purchase"].isEnabled); capture("42-capacity-waiting", app)
         app.terminate()
         app.launchArguments = ["--component-review", "parity-capacity", "--parity-state", "pending", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
@@ -221,10 +222,12 @@ import XCTest
             if state == "unavailable" || state == "loading" { XCTAssertFalse(app.buttons["mp.capacity.purchase"].isEnabled) }
             if state == "over" { XCTAssertEqual(app.staticTexts["mp.capacity.total"].label, "12 / 2 套") }
             if state == "error" {
+                capture("47-capacity-error", app)
                 app.buttons["mp.capacity.restore"].tap()
+                label(app.buttons["mp.capacity.restore"], equals: "正在恢复容量…")
                 XCTAssertFalse(app.buttons["mp.capacity.restore"].isEnabled)
             }
-            capture("47-capacity-\(state)", app); app.terminate()
+            capture("47-capacity-\(state == "error" ? "restoring" : state)", app); app.terminate()
         }
     }
 }
