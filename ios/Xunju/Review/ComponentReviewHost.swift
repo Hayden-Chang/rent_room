@@ -5,6 +5,8 @@ enum ReviewSurface: String {
     case homes, checklist, account, fields, summary, place, routes, speed, coach
     case speedConsent = "speed-consent"
     case measurements
+    case media, headings
+    case issueMedia = "issue-media"
 
     var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent, .measurements].contains(self) }
 
@@ -28,7 +30,9 @@ struct ComponentReviewHost: View {
     @State private var event = ""
 
     var body: some View {
-        if surface.utilities {
+        if [.media, .issueMedia, .headings].contains(surface) {
+            MediaComponentReviewHost(surface: surface)
+        } else if surface.utilities {
             UtilityReviewHost(surface: surface)
         } else {
         NavigationStack {
@@ -40,7 +44,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -86,6 +90,9 @@ struct ComponentReviewHost: View {
         case .coach: "操作引导组件"
         case .speedConsent: "测速网络确认"
         case .measurements: "通勤与网速输入"
+        case .media: "影像组件"
+        case .issueMedia: "问题影像组件"
+        case .headings: "分类与分组组件"
         }
     }
 
