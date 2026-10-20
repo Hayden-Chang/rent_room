@@ -128,7 +128,7 @@ struct ChecklistPage: View {
             }
             .sheet(item: $cost) { group in
                 TextPrompt(title: "添加" + group["title"].string, placeholder: "填写费用名称", text: "") { label in
-                    workspace.perform { try workspace.store.call("addCost", ["id": .string(id), "group": .string(group.id), "value": .string(label)]) }
+                    try workspace.store.call("addCost", ["id": .string(id), "group": .string(group.id), "value": .string(label)])
                 }
             }
             .sheet(isPresented: Binding(get: { mediaTarget != nil }, set: { if !$0 { mediaTarget = nil } })) {

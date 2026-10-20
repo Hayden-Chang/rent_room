@@ -24,7 +24,13 @@ final class AppWorkspace {
         let guest = try NativeStore(directory: scopes.guestDirectory())
         if let saved = try keychain.read() {
             try saved.validateStored()
-            store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs)
+            let account = try NativeStore(directory: scopes.accountDirectory(saved.account), packs: saved.packs)
+            if account.status.blocked {
+                // Expose the existing recovery banner without attempting a guest claim or write.
+                store = account
+            } else {
+                store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs)
+            }
             session = saved
         } else { store = guest }
     }

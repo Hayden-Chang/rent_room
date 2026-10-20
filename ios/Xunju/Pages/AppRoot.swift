@@ -87,7 +87,8 @@ struct TextPrompt: View {
     let placeholder: String
     @State var text: String
     var maxLength = 100
-    let save: (String) -> Bool
+    let save: (String) throws -> Void
+    @State private var error = ""
     @Environment(\.dismiss) private var dismiss
     @FocusState private var focused: Bool
     var body: some View {
@@ -96,12 +97,19 @@ struct TextPrompt: View {
                 TextField(placeholder, text: $text).textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("prompt.text").focused($focused)
                     .onChange(of: text) { _, value in if value.count > maxLength { text = String(value.prefix(maxLength)) } }
+                if !error.isEmpty {
+                    Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger)
+                        .accessibilityIdentifier("prompt.error")
+                }
                 Spacer()
             }.padding(20).background(XJTheme.background).navigationTitle(title).navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("确定") { if save(text.trimmingCharacters(in: .whitespacesAndNewlines)) { dismiss() } }
+                        Button("确定") {
+                            do { try save(text.trimmingCharacters(in: .whitespacesAndNewlines)); dismiss() }
+                            catch { self.error = error.localizedDescription }
+                        }
                             .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                             .accessibilityIdentifier("prompt.confirm")
                     }

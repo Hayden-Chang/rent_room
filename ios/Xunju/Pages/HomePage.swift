@@ -36,12 +36,12 @@ struct HomePage: View {
             }
             .sheet(isPresented: $adding) {
                 TextPrompt(title: "添加房源", placeholder: "填写房源名称", text: "") { value in
-                    workspace.perform { let id = try workspace.store.add(value); path = [id] }
+                    let id = try workspace.store.add(value); path = [id]
                 }
             }
             .sheet(item: $rename) { house in
                 TextPrompt(title: "重命名", placeholder: "填写房源名称", text: house.name) { name in
-                    workspace.perform { try workspace.store.call("rename", ["id": .string(house.id), "value": .string(name)]) }
+                    try workspace.store.call("rename", ["id": .string(house.id), "value": .string(name)])
                 }
             }
     }
