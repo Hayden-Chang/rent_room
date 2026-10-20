@@ -100,6 +100,7 @@ struct MediaGallerySurface: View {
                         VStack(spacing: 0) {
                             Button { preview(item) } label: { MediaThumbnail(item: item) }
                                 .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore)
+                                .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }
                                 .accessibilityLabel(item.kind == .image ? "预览照片" : "播放视频")
                                 .accessibilityIdentifier("gallery.preview.\(item.id)")
                             Button { caption(item) } label: {

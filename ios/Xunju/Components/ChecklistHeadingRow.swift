@@ -34,22 +34,22 @@ struct ChecklistHeadingRow: View {
                         Text(expanded ? "⌃" : "⌄").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                         Spacer(minLength: 0)
                     }.frame(maxWidth: .infinity, minHeight: kind == .category ? 56 : 48).contentShape(Rectangle())
-                }.buttonStyle(.plain).accessibilityIdentifier("heading.\(id).fold")
+                }.buttonStyle(HeadingFoldButtonStyle()).accessibilityIdentifier("heading.\(id).fold")
                     .accessibilityValue(expanded ? "已展开" : "已折叠")
                 if actionsOpen && !readonly {
                     HStack(spacing: 0) {
                         action("标记问题", icon: flagged ? "swipe-issue-active" : "swipe-issue", color: flagged ? XJTheme.danger : XJTheme.dangerBackground) { flagged.toggle() }
                         action("备注", icon: "swipe-note", color: XJTheme.soft, perform: note)
                         action("拍摄", icon: "swipe-camera", color: XJTheme.primary, perform: capture)
-                    }
+                    }.frame(height: kind == .category ? 56 : 48, alignment: .top)
                 } else {
-                    HStack(spacing: 8) {
+                    HStack(spacing: 4) {
                         if kind == .category {
                             (Text("\(done) / \(total)").foregroundStyle(XJTheme.muted) + Text(issues > 0 ? " · \(issues) 问题" : "").foregroundStyle(XJTheme.danger))
                                 .font(.system(size: 12)).fixedSize().accessibilityIdentifier("heading.\(id).stats")
                         }
                         if skippable {
-                            Button("不涉及") { if activeRow != nil { activeRow = nil } else { skipped.toggle() } }.font(.system(size: 12))
+                            Button("不涉及") { if activeRow != nil { activeRow = nil } else { skipped.toggle() } }.font(.system(size: 12)).fixedSize(horizontal: true, vertical: false)
                                 .padding(.horizontal, 10).frame(minHeight: 44)
                                 .foregroundStyle(skipped ? XJTheme.primary : XJTheme.ink)
                                 .background(skipped ? XJTheme.soft : XJTheme.background)
@@ -70,9 +70,9 @@ struct ChecklistHeadingRow: View {
                                     .accessibilityAddTraits(value == choice ? .isSelected : [])
                             }
                         }
-                    }
+                    }.fixedSize(horizontal: true, vertical: false)
                 }
-            }.contentShape(Rectangle()).highPriorityGesture(DragGesture(minimumDistance: 24).onEnded { gesture in
+            }.contentShape(Rectangle()).simultaneousGesture(DragGesture(minimumDistance: 24).onEnded { gesture in
                 guard !readonly, abs(gesture.translation.width) > abs(gesture.translation.height) else { return }
                 withAnimation(.easeOut(duration: 0.18)) {
                     if gesture.translation.width < 0 { activeRow = id }
@@ -94,5 +94,14 @@ struct ChecklistHeadingRow: View {
     private func action(_ label: String, icon: String, color: Color, perform: @escaping () -> Void) -> some View {
         Button { activeRow = nil; perform() } label: { XJIcon(name: icon).frame(width: 44, height: 44).background(color) }
             .buttonStyle(.plain).accessibilityLabel(label).accessibilityIdentifier("heading.\(id).\(label)")
+    }
+}
+
+// Let the title's tap and its enclosing horizontal drag compose explicitly,
+// while retaining a real Button action for accessibility activation.
+private struct HeadingFoldButtonStyle: PrimitiveButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.contentShape(Rectangle()).onTapGesture { configuration.trigger() }
+            .accessibilityAction { configuration.trigger() }
     }
 }

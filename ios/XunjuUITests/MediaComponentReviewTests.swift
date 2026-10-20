@@ -117,6 +117,7 @@ import XCTest
         XCTAssertFalse(app.buttons["issueEditor.save"].exists)
         XCTAssertEqual(app.buttons["issueEditor.cancel"].label, "返回")
         XCTAssertFalse(app.textFields["issueEditor.title"].isEnabled)
+        app.swipeDown()
         capture("55-issue-readonly", app)
     }
 
@@ -125,6 +126,7 @@ import XCTest
         XCTAssertTrue(category.waitForExistence(timeout: 10))
         let choice = app.buttons["heading.group.choice.正常"], skip = app.buttons["heading.group.skip"]
         XCTAssertTrue(choice.isSelected)
+        XCTAssertGreaterThanOrEqual(skip.frame.width, 55)
         capture("56-heading-progress-and-choices", app)
         skip.tap(); XCTAssertTrue(skip.isSelected); XCTAssertFalse(choice.exists)
         capture("59-heading-skipped", app)

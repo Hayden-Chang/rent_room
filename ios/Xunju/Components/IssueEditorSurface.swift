@@ -125,7 +125,8 @@ struct IssueEditorSurface: View {
                 InlineMediaVideo(url: item.url).accessibilityIdentifier("issueEditor.video.\(item.id)")
             } else {
                 Button { preview(item) } label: { MediaThumbnail(item: item, height: 104, radius: 8, showsRelation: false) }
-                    .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore).accessibilityLabel("预览影像")
+                    .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore)
+                    .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }.accessibilityLabel("预览影像")
                     .accessibilityIdentifier("issueEditor.preview.\(item.id)")
             }
             if !readonly {
