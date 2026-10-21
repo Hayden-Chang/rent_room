@@ -315,38 +315,41 @@ import XCTest
     }
     func testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints() {
         let app = launch(); add("来源菜单检查", app)
-        let library = app.buttons["从相册选择照片或视频"]
+        let menu = app.otherElements["media.source"]
+        let library = menu.buttons["从相册选择照片或视频"]
+        let camera = menu.buttons["拍照或录视频"]
         func checkMenu(_ name: String) {
             XCTAssertTrue(library.waitForExistence(timeout: 3))
             capture(name, app)
             XCTAssertFalse(app.navigationBars["添加影像"].exists, "Source selection must be a compact bottom menu, not a separate page")
             XCTAssertGreaterThan(library.frame.minY, app.frame.height * 0.6)
-            XCTAssertEqual(library.frame.height, 54, accuracy: 1)
-            XCTAssertTrue(app.buttons["取消"].exists)
+            XCTAssertEqual(camera.frame.midY - library.frame.midY, 54, accuracy: 1)
+            XCTAssertEqual(menu.buttons["取消"].frame.midY - camera.frame.midY, 62, accuracy: 1)
+            XCTAssertTrue(menu.buttons["取消"].exists)
             XCTAssertFalse(app.staticTexts["单个影像不超过 50 MiB"].exists)
         }
         app.buttons["mp.checklist.capture"].tap(); checkMenu("media-source-checklist")
-        app.buttons["取消"].tap(); XCTAssertTrue(library.waitForNonExistence(timeout: 3))
-        app.buttons["tab.影像"].tap(); app.buttons["拍照或录视频"].tap(); checkMenu("media-source-gallery")
+        menu.buttons["取消"].tap(); XCTAssertTrue(library.waitForNonExistence(timeout: 3))
+        app.buttons["tab.影像"].tap(); app.buttons["media.add"].tap(); checkMenu("media-source-gallery")
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3)).tap()
         XCTAssertTrue(library.waitForNonExistence(timeout: 3), "Tapping the dimmed area dismisses the menu")
         XCTAssertTrue(app.staticTexts["还没有影像"].exists)
         app.buttons["tab.问题"].tap(); app.buttons["issue.add"].tap()
         let addMedia = app.buttons["issueEditor.addMedia"]; reveal(addMedia, app); addMedia.tap()
         checkMenu("media-source-issue")
-        app.buttons["拍照或录视频"].tap()
+        camera.tap()
         let unavailable = app.alerts["无法添加影像"]
         XCTAssertTrue(unavailable.waitForExistence(timeout: 3))
         XCTAssertTrue(unavailable.staticTexts["当前设备没有可用相机"].exists)
         capture("media-source-camera-unavailable", app); unavailable.buttons["知道了"].tap()
-        app.buttons["取消"].tap(); XCTAssertTrue(library.waitForNonExistence(timeout: 3))
+        menu.buttons["取消"].tap(); XCTAssertTrue(library.waitForNonExistence(timeout: 3))
         XCTAssertTrue(app.textFields["issueEditor.title"].exists)
         XCTAssertEqual(buttons("issueEditor.remove.", app).count, 0)
     }
     func testMediaEmptyStateAndSystemPickerCanCancel() {
         let app = launch(); add("影像检查", app); app.buttons["tab.影像"].tap()
         XCTAssertTrue(app.staticTexts["还没有影像"].exists)
-        app.buttons["拍照或录视频"].tap()
+        app.buttons["media.add"].tap()
         let library = app.buttons["从相册选择照片或视频"]
         XCTAssertTrue(library.waitForExistence(timeout: 3)); capture("18-native-media-source", app)
         library.tap()

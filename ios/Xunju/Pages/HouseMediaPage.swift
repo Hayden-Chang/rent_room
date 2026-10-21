@@ -20,7 +20,7 @@ struct HouseMediaPage: View {
                 caption: { tile in caption = media.first { $0.id == tile.id } }).padding(16)
         }.safeAreaInset(edge: .bottom) {
             if !readonly {
-                Button("拍照或录视频") { picking = true }.buttonStyle(XJButtonStyle(primary: true)).padding(16)
+                Button("拍照或录视频") { picking = true }.buttonStyle(XJButtonStyle(primary: true)).padding(16).accessibilityIdentifier("media.add")
             }
         }.onAppear(perform: refresh)
             .onChange(of: workspace.store.status.revision) { _, _ in refresh() }
@@ -76,7 +76,7 @@ struct MediaPickerSheet: View {
             MPSourceSheet(close: { if !busy { dismiss() } }, library: { library = true }, camera: {
                     if UIImagePickerController.isSourceTypeAvailable(.camera) { camera = true }
                     else { error = "当前设备没有可用相机" }
-                }).allowsHitTesting(!busy).accessibilityHidden(busy)
+                }).allowsHitTesting(!busy).accessibilityElement(children: .contain).accessibilityIdentifier("media.source").accessibilityHidden(busy)
             if busy {
                 ProgressView("正在保存影像…").padding(24).background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
