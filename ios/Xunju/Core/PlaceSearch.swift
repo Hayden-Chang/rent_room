@@ -90,10 +90,10 @@ extension GeographicPoint {
         return value
     }
     func didSelect(_ choice: PlaceChoice) {
-        // Use the persisted coordinate's round trip before SwiftUI reads it
-        // back, so conversion precision cannot cancel the nearby refresh.
+        // Keep the saved coordinate stable when the view reads it back.
+        // Selection finishes this search; only a new user action reopens it.
         center = results[choice.id].flatMap { nativePoint($0["location"]) } ?? choice.point
-        query = ""; submit()
+        cancel(); query = ""; choices = []; results = [:]; message = ""; permissionDenied = false
     }
     func synchronizeLocation(_ value: JSONValue) {
         let point = nativePoint(value)

@@ -30,7 +30,26 @@ import XCTest
         search.cancel(); await operation?.value
         XCTAssertEqual(workspace.store.state, before)
     }
-    func testHouseSelectionRoundTripDoesNotCancelNearbyRefresh() async throws {
+    func testUsingPlaceDismissesCandidatesUntilAnotherSearch() async throws {
+        let store = try NativeStore(directory: root())
+        let search = PlaceSearch(store: store, places: UtilityNetworkFixture.places, validScope: { true })
+        search.query = "阳光"; await search.submit()?.value
+        let choice = try XCTUnwrap(search.choices.first)
+        try store.call("workplacePlace", ["value": search.selected(choice)])
+        search.didSelect(choice)
+        defer { search.cancel() }
+        XCTAssertFalse(search.busy, "Using a place must not start another nearby query")
+        XCTAssertTrue(search.choices.isEmpty)
+        XCTAssertEqual(search.query, "")
+        XCTAssertThrowsError(try search.selected(choice), "Dismissed candidates must no longer be selectable")
+        search.synchronizeLocation(store.state["settings"]["workplaceLocation"])
+        XCTAssertFalse(search.busy)
+        XCTAssertTrue(search.choices.isEmpty)
+        search.query = "办公楼"; await search.submit()?.value
+        XCTAssertFalse(search.choices.isEmpty, "An explicit new search must reopen candidates")
+        XCTAssertTrue(store.state["settings"]["workplace"].string.contains("阳光小区"))
+    }
+    func testHouseSelectionRoundTripKeepsCandidatesDismissed() async throws {
         let store = try NativeStore(directory: root()), id = try store.add("坐标回显")
         let search = PlaceSearch(store: store, places: UtilityNetworkFixture.places, validScope: { true })
         search.query = "阳光"; await search.submit()?.value
@@ -41,7 +60,13 @@ import XCTest
         search.didSelect(choice)
         XCTAssertEqual(search.center, search.nativePoint(saved), "The camera must use the same canonical round-trip point as persisted state")
         search.synchronizeLocation(saved)
-        XCTAssertTrue(search.busy, "Reading back the selected location must not cancel its nearby refresh")
+        XCTAssertFalse(search.busy, "Reading back the selected location must not reopen candidates")
+        XCTAssertTrue(search.choices.isEmpty)
+        let point = try XCTUnwrap(search.center)
+        search.moved(point)
+        XCTAssertFalse(search.busy, "Programmatic camera recentering must not reopen candidates")
+        search.moved(GeographicPoint(latitude: point.latitude + 0.01, longitude: point.longitude))
+        XCTAssertTrue(search.busy, "Moving the map to another point must allow a new search")
         search.cancel()
     }
     func testPlaceSelectionPersistsCanonicalAddressAndWorkplaceWithoutChangingAnswers() async throws {

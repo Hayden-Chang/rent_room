@@ -5,14 +5,14 @@ struct PlacePicker: View {
     var readonly = false
     let choose: (JSONValue) throws -> Void
     var body: some View {
-        PlacePickerSurface(query: $search.query, center: search.center, places: search.choices, busy: search.busy,
+        PlacePickerSurface(query: Binding(get: { search.query }, set: { search.query = $0; search.submit(debounce: true) }),
+                           center: search.center, places: search.choices, busy: search.busy,
                            message: search.message, permissionDenied: search.permissionDenied, readonly: readonly,
                            search: { search.submit() }, locate: { search.locate() }, retry: { search.submit() },
                            settings: { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } },
                            moved: search.moved, choose: { place in
             do { try choose(search.selected(place)); search.didSelect(place) } catch { search.message = error.localizedDescription }
-        }).onChange(of: search.query) { if !readonly { search.submit(debounce: true) } }
-            .onDisappear { search.cancel() }
+        }).onDisappear { search.cancel() }
     }
 }
 

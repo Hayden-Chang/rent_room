@@ -11,6 +11,15 @@ import CoreLocation
     private func capture(_ name: String, _ app: XCUIApplication) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
+    private func assertCandidatesStayDismissed(_ app: XCUIApplication) {
+        let result = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.'")).firstMatch
+        XCTAssertTrue(result.waitForNonExistence(timeout: 4), "Using a place must dismiss all candidates")
+        let reappeared = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true"), object: result)
+        reappeared.isInverted = true
+        XCTAssertEqual(XCTWaiter.wait(for: [reappeared], timeout: 2), .completed, "Candidates must remain dismissed across debounce and camera callbacks")
+        XCTAssertEqual(app.textFields["place.query"].value as? String, "搜索地址，更快填写")
+        XCTAssertTrue(app.descendants(matching: .any)["place.map"].exists)
+    }
     func testRealGuidePlaceWorkplaceAndCommutePersistAfterRelaunch() {
         let app = launch()
         app.buttons["home.add"].tap(); let name = app.textFields["prompt.text"]
@@ -32,14 +41,14 @@ import CoreLocation
         place.tap(); place.typeText("阳光\n")
         let houseChoice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '阳光小区'")).firstMatch
         XCTAssertTrue(houseChoice.waitForExistence(timeout: 4)); houseChoice.tap()
-        XCTAssertTrue(app.buttons["place.result.center"].waitForExistence(timeout: 4))
+        assertCandidatesStayDismissed(app)
         capture("32-business-house-place", app)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["tab.我的"].tap()
         app.buttons["settings.workplace"].tap()
         let search = app.textFields["place.query"]; XCTAssertTrue(search.waitForExistence(timeout: 3)); search.tap(); search.typeText("办公楼\n")
         let office = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '办公楼'")).firstMatch
         XCTAssertTrue(office.waitForExistence(timeout: 4)); office.tap()
-        XCTAssertTrue(app.buttons["place.result.center"].waitForExistence(timeout: 4))
+        assertCandidatesStayDismissed(app)
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("办公楼"))
         capture("33-business-workplace", app)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["tab.房源"].tap(); app.buttons["house.选点与通勤"].tap()
@@ -100,8 +109,12 @@ import CoreLocation
         }
         let center = app.buttons["place.result.center"]
         XCTAssertTrue(center.waitForExistence(timeout: 10)); capture("41-simulated-location-nearby", app); center.tap()
+        assertCandidatesStayDismissed(app)
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
         capture("42-simulated-location-selected", app)
+        locate.tap(); XCTAssertTrue(center.waitForExistence(timeout: 10), "Locating again must reopen candidates")
+        center.tap(); assertCandidatesStayDismissed(app)
+        capture("43-simulated-location-selected-again", app)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
@@ -122,8 +135,8 @@ import CoreLocation
         let address = app.textFields["workplace.address"]
         let saved = address.value as? String ?? ""
         XCTAssertTrue(saved.contains("东方明珠"))
-        XCTAssertTrue(app.buttons["place.result.center"].waitForExistence(timeout: 20), "Real reverse geocoding did not resolve the selected point")
-        capture("system-places-live-nearby", app)
+        assertCandidatesStayDismissed(app)
+        capture("system-places-live-selected", app)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
         XCTAssertEqual(address.value as? String, saved)
