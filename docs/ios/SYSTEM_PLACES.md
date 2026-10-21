@@ -31,3 +31,15 @@ p10002 上的 `bae4e4c` 开发版在点击定位后提示“地点查询失败�
 日志和计划：`artifacts/ios-location-20261021/`（本地忽略）；各轮完整 `.xcresult` 位于 `/Volumes/mac2/codex-builds/xunju-system-places-20261021-<run>.xcresult`。真机安装、启动和用户当前位置实际验收仍需各自的结果，不由模拟器测试推断。
 
 系统 API 依据：[MKLocalSearch](https://developer.apple.com/documentation/mapkit/mklocalsearch)、[iOS 26 逆地理编码](https://developer.apple.com/videos/play/wwdc2025/204/)。
+
+## 2026-10-21：选点后列表收起修复
+
+用户在 `7520ae2` 真机开发版反馈：点击“使用”后，列表消失又出现。原因是 `didSelect` 保存后再次调用 `submit`；同时清空搜索文字会触发页面的 `onChange`，又提交一次附近查询。前述验证把“选点后继续显示附近列表”当成预期，属于测试契约错误，现按用户明确要求退役该断言；保留坐标规范化、保存及重启验证。
+
+- 修复源码为 `8739e414238e576b40ccea40de3ee6378970d999`。选择成功后取消查询、清空候选与提示，保留地图中心及已保存地址；文本搜索改为由输入 Binding 触发，程序清空文本不再提交。用户重新定位、搜索或实际移动地图仍可查询。
+- 新增 `testUsingPlaceDismissesCandidatesUntilAnotherSearch`，在未修改的 `7520ae2` 生产源码上先运行，因选择后仍为 busy 的两处断言失败（1个用例，构建成功，测试退出65）。修复后同一新增测试通过；旧坐标回显测试改为验证规范坐标、列表保持关闭、地图回中不查询及实际移动可再查询。
+- `xunju-place-dismiss-20261021-green-01`：7项受影响 UT、3项修改后的 UI 全通过，无跳过，runner/构建/测试退出均为0。UI分别验证房源/上班地址及归档、真实系统 SDK 地标搜索/保存/重启、模拟 CoreLocation 的连续两次“定位→使用”。每次选择断言全部候选消失，再以2秒反向期望观察是否重新出现，覆盖300毫秒输入防抖与地图回调。未运行全量或合并门禁。
+- iPhone16 / iOS26.5，实际 UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`；共享 runner 完成后释放槽位与租约。UI方法累计139.803秒，不含构建、安装启动和收尾。工程配置及生成工程不入本次 diff。
+- 日志、精确选择器和命令：`artifacts/ios-place-dismiss-20261021/`；完整结果：`/Volumes/mac2/codex-builds/xunju-place-dismiss-20261021-green-01.xcresult`。原始截图从该结果导出，尺寸1178×2556，SHA及测试对应关系见本地 `screenshots.json`。主 agent 已检查定位前/使用后和房源页截图，确认地址保留、列表收起。
+
+该修复恢复现有组件的明确交互要求，不增加布局或新组件。真实 GPS、通勤服务及整个 iOS PR 的未完成项仍按前述边界分别验收。
