@@ -8,7 +8,7 @@ struct GeographicPoint: Equatable, Sendable {
     var coordinate: CLLocationCoordinate2D { .init(latitude: latitude, longitude: longitude) }
 }
 
-struct PlaceChoice: Identifiable, Equatable {
+struct PlaceChoice: Identifiable, Equatable, Sendable {
     let id: String, name: String, address: String, distance: String
     let point: GeographicPoint
 }
@@ -82,7 +82,7 @@ struct PlacePickerSurface: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             if busy && !readonly { Text("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
             if center != nil || !places.isEmpty {
-                Text("地点信息来源：天地图").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
+                Text("地点信息来源：系统地图").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if !message.isEmpty && !readonly {

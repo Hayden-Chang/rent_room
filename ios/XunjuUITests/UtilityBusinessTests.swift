@@ -30,13 +30,15 @@ import CoreLocation
         app.buttons["checklist.keyboard.done"].tap()
         let place = app.textFields["place.query"]; XCTAssertTrue(place.waitForExistence(timeout: 3))
         place.tap(); place.typeText("阳光\n")
-        let houseChoice = app.buttons["place.result.house"]; XCTAssertTrue(houseChoice.waitForExistence(timeout: 4)); houseChoice.tap()
+        let houseChoice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '阳光小区'")).firstMatch
+        XCTAssertTrue(houseChoice.waitForExistence(timeout: 4)); houseChoice.tap()
         XCTAssertTrue(app.buttons["place.result.center"].waitForExistence(timeout: 4))
         capture("32-business-house-place", app)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["tab.我的"].tap()
         app.buttons["settings.workplace"].tap()
         let search = app.textFields["place.query"]; XCTAssertTrue(search.waitForExistence(timeout: 3)); search.tap(); search.typeText("办公楼\n")
-        let office = app.buttons["place.result.office"]; XCTAssertTrue(office.waitForExistence(timeout: 4)); office.tap()
+        let office = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '办公楼'")).firstMatch
+        XCTAssertTrue(office.waitForExistence(timeout: 4)); office.tap()
         XCTAssertTrue(app.buttons["place.result.center"].waitForExistence(timeout: 4))
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("办公楼"))
         capture("33-business-workplace", app)
@@ -103,5 +105,29 @@ import CoreLocation
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
+    }
+
+    // Supplementary live SDK integration: isolated records, public landmark,
+    // no network fixture and no physical/user location. Not an offline CI gate.
+    func testLiveSystemPlaceSearchSelectionAndRelaunch() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
+        app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        let query = app.textFields["place.query"]; XCTAssertTrue(query.waitForExistence(timeout: 3))
+        query.tap(); query.typeText("上海东方明珠广播电视塔\n")
+        let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '东方明珠'")).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 20), "Real system search did not return the public landmark")
+        capture("system-places-live-search", app); choice.tap()
+        let address = app.textFields["workplace.address"]
+        let saved = address.value as? String ?? ""
+        XCTAssertTrue(saved.contains("东方明珠"))
+        XCTAssertTrue(app.buttons["place.result.center"].waitForExistence(timeout: 20), "Real reverse geocoding did not resolve the selected point")
+        capture("system-places-live-nearby", app)
+        app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
+        app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        XCTAssertEqual(address.value as? String, saved)
+        XCTAssertTrue(app.buttons["place.result.center"].waitForExistence(timeout: 20))
+        capture("system-places-live-restored", app)
     }
 }

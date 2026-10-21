@@ -25,7 +25,7 @@ struct AppRoot: View {
             if let mode = CapacityBusinessFixture.mode() {
                 workspace = try CapacityBusinessFixture.workspace(root: AppWorkspace.dataRoot(), mode: mode)
             } else if UtilityNetworkFixture.enabled {
-                workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: VolatileSessionStorage(), mapTransport: UtilityNetworkFixture.transport, mapKey: "fixture")
+                workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: VolatileSessionStorage(), mapTransport: UtilityNetworkFixture.transport, mapKey: "fixture", places: UtilityNetworkFixture.places)
             } else {
                 workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: AppWorkspace.isBusinessTest ? VolatileSessionStorage() : SessionKeychain())
             }

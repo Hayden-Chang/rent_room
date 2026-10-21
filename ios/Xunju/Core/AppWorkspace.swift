@@ -17,13 +17,15 @@ final class AppWorkspace {
     var error = ""
     @ObservationIgnored private let keychain: any SessionStorage
     @ObservationIgnored let mapKey: String
+    @ObservationIgnored let places: NativePlaceService
     @ObservationIgnored private let mapTransport: any MapTransport
     private(set) var identityRevision = 0
     @ObservationIgnored private(set) var billing: CapacityController!
 
-    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, capacityAPI: any CapacityServicing = CapacityAPI(), storefront: (any CapacityStorefront)? = nil) throws {
+    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, places: NativePlaceService = NativePlaceService(), capacityAPI: any CapacityServicing = CapacityAPI(), storefront: (any CapacityStorefront)? = nil) throws {
         self.keychain = keychain
         self.mapTransport = mapTransport; self.mapKey = mapKey
+        self.places = places
         scopes = try LocalIdentityScopes(root: root)
         let guest = try NativeStore(directory: scopes.guestDirectory(), network: mapTransport)
         if let saved = try keychain.read() {

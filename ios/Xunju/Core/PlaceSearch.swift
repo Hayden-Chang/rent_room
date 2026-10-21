@@ -18,15 +18,15 @@ extension GeographicPoint {
     var message = ""
     private(set) var permissionDenied = false
     @ObservationIgnored let store: NativeStore
-    @ObservationIgnored private let key: String
+    @ObservationIgnored private let places: NativePlaceService
     @ObservationIgnored private let validScope: () -> Bool
     @ObservationIgnored private var results: [String: JSONValue] = [:]
     @ObservationIgnored private var epoch = 0
     @ObservationIgnored private var operation: Task<Void, Never>?
     @ObservationIgnored private let locator = NativeLocation()
 
-    init(store: NativeStore, key: String, location: JSONValue = .null, validScope: @escaping () -> Bool) {
-        self.store = store; self.key = key; self.validScope = validScope
+    init(store: NativeStore, places: NativePlaceService = NativePlaceService(), location: JSONValue = .null, validScope: @escaping () -> Bool) {
+        self.store = store; self.places = places; self.validScope = validScope
         center = nativePoint(location)
     }
     func nativePoint(_ value: JSONValue) -> GeographicPoint? {
@@ -43,7 +43,6 @@ extension GeographicPoint {
     @discardableResult func submit(debounce: Bool = false) -> Task<Void, Never>? {
         cancel(); permissionDenied = false; message = ""; choices = []; results = [:]
         guard validScope() else { message = "账号已变化，请重新打开页面"; return nil }
-        guard !key.isEmpty else { message = "地点查询暂不可用，请手动填写地址"; return nil }
         let keyword = query.trimmingCharacters(in: .whitespacesAndNewlines), center = center, version = epoch
         guard !keyword.isEmpty || center != nil else { return nil }
         busy = true
@@ -51,19 +50,16 @@ extension GeographicPoint {
             defer { if epoch == version { busy = false } }
             do {
                 if debounce { try await Task.sleep(for: .milliseconds(300)) }
-                var parameters: [String: JSONValue] = ["key": .string(key)]
-                if let center { parameters["center"] = try storedPoint(center) }
-                if !keyword.isEmpty { parameters["query"] = .string(keyword) }
-                let value = try await store.query(keyword.isEmpty ? "nearbyPlaces" : "searchPlaces", parameters)
+                try Task.checkCancellation()
+                let value = try await places.query(keyword, center: center)
                 try Task.checkCancellation()
                 guard validScope(), epoch == version else { return }
                 var records: [String: JSONValue] = [:]
-                choices = value.array.compactMap { item in
-                    guard !item.id.isEmpty, let point = nativePoint(item["location"]) else { return nil }
-                    records[item.id] = item
-                    return PlaceChoice(id: item.id, name: item["name"].string, address: item["address"].string, distance: item["distanceText"].string, point: point)
+                for item in value {
+                    records[item.id] = .object(["id": .string(item.id), "name": .string(item.name), "address": .string(item.address),
+                                               "location": try storedPoint(item.point)])
                 }
-                results = records
+                choices = value; results = records
                 if choices.isEmpty { message = "暂未查到地点，请重试或手动填写地址" }
             } catch is CancellationError {} catch {
                 if validScope(), epoch == version { message = error.localizedDescription }
@@ -93,7 +89,12 @@ extension GeographicPoint {
         guard validScope(), let value = results[choice.id] else { throw CoreFailure(message: "地点结果已变化，请重新查询") }
         return value
     }
-    func didSelect(_ choice: PlaceChoice) { center = choice.point; query = ""; submit() }
+    func didSelect(_ choice: PlaceChoice) {
+        // Use the persisted coordinate's round trip before SwiftUI reads it
+        // back, so conversion precision cannot cancel the nearby refresh.
+        center = results[choice.id].flatMap { nativePoint($0["location"]) } ?? choice.point
+        query = ""; submit()
+    }
     func synchronizeLocation(_ value: JSONValue) {
         let point = nativePoint(value)
         if point != center { cancel(); center = point; choices = []; results = [:] }

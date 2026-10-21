@@ -1,15 +1,16 @@
 import XCTest
 @testable import Xunju
 
-private actor DelayedMapHTTP: AuthTransport {
+@MainActor private final class DelayedPlaceClient: NativePlacesClient {
     let started: XCTestExpectation
-    private var reply: CheckedContinuation<HTTPPayload, Error>?
+    private var reply: CheckedContinuation<[NativePlace], Error>?
     init(started: XCTestExpectation) { self.started = started }
-    func send(_ request: URLRequest) async throws -> HTTPPayload {
+    func search(_ keyword: String, center: GeographicPoint?) async throws -> [NativePlace] {
         try await withCheckedThrowingContinuation { reply in self.reply = reply; started.fulfill() }
     }
+    func reverse(_ point: GeographicPoint) async throws -> NativePlace? { nil }
     func finish() {
-        reply?.resume(returning: HTTPPayload(data: Data(#"{"status":{"infocode":1000},"pois":[{"hotPointID":"late","name":"过期地点","address":"旧地址","lonlat":"121.4737,31.2304"}]}"#.utf8), status: 200)); reply = nil
+        reply?.resume(returning: [NativePlace(name: "过期地点", address: "旧地址", point: GeographicPoint(latitude: 31.2304, longitude: 121.4737))]); reply = nil
     }
 }
 
@@ -18,11 +19,36 @@ private actor DelayedMapHTTP: AuthTransport {
         let url = FileManager.default.temporaryDirectory.appending(path: "utility-flows-\(UUID().uuidString)")
         addTeardownBlock { try? FileManager.default.removeItem(at: url) }; return url
     }
+    func testPlaceSearchStartsWithoutTiandituKeyAndDoesNotChangeRecords() async throws {
+        let workspace = try AppWorkspace(root: root(), keychain: VolatileSessionStorage(), mapKey: "")
+        let search = PlaceSearch(store: workspace.store, places: workspace.places, validScope: { true })
+        let before = workspace.store.state
+        search.query = "上海东方明珠广播电视塔"
+        let operation = search.submit()
+        XCTAssertNotNil(operation, "System place search must start without a Tianditu key")
+        XCTAssertEqual(search.message, "")
+        search.cancel(); await operation?.value
+        XCTAssertEqual(workspace.store.state, before)
+    }
+    func testHouseSelectionRoundTripDoesNotCancelNearbyRefresh() async throws {
+        let store = try NativeStore(directory: root()), id = try store.add("坐标回显")
+        let search = PlaceSearch(store: store, places: UtilityNetworkFixture.places, validScope: { true })
+        search.query = "阳光"; await search.submit()?.value
+        let choice = try XCTUnwrap(search.choices.first)
+        try store.call("place", ["id": .string(id), "value": search.selected(choice)])
+        let saved = store.house(id)["location"]
+        XCTAssertNotEqual(GeographicPoint(saved), choice.point, "Storage remains GCJ-02")
+        search.didSelect(choice)
+        XCTAssertEqual(search.center, search.nativePoint(saved), "The camera must use the same canonical round-trip point as persisted state")
+        search.synchronizeLocation(saved)
+        XCTAssertTrue(search.busy, "Reading back the selected location must not cancel its nearby refresh")
+        search.cancel()
+    }
     func testPlaceSelectionPersistsCanonicalAddressAndWorkplaceWithoutChangingAnswers() async throws {
-        let workspace = try AppWorkspace(root: root(), keychain: VolatileSessionStorage(), mapTransport: UtilityNetworkFixture.transport, mapKey: "fixture")
+        let workspace = try AppWorkspace(root: root(), keychain: VolatileSessionStorage(), mapKey: "", places: UtilityNetworkFixture.places)
         let store = workspace.store, id = try store.add("联动房源")
         try store.answer(id, field: "f1_6", value: .string("2800"))
-        let search = PlaceSearch(store: store, key: workspace.mapKey, validScope: { workspace.store === store })
+        let search = PlaceSearch(store: store, places: workspace.places, validScope: { workspace.store === store })
         let before = store.state; search.query = "阳光"; await search.submit()?.value
         XCTAssertEqual(store.state, before)
         let choice = try XCTUnwrap(search.choices.first)
@@ -39,20 +65,21 @@ private actor DelayedMapHTTP: AuthTransport {
         XCTAssertThrowsError(try search.selected(office))
     }
     func testCancelledPlaceResponseDoesNotRestoreCandidatesOrChangeRecords() async throws {
-        let started = expectation(description: "Read-only query started"), http = DelayedMapHTTP(started: started)
-        let store = try NativeStore(directory: root(), network: NativeMapTransport(transport: http))
-        let search = PlaceSearch(store: store, key: "fixture", validScope: { true }), before = store.state
+        let started = expectation(description: "Read-only query started"), client = DelayedPlaceClient(started: started)
+        let store = try NativeStore(directory: root())
+        let search = PlaceSearch(store: store, places: NativePlaceService(client: client), validScope: { true }), before = store.state
         search.query = "旧地址"; let operation = search.submit()
         let result = await XCTWaiter.fulfillment(of: [started], timeout: 3)
         XCTAssertEqual(result, .completed)
-        search.cancel(); await http.finish(); await operation?.value
+        search.cancel(); client.finish(); await operation?.value
         XCTAssertTrue(search.choices.isEmpty); XCTAssertFalse(search.busy); XCTAssertEqual(store.state, before)
     }
-    func testMissingMapKeyKeepsManualWorkplaceAndDoesNotQuery() async throws {
-        let workspace = try AppWorkspace(root: root(), keychain: VolatileSessionStorage(), mapKey: "")
+    func testSystemPlacesKeepManualWorkplaceAndCanSearchWithoutMapKey() async throws {
+        let workspace = try AppWorkspace(root: root(), keychain: VolatileSessionStorage(), mapKey: "", places: UtilityNetworkFixture.places)
         try workspace.store.call("settings", ["property": .string("workplace"), "value": .string("手工填写办公楼")])
-        let search = PlaceSearch(store: workspace.store, key: "", validScope: { true }); search.query = "办公楼"
-        XCTAssertNil(search.submit()); XCTAssertTrue(search.message.contains("手动填写地址"))
+        let search = PlaceSearch(store: workspace.store, places: workspace.places, validScope: { true }); search.query = "办公楼"
+        await search.submit()?.value
+        XCTAssertFalse(search.choices.isEmpty); XCTAssertEqual(search.message, "")
         try workspace.store.call("save")
         XCTAssertEqual(try NativeStore(directory: workspace.store.records.directory).state["settings"]["workplace"].string, "手工填写办公楼")
     }
@@ -88,7 +115,7 @@ private actor DelayedMapHTTP: AuthTransport {
     }
     func testClearingOrInvalidatingLocationRemovesDisplayedPointAndOldCandidates() async throws {
         let store = try NativeStore(directory: root(), network: UtilityNetworkFixture.transport)
-        let search = PlaceSearch(store: store, key: "fixture", validScope: { true })
+        let search = PlaceSearch(store: store, places: UtilityNetworkFixture.places, validScope: { true })
         search.query = "阳光"; await search.submit()?.value
         let place = try XCTUnwrap(search.choices.first)
         search.synchronizeLocation(try search.selected(place)["location"])
