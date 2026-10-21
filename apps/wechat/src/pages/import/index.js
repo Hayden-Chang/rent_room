@@ -1,8 +1,9 @@
+import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {service,notify,confirm} from '../../lib/ui.js';
 
 const sizeLabel=bytes=>bytes>=1024*1024?(bytes/1024/1024).toFixed(1)+' MB':Math.ceil(bytes/1024)+' KB';
-Page(protectedPage({
+Page(withAppShare(protectedPage({
   data:{exporting:false,exportPrepared:false,preparingExport:false,retryShare:false,fileName:'',houses:[],selectedCount:0,allSelected:false,ready:false,busy:false,progress:'',error:''},
   onLoad(options={}) {
     this.transferService=service();
@@ -59,4 +60,4 @@ Page(protectedPage({
     }catch(error){if(error.fileUnavailable&&!this.unloaded)await this.prepareExport();else if(this.data.exporting&&!this.unloaded)this.setData({retryShare:true});this.failure(error);}finally{if(!this.unloaded)this.setData({busy:false,progress:''});}
   },
   cancel(){if(this.data.busy){this.job.cancelled=true;return;}wx.navigateBack();}
-}));
+})));

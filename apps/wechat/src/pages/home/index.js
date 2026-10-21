@@ -1,3 +1,4 @@
+import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {stats} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,confirm,requireCapacity} from '../../lib/ui.js';
@@ -11,7 +12,7 @@ const home=protectedPage({data:{query:'',pending:false,houses:[],saveError:''},
   retry(){service().store.save();}
 });
 
-Page({...home,
+Page(withAppShare({...home,
   data:{...home.data},
   onLoad(){this.unsubscribeAuth=getApp().auth.subscribe(state=>this.renderSession(state));this.renderSession(getApp().auth.snapshot());},
   onShow(){this.visible=true;this.renderSession(getApp().auth.snapshot());},
@@ -29,4 +30,4 @@ Page({...home,
     if(!this.accountLoaded)home.onLoad.call(this);
     if(this.visible)home.onShow.call(this);
   }
-});
+},{timeline:true}));

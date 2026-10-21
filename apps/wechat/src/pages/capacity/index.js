@@ -1,7 +1,8 @@
+import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {service,notify} from '../../lib/ui.js';
 
-Page(protectedPage({
+Page(withAppShare(protectedPage({
   data:{used:0,limit:2,over:0,busy:false,error:'',configured:false,authenticated:false},
   onShow(){this.refresh();if(this.data.authenticated&&this.data.configured)service().billing.refresh().then(()=>{if(!this.accountUnloaded&&this.accountId===(getApp().auth.scope??getApp().auth.snapshot().account?.id)){this.setData({error:''});this.refresh();}}).catch(error=>{if(!this.accountUnloaded)this.setData({error:error.message||'购买记录暂时无法确认，请稍后重试'});});},
   refresh(){const info=service().store.capacity();this.setData({...info,authenticated:getApp().auth.isAuthenticated(),configured:service().billing.snapshot().configured});},
@@ -29,4 +30,4 @@ Page(protectedPage({
     }catch(error){this.setData({error:error.message||'购买记录暂时无法确认，请稍后重试'});}
     finally{this.setData({busy:false});}
   }
-}));
+})));
