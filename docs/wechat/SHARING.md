@@ -60,4 +60,12 @@ UI确认、合入、体验版上传、提审和发布分别完成；这份记录
 
 执行代码提交：`4befa68b59fc021e61d161755994cc31ee120c7b`。沿用上文11份增量测试，全部166项通过（分享测试17项，包含两种图片的JPEG格式、比例、尺寸、单张不超过256KiB和src/dist一致性）；官方wcc/wcsc各14文件通过。工具验收构建总计1996747字节，低于2MiB。结果位于 `apps/wechat/artifacts/share-cover-v2-vitest.log`、`share-cover-v2-compile.log`；生成提示词保存在本机 `apps/wechat/artifacts/share-cover-v2/prompt.md` 和 `prompt-square.md`。
 
-固定工具池运行 `fe6e8187f59d4fab9f6ecfe97067d3b4` 确认真实访客首页就绪且已注册两个分享回调，SDK保存了首页截图。此结果仅证明初始化和注册；CUA两次获取App及一次截图均返回 `-10005 timeoutReached`，未执行新版原生菜单/卡片点击，不能复用旧封面的截图来证明新版效果。限制记录为 `apps/wechat/artifacts/share-cover-v2/native-limit.json`。未发送消息，实际卡片效果与接收方打开仍待手机预览验收，保持草稿。
+固定工具池运行 `fe6e8187f59d4fab9f6ecfe97067d3b4` 确认真实访客首页就绪且已注册两个分享回调，SDK保存了首页截图。此结果仅证明初始化和注册；CUA两次获取App及一次截图均返回 `-10005 timeoutReached`，未执行新版原生菜单/卡片点击，不能复用旧封面的截图来证明新版效果。限制记录为 `apps/wechat/artifacts/share-cover-v2/native-limit.json`。当时未发送消息，实际卡片效果与接收方打开待手机预览验收，保持草稿。
+
+## 2026-10-21 用户手机确认
+
+最新手机预览对应干净提交 `bf3f6c740f27ad43ec6f33c9db6eba4922d71949`，统一 CI 运行 `9bd8eab6b7c84c0baebde61b9b1bd177`。已核对成功回执、冻结上传与当前构建的108个文件哈希、两张新版封面和二维码哈希；回执及二维码保存在 `apps/wechat/artifacts/share-cover-v2/preview-receipt-refresh-20261021-095129.json` 和 `qrcode-refresh-20261021-095129.jpg`。
+
+用户收到该预览码后回复“可以了”，本次分享文案与封面的手机 UI 验收已获确认。用户未逐项报告接收方打开、朋友圈及双平台结果，因此不将这些项目记为已完成。用户确认不代表体验版上传、提审或正式发布。
+
+本次仅追加验收文档。从已通过166项测试与官方编译的代码提交 `4befa68b59fc021e61d161755994cc31ee120c7b` 到本次文档提交，仅 `docs/wechat/SHARING.md` 改变；源码、测试、图片资源、构建输入与配置保持等价，沿用既有增量验证，无需重复运行应用测试。远程主线核实为 `6a07ecd97fe639e594a8cc5690196921cbe5574e`，与实现基线相同。
