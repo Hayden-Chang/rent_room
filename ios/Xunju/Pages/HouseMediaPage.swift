@@ -24,7 +24,7 @@ struct HouseMediaPage: View {
             }
         }.onAppear(perform: refresh)
             .onChange(of: workspace.store.status.revision) { _, _ in refresh() }
-            .sheet(isPresented: $picking) { MediaPickerSheet(workspace: workspace, houseID: id) }
+            .fullScreenCover(isPresented: $picking) { MediaPickerSheet(workspace: workspace, houseID: id) }
             .sheet(item: $selected) { MediaDetailPage(workspace: workspace, houseID: id, mediaID: $0.id) }
             .sheet(item: $caption) { item in
                 NoteEditor(title: "影像备注", text: item["caption"].string, readonly: readonly) { text in
@@ -65,35 +65,38 @@ struct MediaPickerSheet: View {
     var fieldID = ""
     var stage: ((JSONValue) throws -> Void)? = nil
     @State private var photo: PhotosPickerItem?
+    @State private var library = false
     @State private var camera = false
     @State private var busy = false
     @State private var importTask: Task<Void, Never>?
     @State private var error = ""
     @Environment(\.dismiss) private var dismiss
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                PhotosPicker(selection: $photo, matching: .any(of: [.images, .videos]), preferredItemEncoding: .compatible) { Text("从相册选择照片或视频").frame(maxWidth: .infinity, minHeight: 44) }
-                    .buttonStyle(XJButtonStyle(primary: true)).disabled(busy).accessibilityIdentifier("media.library")
-                Button("拍照或录视频") {
+        ZStack {
+            MPSourceSheet(close: { if !busy { dismiss() } }, library: { library = true }, camera: {
                     if UIImagePickerController.isSourceTypeAvailable(.camera) { camera = true }
                     else { error = "当前设备没有可用相机" }
-                }.buttonStyle(XJButtonStyle(primary: false)).disabled(busy)
-                #if DEBUG
-                if MediaImportFixture.enabled(ProcessInfo.processInfo.arguments) {
-                    HStack {
+                }).allowsHitTesting(!busy).accessibilityHidden(busy)
+            if busy {
+                ProgressView("正在保存影像…").padding(24).background(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+            #if DEBUG
+            if MediaImportFixture.enabled(ProcessInfo.processInfo.arguments) {
+                VStack {
+                    HStack(spacing: 20) {
                         Button("导入测试照片") { fixture(video: false) }.accessibilityIdentifier("media.fixture.image")
                         Button("导入测试视频") { fixture(video: true) }.accessibilityIdentifier("media.fixture.video")
-                    }.disabled(busy)
+                    }.padding(16).background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).disabled(busy)
+                    Spacer()
                 }
-                #endif
-                Text("单个影像不超过 50 MiB").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
-                if busy { ProgressView("正在保存影像…") }
-                if !error.isEmpty { Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger) }
-                Spacer()
-            }.padding(20).background(XJTheme.background).navigationTitle("添加影像").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) { Button("关闭") { dismiss() }.disabled(busy) } }
-        }.interactiveDismissDisabled(busy)
+            }
+            #endif
+        }.presentationBackground(.clear).interactiveDismissDisabled(busy)
+            .photosPicker(isPresented: $library, selection: $photo, matching: .any(of: [.images, .videos]), preferredItemEncoding: .compatible)
+            .alert("无法添加影像", isPresented: Binding(get: { !error.isEmpty }, set: { if !$0 { error = "" } })) {
+                Button("知道了") { error = "" }
+            } message: { Text(error) }
             .onDisappear { importTask?.cancel() }
             .onChange(of: photo) { _, item in if let item { load(item) } }
             .fullScreenCover(isPresented: $camera) {

@@ -73,7 +73,7 @@ private struct IssueEditor: View {
                 preview: { preview = $0 }, cancel: { draft.discard(); dismiss() }, save: { if draft.save() { dismiss() } })
                 .navigationTitle(isNew ? "新建问题" : "问题详情").navigationBarTitleDisplayMode(.inline)
                 .interactiveDismissDisabled(draft.dirty || picking || draft.saving)
-                .sheet(isPresented: $picking) {
+                .fullScreenCover(isPresented: $picking) {
                     MediaPickerSheet(workspace: workspace, houseID: draft.houseID, stage: { try draft.addImported($0) })
                 }
                 .sheet(item: $preview) { item in

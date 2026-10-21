@@ -136,7 +136,7 @@ struct ChecklistPage: View {
             .onChange(of: coachStep) { if coachStep == 4 { scrollTarget = coachTarget["field"].id } }
             .onChange(of: viewKey) { coordinator.close(); refresh() }
             .onChange(of: workspace.store.status.revision) { refresh() }
-            .sheet(isPresented: Binding(get: { mediaTarget != nil }, set: { if !$0 { mediaTarget = nil } })) {
+            .fullScreenCover(isPresented: Binding(get: { mediaTarget != nil }, set: { if !$0 { mediaTarget = nil } })) {
                 if let mediaTarget { MediaPickerSheet(workspace: workspace, houseID: id, fieldID: mediaTarget) }
             }
     }
