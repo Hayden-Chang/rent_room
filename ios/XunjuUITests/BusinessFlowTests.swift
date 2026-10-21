@@ -339,9 +339,18 @@ import XCTest
         checkMenu("media-source-issue")
         camera.tap()
         let unavailable = app.alerts["无法添加影像"]
-        XCTAssertTrue(unavailable.waitForExistence(timeout: 3))
-        XCTAssertTrue(unavailable.staticTexts["当前设备没有可用相机"].exists)
-        capture("media-source-camera-unavailable", app); unavailable.buttons["知道了"].tap()
+        let cameraClose = app.buttons["DismissImagePickerButton"]
+        let cameraReady = expectation(for: NSPredicate { _, _ in cameraClose.exists || unavailable.exists }, evaluatedWith: app)
+        XCTAssertEqual(XCTWaiter.wait(for: [cameraReady], timeout: 5), .completed)
+        if cameraClose.exists {
+            XCTAssertTrue(cameraClose.isHittable)
+            capture("media-source-system-camera", app); cameraClose.tap()
+            XCTAssertTrue(cameraClose.waitForNonExistence(timeout: 3))
+        } else {
+            XCTAssertTrue(unavailable.staticTexts["当前设备没有可用相机"].exists)
+            capture("media-source-camera-unavailable", app); unavailable.buttons["知道了"].tap()
+        }
+        XCTAssertTrue(library.isHittable)
         menu.buttons["取消"].tap(); XCTAssertTrue(library.waitForNonExistence(timeout: 3))
         XCTAssertTrue(app.textFields["issueEditor.title"].exists)
         XCTAssertEqual(buttons("issueEditor.remove.", app).count, 0)
@@ -353,9 +362,12 @@ import XCTest
         let library = app.buttons["从相册选择照片或视频"]
         XCTAssertTrue(library.waitForExistence(timeout: 3)); capture("18-native-media-source", app)
         library.tap()
-        let cancel = app.buttons["取消"].firstMatch
-        XCTAssertTrue(cancel.waitForExistence(timeout: 5)); capture("19-native-system-photo-picker", app); cancel.tap()
-        XCTAssertTrue(library.waitForExistence(timeout: 3)); app.buttons["取消"].tap()
+        let cancel = app.navigationBars["照片"].buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5)); XCTAssertTrue(cancel.isHittable)
+        capture("19-native-system-photo-picker", app); cancel.tap()
+        XCTAssertTrue(cancel.waitForNonExistence(timeout: 3)); XCTAssertTrue(library.isHittable)
+        app.otherElements["media.source"].buttons["取消"].tap()
+        XCTAssertTrue(library.waitForNonExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["还没有影像"].waitForExistence(timeout: 3))
     }
     func testExportSelectedHousePreparesRealZIPBeforeShare() {
