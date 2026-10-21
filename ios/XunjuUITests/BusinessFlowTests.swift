@@ -316,7 +316,7 @@ import XCTest
     func testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints() {
         let app = launch(); add("来源菜单检查", app)
         let menu = app.otherElements["media.source"]
-        let library = menu.buttons["从相册选择照片或视频"]
+        let library = app.buttons["从相册选择照片或视频"]
         let camera = menu.buttons["拍照或录视频"]
         func checkMenu(_ name: String) {
             XCTAssertTrue(library.waitForExistence(timeout: 3))
