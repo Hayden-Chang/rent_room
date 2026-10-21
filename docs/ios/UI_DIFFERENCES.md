@@ -152,7 +152,8 @@
     - 来源：`src/pages/detail/index.{wxml,wxss}` 及 coach 代码；`CoachOverlay.swift`、`HouseDetailPage.swift`。
 
 24. **权限、启动、损坏恢复与异常弹窗**
-    - **平台差异**：微信权限管理、相册/相机选取改为 iOS 设置、PhotosPicker 和 UIImagePickerController，系统控件外观不同；iOS 还多一层“添加影像”的来源选择 Sheet。原一次可选9个影像，iOS PhotosPicker 当前一次选择一个。
+    - **平台差异**：微信权限管理、相册/相机选取改为 iOS 设置、PhotosPicker 和 UIImagePickerController，系统控件外观不同。原一次可选9个影像，iOS PhotosPicker 当前一次选择一个。
+    - **已接入**：旧“添加影像”标题页已替换为小程序样式的底部来源菜单，清单、影像页、问题编辑共用，含遮罩、两行来源与独立取消。实际截图、系统取消与保存回归见 [MEDIA_SOURCE_PARITY.md](MEDIA_SOURCE_PARITY.md)。
     - **待对齐**：原账号等待为“正在确认登录状态…”；iOS 初次载入为 ProgressView“正在读取本机记录…”，顶层打开失败另有“本机记录暂时无法打开 / 重试”。原恢复入口在“我的”单独卡片，iOS 集成于 SaveBanner。
     - **待实机**：权限拒绝/恢复、原生键盘、系统文件选择、图片缩放、分享取消/重试的完整触摸表现尚无本轮成对证据。
     - 来源：`src/lib/auth-page.js`、`src/pages/settings/index.wxml`、`src/lib/platform.js`；`AppRoot.swift`、`HouseMediaPage.swift`。
