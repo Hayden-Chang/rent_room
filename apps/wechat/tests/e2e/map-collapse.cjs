@@ -8,9 +8,9 @@ const replay=process.env.MAP_REVIEW_HANDLER_REPLAY==='1';
 const watchdog=setTimeout(()=>{console.error('Native map review timed out');process.exit(1);},240000);
 (async()=>{
  const mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
- const report={passed:false,interaction:replay?'Direct production-handler replay; rendered verification, NOT tap/input E2E':'Native CUA/reviewer clicks and typing, state recorder',mocked:['location and POI services'],untested:['physical GPS','native map drag and pinch',...(replay?['native button taps and text input']:[])]};
+ const report={passed:false,interaction:replay?'Direct production-handler replay; rendered verification, NOT tap/input E2E':'Native CUA/reviewer clicks and typing, state recorder',mocked:['location and POI services'],untested:['physical GPS','native map drag and pinch','filesystem reload',...(replay?['native button taps and text input']:[])]};
  const read=()=>mini.evaluate(()=>{
-  const page=getCurrentPages().slice(-1)[0],picker=page?.selectComponent?.('address-picker');
+  const page=getCurrentPages().slice(-1)[0],picker=page?.selectComponent?.('#workplace-address-picker');
   return {route:page?.route,picker:picker?{...picker.data}:null,settings:getApp().service.store.get().settings};
  });
  async function wait(name,predicate){
@@ -18,10 +18,21 @@ const watchdog=setTimeout(()=>{console.error('Native map review timed out');proc
   while(Date.now()<deadline){const state=await read();if(predicate(state))return state;await new Promise(r=>setTimeout(r,200));}
   throw Error('Native action not observed: '+name);
  }
- const capture=name=>mini.screenshot({path:path.join(out,name+'.png')});
+ async function capture(name){
+  // data is updated before the view commits. Observe the rendered map node,
+  // rather than taking a screenshot immediately after the state predicate.
+  await mini.evaluate(()=>new Promise((resolve,reject)=>{
+   const picker=getCurrentPages().slice(-1)[0].selectComponent('#workplace-address-picker');let attempts=0;
+   function poll(){picker.createSelectorQuery().select('.map-wrap').boundingClientRect(rect=>{
+    if(!!rect===!picker.data.collapsed)return wx.nextTick(()=>resolve(true));
+    if(++attempts>60)return reject(Error('Map rendering did not match collapse state'));setTimeout(poll,100);
+   }).exec();}poll();
+  }));
+  await mini.screenshot({path:path.join(out,name+'.png')});
+ }
  const viewport=p=>({center:p.center,scale:p.scale});
  const act=(method,value)=>mini.evaluate((method,value)=>{
-  const page=getCurrentPages().slice(-1)[0],picker=page.selectComponent('address-picker');
+  const page=getCurrentPages().slice(-1)[0],picker=page.selectComponent('#workplace-address-picker');
   if(method==='manual')page.input({detail:{value}});
   else if(method==='input')picker.input({detail:{value}});
   else if(method==='use')picker.use({currentTarget:{dataset:{id:'map-fixture'}}});
@@ -61,9 +72,9 @@ const watchdog=setTimeout(()=>{console.error('Native map review timed out');proc
   if(replay)await act('toggleMap');
   const manual=await wait('expand after manual address',s=>s.picker&&!s.picker.collapsed);
   assert.deepEqual(viewport(manual.picker),before);await capture('map-07-manual-reopened');
-  report.disk=await mini.evaluate(()=>{const service=getApp().service;return JSON.parse(wx.getFileSystemManager().readFileSync(service.root+'/state.json','utf8')).settings;});
-  assert.ok(report.disk.workplace.endsWith('3栋602'));assert.deepEqual(report.disk.workplaceLocation,used.settings.workplaceLocation);
-  report.viewport=before;report.passed=true;report.system=await mini.systemInfo();console.log(replay?'Rendered handler replay passed; native actions unverified':'Native map review passed');
+  report.settings=(await read()).settings;
+  assert.ok(report.settings.workplace.endsWith('3栋602'));assert.deepEqual(report.settings.workplaceLocation,used.settings.workplaceLocation);
+  report.viewport=before;report.passed=true;console.log(replay?'Rendered handler replay passed; native actions unverified':'Native map review passed');
  }catch(e){report.error=e.message;throw e;}
  finally{clearTimeout(watchdog);fs.writeFileSync(path.join(out,'map-collapse.json'),JSON.stringify(report,null,2));mini.disconnect();}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e.stack);process.exit(1);});

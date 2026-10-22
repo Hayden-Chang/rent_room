@@ -42,6 +42,17 @@ it('late GPS cannot change the viewport after typing or collapsing',async()=>{
   p.dispose();
 });
 it('readonly remains viewable and rejects map toggle',()=>{
-  const {picker:p}=setup();p.input('新');p.sync({address:'旧小区',location:a,readonly:true});
-  expect(p.state.collapsed).toBe(false);p.toggleMap();expect(p.state.collapsed).toBe(false);
+  const {picker:p}=setup();p.move(b);p.input('新');p.sync({address:'旧小区',location:a,readonly:true});
+  expect(p.state).toMatchObject({collapsed:false,center:a});p.toggleMap();expect(p.state.collapsed).toBe(false);
+});
+it('manual collapse preserves the pending search without reopening the map',async()=>{
+  vi.useFakeTimers();const {picker:p,places}=setup();p.input('新');p.toggleMap();p.toggleMap();
+  await vi.advanceTimersByTimeAsync(300);
+  expect(places.search).toHaveBeenCalledWith('新',a);
+  expect(p.state).toMatchObject({collapsed:true,items:[place],center:a});
+});
+it('manual collapse cancels pending GPS without moving the saved viewport',async()=>{
+  const {picker:p}=setup();let resolve;p.locate=()=>new Promise(r=>resolve=r);
+  const pending=p.gps();p.toggleMap();resolve(b);await pending;
+  expect(p.state).toMatchObject({collapsed:true,center:a,busy:false});
 });

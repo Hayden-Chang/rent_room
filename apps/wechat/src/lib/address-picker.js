@@ -23,7 +23,7 @@ export class AddressPicker {
     this.initialized=true;if(!changed&&!initial)return;
     this.cancel();this.address=address;this.location=p;
     this.update({readonly,query:'',items:[],busy:false,message:'',mode:'',collapsed:readonly?false:!initial&&addressChanged?true:this.state.collapsed});
-    if(p&&(!anchor||keepsLocation(address,anchor))){if(initial||!this.state.center)this.update({center:p});}
+    if(p&&(!anchor||keepsLocation(address,anchor))){if(initial||readonly||!this.state.center)this.update({center:p});}
     else if(address&&!readonly)this.timer=setTimeout(()=>this.search(address,true),600);
   }
   input(query) {
@@ -87,7 +87,7 @@ export class AddressPicker {
   }
   toggleMap(){
     if(this.state.readonly||this.disposed)return;
-    if(!this.state.collapsed){this.cancel();this.update({busy:false});}
+    if(!this.state.collapsed&&this.state.mode==='nearby'&&this.state.busy){this.cancel();this.update({busy:false});}
     this.update({collapsed:!this.state.collapsed});
   }
   retry(){if(this.state.mode==='gps-error')return this.gps();if(this.state.mode==='search')return this.search(this.state.query.trim());if(this.state.mode==='manual')return this.search(this.address,true);if(this.state.center)return this.nearby(this.state.center,true);return this.gps();}
