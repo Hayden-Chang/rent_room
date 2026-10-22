@@ -1,6 +1,6 @@
 # 顶楼与异常标记
 
-日期：2026-10-22。Draft PR #45；功能代码提交 `2eac4183b620291a8ee9a3562ca7747aa03ad5c6`。
+日期：2026-10-22。Draft PR #45；当前功能代码提交 `2292883cae84968ef233bb3aa1a1f5d080646255`。
 
 ## 操作契约
 
@@ -24,7 +24,7 @@ Node 24.19.0；未运行全量本地测试。
 
 | 边界 | 定向测试 |
 | --- | --- |
-| 问句生成、自动异常、取消/改答、重载、旧值迁移、恢复/导入、对比及原状态保留 | `tests/top-floor.test.js`（12 项新增） |
+| 问句生成、自动异常、取消/改答、重载、旧值迁移、恢复/导入、对比、原状态保留及其他事实项保护 | `tests/top-floor.test.js`（13 项新增） |
 | 其他检查项的问题规则、计数、模板、只读和保存错误 | `tests/model.test.js`、`tests/inspection-wording.test.js` |
 | 备份流、导入事务和打包后的页面共用 store | `tests/files.test.js`、`tests/transfer.test.js`、`tests/runtime.test.js` |
 | 实际渲染、选是、左滑问题按钮、取消、重新初始化 store 后读回 | `tests/e2e/top-floor.cjs`，仅经共享微信池执行 |
@@ -33,8 +33,14 @@ Node 24.19.0；未运行全量本地测试。
 
 候选提交的合并验证重新执行同一 65 项时，62 项通过、3 项超时：大于 50 MB 的流式 ZIP、选择媒体解压及 200 套以上房源替换。保留 `candidate.log`；随后限制为一个 worker 的定向诊断仍发生相同超时（`resource-diagnostic.log`）。未更改超时、断言或产品逻辑，不能宣称合并验证通过。
 
+主 agent 的独立审查发现新生成逻辑还会启用“外卖能上楼”原先忽略的负向异常配置。新增第 13 项保护用例在修正前因 `badValue` 意外为“否”而失败（`unrelated-fact-before.log`），收紧为只新增正向“是”的配置支持后通过。对比不可变基线 `f66f50c` 的 302 个字段，确认只有 `f1_top` 的定义发生变化。
+
+当前代码的完整定向批次为 66 项，63 通过、同 3 项超时（`candidate-02.log`），13 项新增均通过。将“选择媒体解压”单独运行可通过（`isolated-preview-diagnostic.log`），不能由此推断其他两个超时已解决。
+
 官方 `wcc`、`wcsc` 各编译 14 文件成功，共 12 页面。`dist` 使用独立 `xunju-test-top-floor-20261022` 根构建，避免触及用户记录。
 
 开发者工具池运行 `a5cdedbd532944be8e267b27836b35aa` 在槽位 3 的 App service 健康检查超时，业务回调未执行，未取得截图；槽位由 runner 隔离，未手动重启或抢占。回执与健康日志：`/Volumes/mac2/codex-builds/wechat-instance-pool/runs/a5cdedbd532944be8e267b27836b35aa/`。
+
+第二轮 `d0def496983c4e6598c0ee8092af0111` 在槽位 1 的业务回调总超时，未取得截图；新测试已增加分阶段日志与 15 秒协议超时。最终源码快照运行 `2ad5e34c71224e908e59c5c8b5dda3dc`，回执记录源码 `2292883`、冻结快照哈希 `2b9fbb2fd2ff8f250d578f4baa55f53cbdb6319c37626ca4653fe3265c80c9fc`，尚在等待槽位；不把排队当作 UI 通过。
 
 当前状态：代码可审查，UI 验收及最终验证未完成。未合并、部署、上传或发布；未做真机验证。
