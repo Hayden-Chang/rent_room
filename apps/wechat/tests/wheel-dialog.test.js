@@ -30,3 +30,12 @@ it('native back dismissal shares the dirty check and reinstalls only its own gua
  const c=dialog();c.setData=(v,done)=>{Object.assign(c.data,v);done?.();};
  c.clear();c.back();expect(c.data.discard).toBe(true);expect(c.data.backGuard).toBe(true);
 });
+it('keeps the deposit suffix outside scrolling labels and hides it for an empty draft',()=>{
+ const c=dialog('6个月押金','f113_2');
+ expect(c.data.suffix).toBe('押金');expect(c.data.showSuffix).toBe(true);
+ expect(c.data.items[c.data.selection[0]].wheelLabel).toBe('6 个月');
+ c.clear();expect(c.data.showSuffix).toBe(false);
+ c.change({detail:{value:[c.data.items.findIndex(i=>i.value==='0.5 个月押金')]}});
+ expect(c.data.showSuffix).toBe(true);c.confirm();
+ expect(c.events[0].detail.value).toBe('0.5 个月押金');
+});

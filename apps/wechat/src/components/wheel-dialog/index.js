@@ -1,15 +1,15 @@
-import {wheelConfig,wheelSelection,wheelChanged} from '../../lib/wheel-input.js';
+import {wheelConfig,wheelSelection,wheelChanged,wheelFixedSuffix} from '../../lib/wheel-input.js';
 
 Component({
   properties:{field:{type:Object,value:null}},
-  data:{backGuard:false,items:[],selection:[0],draft:'',title:'',discard:false,moving:false},
+  data:{backGuard:false,items:[],selection:[0],draft:'',title:'',suffix:'',showSuffix:false,discard:false,moving:false},
   observers:{field(field){
     if(!field){this.pendingCancel=false;this.setData({backGuard:false});return;}
     const config=wheelConfig(field);if(!config)return;
     const {items,index}=wheelSelection(field,field.value);
     this.original=field.value===undefined||field.value===null?'':String(field.value);
     this.pendingCancel=false;
-    this.setData({backGuard:true,items,selection:[index],draft:this.original,title:config.title,discard:false,moving:false});
+    this.setData({backGuard:true,items,selection:[index],draft:this.original,title:config.title,suffix:wheelFixedSuffix(field),showSuffix:items[index].wheelLabel!==items[index].label,discard:false,moving:false});
   }},
   methods:{
     noop(){},
@@ -18,9 +18,9 @@ Component({
     change(e){
       const index=e.detail.value[0],item=this.data.items[index];if(!item)return;
       const draft=wheelChanged(this.data.field,this.original,item.value)?item.value:this.original;
-      this.setData({selection:[index],draft});
+      this.setData({selection:[index],draft,showSuffix:item.wheelLabel!==item.label});
     },
-    clear(){this.setData({selection:[0],draft:'',moving:false});},
+    clear(){this.setData({selection:[0],draft:'',showSuffix:false,moving:false});},
     back(){
       if(!this.data.field)return;
       this.setData({backGuard:false},()=>{this.cancel();wx.nextTick(()=>{if(this.data.field)this.setData({backGuard:true});});});

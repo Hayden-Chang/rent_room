@@ -4,9 +4,11 @@
 .wheel-header{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}
 .wheel-title{font-size:18px;font-weight:600;line-height:26px}
 .wheel-close{flex-shrink:0;width:44px;height:44px;line-height:44px;padding:0;margin:0 -8px 0 0;background:transparent;color:#667187;font-size:28px;font-weight:400}
-button::after{border:0}.wheel-hint{font-size:12px;color:#667187;margin-top:2px}
-.wheel-picker{height:220px;width:100%;margin:8px 0 16px}
-.wheel-item{display:flex;align-items:center;justify-content:center;height:44px;font-size:20px;white-space:nowrap}.wheel-legacy{font-size:16px;color:#667187}
+button::after{border:0}
+.wheel-picker-wrap{height:220px;margin:8px 0 16px;display:flex;align-items:center;justify-content:center}
+.wheel-picker{height:220px;width:100%}.wheel-picker-with-suffix{width:160px;flex-shrink:0}
+.wheel-fixed-suffix{font-size:20px;line-height:44px;width:48px;margin-left:-16px;pointer-events:none}
+.wheel-item{display:flex;align-items:center;justify-content:center;height:44px;font-size:20px;white-space:nowrap}
 .wheel-indicator{height:44px;border-top:1px solid #e5e9f1;border-bottom:1px solid #e5e9f1}
 .wheel-footer{display:flex;gap:12px}.wheel-footer button{flex:1;margin:0;padding:0 10px;min-height:44px;line-height:44px;font-size:14px;font-weight:500;border-radius:8px}
 .wheel-clear{background:#f5f7fb;color:#667187}.wheel-confirm{background:#4d56df;color:#fff}.wheel-confirm[disabled]{background:#c7caf5;color:#fff}

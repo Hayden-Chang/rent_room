@@ -1,6 +1,7 @@
 // Disposable fixed-pool fixture. CUA drives visible controls; this callback only
 // creates prerequisites, captures real rendering and reads saved state.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const crypto=require('node:crypto'),{PNG}=require('pngjs');
 const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 if(!process.env.WECHAT_WS_ENDPOINT||!process.env.WECHAT_ARTIFACT_DIR)throw Error('Use the shared pool');
 (async()=>{
@@ -21,12 +22,33 @@ if(!process.env.WECHAT_WS_ENDPOINT||!process.env.WECHAT_ARTIFACT_DIR)throw Error
   await mini.evaluate(()=>new Promise((resolve,reject)=>{let n=0;function poll(){const p=getCurrentPages().slice(-1)[0];if(p?.data.house&&p?.data.accountReady){wx.nextTick(resolve);return;}if(++n>80)return reject(Error('Detail not ready'));setTimeout(poll,100);}poll();}));
   if(process.env.WHEEL_RENDER_ONLY==='1'){
    const report={boundary:'Actual WeChat component rendering with injected props and draft state. No click, scroll or persistence claim.',screens:[]};
-   for(const [name,fieldId,value,discard] of [['01-floor',floor,'12',false],['02-direction','f1_5','南',false],['03-area','f1_3','200',false],['04-half-month','f88_1','1.5',false],['05-bed-width','f44_0','135 cm',false],['06-rod','f41_3','0.5',false],['07-refund','f116_1','当天',false],['08-empty','f1_3','',false],['09-legacy','f1_3','220',false],['10-discard',floor,'12',true]]){
+   async function capture(name){
+    const file=path.join(out,name+'.png');let previous='',stable=0;
+    for(let attempt=0;attempt<12;attempt++){
+     await mini.screenshot({path:file});const png=PNG.sync.read(fs.readFileSync(file)),hash=crypto.createHash('sha256');
+     // Exclude the clock and system chrome; require three equal rendered frames.
+     for(let y=Math.floor(png.height*.2);y<Math.floor(png.height*.8);y++)hash.update(png.data.subarray((y*png.width+Math.floor(png.width*.1))*4,(y*png.width+Math.floor(png.width*.9))*4));
+     const current=hash.digest('hex');stable=current===previous?stable+1:0;previous=current;
+     if(stable>=2)return;await mini.evaluate(()=>new Promise(resolve=>wx.nextTick(resolve)));
+    }
+    throw Error('Rendered wheel did not settle: '+name);
+   }
+   for(const [name,fieldId,value,discard] of [['01-floor',floor,'12',false],['02-direction','f1_5','南',false],['03-area','f1_3','200',false],['04-half-month','f88_1','1.5',false],['05-bed-width','f44_0','135 cm',false],['06-rod','f41_3','0.5',false],['07-refund','f116_1','当天',false],['08-empty','f1_3','',false],['09-legacy','f1_3','220',false],['10-discard',floor,'12',true],['11-deposit-six','f113_2','6 个月押金',false],['12-deposit-half','f113_2','0.5 个月押金',false],['13-deposit-empty','f113_2','',false]]){
+    await mini.evaluate(()=>new Promise(resolve=>getCurrentPages().slice(-1)[0].setData({wheelField:null},()=>wx.nextTick(resolve))));
     const state=await mini.evaluate(({fieldId,value,discard})=>new Promise((resolve,reject)=>{
      const p=getCurrentPages().slice(-1)[0],h=getApp().service.store.house(p.data.id),f=h.templateTopics.flatMap(t=>t.fields).find(f=>f.id===fieldId);
      p.setData({wheelField:{...f,value}},()=>{let tries=0;function ready(){const c=p.selectComponent('#wheel-input-dialog');if(!c||c.data.field?.id!==fieldId||!c.data.items.length){if(++tries>60)return reject(Error('Wheel props did not settle'));return setTimeout(ready,100);}if(discard)c.setData({draft:'13',selection:[c.data.items.findIndex(i=>i.value==='13')],discard:true});wx.nextTick(()=>resolve({title:c.data.title,draft:c.data.draft,selection:c.data.selection,discard:c.data.discard,items:c.data.items}));}ready();});
     }),{fieldId,value,discard});
-    await mini.screenshot({path:path.join(out,name+'.png')});report.screens.push({name,fieldId,value,state});console.log('RENDERED '+name);
+    await capture(name);report.screens.push({name,fieldId,value,state});console.log('RENDERED '+name);
+   }
+   for(const [name,otherText] of [['14-other-input',''],['15-other-filled','东偏南']]){
+    const state=await mini.evaluate(otherText=>new Promise(resolve=>{
+     const p=getCurrentPages().slice(-1)[0],s=getApp().service;
+     s.store.edit(p.data.id,h=>{h.answers.f1_5={value:'其他',otherText};});
+     p.setData({wheelField:null,query:'朝向'},()=>p.refresh({},()=>wx.nextTick(()=>resolve(p.data.sections.flatMap(s=>s.rows).find(f=>f.id==='f1_5')))));
+    }),otherText);
+    assert.equal(state.other,true);assert.equal(state.otherText,otherText);
+    await capture(name);report.screens.push({name,state});console.log('RENDERED '+name);
    }
    fs.writeFileSync(path.join(out,'render-review.json'),JSON.stringify(report,null,2));return;
   }

@@ -1,6 +1,6 @@
 import {it,expect} from 'vitest';
 import config from '../src/lib/wheel-fields.json' with {type:'json'};
-import {wheelConfig,wheelItems,wheelKey,wheelSelection,wheelChanged} from '../src/lib/wheel-input.js';
+import {wheelConfig,wheelItems,wheelKey,wheelSelection,wheelChanged,wheelFixedSuffix} from '../src/lib/wheel-input.js';
 import {fields,freshHouse,updateAnswer,stats,fieldView} from '../src/lib/model.js';
 import {createStore} from '../src/lib/store.js';
 import {fieldRecorded} from '../src/lib/source-model.js';
@@ -14,7 +14,7 @@ it('assigns precisely the agreed 17 fields, with money, unit prices, speed and d
 });
 it('uses the approved numeric endpoints and steps without losing zero or the empty value',()=>{
  for(const [id,c] of Object.entries(config).filter(([,c])=>!c.values)){
-  const items=wheelItems(id);expect(items[0]).toEqual({value:'',label:'未填写'});
+  const items=wheelItems(id);expect(items[0]).toMatchObject({value:'',label:'未填写'});
   expect(Number(wheelKey(id,items[1].value))).toBe(c.min);
   expect(Number(wheelKey(id,items.at(-1).value))).toBe(c.max);
   expect(items).toHaveLength(Math.round((c.max-c.min)/c.step)+2);
@@ -30,6 +30,38 @@ it('retains out-of-range and former other answers, and does not snap them on ope
   const {items,index}=wheelSelection(id,value);expect(items[index].value).toBe(value);expect(items[index].legacy).toBe(true);
  }
  expect(wheelSelection('f1_3','').index).toBe(0);
+});
+it('opens at the existing value without a historical prefix and orders numeric legacy values naturally',()=>{
+ const area=wheelSelection('f1_3','220');
+ expect(area.items[area.index].label).toBe('220 ㎡');
+ expect(area.index).toBe(area.items.length-1);
+ const fractional=wheelSelection('f1_3','45.5');
+ expect(fractional.items[fractional.index-1].value).toBe('45');
+ expect(fractional.items[fractional.index+1].value).toBe('46');
+ expect(wheelSelection('f1_3','45').items[46].value).toBe('45');
+});
+it('scrolls months separately from the fixed deposit suffix without changing stored answers',()=>{
+ for(const id of ['f112_5','f113_2']){
+  const {items,index}=wheelSelection(id,'6个月押金');
+  expect(items[index]).toMatchObject({value:'6 个月押金',label:'6 个月押金',wheelLabel:'6 个月'});
+  expect(wheelFixedSuffix(id)).toBe('押金');
+  expect(items[0].wheelLabel).toBe('未填写');
+ }
+ expect(wheelFixedSuffix('f88_1')).toBe('');
+});
+it('shows the other explanation after confirming other, and preserves it across switching, clearing and reload',()=>{
+ let disk='';const adapter={read:()=>disk,write:value=>{disk=value;}};
+ let store=createStore(adapter);const id=store.add('其他输入验收'),direction=fields.find(f=>f.id==='f1_5');
+ store.answer(id,direction.id,'value','其他');
+ expect(fieldView(store.house(id),direction).other).toBe(true);
+ store.answer(id,direction.id,'otherText','东偏南');
+ for(const value of ['南','']){
+  store.answer(id,direction.id,'value',value);store=createStore(adapter);
+  expect(fieldView(store.house(id),direction).other).toBe(false);
+  expect(store.house(id).answers.f1_5.otherText).toBe('东偏南');
+ }
+ store.answer(id,direction.id,'value','其他');store=createStore(adapter);
+ expect(fieldView(store.house(id),direction)).toMatchObject({other:true,otherText:'东偏南'});
 });
 it('saves basement -1, rejects other negative numeric fields and counts zero as filled',()=>{
  const h=freshHouse('轮盘测试');const floor='fc76beec-52e3-4fe9-a937-dec254d4cc4f';
