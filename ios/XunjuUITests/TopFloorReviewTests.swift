@@ -8,7 +8,7 @@ import XCTest
     }
     func testYesAutomaticIssueSwipeCancellationAndRelaunch() {
         let app = XCUIApplication()
-        app.launchArguments = ["--component-review", "top-floor", "--top-floor-review-id", UUID().uuidString,
+        app.launchArguments = ["--component-review", "top-floor", "--top-floor-review-id", UUID().uuidString, "--parity-trace",
                                "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
         let yes = app.buttons["mp.field.choice.f1_top.是"], no = app.buttons["mp.field.choice.f1_top.否"]
@@ -18,7 +18,12 @@ import XCTest
         yes.tap(); XCTAssertTrue(yes.isSelected)
         XCTAssertEqual(app.staticTexts["review.topFloor.issues"].label, "异常项：1")
         capture("top-floor-02-yes-automatic-issue", app)
-        yes.swipeLeft()
+        // Swipe the field users slide, rather than a 44-point choice button.
+        let row = app.otherElements["mp.field.f1_top"].firstMatch
+        XCTAssertTrue(row.isHittable)
+        row.swipeLeft()
+        let trace = XCTAttachment(string: row.value as? String ?? "")
+        trace.name = "top-floor-native-pan-trace"; trace.lifetime = .keepAlways; add(trace)
         let cancel = app.buttons["mp.field.action.f1_top.取消问题"]
         XCTAssertTrue(cancel.waitForExistence(timeout: 3)); capture("top-floor-03-swipe-cancel-action", app)
         cancel.tap(); XCTAssertTrue(yes.isSelected)

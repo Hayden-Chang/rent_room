@@ -66,3 +66,7 @@
 原生定向集合为上述 6 UT 加 `XunjuTests/ComponentLogicTests/testReviewHostRequiresExplicitKnownSurface`，覆盖组合后的组件参数解析。UI 精确选择 2 项：新增 `XunjuUITests/TopFloorReviewTests/testYesAutomaticIssueSwipeCancellationAndRelaunch` 优先验证本需求；既有 `XunjuUITests/ChecklistFormatTests/testCorridorHeadingAndSanitationDetailStayDistinct` 验证冲突涉及的楼道入口与分组。没有执行全量单测或 UI 套件；2 项低于最终阶段 3 项上限。共享规则定向运行 top-floor、model、inspection-wording 三文件，覆盖合并后的清单、迁移、问题覆盖及楼道投影。
 
 最终计划、精确命令和日志存于 `/private/tmp/xunju-top-floor-merge-20261022/`；本段先提交后冻结，实际结果待执行结束后补记。小程序上一候选的 66 项已全部通过，旧超时记录保留，微信实际 UI 截图仍缺失；这些不作为 iOS 证据。
+
+组合 SHA `72da10b1e3b75f571a698e34e00767c387e55a62` 的 final campaign：7 UT 与楼道 UI 通过，顶楼 UI 在取消按钮出现前失败，合计 8 通过、1 失败。完整 `result-01.xcresult` 与退出 65 回执保留，UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56`，iPhone 16 / iOS 26.5。原始失败录像、层级和合成事件已导出至 `attachments-01/`，主 agent 直接查看：选是后自动异常正常，手势后行仍收起；XCTest 对 44 点选项按钮实际只注入 x=300→266、34 点/34 ms 的短促移动。仅凭这些证据不能确定组件拒绝还是输入未充分交付。
+
+单一失败恢复仅调整该测试的输入：在真实完整字段行上执行原生 `swipeLeft()`，保留取消按钮、答案不变、重启及改答的全部原断言和超时；启用已有 Debug `--parity-trace`，将原生识别轨迹存为附件，便于判别手势交付。生产代码、组件布局和业务状态未改。该精确方法重跑通过后，可与原 8 项按单一失败恢复规则组合，无需重跑通过项。44 点按钮上的极短原生 flick 没有被本次恢复运行覆盖，原失败继续保留。
