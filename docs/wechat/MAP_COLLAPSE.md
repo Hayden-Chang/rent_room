@@ -6,7 +6,7 @@
 
 按用户最新反馈修正搜索交互：从收起状态输入搜索文字立即展开，搜索响应到达后继续展开；手动收起待执行搜索时，响应不会自行打开地图。选择结果触发的程序清空搜索词仍保持收起。手填地址继续收起，展开保留中心与缩放。
 
-源码与测试提交 `c3ca7bca8d5bc90920405ac642a11a57cdd1c5a3`。更新的回归在旧实现上3失败/4通过；修改后5文件共46项通过（地图回归由7项增至8项，新增清空搜索展开检查）。Node24构建和官方wcc/wcsc编译通过。日志为 `/private/tmp/rent-room-map-collapse-20261022/wechat-search-expand-{red,green,build,check}.log`。
+源码与测试提交 `c3ca7bca8d5bc90920405ac642a11a57cdd1c5a3`。更新的回归在旧实现上3失败/4通过；修改后5文件共46项通过（地图回归由7项增至8项，新增清空搜索展开检查）。Node24构建和官方wcc/wcsc编译通过。重建dist后又运行同一5文件46项全部通过，保留 `wechat-search-expand-green-postbuild.log`；该轮源码为c3ca7bc，后续仅本文档变化。日志为 `/private/tmp/rent-room-map-collapse-20261022/wechat-search-expand-{red,green,build,check}.log`。
 
 本轮实际渲染尝试：共享池 run `0376df10ed2e4703924e466ff4d4c793`，冻结源码 `c3ca7bc`、工作树干净，槽1、runner PID49667、工具PID50687、工具2.01.2510290。`health-before.log` 以 `App service health timeout` 失败，回放尚未执行，未取得本轮截图。receipt 保存在 `/Volumes/mac2/codex-builds/wechat-instance-pool/runs/0376df10ed2e4703924e466ff4d4c793/`，命令输出在 `wechat-search-expand-render.log`。池按协议保留并隔离异常实例；未重启、抢占其他槽位或改动共享SDK。
 
