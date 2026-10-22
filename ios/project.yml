@@ -23,6 +23,8 @@ targets:
     platform: iOS
     sources:
       - Xunju
+      - path: ../apps/wechat/src/lib/wheel-fields.json
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.keeline.xunju.ios
