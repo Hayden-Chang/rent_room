@@ -36,6 +36,7 @@ private struct PlaceReviewHost: View {
     @State private var readonly = false
     @State private var address = ""
     @State private var viewport = ""
+    @State private var cameraDistance = ""
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -45,6 +46,7 @@ private struct PlaceReviewHost: View {
                     XJCard {
                         PlacePickerSurface(query: $query, center: center, places: UtilityFixtures.places, message: message, permissionDenied: denied, readonly: readonly,
                                            address: address,
+                                           reviewCameraChanged: { cameraDistance = String(format: "%.0f", $0) },
                                            search: { message = "" }, locate: { denied = true; message = "定位权限未开启，请在设置中允许访问位置" },
                                            retry: { message = "" }, settings: { event = "已触发打开系统设置" }, moved: { point in
                             viewport = String(format: "%.4f,%.4f", point.latitude, point.longitude)
@@ -54,6 +56,7 @@ private struct PlaceReviewHost: View {
                     }
                     if !event.isEmpty { Text(event).font(.system(size: 13)).accessibilityIdentifier("review.placeEvent") }
                     Text(viewport).font(.system(size: 10)).accessibilityIdentifier("review.placeViewport")
+                    Text(cameraDistance).font(.system(size: 10)).accessibilityIdentifier("review.placeCameraDistance")
                 }.padding(16)
             }.background(XJTheme.background).navigationTitle("地点组件").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(readonly ? "可编辑" : "只读") { readonly.toggle() }.accessibilityIdentifier("review.placeReadonly") } }

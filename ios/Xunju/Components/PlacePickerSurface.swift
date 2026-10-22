@@ -24,6 +24,9 @@ struct PlacePickerSurface: View {
     var emptyText = "搜索地址或点击定位，选择房源位置"
     // The owning address field can collapse this surface without moving it.
     var address = ""
+    #if DEBUG
+    var reviewCameraChanged: ((Double) -> Void)?
+    #endif
     let search: () -> Void
     let locate: () -> Void
     let retry: () -> Void
@@ -31,7 +34,7 @@ struct PlacePickerSurface: View {
     let moved: (GeographicPoint) -> Void
     let choose: (PlaceChoice) -> Void
     @State private var position: MapCameraPosition = .automatic
-    @State private var viewport: MKCoordinateRegion?
+    @State private var camera: MapCamera?
     @State private var collapsed = false
     @FocusState private var searchFocused: Bool
 
@@ -59,7 +62,7 @@ struct PlacePickerSurface: View {
             if !readonly {
                 Button {
                     searchFocused = false
-                    if collapsed, let viewport { position = .region(viewport) }
+                    if collapsed, let camera { position = .camera(camera) }
                     collapsed.toggle()
                 } label: {
                     HStack {
@@ -71,13 +74,16 @@ struct PlacePickerSurface: View {
                 }.buttonStyle(.plain).foregroundStyle(XJTheme.primary).accessibilityIdentifier("place.mapToggle")
             }
             ZStack(alignment: .topTrailing) {
-                if center != nil {
+                if center != nil || camera != nil {
                     Map(position: $position, interactionModes: readonly ? [.zoom] : [.pan, .zoom]) {}
                         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
                         .mapControlVisibility(.hidden)
                         .onMapCameraChange(frequency: .onEnd) { context in
                             guard !collapsed || readonly else { return }
-                            viewport = context.region
+                            camera = context.camera
+                            #if DEBUG
+                            reviewCameraChanged?(context.camera.distance)
+                            #endif
                             if !readonly { moved(GeographicPoint(latitude: context.region.center.latitude, longitude: context.region.center.longitude)) }
                         }.accessibilityIdentifier("place.map")
                     Text("●").font(.system(size: 22)).foregroundStyle(XJTheme.primary)
@@ -98,7 +104,8 @@ struct PlacePickerSurface: View {
                         .accessibilitySortPriority(1)
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
-            }.frame(height: collapsed && !readonly ? 0 : 300).clipped()
+            }.frame(height: 300)
+                .frame(height: collapsed && !readonly ? 0 : 300, alignment: .top).clipped()
                 .allowsHitTesting(!collapsed || readonly).accessibilityHidden(collapsed && !readonly)
                 .background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -122,8 +129,12 @@ struct PlacePickerSurface: View {
 
     private func recenter() {
         if let center {
-            let region = MKCoordinateRegion(center: center.coordinate, span: viewport?.span ?? MKCoordinateSpan(latitudeDelta: 0.012, longitudeDelta: 0.012))
-            viewport = region; position = .region(region)
+            if let camera {
+                let next = MapCamera(centerCoordinate: center.coordinate, distance: camera.distance, heading: camera.heading, pitch: camera.pitch)
+                self.camera = next; position = .camera(next)
+            } else {
+                position = .region(MKCoordinateRegion(center: center.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.012, longitudeDelta: 0.012)))
+            }
         }
     }
 
