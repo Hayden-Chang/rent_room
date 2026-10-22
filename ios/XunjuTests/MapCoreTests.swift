@@ -6,6 +6,15 @@ private struct MapHTTPStub: AuthTransport {
     func send(_ request: URLRequest) async throws -> HTTPPayload { try handler(request) }
 }
 
+private struct DelayedRouteHTTP: AuthTransport {
+    let returned: XCTestExpectation
+    func send(_ request: URLRequest) async throws -> HTTPPayload {
+        try await Task.sleep(for: .milliseconds(30))
+        returned.fulfill()
+        return HTTPPayload(data: Data(#"{"resultCode":0,"results":[{"lines":[{"segments":[{"segmentType":2,"segmentLine":[{"lineName":"2路","segmentTime":12,"segmentDistance":1800,"linePoint":"121.4737,31.2304;121.4837,31.2404"}]}]}]}]}"#.utf8), status: 200)
+    }
+}
+
 @MainActor final class MapCoreTests: XCTestCase {
     private func directory() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appending(path: "map-core-\(UUID().uuidString)")
@@ -93,6 +102,29 @@ private struct MapHTTPStub: AuthTransport {
         try FileManager.default.removeItem(at: file)
         try store.call("computed", ["id": .string(id), "field": .string(field), "value": result])
         XCTAssertEqual(try NativeStore(directory: store.records.directory).house(id)["answers"][field]["value"].string, "108.25")
+    }
+    func testSuspendedRouteResponseCompletesJavaScriptBridge() async throws {
+        let returned = expectation(description: "Native transport returned")
+        let completed = expectation(description: "JavaScript route reply completed")
+        let store = try NativeStore(directory: directory(), network: NativeMapTransport(transport: DelayedRouteHTTP(returned: returned)))
+        let before = store.state
+        let origin = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2304, 121.4737)])
+        let destination = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2404, 121.4837)])
+        var routes: [JSONValue] = [], failure = ""
+        let task = Task { @MainActor in
+            do { routes = try await store.query("commuteRoutes", ["key": .string("fixture"), "mode": .string("transit"), "origin": origin, "destination": destination]).array }
+            catch { failure = error.localizedDescription }
+            completed.fulfill()
+        }
+        defer { task.cancel() }
+        let sent = await XCTWaiter.fulfillment(of: [returned], timeout: 3)
+        XCTAssertEqual(sent, .completed)
+        let result = await XCTWaiter.fulfillment(of: [completed], timeout: 3)
+        XCTAssertEqual(result, .completed, "The completed transport must settle the JavaScript promise on supported iOS runtimes")
+        if result == .completed {
+            XCTAssertEqual(failure, ""); XCTAssertEqual(routes.first?["minutes"].int, 12)
+            XCTAssertEqual(store.state, before, "Querying must not mutate saved records")
+        }
     }
     func testTransportRejectsUntrustedDomainsAndUnsupportedMethodsBeforeSending() async throws {
         let transport = NativeMapTransport(transport: MapHTTPStub { _ in XCTFail("Invalid request reached network"); return HTTPPayload(data: Data(), status: 500) })

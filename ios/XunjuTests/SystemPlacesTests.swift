@@ -63,6 +63,23 @@ import MapKit
         catch { XCTAssertTrue(error is CancellationError) }
         XCTAssertEqual(client.queries.count, before)
     }
+    // Live SDK diagnostic uses only a public landmark, no user location or fixtures.
+    func testLivePublicLandmarkSearchCompletesWithRealMapKitResults() async throws {
+        do {
+            let values = try await SystemPlacesClient().search("上海东方明珠广播电视塔", center: nil)
+            XCTAssertTrue(values.contains { $0.name.contains("东方明珠") || $0.address.contains("东方明珠") })
+        } catch {
+            var codes: [String] = [], current: NSError? = error as NSError
+            for _ in 0..<5 {
+                guard let value = current else { break }
+                codes.append("\(value.domain):\(value.code)")
+                current = value.userInfo[NSUnderlyingErrorKey] as? NSError
+            }
+            let detail = codes.joined(separator: " -> ")
+            let attachment = XCTAttachment(string: detail); attachment.name = "public-landmark-sdk-error-codes"; attachment.lifetime = .keepAlways; add(attachment)
+            XCTFail("Public landmark SDK request failed: " + detail)
+        }
+    }
     func testMapKitItemConvertsAddressAndCoordinatesWithoutProviderSpecificFields() throws {
         guard #available(iOS 26.0, *) else { throw XCTSkip("Modern MapKit address representation is iOS 26+") }
         let item = MKMapItem(location: CLLocation(latitude: origin.latitude, longitude: origin.longitude),
