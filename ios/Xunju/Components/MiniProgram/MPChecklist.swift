@@ -63,10 +63,18 @@ struct MPSwipeMotion {
         } else { active = distanceDecision ? id : nil }
         dragging = nil
     }
-    func reveal(_ id: String) { trace("reveal \(id)"); dragging = nil; active = id }
+    private func audit(_ message: String) {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--wheel-gesture-trace") {
+            NSLog("[WheelGesture] %@", message)
+        }
+        #endif
+    }
+    func reveal(_ id: String) { audit("reveal \(id)"); dragging = nil; active = id }
     func close() { trace("close"); active = nil; dragging = nil }
     @discardableResult func consumeTap() -> Bool {
         let wasOpen = active != nil || dragging != nil
+        audit("tap active=\(active ?? "-") dragging=\(dragging ?? "-")")
         close(); return wasOpen
     }
 }
