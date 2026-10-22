@@ -8,6 +8,7 @@ enum ReviewSurface: String {
     case media, headings
     case issueMedia = "issue-media"
     case issueCards = "issue-cards", fieldMedia = "field-media", capacity
+    case topFloor = "top-floor"
 
     var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent, .measurements].contains(self) }
 
@@ -31,7 +32,9 @@ struct ComponentReviewHost: View {
     @State private var event = ""
 
     var body: some View {
-        if surface == .capacity {
+        if surface == .topFloor {
+            TopFloorReviewHost()
+        } else if surface == .capacity {
             CapacityReviewHost()
         } else if [.issueCards, .fieldMedia].contains(surface) {
             RelatedMediaReviewHost(surface: surface)
@@ -49,7 +52,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .issueCards, .fieldMedia, .capacity: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .issueCards, .fieldMedia, .capacity, .topFloor: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -101,6 +104,7 @@ struct ComponentReviewHost: View {
         case .issueCards: "问题卡片组件"
         case .fieldMedia: "关联影像与自动问题"
         case .capacity: "房源容量"
+        case .topFloor: "顶楼"
         }
     }
 

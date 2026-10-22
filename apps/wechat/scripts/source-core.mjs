@@ -93,7 +93,7 @@ export function toTopics(root) {
       f.options=options;
     } else if(['s','y','c','a'].includes(f.type)) {f.type='t';delete f.options;}
     if(f.type!=='y')delete f.badValue;
-    else f.badValue=f.fact?undefined:'否';
+    else f.badValue=['是','否'].includes(meta.badValue)?meta.badValue:f.fact?undefined:'否';
     return f;
   }
   function walk(group,category,path=[]) {
