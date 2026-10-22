@@ -36,4 +36,23 @@
 
 第五轮后续在等待测试资源时，因本说明的补写改变了工作区快照而被 runner 拒绝，未执行测试。第六轮先提交全部说明再冻结工作区；不在运行期间写入本 worktree。功能代码仍与 `b5f780b` 等价，计划结果为 `/Volumes/mac2/codex-builds/xunju-top-floor-20261022/result-06.xcresult`。最终结果以该实际 bundle 和 receipt 为准。
 
-原始 runner 日志和命令位于 `/private/tmp/xunju-top-floor-ios-20261022/`。真实截图、`.xcresult` 与用户视觉批准尚缺，组件仍未通过 UI gate。不得把新增测试或 bundle 生成当作原生行为通过证据；不继续完整页面业务整合，不合并或部署。
+## 第六轮实际结果
+
+`62494b464a2907b599e4a76387f3429d1b81a2f9` 的 6 UT、1 UI 全部通过，0 跳过、0 失败，runner 退出 0。构建与测试回执 `/tmp/todo-ios-sim-pool/run-receipts/xunju-top-floor-20261022-06.json`，完整结果 `/Volumes/mac2/codex-builds/xunju-top-floor-20261022/result-06.xcresult`。测试设备 iPhone 16 / iOS Simulator 26.5，UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`。本轮结束后没有该 run 的活动 slot 记录。
+
+原始附件已通过 `xcresulttool export attachments` 导出，六张均为 1178 × 2556。原样保存于 `/Volumes/mac2/codex-builds/xunju-top-floor-20261022/screenshots-06/`，`manifest.json` 记录 bundle、证据 SHA、导出原名和逐文件 SHA-256：
+
+| 状态 | 原始截图文件 |
+| --- | --- |
+| 未填写，0 异常 | `top-floor-01-unanswered.png` |
+| 选是，红色问题样式，1 异常 | `top-floor-02-yes-automatic-issue.png` |
+| 左滑，红色问题、备注、相机三个按钮 | `top-floor-03-swipe-cancel-action.png` |
+| 取消问题，仍选是，备注保留，0 异常 | `top-floor-04-manually-cancelled.png` |
+| 终止重开，取消状态保留 | `top-floor-05-cancellation-after-relaunch.png` |
+| 改选否，0 异常 | `top-floor-06-no-clears-automatic-issue.png` |
+
+主 agent 已逐张直接查看，确认标题“顶楼”、是/否选项、问题色与取消后的恢复样式、左滑按钮和备注均符合本次组件范围。取消前后“是”的选择保持；重启截图与取消后截图的 SHA-256 一致。没有把这些隔离组件图片当作完整页面或真机证据。
+
+原始 runner 日志、计划、精确命令、摘要和首次附件导出位于 `/private/tmp/xunju-top-floor-ios-20261022/`。本说明补写发生在执行完成之后，和证据 SHA 比较仅为文档变化，功能/测试/配置/生成输入未变，复用原证据。
+
+状态：`REVIEW_READY`，待用户明确视觉批准后才继续完整页面业务整合。不合并或部署；未做最终 PR head 合并 campaign，也未声称整个 iOS 应用已验收。小程序侧尚有 3 个备份用例超时且工具池未取得截图，见 PR #45。
