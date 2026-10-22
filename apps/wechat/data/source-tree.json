@@ -208,7 +208,7 @@
             "meta": {
               "id": "f1_balcony",
               "type": "y",
-              "fact": true,
+              "fact": false,
               "legacyType": "y",
               "phase": "房源信息",
               "hint": "选择户型、朝向，填写实际面积和月租。顶楼、阳台按事实记录。",
