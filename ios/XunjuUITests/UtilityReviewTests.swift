@@ -17,12 +17,17 @@ import XCTest
         let map = app.descendants(matching: .any)["place.map"]
         XCTAssertTrue(query.waitForExistence(timeout: 10))
         XCTAssertTrue(map.exists)
+        map.swipeLeft()
+        let viewport = app.staticTexts["review.placeViewport"]
+        XCTAssertTrue(viewport.waitForExistence(timeout: 3))
+        let before = viewport.label
         capture("map-01-expanded", app)
         app.buttons["place.result.one"].tap()
         XCTAssertTrue(map.waitForNonExistence(timeout: 3), "Using a place must collapse the map")
         capture("map-02-used-collapsed", app)
         let toggle = app.buttons["place.mapToggle"]
         toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3))
+        XCTAssertEqual(viewport.label, before)
         capture("map-03-reopened", app)
         query.tap(); query.typeText("公寓")
         XCTAssertTrue(map.waitForNonExistence(timeout: 3), "Address input must collapse the map")
@@ -31,6 +36,13 @@ import XCTest
         XCTAssertTrue(app.buttons["place.result.two"].exists)
         toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3))
         capture("map-05-search-reopened", app)
+        let manual = app.textFields["review.placeAddress"]
+        manual.tap(); manual.typeText("朝阳路18号3栋\n")
+        XCTAssertTrue(map.waitForNonExistence(timeout: 3), "Manual address input must collapse the map")
+        capture("map-06-manual-collapsed", app)
+        toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3))
+        XCTAssertEqual(viewport.label, before)
+        capture("map-07-manual-reopened", app)
     }
 
     func testPlaceSearchSelectionAndPermissionFallback() {
@@ -46,6 +58,7 @@ import XCTest
         choice.tap()
         XCTAssertEqual(app.staticTexts["review.placeEvent"].label, "已选择：新城公寓")
         XCTAssertEqual(query.value as? String, "搜索地址，更快填写")
+        app.buttons["place.mapToggle"].tap()
         app.buttons["place.locate"].tap()
         let settings = app.buttons["place.retry"]
         if !settings.isHittable { app.swipeUp() }

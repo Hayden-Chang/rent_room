@@ -34,18 +34,26 @@ private struct PlaceReviewHost: View {
     @State private var event = ""
     @State private var center = UtilityFixtures.origin
     @State private var readonly = false
+    @State private var address = ""
+    @State private var viewport = ""
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
+                    TextField("手动填写地址", text: $address).textFieldStyle(.roundedBorder)
+                        .submitLabel(.done).accessibilityIdentifier("review.placeAddress")
                     XJCard {
                         PlacePickerSurface(query: $query, center: center, places: UtilityFixtures.places, message: message, permissionDenied: denied, readonly: readonly,
+                                           address: address,
                                            search: { message = "" }, locate: { denied = true; message = "定位权限未开启，请在设置中允许访问位置" },
-                                           retry: { message = "" }, settings: { event = "已触发打开系统设置" }, moved: { _ in }, choose: { place in
+                                           retry: { message = "" }, settings: { event = "已触发打开系统设置" }, moved: { point in
+                            viewport = String(format: "%.4f,%.4f", point.latitude, point.longitude)
+                        }, choose: { place in
                             center = place.point; event = "已选择：\(place.name)"; query = ""
                         })
                     }
                     if !event.isEmpty { Text(event).font(.system(size: 13)).accessibilityIdentifier("review.placeEvent") }
+                    Text(viewport).font(.system(size: 10)).accessibilityIdentifier("review.placeViewport")
                 }.padding(16)
             }.background(XJTheme.background).navigationTitle("地点组件").navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(readonly ? "可编辑" : "只读") { readonly.toggle() }.accessibilityIdentifier("review.placeReadonly") } }
