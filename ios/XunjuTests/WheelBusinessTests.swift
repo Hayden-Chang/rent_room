@@ -14,12 +14,15 @@ import XCTest
     }
     func testRealFormRoutesAllSeventeenWheelsAndKeepsMoneyManual() throws {
         let store = try store(), id = try store.add("实际表单")
+        try store.answer(id, field: "f112_0", value: .string("允许"))
         for key in WheelFieldSpec.all.keys {
             let row = try field(key, house: id, store: store)
             XCTAssertEqual(ChecklistPresentation.item(row).kind, .wheel, key)
             XCTAssertTrue(row["inline"].bool)
         }
         XCTAssertEqual(ChecklistPresentation.item(try field("f1_6", house: id, store: store)).kind, .number)
+        try store.answer(id, field: "f112_2", value: .string("21 天"))
+        XCTAssertTrue(try store.form(id, query: "转租", filters: ["已记录"]).flatMap { $0["rows"].array }.contains { $0.id == "f112_2" })
     }
     func testConfirmedAnswersReloadKeepAnnotationsOtherAndEmptyZero() throws {
         let store = try store(), id = try store.add("保存验证"), presenter = WheelInputPresentation()
