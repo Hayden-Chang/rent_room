@@ -126,9 +126,12 @@ final class WheelInputReviewTests: XCTestCase {
         XCTAssertEqual(app.buttons["wheel.open.f113_2"].value as? String, "0.5 个月押金")
         open("f113_2", app)
         XCTAssertEqual(app.pickerWheels.firstMatch.value as? String, "0.5 个月")
+        let selectedHeight = app.otherElements["wheel.dialog"].frame.height
         app.buttons["wheel.clear"].tap()
         XCTAssertEqual(app.pickerWheels.firstMatch.value as? String, "未填写")
         XCTAssertFalse(suffix.exists)
+        XCTAssertEqual(app.otherElements["wheel.dialog"].frame.height, selectedHeight, accuracy: 1)
+        XCTAssertEqual(app.buttons["wheel.clear"].frame.midY, app.buttons["wheel.confirm"].frame.midY, accuracy: 1)
         capture("v2-deposit-empty", app)
         app.buttons["wheel.confirm"].tap(); closed(app)
     }
