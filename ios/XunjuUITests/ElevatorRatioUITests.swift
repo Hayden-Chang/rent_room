@@ -18,7 +18,7 @@ import XCTest
         app.buttons["checklist.keyboard.done"].tap()
         let group = app.buttons["mp.field.choice.node:group:topic_16.是"]
         XCTAssertTrue(group.waitForExistence(timeout: 3)); group.tap()
-        let low = app.buttons["mp.field.choice.f16_0.≤ 1:3"], middle = app.buttons["mp.field.choice.f16_0.1:4"], high = app.buttons["mp.field.choice.f16_0.≥ 1:5"]
+        let low = app.buttons["mp.field.choice.f16_0.≤ 1:3（优质）"], middle = app.buttons["mp.field.choice.f16_0.1:4（高峰等待）"], high = app.buttons["mp.field.choice.f16_0.≥ 1:5（拥挤）"]
         XCTAssertTrue(low.exists); XCTAssertTrue(middle.exists); XCTAssertTrue(high.exists)
         low.tap(); XCTAssertTrue(low.isSelected); middle.tap(); XCTAssertTrue(middle.isSelected)
         capture("elevator-ratio-middle-normal", app)

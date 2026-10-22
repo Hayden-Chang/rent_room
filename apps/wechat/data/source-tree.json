@@ -1434,19 +1434,19 @@
                   {
                     "id": "f16_0_option_a106270e-f552-474d-a7a9-5ffc789dcbd4",
                     "kind": "option",
-                    "title": "≤ 1:3",
+                    "title": "≤ 1:3（优质）",
                     "children": []
                   },
                   {
                     "id": "f16_0_option_ddd64517-3de0-4d53-bb8f-0b500fbebce2",
                     "kind": "option",
-                    "title": "1:4",
+                    "title": "1:4（高峰等待）",
                     "children": []
                   },
                   {
                     "id": "f16_0_option_52660a82-334f-4bf8-b038-161b265985a5",
                     "kind": "option",
-                    "title": "≥ 1:5",
+                    "title": "≥ 1:5（拥挤）",
                     "children": []
                   }
                 ]

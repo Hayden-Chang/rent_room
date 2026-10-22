@@ -2,7 +2,7 @@ import XCTest
 @testable import Xunju
 
 @MainActor final class ElevatorRatioTests: XCTestCase {
-    private let fieldID = "f16_0", options = ["≤ 1:3", "1:4", "≥ 1:5"]
+    private let fieldID = "f16_0", options = ["≤ 1:3（优质）", "1:4（高峰等待）", "≥ 1:5（拥挤）"]
     private func makeStore() throws -> NativeStore {
         let root = FileManager.default.temporaryDirectory.appending(path: "elevator-ratio-\(UUID().uuidString)")
         addTeardownBlock { try? FileManager.default.removeItem(at: root) }
@@ -22,20 +22,20 @@ import XCTest
         XCTAssertEqual(try field(store, id)["options"].array.map { $0["value"].string }, options)
         for value in options + [""] {
             try choose(value, store, id)
-            XCTAssertEqual(try field(store, id)["problem"].bool, value == "≥ 1:5")
-            XCTAssertEqual(store.houses.first?.stats.issues, value == "≥ 1:5" ? 1 : 0)
+            XCTAssertEqual(try field(store, id)["problem"].bool, value == "≥ 1:5（拥挤）")
+            XCTAssertEqual(store.houses.first?.stats.issues, value == "≥ 1:5（拥挤）" ? 1 : 0)
         }
-        try choose("≥ 1:5", store, id)
+        try choose("≥ 1:5（拥挤）", store, id)
         let reopened = try NativeStore(directory: store.records.directory)
         XCTAssertTrue(try field(reopened, id)["problem"].bool)
         XCTAssertEqual(try reopened.call("issues", ["id": .string(id)])["automatic"].array.map(\.id), [fieldID])
         var row = try field(reopened, id), state = ChecklistPresentation.state(row); state.flagged = false
         try ChecklistPresentation.write(state, from: row, houseID: id, store: reopened)
-        try choose("1:4", reopened, id); try choose("≥ 1:5", reopened, id)
+        try choose("1:4（高峰等待）", reopened, id); try choose("≥ 1:5（拥挤）", reopened, id)
         XCTAssertFalse(try field(reopened, id)["problem"].bool)
         row = try field(reopened, id); state = ChecklistPresentation.state(row); state.flagged = true
         try ChecklistPresentation.write(state, from: row, houseID: id, store: reopened)
-        try choose("≤ 1:3", reopened, id)
+        try choose("≤ 1:3（优质）", reopened, id)
         XCTAssertTrue(try field(reopened, id)["problem"].bool)
     }
     func testLegacyTemplateAndAnswerDisplayNewChoiceWithoutErasingOriginalData() throws {
@@ -51,7 +51,7 @@ import XCTest
         let snapshot = store.state.setting("houses", to: .array([house]))
         try store.records.write(String(decoding: JSONEncoder().encode(snapshot), as: UTF8.self), keepPrevious: false)
         let reopened = try NativeStore(directory: store.records.directory), before = reopened.house(id), row = try field(reopened, id)
-        XCTAssertEqual(row["value"].string, "≥ 1:5")
+        XCTAssertEqual(row["value"].string, "≥ 1:5（拥挤）")
         XCTAssertEqual(row["options"].array.map { $0["value"].string }, options)
         XCTAssertTrue(row["problem"].bool); XCTAssertEqual(row["note"].string, "保留原备注")
         XCTAssertEqual(reopened.house(id), before)

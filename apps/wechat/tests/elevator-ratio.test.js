@@ -2,7 +2,7 @@ import {it,expect} from 'vitest';
 import {freshHouse,topics,houseTopics,formView,updateAnswer,stats,issueEntries,prepareImport,rules} from '../src/lib/model.js';
 import {createStore} from '../src/lib/store.js';
 
-const id='f16_0',options=['≤ 1:3','1:4','≥ 1:5'];
+const id='f16_0',options=['≤ 1:3（优质）','1:4（高峰等待）','≥ 1:5（拥挤）'];
 const oldOptions=['<1:3（优质）','1:4（高峰等待）','>1:5（拥挤）'];
 const house=()=>{const h=freshHouse('电梯住户比');h.groups.topic_16={presence:'是'};return h;};
 const row=h=>formView(h,{query:'电梯住户比'}).flatMap(s=>s.rows).find(r=>r.id===id);
@@ -14,10 +14,10 @@ it('uses the three requested choices and automatically flags only the highest ra
  for(const value of [...options,'']){
   updateAnswer(h,id,'value',value);
   expect(row(h).options.map(o=>o.label)).toEqual(options);
-  expect(row(h).problem).toBe(value==='≥ 1:5');
-  expect(stats(h).issues).toBe(value==='≥ 1:5'?1:0);
+  expect(row(h).problem).toBe(value==='≥ 1:5（拥挤）');
+  expect(stats(h).issues).toBe(value==='≥ 1:5（拥挤）'?1:0);
  }
- updateAnswer(h,id,'value','≥ 1:5');expect(issueEntries(h).map(e=>e.field.id)).toEqual([id]);
+ updateAnswer(h,id,'value','≥ 1:5（拥挤）');expect(issueEntries(h).map(e=>e.field.id)).toEqual([id]);
 });
 
 it('displays legacy choices using the new labels without changing saved answers or attachments',()=>{
@@ -58,4 +58,15 @@ it('imports legacy unversioned choices without clearing the recorded ratio',()=>
  expect(row(imported).value).toBe(options[2]);expect(row(imported).problem).toBe(true);
  expect(imported.answers[id].value).toBe(options[2]);expect(imported.previousAnswers[id].value).toBe(oldOptions[2]);
  expect(imported.answers[id].note).toBe('旧版备注');expect(JSON.stringify(raw)).toBe(before);
+});
+
+it('keeps descriptions when reopening short-label answers without rewriting saved data',()=>{
+ const shortOptions=['≤ 1:3','1:4','≥ 1:5'];
+ for(let i=0;i<shortOptions.length;i++){
+  const h=house();h.answers[id]={value:shortOptions[i],note:'保留描述修复前的记录'};
+  const before=JSON.stringify(h);
+  expect(row(h).value).toBe(options[i]);
+  expect(row(h).options.find(o=>o.selected)?.value).toBe(options[i]);
+  expect(row(h).problem).toBe(i===2);expect(JSON.stringify(h)).toBe(before);
+ }
 });
