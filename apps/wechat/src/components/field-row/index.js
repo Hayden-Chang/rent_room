@@ -84,6 +84,6 @@ Component({
    const action=e.currentTarget.dataset.action;if(!['flag','note','media'].includes(action))return;
    this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});
   },
-  action(e){if(e.currentTarget.dataset.tray)return this.trayAction(e);if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map','speed-test','commute'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
+  action(e){if(e.currentTarget.dataset.tray)return this.trayAction(e);if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map','speed-test','commute','wheel'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
  }
 });
