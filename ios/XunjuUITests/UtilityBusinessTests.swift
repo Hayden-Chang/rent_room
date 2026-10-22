@@ -36,9 +36,10 @@ import CoreLocation
         demo.swipeLeft()
         app.buttons["coach.preference"].tap(); capture("31-business-coach-field", app); next.tap()
         XCTAssertFalse(next.exists)
-        let checklist = app.textFields["mp.checklist.search"]; checklist.tap(); checklist.typeText("地址")
-        app.buttons["checklist.keyboard.done"].tap()
-        let place = app.textFields["place.query"]; XCTAssertTrue(place.waitForExistence(timeout: 3))
+        let basic = app.staticTexts["mp.field.title.node:category:房源基本信息"]
+        let place = app.textFields["place.query"]
+        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
+        XCTAssertTrue(place.waitForExistence(timeout: 3))
         place.tap(); place.typeText("阳光\n")
         let houseChoice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '阳光小区'")).firstMatch
         XCTAssertTrue(houseChoice.waitForExistence(timeout: 4)); houseChoice.tap()
@@ -48,8 +49,7 @@ import CoreLocation
         XCTAssertTrue(savedHouseAddress.contains("阳光小区"))
         capture("32-business-house-place", app)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["house.选点与通勤"].tap()
-        let reopenedFilter = app.textFields["mp.checklist.search"]
-        reopenedFilter.tap(); reopenedFilter.typeText("地址"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
         XCTAssertTrue(place.waitForExistence(timeout: 3))
         XCTAssertEqual(address.value as? String, savedHouseAddress)
         XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Reentering the saved house must keep the map collapsed")
@@ -91,13 +91,11 @@ import CoreLocation
         XCTAssertTrue(answer.waitForExistence(timeout: 3)); XCTAssertEqual(answer.value as? String, "24")
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.选点与通勤"].waitForExistence(timeout: 10))
         app.buttons["house.选点与通勤"].tap(); XCTAssertFalse(next.exists)
-        let persistedFilter = app.textFields["mp.checklist.search"]
-        persistedFilter.tap(); persistedFilter.typeText("地址"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
         XCTAssertTrue(address.waitForExistence(timeout: 3))
         XCTAssertEqual(address.value as? String, editedHouseAddress)
         XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
         capture("house-map-04-relaunched-collapsed", app)
-        persistedFilter.tap(); persistedFilter.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 2))
         let restored = app.textFields["mp.checklist.search"]; restored.tap(); restored.typeText("公交地铁")
         app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(answer.value as? String, "24")
         capture("35-business-commute-restored", app)

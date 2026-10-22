@@ -35,6 +35,7 @@ struct PlacePickerSurface: View {
     let choose: (PlaceChoice) -> Void
     @State private var position: MapCameraPosition = .automatic
     @State private var camera: MapCamera?
+    @State private var hasMapPosition = false
     @State private var collapsed = true
     @State private var interacted = false
     @FocusState private var searchFocused: Bool
@@ -84,7 +85,7 @@ struct PlacePickerSurface: View {
                 }.buttonStyle(.plain).foregroundStyle(XJTheme.primary).accessibilityIdentifier("place.mapToggle")
             }
             ZStack(alignment: .topTrailing) {
-                if center != nil || camera != nil {
+                if center != nil || hasMapPosition {
                     Map(position: $position, interactionModes: readonly ? [.zoom] : [.pan, .zoom]) {}
                         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
                         .mapControlVisibility(.hidden)
@@ -149,6 +150,9 @@ struct PlacePickerSurface: View {
 
     private func recenter() {
         if let center {
+            // A manual address edit can clear stored coordinates before MapKit
+            // reports a camera. Keep the existing map and its position mounted.
+            hasMapPosition = true
             if let camera {
                 let next = MapCamera(centerCoordinate: center.coordinate, distance: camera.distance, heading: camera.heading, pitch: camera.pitch)
                 self.camera = next; position = .camera(next)
