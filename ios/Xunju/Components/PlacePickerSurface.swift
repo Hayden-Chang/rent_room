@@ -95,8 +95,11 @@ struct PlacePickerSurface: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
                 if !readonly {
-                Button("定位", action: locate).font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
+                Button(action: locate) {
+                    Text("定位").font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
+                        .contentShape(Rectangle())
+                }.buttonStyle(.plain)
                     .padding(12).accessibilityIdentifier("place.locate")
                 }
                 if !readonly && query.isEmpty && !places.isEmpty {
