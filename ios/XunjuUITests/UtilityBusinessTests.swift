@@ -63,6 +63,8 @@ import CoreLocation
         capture("34-business-route-confirm", app); confirm.tap()
         let answer = app.buttons["mp.field.wheel.21255282-3663-4abe-b7de-d91eeb3825ed"]
         XCTAssertTrue(answer.waitForExistence(timeout: 3)); XCTAssertEqual(answer.value as? String, "24")
+        XCTAssertGreaterThanOrEqual(answer.frame.width, 100)
+        XCTAssertLessThan(answer.frame.maxX, app.buttons["measurement.21255282-3663-4abe-b7de-d91eeb3825ed"].frame.minX)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.选点与通勤"].waitForExistence(timeout: 10))
         app.buttons["house.选点与通勤"].tap(); XCTAssertFalse(next.exists)
         let restored = app.textFields["mp.checklist.search"]; restored.tap(); restored.typeText("公交地铁")

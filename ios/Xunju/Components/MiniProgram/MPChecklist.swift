@@ -90,7 +90,7 @@ struct MPFieldState {
 }
 
 struct MPFieldRow: View {
-    static let measurementWheelMinimumWidth: CGFloat = 76
+    static let measurementWheelMinimumWidth: CGFloat = 100
     let item: MPFieldItem
     @Binding var state: MPFieldState
     var readonly = false
