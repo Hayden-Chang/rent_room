@@ -3,6 +3,7 @@ import {wheelConfig} from './wheel-input.js';
 const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 const structuredClone = value => JSON.parse(JSON.stringify(value));
 export function choiceOptions(f) {
+  if(f.id==='f16_0')return ['≤ 1:3（优质）','1:4（高峰等待）','≥ 1:5（拥挤）'];
   if (['y','c','a'].includes(f.type)) return Array.isArray(f.options)&&f.options.length===2&&f.options.includes('是')&&f.options.includes('否')?f.options:['是','否'];
   return f.options || [];
 }
@@ -11,6 +12,7 @@ export function choiceOptions(f) {
 export function fieldValue(f, a = {}) {
   if(f.type==='s'&&f.multiple)return choiceValues(f,a).join('、');
   const value=String(a.value??'');
+  if(f.id==='f16_0')return ({'<1:3（优质）':'≤ 1:3（优质）','>1:5（拥挤）':'≥ 1:5（拥挤）','≤ 1:3':'≤ 1:3（优质）','1:4':'1:4（高峰等待）','≥ 1:5':'≥ 1:5（拥挤）'}[value]||value);
   if(f.role==='permission'&&f.options?.includes('允许')&&f.options?.includes('不允许'))return ({'是':'允许','否':'不允许'}[value]||value);
   if(['f51_1','f51_2'].includes(f.id)&&f.type==='s'&&f.options?.length===3&&['够用','不够用','没有'].every(v=>f.options.includes(v)))return ({'是':'够用','否':'不够用'}[value]||value);
   return value;
@@ -77,10 +79,16 @@ export function validTopics(topics) {
   }));
 }
 
+const automaticProblemChoices = {
+  f16_0:'≥ 1:5（拥挤）',
+  f51_1:'不够用',f51_2:'不够用',f120_0:'否',
+  f21_1:'无',f62_1:'大于 1 分钟',f83_1:'无网络',
+};
 export function isProblem(f, a = {}) {
+  if(hasOwn(automaticProblemChoices,f.id))return fieldValue(f,a)===automaticProblemChoices[f.id];
   if(isInspectionResult(f))return a.value==='有问题';
   if(f.role==='inspection-check')return a.value==='否';
-  if (['y','c','a'].includes(f.type)) return f.badValue === '否' && a.value === '否';
+  if (['y','c','a'].includes(f.type)) return ['是','否'].includes(f.badValue) && a.value === f.badValue;
   return !f.fact && a.problem === true;
 }
 
@@ -136,7 +144,7 @@ export function normalizeHouse(h, topics) {
       }
       a.problem = false;
     }
-    if (f.type === 's' && v && !f.options.includes(v)) {
+    if (f.type === 's' && v && !choiceOptions(f).includes(v)) {
       const withUnit = f.unit && `${v} ${f.unit}`;
       if (withUnit && f.options.includes(withUnit)) v = withUnit;
       else {a.note = [a.note,`旧选择：${v}`].filter(Boolean).join('\n');v='';}
