@@ -11,6 +11,7 @@ export const categories = [...new Set(topics.map(t=>t.category))];
 export const MAP_ID = fields.find(f=>f.label==='地图（和地址联动）').id;
 export const emptyState = () => ({version:2,houses:[],settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
 const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83');
+const corridorGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_14');
 const commuteLabels=Object.fromEntries(fields.filter(f=>['21255282-3663-4abe-b7de-d91eeb3825ed','3c70cda2-7c6c-4fa6-b2db-b647af24ba72'].includes(f.id)).map(f=>[f.id,f.label]));
 export const electricityField=fields.find(f=>f.id==='617bd84f-3208-42ec-b2e4-5bb95d5c754c');
 const duplicateElectricityId='b670b816-5107-4acf-96e0-cc28b84df4cc';
@@ -35,6 +36,9 @@ export const houseTopics = h => {
   if(t.path?.some(p=>p.id===installationGroup.id))t={...t,
     title:t.title==='宽带条件'?installationGroup.title:t.title,
     path:t.path.map(p=>p.id===installationGroup.id?{...p,title:installationGroup.title,visibleWhen:installationGroup.visibleWhen}:p)};
+  if(t.path?.some(p=>p.id===corridorGroup.id))t={...t,
+    title:t.title==='楼道卫生'?corridorGroup.title:t.title,
+    path:t.path.map(p=>p.id===corridorGroup.id?{...p,title:corridorGroup.title}:p)};
   return t;
  }).filter(t=>t.fields.length);
 };
