@@ -85,7 +85,7 @@ export function isProblem(f, a = {}) {
   if(hasOwn(automaticProblemChoices,f.id))return fieldValue(f,a)===automaticProblemChoices[f.id];
   if(isInspectionResult(f))return a.value==='有问题';
   if(f.role==='inspection-check')return a.value==='否';
-  if (['y','c','a'].includes(f.type)) return f.badValue === '否' && a.value === '否';
+  if (['y','c','a'].includes(f.type)) return ['是','否'].includes(f.badValue) && a.value === f.badValue;
   return !f.fact && a.problem === true;
 }
 
