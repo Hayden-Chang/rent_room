@@ -42,13 +42,13 @@ struct PlacePickerSurface: View {
         VStack(spacing: 10) {
             if !readonly {
             HStack(spacing: 4) {
-                TextField("搜索地址，更快填写", text: Binding(get: { query }, set: { query = $0; collapsed = true }))
+                TextField("搜索地址，更快填写", text: Binding(get: { query }, set: { query = $0; collapsed = false }))
                     .font(.system(size: 14)).submitLabel(.search)
                     .focused($searchFocused).onSubmit { searchFocused = false; search() }
                     .onChange(of: query) { if query.count > 200 { query = String(query.prefix(200)) } }
                     .accessibilityLabel("搜索地址").accessibilityIdentifier("place.query")
                 if !query.isEmpty {
-                    Button { collapsed = true; query = ""; search() } label: { Image(systemName: "xmark").font(.system(size: 14)).frame(width: 32, height: 42) }
+                    Button { collapsed = false; query = ""; search() } label: { Image(systemName: "xmark").font(.system(size: 14)).frame(width: 32, height: 42) }
                         .accessibilityLabel("清空搜索").accessibilityIdentifier("place.clear")
                 }
             }.padding(.horizontal, 12).frame(minHeight: 44)
