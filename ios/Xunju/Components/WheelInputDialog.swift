@@ -120,7 +120,7 @@ struct WheelInputDialog: View {
                             if draft.choices[draft.index].wheelLabel != draft.choices[draft.index].label {
                                 Text(draft.spec.fixedSuffix).font(.system(size: 20)).accessibilityIdentifier("wheel.suffix")
                             } else { Color.clear.accessibilityHidden(true) }
-                        }.frame(width: 48, alignment: .leading).padding(.leading, -16)
+                        }.frame(width: 48, height: 24, alignment: .leading).padding(.leading, -16)
                     }
                 }.frame(maxWidth: .infinity).padding(.top, 8).padding(.bottom, 16)
                 HStack(spacing: 12) {
