@@ -454,6 +454,7 @@
                 "住宅",
                 "公寓",
                 "LOFT",
+                "合租",
                 "其他"
               ],
               "quick": false,
@@ -482,6 +483,12 @@
                 "id": "f101_0_option_2",
                 "kind": "option",
                 "title": "LOFT",
+                "children": []
+              },
+              {
+                "id": "f101_0_option_shared",
+                "kind": "option",
+                "title": "合租",
                 "children": []
               },
               {
