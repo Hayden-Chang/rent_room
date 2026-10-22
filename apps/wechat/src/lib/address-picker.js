@@ -28,7 +28,7 @@ export class AddressPicker {
   }
   input(query) {
     if(this.state.readonly)return;
-    this.cancel();this.update({query,collapsed:true,items:[],mode:query.trim()?'search':'',busy:false,message:''});
+    this.cancel();this.update({query,collapsed:false,items:[],mode:query.trim()?'search':'',busy:false,message:''});
     if(query.trim())this.timer=setTimeout(()=>this.search(query.trim()),300);
     else if(this.state.center&&!this.matches(this.state.center))this.nearby(this.state.center);
   }

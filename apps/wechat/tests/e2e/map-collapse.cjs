@@ -23,10 +23,11 @@ const watchdog=setTimeout(()=>{console.error('Native map review timed out');proc
   // rather than taking a screenshot immediately after the state predicate.
   await mini.evaluate(()=>new Promise((resolve,reject)=>{
    const picker=getCurrentPages().slice(-1)[0].selectComponent('#workplace-address-picker');let attempts=0;
-   function poll(){picker.createSelectorQuery().select('.map-wrap').boundingClientRect(rect=>{
-    if(!!rect===!picker.data.collapsed)return wx.nextTick(()=>resolve(true));
+   function poll(){picker.createSelectorQuery().select('.map-wrap').boundingClientRect().select('.search-results').boundingClientRect().exec(([map,results])=>{
+    const needsResults=['search','manual'].includes(picker.data.mode)&&picker.data.items.length>0;
+    if(!!map===!picker.data.collapsed&&!!results===needsResults)return wx.nextTick(()=>resolve(true));
     if(++attempts>60)return reject(Error('Map rendering did not match collapse state'));setTimeout(poll,100);
-   }).exec();}poll();
+   });}poll();
   }));
   await mini.screenshot({path:path.join(out,name+'.png')});
  }
@@ -60,12 +61,17 @@ const watchdog=setTimeout(()=>{console.error('Native map review timed out');proc
   if(replay)await act('toggleMap');
   const reopened=await wait('click 展开地图',s=>s.picker&&!s.picker.collapsed);
   const before=viewport(reopened.picker);await capture('map-03-reopened');
-  if(replay)await act('input','办公楼');
-  await wait('type search 办公楼',s=>s.picker?.collapsed&&s.picker?.query==='办公楼'&&s.picker?.items.length>0);
-  await capture('map-04-search-collapsed');
+  // Begin with a collapsed map so typing proves automatic expansion.
   if(replay)await act('toggleMap');
-  const search=await wait('expand after search',s=>s.picker&&!s.picker.collapsed);
-  assert.deepEqual(viewport(search.picker),before);await capture('map-05-search-reopened');
+  await wait('manually collapse before search',s=>s.picker?.collapsed);
+  if(replay)await act('input','办公楼');
+  const search=await wait('type search 办公楼 expands map',s=>s.picker&&!s.picker.collapsed&&s.picker.query==='办公楼'&&s.picker.items.length>0);
+  assert.deepEqual(viewport(search.picker),before);await capture('map-04-search-expanded');
+  if(replay)await act('use');
+  await wait('use search result collapses map',s=>s.picker?.collapsed&&s.picker.query==='');
+  await capture('map-05-search-used-collapsed');
+  if(replay)await act('toggleMap');
+  await wait('expand before manual address',s=>s.picker&&!s.picker.collapsed);
   if(replay)await act('manual','深圳市南山区 科技园办公楼3栋602');
   await wait('edit manual address with 3栋602 suffix',s=>s.picker?.collapsed&&s.settings.workplace.endsWith('3栋602'));
   await capture('map-06-manual-address-collapsed');
