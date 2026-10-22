@@ -42,7 +42,7 @@ import XCTest
         let old = house.removing("topFloorRevision").setting("templateTopics", to: .array(topics))
             .setting("answers", to: .object(["f1_top": .object(["value": .string("否"), "note": .string("旧备注"), "issueFlag": .bool(false)])]))
         let raw = store.state.setting("houses", to: .array([old]))
-        try store.records.write(String(decoding: JSONEncoder().encode(raw), as: UTF8.self))
+        try store.records.write(String(decoding: JSONEncoder().encode(raw), as: UTF8.self), keepPrevious: false)
         let reopened = try NativeStore(directory: store.records.directory)
         XCTAssertEqual(reopened.house(id)["answers"]["f1_top"]["value"].string, "是")
         XCTAssertEqual(try field(reopened, id)["label"].string, "顶楼")

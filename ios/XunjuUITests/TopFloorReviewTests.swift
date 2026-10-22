@@ -18,8 +18,8 @@ import XCTest
         yes.tap(); XCTAssertTrue(yes.isSelected)
         XCTAssertEqual(app.staticTexts["review.topFloor.issues"].label, "异常项：1")
         capture("top-floor-02-yes-automatic-issue", app)
-        title.swipeLeft()
-        let cancel = app.buttons["取消问题"].firstMatch
+        yes.swipeLeft()
+        let cancel = app.buttons["mp.field.action.f1_top.取消问题"]
         XCTAssertTrue(cancel.waitForExistence(timeout: 3)); capture("top-floor-03-swipe-cancel-action", app)
         cancel.tap(); XCTAssertTrue(yes.isSelected)
         XCTAssertEqual(app.staticTexts["review.topFloor.issues"].label, "异常项：0")
