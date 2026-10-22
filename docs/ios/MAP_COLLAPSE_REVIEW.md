@@ -9,6 +9,34 @@
 - 评审宿主候选地点为固定夹具；地图为真实 MapKit，平移使用原生手势。宿主选点不写房源，不代表业务保存或物理 GPS 已验收。
 - `reviewCameraChanged` 仅在 Debug 编译，普通业务调用为 nil；用于读回真实相机距离，不改变相机决策。
 
+## 本轮搜索展开修订与当前证据
+
+按用户最新反馈，只有用户编辑/清空搜索框才主动展开；选择结果后程序清空搜索词继续保持收起，外部手填地址变化仍收起。未改正式页面或业务模型。
+
+- 回归提交 `fb918856f28af29ffa5ded1eb7168bb2a6f10fba` 在旧组件上构建成功，1方法1失败，唯一失败为 `Search input must expand the map`。设备为 runner 分配的 iPhone 14 Pro / iOS18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`；失败诊断耗时较长，最终正常返回65，没有强停进程。结果包 `/Volumes/mac2/codex-builds/xunju-map-search-expand-20261022-red-01.xcresult`。
+- 修订证据提交 `b196433c766e4f0298da2eb6fd4942cefc9e70b5`，工作树干净，`final-pr-head` 计划0 UT / 3 UI，三个方法一次完整通过。未运行全量suite；状态只在SwiftUI组件中，未增加镜像实现的独立UT。
+- 本轮通过设备由共享runner分配：iPhone16 / iOS26.5，UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56`。runner PID56146，slot3；构建子进程57688，UI子进程58752。排队累计219.261秒。正常结束后本任务slot/lease已释放，receipt退出码0。沿用本worktree独立缓存 `time-fragment-dd-shared-ccf0d0815539d3e202f08802-simulator`。
+
+| 精确方法 | 覆盖与结果 |
+| --- | --- |
+| `XunjuUITests/UtilityReviewTests/testPlaceMapExpandsForSearchAndCollapsesAfterUseOrManualAddress` | 原生平移后选点收起、手动展开、再次收起后输入搜索自动展开、提交搜索仍展开、手填收起与再次恢复；中心和相机距离比较通过，7张状态图 |
+| `XunjuUITests/UtilityReviewTests/testPlaceSearchSelectionAndPermissionFallback` | 搜索结果可选、选择后程序清空词不展开、定位权限提示和设置回调通过，3张图 |
+| `XunjuUITests/UtilityReviewTests/testReadOnlyMapHidesEditingAndLocationActions` | 只读地图可见且无编辑/定位入口，通过，1张图 |
+
+主agent已检查导出的原始截图：收起后仅剩“展开地图”入口；搜索态显示“收起地图”和实际MapKit；手填后地图隐藏，恢复视野一致。该夹具的平移中心 `31.2304,121.4857`，相机距离2483米，在选点、搜索、手填展开后保持一致。
+
+输入时键盘会遮住下方地图：`map-04-typing-expanded` 可见“收起地图”入口，`map-05-search-expanded` 是按搜索收键盘后可见的实际地图。未改搜索结果列表高度或增加自动滚动，也未声称输入时地图始终可见。POI与权限事件仍为固定组件夹具；没有物理GPS、真实业务保存或手机中文输入法验证。
+
+原始证据与可读副本：
+
+- 计划：`/private/tmp/rent-room-map-collapse-20261022/ios-search-expand-{red,green}-plan.json`；日志及summary在同目录同前缀。
+- 通过结果包：`/Volumes/mac2/codex-builds/xunju-map-search-expand-20261022-green-01.xcresult`（3通过/0失败）。
+- 11张原始附件及manifest：`/private/tmp/rent-room-map-collapse-20261022/ios-search-expand-attachments/`；1178×2556像素。
+- 显示副本：`/Users/pc/.codex/visualizations/2026/10/22/01a1613d-4a43-7142-9c62-95a0f560db41/map-collapse/search-expand/`；`provenance.json`逐图记录原始文件、测试、尺寸和SHA256，复制前后字节一致。
+- 本轮源码之后仅追加本文档，组件、测试、宿主及构建配置没有变化，复用b196433截图与本地通过结果；不把文档提交称为新测试来源。
+
+当前门禁为 `REVIEW_READY`，等待用户明确批准组件交互后接入正式手填地址页面。小程序本轮46项与编译通过，但共享工具健康检查失败，最新搜索展开尚无开发者工具截图；详见PR #41。
+
 ## 首轮自动化证据（搜索输入收起，已按用户反馈修订）
 
 共享 runner `/Volumes/mac2/projects/git_repo/run_self/Simulator Management/bin/sim-test-run.mjs`，实时配置 `config/runner.json`。本批使用 iPhone 16 / iOS 26.5，UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`。构建均经项目 `scripts/run-xcodebuild.sh` 和固定 XcodeGen 2.45.4；未改工程配置或提交生成工程。
