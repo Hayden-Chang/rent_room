@@ -19,7 +19,7 @@ it('all cancel routes warn only for a net change, and continuing retains the dra
  c.events=[];c.clear();c.cancel();expect(c.data.discard).toBe(true);c.discard();expect(c.events[0].name).toBe('close');
 });
 it('leaves an untouched historical value byte-for-byte intact and blocks confirm while spinning',()=>{
- const c=dialog('18.5','f1_3');c.move();c.confirm();expect(c.events).toEqual([]);c.settle();c.confirm();expect(c.events[0].detail.value).toBe('18.5');
+ const c=dialog('18.5','f1_3');c.move();c.confirm();expect(c.events).toEqual([]);c.settle();c.confirm();expect(c.events[0].name).toBe('close');expect(c.data.draft).toBe('18.5');
 });
 
 it('delays cancellation until the wheel settles, so an in-flight change is not lost',()=>{

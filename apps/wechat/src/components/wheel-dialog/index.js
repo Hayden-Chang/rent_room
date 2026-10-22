@@ -32,6 +32,10 @@ Component({
     },
     keep(){this.setData({discard:false});},
     discard(){this.triggerEvent('close');},
-    confirm(){if(!this.data.moving)this.triggerEvent('confirm',{id:this.data.field.id,value:this.data.draft});}
+    confirm(){
+      if(this.data.moving)return;
+      if(!wheelChanged(this.data.field,this.original,this.data.draft))this.triggerEvent('close');
+      else this.triggerEvent('confirm',{id:this.data.field.id,value:this.data.draft});
+    }
   }
 });
