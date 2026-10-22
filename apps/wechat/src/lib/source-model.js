@@ -85,6 +85,7 @@ const automaticProblemChoices = {
   f21_1:'无',f62_1:'大于 1 分钟',f83_1:'无网络',
 };
 export function isProblem(f, a = {}) {
+  if(['f54_0','f54_1'].includes(f.id))return fieldValue(f,a).trim()!=='';
   if(hasOwn(automaticProblemChoices,f.id))return fieldValue(f,a)===automaticProblemChoices[f.id];
   if(isInspectionResult(f))return a.value==='有问题';
   if(f.role==='inspection-check')return a.value==='否';

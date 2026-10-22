@@ -268,6 +268,50 @@
             }
           },
           {
+            "id": "f16_0",
+            "kind": "field",
+            "title": "电梯住户比",
+            "meta": {
+              "id": "f16_0",
+              "type": "s",
+              "options": null,
+              "quick": false,
+              "legacyType": "n",
+              "phase": "现场看房",
+              "hint": "确认数量、运行、开门速度、维保情况及高峰拥挤程度。",
+              "sources": [
+                "IMG_6288.PNG",
+                "IMG_6321.PNG",
+                "IMG_6331.PNG",
+                "IMG_6332.PNG"
+              ],
+              "visibleWhen": {
+                "fieldId": "6aeda8ec-d6a0-4863-a7cb-2f78db887fb9",
+                "value": "是"
+              }
+            },
+            "children": [
+              {
+                "id": "f16_0_option_a106270e-f552-474d-a7a9-5ffc789dcbd4",
+                "kind": "option",
+                "title": "≤ 1:3（优质）",
+                "children": []
+              },
+              {
+                "id": "f16_0_option_ddd64517-3de0-4d53-bb8f-0b500fbebce2",
+                "kind": "option",
+                "title": "1:4（高峰等待）",
+                "children": []
+              },
+              {
+                "id": "f16_0_option_52660a82-334f-4bf8-b038-161b265985a5",
+                "kind": "option",
+                "title": "≥ 1:5（拥挤）",
+                "children": []
+              }
+            ]
+          },
+          {
             "id": "f1_6",
             "kind": "field",
             "title": "租金（元/月）",
@@ -1416,49 +1460,13 @@
               "inspection": {
                 "presence": true,
                 "aggregate": true
+              },
+              "visibleWhen": {
+                "fieldId": "6aeda8ec-d6a0-4863-a7cb-2f78db887fb9",
+                "value": "是"
               }
             },
             "children": [
-              {
-                "id": "f16_0",
-                "kind": "field",
-                "title": "电梯住户比",
-                "meta": {
-                  "id": "f16_0",
-                  "type": "s",
-                  "options": null,
-                  "quick": false,
-                  "legacyType": "n",
-                  "phase": "现场看房",
-                  "hint": "确认数量、运行、开门速度、维保情况及高峰拥挤程度。",
-                  "sources": [
-                    "IMG_6288.PNG",
-                    "IMG_6321.PNG",
-                    "IMG_6331.PNG",
-                    "IMG_6332.PNG"
-                  ]
-                },
-                "children": [
-                  {
-                    "id": "f16_0_option_a106270e-f552-474d-a7a9-5ffc789dcbd4",
-                    "kind": "option",
-                    "title": "≤ 1:3（优质）",
-                    "children": []
-                  },
-                  {
-                    "id": "f16_0_option_ddd64517-3de0-4d53-bb8f-0b500fbebce2",
-                    "kind": "option",
-                    "title": "1:4（高峰等待）",
-                    "children": []
-                  },
-                  {
-                    "id": "f16_0_option_52660a82-334f-4bf8-b038-161b265985a5",
-                    "kind": "option",
-                    "title": "≥ 1:5（拥挤）",
-                    "children": []
-                  }
-                ]
-              },
               {
                 "id": "f16_1",
                 "kind": "field",
@@ -2148,7 +2156,7 @@
           {
             "id": "f26_2",
             "kind": "field",
-            "title": "走廊无声音",
+            "title": "听不到走廊噪音",
             "meta": {
               "id": "f26_2",
               "type": "y",
@@ -2216,7 +2224,7 @@
           {
             "id": "01768237-54d1-4a3f-8446-1da21d292dab",
             "kind": "field",
-            "title": "房间听不到客厅声音",
+            "title": "房间关门后听不到客厅声音",
             "children": [
               {
                 "id": "01768237-54d1-4a3f-8446-1da21d292dab_option_0",
@@ -2240,7 +2248,7 @@
           {
             "id": "f26_0",
             "kind": "field",
-            "title": "关窗无噪音",
+            "title": "关窗后无噪音",
             "meta": {
               "id": "f26_0",
               "type": "y",
@@ -2275,7 +2283,7 @@
           {
             "id": "f26_1",
             "kind": "field",
-            "title": "开窗噪音正常",
+            "title": "开窗后噪音水平正常",
             "meta": {
               "id": "f26_1",
               "type": "y",
