@@ -65,3 +65,5 @@
 
 </view>
 <view wx:if="{{!accountReady}}" class="auth-wait">正在确认登录状态…</view>
+
+<wheel-dialog field="{{wheelField}}" bindclose="closeWheel" bindconfirm="saveWheel"/>

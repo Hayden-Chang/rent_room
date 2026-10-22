@@ -1,0 +1,17 @@
+<page-container show="{{backGuard}}" overlay="{{false}}" duration="{{0}}" custom-style="height:0;background:transparent" bindafterleave="back"/>
+<view wx:if="{{field}}" class="wheel-overlay" catchtouchmove="noop">
+ <view class="wheel-mask" bindtap="cancel" aria-label="取消选择"/>
+ <view class="wheel-dialog" role="dialog" aria-label="{{title}}" aria-modal="true" catchtap="noop">
+  <view class="wheel-header"><text class="wheel-title">{{title}}</text><button class="wheel-close" aria-label="取消" bindtap="cancel">×</button></view>
+  <view class="wheel-hint">滑动选择</view>
+  <picker-view class="wheel-picker" value="{{selection}}" indicator-class="wheel-indicator" bindchange="change" bindpickstart="move" bindpickend="settle" aria-label="{{title}}轮盘">
+   <picker-view-column><view wx:for="{{items}}" wx:key="value" class="wheel-item {{item.legacy?'wheel-legacy':''}}">{{item.label}}</view></picker-view-column>
+  </picker-view>
+  <view class="wheel-footer"><button class="wheel-clear" bindtap="clear">清空</button><button class="wheel-confirm" disabled="{{moving}}" bindtap="confirm">确定</button></view>
+ </view>
+ <view wx:if="{{discard}}" class="wheel-discard-mask" catchtap="keep"/>
+ <view wx:if="{{discard}}" class="wheel-discard" role="alertdialog" aria-label="是否放弃修改？" catchtap="noop">
+  <view class="wheel-discard-title">是否放弃修改？</view><view class="wheel-discard-hint">本次选择尚未保存</view>
+  <view class="wheel-footer"><button class="wheel-clear" bindtap="keep">继续编辑</button><button class="wheel-abandon" bindtap="discard">放弃修改</button></view>
+ </view>
+</view>
