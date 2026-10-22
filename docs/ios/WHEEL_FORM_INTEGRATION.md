@@ -87,3 +87,24 @@
 12 号批次设备仍为 iPhone 16 / iOS 26.5（23F77），原 UDID；结果包、原始截图、完整日志和选择映射位于 `artifacts/ios-wheel-business-12-merge/`。构建 PID 87398、测试 PID 88117；runner receipt 构建/测试和最终退出均为 0，租约已释放。主 agent 从新结果导出原图，复核其他输入框、固定 6 个月/押金及完整 24 分钟与查询并排显示。
 
 合入前最后核对发现基线在执行期间再次前进到 `840d529`（已合入的 #50 自动异常判定）。模拟合并仅生成 XunjuCore.js 发生真实冲突，原模型和 source-model 可自动合并。12 号记录保留其原基线来源，不作为后续组合包的最终证据；按最新影响重新生成 bundle 并选择验证，不能静默复用为新提交通过。公开文档移除本机绝对路径，完整本机路径仅留忽略目录中的原始证据。
+
+## 最终合并候选
+
+冻结源码 `b4df74c7de26a1a3db5171819a6d2a44d44a3a3a` 整合原生基线 `840d529bb162a7866b6c8f1e61be3d54addc3572`。模型、source-model、store、topics、source-tree 及轮盘 JSON/helper 共 7 个规范源与已合入 main 的小程序逐字节一致；原生包重新生成，为 56 源、251047 字节。
+
+`xunju-wheel-business-20261022-13-merge` 在 **final-pr-head** 阶段同批执行 **28 UT、3 个精确 UI，共 31 项通过，0 失败/跳过**。UI 仍按正式清单/取消/其他/重启、月份/问题/只读、通勤可读性排序。22 项映射保留，并增加生成包变化直接影响的以下 6 项原生规则回归；没有运行全量测试。
+
+| 新增影响边界 | 精确 selector |
+| --- | --- |
+| 六种自动问题及手动覆盖、重载 | XunjuTests/AutomaticChoiceIssueTests/testAllSixChoicesCreateIssuesAndKeepManualPriorityAcrossReload |
+| 已有答案/备注及旧模板不被改写 | XunjuTests/AutomaticChoiceIssueTests/testExistingAnswersAndNotesAreRecognizedWithoutRewritingTheSnapshot |
+| 阳台否/是/空的自动异常与重载 | XunjuTests/BalconyIssueTests/testChoiceAdapterAutomaticallyFlagsNoAndClearsYesOrUnansweredAcrossReload |
+| 阳台旧模板与手动覆盖保留 | XunjuTests/BalconyIssueTests/testLegacySnapshotAndManualOverridesPreserveOriginalAnswerAndNote |
+| 电梯选项、异常与手动覆盖重载 | XunjuTests/ElevatorRatioTests/testNativeChoicesFlagHighestRatioAndKeepManualPriorityAcrossReload |
+| 电梯旧选项显示及原始数据保留 | XunjuTests/ElevatorRatioTests/testLegacyTemplateAndAnswerDisplayNewChoiceWithoutErasingOriginalData |
+
+共享 JS 的 model、inspection-wording、top-floor、automatic-choice-issues、balcony-issue、elevator-ratio 共 6 文件 **71 项通过**。原先新增/适配 UI 均在开发阶段执行；此次最终 3 条以外的额外格式/手势 UI 保留 11 号批次原来源，不冒称在新提交重跑。新增自动异常相关原生边界由上述 UT 覆盖，本次没有另跑与轮盘无关的完整 UI 套件。
+
+最终批次仍在 iPhone 16 / iOS 26.5（23F77）、原 UDID 上运行。runner PID 93140、测试 PID 93291，slot/owner 观察保存在 `lease-observation.json`；receipt 构建、测试、最终退出码均为 0，任务已结束且租约释放。`artifacts/ios-wheel-business-13-merge/` 保存计划、完整命令/日志、source-head/status、结果 summary、构建/测试 `.xcresult` 及原始附件。主 agent 对该批次原图复核，确认其他补充框、固定 6 个月/押金和完整 24 分钟与查询按钮并排显示；查询仍为受控服务夹具。
+
+主 agent 在候选发布后复查 PR 最终 diff，确认只包含本轮轮盘范围和正常生成包，未提交 `.xcodeproj`。最后再次读取远端基线仍为 `840d529`。最终绿色后仅追加本 Markdown 验证记录；候选与执行源码之间没有源码、资源、测试、依赖、脚本或生成输入差异，因此不重跑。此项合入目标为既有原生开发分支，真机、中文输入法和真实地图网络仍保持原验证边界；不部署或发布。
