@@ -16,6 +16,20 @@ import XCTest
         let app = launch("place"), query = app.textFields["place.query"]
         let map = app.descendants(matching: .any)["place.map"]
         XCTAssertTrue(query.waitForExistence(timeout: 10))
+        let toggle = app.buttons["place.mapToggle"]
+        if !map.exists { toggle.tap() }
+        XCTAssertTrue(app.buttons["place.result.one"].isHittable)
+        app.buttons["place.result.one"].tap()
+        XCTAssertTrue(map.waitForNonExistence(timeout: 3))
+        XCTAssertEqual(app.textFields["review.placeAddress"].value as? String, "上海市朝阳路18号")
+        capture("reentry-01-selected-collapsed", app)
+        app.buttons["review.placeReenter"].tap()
+        let mounted = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label == '1'"), object: app.staticTexts["review.placeMount"])
+        XCTAssertEqual(XCTWaiter.wait(for: [mounted], timeout: 3), .completed)
+        XCTAssertTrue(map.waitForNonExistence(timeout: 3), "Reentering a saved address must keep the map collapsed")
+        XCTAssertEqual(toggle.label, "展开地图")
+        capture("reentry-02-saved-still-collapsed", app)
+        toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3))
         XCTAssertTrue(map.exists)
         map.swipeLeft()
         let viewport = app.staticTexts["review.placeViewport"]
@@ -27,7 +41,6 @@ import XCTest
         app.buttons["place.result.one"].tap()
         XCTAssertTrue(map.waitForNonExistence(timeout: 3), "Using a place must collapse the map")
         capture("map-02-used-collapsed", app)
-        let toggle = app.buttons["place.mapToggle"]
         toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3))
         XCTAssertEqual(viewport.label, before)
         XCTAssertEqual(distance.label, zoomBefore)
@@ -44,7 +57,7 @@ import XCTest
         XCTAssertEqual(distance.label, zoomBefore)
         capture("map-05-search-expanded", app)
         let manual = app.textFields["review.placeAddress"]
-        manual.tap(); manual.typeText("朝阳路18号3栋\n")
+        manual.tap(); manual.typeText("3栋\n")
         XCTAssertTrue(map.waitForNonExistence(timeout: 3), "Manual address input must collapse the map")
         capture("map-06-manual-collapsed", app)
         toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3))
@@ -55,7 +68,18 @@ import XCTest
 
     func testPlaceSearchSelectionAndPermissionFallback() {
         let app = launch("place"), query = app.textFields["place.query"]
+        let map = app.descendants(matching: .any)["place.map"]
         XCTAssertTrue(query.waitForExistence(timeout: 10))
+        if map.exists { app.buttons["place.mapToggle"].tap() }
+        XCTAssertTrue(map.waitForNonExistence(timeout: 3))
+        XCTAssertEqual(query.value as? String, "搜索地址，更快填写")
+        query.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(map.waitForExistence(timeout: 3), "Search focus must expand the map without typing")
+        XCTAssertEqual(query.value as? String, "搜索地址，更快填写")
+        capture("focus-01-expanded-without-text", app)
+        query.typeText("\n")
+        capture("focus-02-expanded-keyboard-dismissed", app)
         capture("21-place-nearby", app)
         app.buttons["place.result.one"].tap()
         XCTAssertEqual(app.staticTexts["review.placeEvent"].label, "已选择：阳光小区")
