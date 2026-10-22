@@ -38,13 +38,15 @@ final class NativeStore {
     private(set) var capacity = HouseCapacity(used: 0, limit: 2, remaining: 2, packs: 0)
     let records: LocalRecords
     @ObservationIgnored private let context: JSContext
+    @ObservationIgnored private let mapQueryTimeout: Duration
 
-    init(directory: URL, packs: Int = 0, network: any MapTransport = NativeMapTransport()) throws {
+    init(directory: URL, packs: Int = 0, network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15)) throws {
         records = try LocalRecords(directory: directory)
         guard let context = JSContext(), let source = Bundle.main.url(forResource: "XunjuCore", withExtension: "js") else {
             throw CoreFailure(message: "清单规则资源缺失")
         }
         self.context = context
+        self.mapQueryTimeout = mapQueryTimeout
         let records = records
         let write: @convention(block) (String, Bool) -> String = { text, keepPrevious in
             do { try records.write(text, keepPrevious: keepPrevious); return "" }
@@ -111,14 +113,26 @@ final class NativeStore {
     func query(_ operation: String, _ parameters: [String: JSONValue]) async throws -> JSONValue {
         var input = parameters; input["operation"] = .string(operation)
         let json = String(decoding: try JSONEncoder().encode(JSONValue.object(input)), as: UTF8.self)
-        return try await withCheckedThrowingContinuation { continuation in
-            let once = MapReply(continuation: continuation)
-            let complete: @convention(block) (String) -> Void = { text in
-                MainActor.assumeIsolated { once.finish(text) }
+        let once = MapReply()
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            return try await withCheckedThrowingContinuation { continuation in
+                once.start(continuation, timeout: mapQueryTimeout)
+                let complete: @convention(block) (String) -> Void = { text in
+                    MainActor.assumeIsolated { once.finish(text) }
+                }
+                // Explicit conversion keeps this callback callable on iOS 18;
+                // implicit block conversion inside the argument array fails.
+                guard let callback = JSValue(object: complete, in: context) else {
+                    once.fail(CoreFailure(message: "地点查询未能启动")); return
+                }
+                context.exception = nil
+                let promise = context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("dispatchAsync", withArguments: [json, callback])
+                if let exception = context.exception, !exception.isUndefined { once.fail(CoreFailure(message: "地点查询未能启动")) }
+                else { once.retain(promise) }
             }
-            context.exception = nil
-            context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("dispatchAsync", withArguments: [json, complete])
-            if let exception = context.exception, !exception.isUndefined { once.fail("地点查询未能启动") }
+        } onCancel: {
+            Task { @MainActor in once.fail(CancellationError()) }
         }
     }
 
@@ -152,16 +166,30 @@ final class NativeStore {
 
 @MainActor private final class MapReply {
     private var continuation: CheckedContinuation<JSONValue, Error>?
-    init(continuation: CheckedContinuation<JSONValue, Error>) { self.continuation = continuation }
+    private var promise: JSValue?
+    private var deadline: Task<Void, Never>?
+    private var completed = false
+    func start(_ continuation: CheckedContinuation<JSONValue, Error>, timeout: Duration) {
+        self.continuation = continuation
+        deadline = Task { @MainActor in
+            do { try await Task.sleep(for: timeout) } catch { return }
+            fail(CoreFailure(message: "查询超时，请重试或返回手动填写"))
+        }
+    }
+    func retain(_ value: JSValue?) { if !completed { promise = value } }
     func finish(_ text: String) {
-        guard let continuation else { return }; self.continuation = nil
         do {
             let reply = try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8))
             guard reply["ok"].bool else { throw CoreFailure(message: reply["error"].string) }
-            continuation.resume(returning: reply["value"])
-        } catch { continuation.resume(throwing: error) }
+            settle(.success(reply["value"]))
+        } catch { fail(error) }
     }
-    func fail(_ text: String) {
-        continuation?.resume(throwing: CoreFailure(message: text)); continuation = nil
+    func fail(_ error: Error) { settle(.failure(error)) }
+    private func settle(_ result: Result<JSONValue, Error>) {
+        guard !completed else { return }
+        completed = true
+        deadline?.cancel(); deadline = nil; promise = nil
+        let pending = continuation; continuation = nil
+        pending?.resume(with: result)
     }
 }

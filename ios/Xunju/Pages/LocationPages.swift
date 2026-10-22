@@ -8,7 +8,7 @@ struct PlacePicker: View {
     var body: some View {
         PlacePickerSurface(query: Binding(get: { search.query }, set: { search.query = $0; search.submit(debounce: true) }),
                            center: search.center, places: search.choices, busy: search.busy,
-                           message: search.message, permissionDenied: search.permissionDenied, readonly: readonly, address: address,
+                           message: search.message, permissionDenied: search.permissionDenied, readonly: readonly, address: address, attribution: search.attribution,
                            search: { search.submit() }, locate: { search.locate() }, retry: { search.submit() },
                            settings: { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } },
                            moved: search.moved, choose: { place in
@@ -23,7 +23,7 @@ struct HousePlaceField: View {
     init(workspace: AppWorkspace, id: String) {
         self.workspace = workspace; self.id = id
         let store = workspace.store
-        _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.house(id)["location"], validScope: { workspace.store === store }))
+        _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.house(id)["location"], mapKey: workspace.mapKey, validScope: { workspace.store === store }))
     }
     var body: some View {
         PlacePicker(search: search, readonly: workspace.store.house(id)["archived"].bool, address: workspace.store.house(id)["address"].string) { place in
@@ -44,7 +44,7 @@ struct WorkplacePage: View {
         self.workspace = workspace
         let store = workspace.store
         _text = State(initialValue: store.state["settings"]["workplace"].string)
-        _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.state["settings"]["workplaceLocation"], validScope: { workspace.store === store }))
+        _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.state["settings"]["workplaceLocation"], mapKey: workspace.mapKey, validScope: { workspace.store === store }))
     }
     var body: some View {
         ScrollView {

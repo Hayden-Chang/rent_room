@@ -24,6 +24,7 @@ struct PlacePickerSurface: View {
     var emptyText = "搜索地址或点击定位，选择房源位置"
     // The owning address field can collapse this surface without moving it.
     var address = ""
+    var attribution = "系统地图"
     #if DEBUG
     var reviewCameraChanged: ((Double) -> Void)?
     #endif
@@ -126,7 +127,7 @@ struct PlacePickerSurface: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             if busy && !readonly { Text("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
             if (!collapsed || readonly) && (center != nil || !places.isEmpty) {
-                Text("地点信息来源：系统地图").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
+                Text("地点信息来源：\(attribution)").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if !message.isEmpty && !readonly {
