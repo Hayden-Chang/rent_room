@@ -3,9 +3,10 @@ import XCTest
 @MainActor final class WheelBusinessUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
     private let floor = "fc76beec-52e3-4fe9-a937-dec254d4cc4f"
-    private func launch() -> XCUIApplication {
+    private func launch(parityTrace: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if parityTrace { app.launchArguments.append("--parity-trace") }
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["home.add"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
@@ -70,9 +71,12 @@ import XCTest
         capture("app-form-zero-restored", app)
     }
     func testMonthsIssueEditingAndArchiveReadonly() {
-        let app = launch(), penalty = "f113_2"
+        let app = launch(parityTrace: true), penalty = "f113_2"
         search("提前退租违约金", app); open(penalty, app); choose("6 个月", app)
         XCTAssertEqual(app.staticTexts["wheel.suffix"].label, "押金"); capture("app-form-fixed-deposit-six", app); confirm(app)
+        let closedRow = app.otherElements["mp.field.\(penalty)"]
+        XCTAssertTrue((closedRow.value as? String ?? "").hasPrefix("操作已收起"), closedRow.value as? String ?? "")
+        capture("app-form-months-confirmed", app)
         open(penalty, app); choose("0.5 个月", app); capture("app-form-fixed-deposit-half", app)
         app.otherElements["wheel.mask"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)).tap()
         XCTAssertTrue(app.buttons["wheel.discard"].waitForExistence(timeout: 3)); app.buttons["wheel.discard"].tap()
