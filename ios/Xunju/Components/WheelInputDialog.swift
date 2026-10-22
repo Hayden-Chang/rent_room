@@ -3,6 +3,7 @@ import SwiftUI
 struct WheelChoice: Equatable {
     let value: String
     let label: String
+    let wheelLabel: String
 }
 
 // The mini-program and native component consume the same reviewed field policy.
@@ -23,6 +24,7 @@ struct WheelFieldSpec: Decodable {
     }()
 
     private func number(_ value: Double) -> String { String(format: "%g", locale: Locale(identifier: "en_US_POSIX"), value) }
+    var fixedSuffix: String { format == "deposit" ? "押金" : "" }
     func key(_ value: String) -> String {
         guard values == nil, !value.isEmpty else { return value }
         if format == "refund", value == "当天" { return "0" }
@@ -43,14 +45,21 @@ struct WheelFieldSpec: Decodable {
                 return amount
             }
         } else { strings = [] }
-        return [WheelChoice(value: "", label: "未填写")] + strings.map { value in
-            WheelChoice(value: value, label: values != nil || (format == "refund" && value == "当天") ? value : key(value) + " " + (unit ?? ""))
-        }
+        return [choice("")] + strings.map(choice)
+    }
+    private func choice(_ value: String) -> WheelChoice {
+        let numeric = !value.isEmpty && Double(key(value)) != nil
+        let label = value.isEmpty ? "未填写" : values != nil || !numeric || (format == "refund" && value == "当天") ? value : key(value) + " " + (unit ?? "")
+        return WheelChoice(value: value, label: label, wheelLabel: format == "deposit" && numeric ? key(value) + " 个月" : label)
     }
     func choices(preserving value: String) -> [WheelChoice] {
         var items = choices
         if !value.isEmpty, !items.contains(where: { key($0.value) == key(value) }) {
-            items.insert(WheelChoice(value: value, label: "原记录：" + value), at: 1)
+            let next: Int
+            if values == nil, let amount = Double(key(value)) {
+                next = items.firstIndex { !$0.value.isEmpty && (Double(key($0.value)) ?? -.infinity) > amount } ?? items.endIndex
+            } else { next = items.endIndex }
+            items.insert(choice(value), at: next)
         }
         return items
     }
@@ -103,13 +112,16 @@ struct WheelInputDialog: View {
                             .frame(width: 44, height: 44).contentShape(Rectangle())
                     }.buttonStyle(.plain).accessibilityLabel("取消").accessibilityIdentifier("wheel.close")
                 }
-                Text("滑动选择").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.top, 2)
-                Picker(draft.spec.title, selection: Binding(get: { draft.index }, set: { draft.select($0) })) {
-                    ForEach(draft.choices.indices, id: \.self) { index in
-                        Text(draft.choices[index].label).font(.system(size: 20)).tag(index)
+                HStack(spacing: 0) {
+                    if draft.spec.fixedSuffix.isEmpty { picker }
+                    else {
+                        picker.frame(width: 160)
+                        Text(draft.spec.fixedSuffix).font(.system(size: 20)).frame(width: 48, alignment: .leading).padding(.leading, -16)
+                            .opacity(draft.choices[draft.index].wheelLabel == draft.choices[draft.index].label ? 0 : 1)
+                            .accessibilityHidden(draft.choices[draft.index].wheelLabel == draft.choices[draft.index].label)
+                            .accessibilityIdentifier("wheel.suffix")
                     }
-                }.pickerStyle(.wheel).labelsHidden().frame(height: 220).clipped().contentShape(Rectangle())
-                    .padding(.top, 8).padding(.bottom, 16).accessibilityIdentifier("wheel.picker")
+                }.frame(maxWidth: .infinity).padding(.top, 8).padding(.bottom, 16)
                 HStack(spacing: 12) {
                     Button("清空") { draft.clear() }.buttonStyle(MPButtonStyle(kind: .soft)).accessibilityIdentifier("wheel.clear")
                     Button("确定") { save(draft.value) }.buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("wheel.confirm")
@@ -135,6 +147,14 @@ struct WheelInputDialog: View {
                     .accessibilityElement(children: .contain).accessibilityIdentifier("wheel.discardDialog")
             }
         }.foregroundStyle(XJTheme.ink)
+    }
+    private var picker: some View {
+        Picker(draft.spec.title, selection: Binding(get: { draft.index }, set: { draft.select($0) })) {
+            ForEach(draft.choices.indices, id: \.self) { index in
+                Text(draft.choices[index].wheelLabel).font(.system(size: 20)).tag(index)
+            }
+        }.pickerStyle(.wheel).labelsHidden().frame(height: 220).clipped().contentShape(Rectangle())
+            .accessibilityIdentifier("wheel.picker")
     }
     private func cancel() { if draft.changed { discarding = true } else { close() } }
 }
