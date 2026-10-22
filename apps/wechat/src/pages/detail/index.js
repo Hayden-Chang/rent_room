@@ -83,10 +83,17 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
   answer(e){attempt(()=>{
     const {id,prop,value}=e.detail;service().store.answer(this.data.id,id,prop,value);const h=service().store.house(this.data.id);
     const patch={stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''};
-    // Patch only the issue state so text input keeps its native value and focus.
+    // Keep the controlled value current when updating issue styling. Replacing
+    // whole rows interrupts input; leaving their bound value stale clears on blur.
+    const patchRow=(row,path)=>{
+      if(row.id!==id)return;
+      const next=fieldView(h,row);patch[path+'.problem']=next.problem;
+      if(['value','otherText','note'].includes(prop))patch[path+'.'+prop]=next[prop];
+    };
     this.data.sections.forEach((section,s)=>section.rows.forEach((row,r)=>{
-      if(row.id===id)patch[`sections[${s}].rows[${r}].problem`]=fieldView(h,row).problem;
+      patchRow(row,`sections[${s}].rows[${r}]`);
     }));
+    this.data.issueRows.forEach((row,r)=>patchRow(row,`issueRows[${r}]`));
     this.setData(patch);
   });},
   choose(e){attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
