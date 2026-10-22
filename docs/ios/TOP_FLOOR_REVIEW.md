@@ -1,6 +1,6 @@
 # 顶楼组件评审
 
-日期：2026-10-22。Draft PR #46，base 为 `codex/ios-parity-20261019`；组件代码提交 `eaeaa0803b4e91520e0ff32bae9b6559b17d899e`。共享规则与小程序 PR #45 相同，原有页面整合代码未修改。
+日期：2026-10-22。Draft PR #46，base 为 `codex/ios-parity-20261019`；当前组件代码提交 `b5f780b38c97cdd34f7851a5557e76cf036556b4`。共享规则与小程序 PR #45 相同，原有页面整合代码未修改。
 
 ## 待评审状态
 
@@ -10,7 +10,7 @@
 
 ## 定向模拟器计划
 
-计划：`/private/tmp/xunju-top-floor-ios-20261022/plan-02.json`，phase 为 development。6 UT、1 UI；未运行全量或最终合并验证。
+计划：`/private/tmp/xunju-top-floor-ios-20261022/plan-06.json`，phase 为 development。6 UT、1 UI；未运行全量或最终合并验证。
 
 新增 UT：
 
@@ -29,5 +29,11 @@
 首轮 `xunju-top-floor-20261022-01` 在 Swift 包解析期间因本机 GitHub HTTPS→SSH 重写而失败（退出 74），尚未执行任何测试。回执 `/tmp/todo-ios-sim-pool/run-receipts/xunju-top-floor-20261022-01.json` 与 `result-01.build.xcresult` 保留。
 
 第二轮 `xunju-top-floor-20261022-02` 对该进程临时使用 HTTPS，不改共享 Git 配置。runner PID 95082；已确认队列文件 `/tmp/todo-ios-sim-pool/queue/xunju-top-floor-20261022-02.json`。计划结果位置 `/Volumes/mac2/codex-builds/xunju-top-floor-20261022/result-02.xcresult`，排队不代表测试通过或截图已经生成。
+
+第二轮后续在新增测试中发现文件写入缺少 `keepPrevious` 参数，已修正；未执行测试。第三轮在构建期间因主审发现共同生成规则还影响其他事实项，经 runner 的 SIGTERM 协议主动停止，随后收紧规则并加入保护用例；确认生成的 302 项只有顶楼定义变化。第四轮因从子目录生成 core 导致包装脚本新鲜度检查失败，已按要求从仓库根目录重新生成，`--check` 通过。
+
+第五轮 `xunju-top-floor-20261022-05` 使用上述最终代码，构建已成功，原定 6 UT、1 UI 正在继续。结果路径为 `/Volumes/mac2/codex-builds/xunju-top-floor-20261022/result-05.xcresult`；没有由构建成功推断测试通过。
+
+第五轮后续在等待测试资源时，因本说明的补写改变了工作区快照而被 runner 拒绝，未执行测试。第六轮先提交全部说明再冻结工作区；不在运行期间写入本 worktree。功能代码仍与 `b5f780b` 等价，计划结果为 `/Volumes/mac2/codex-builds/xunju-top-floor-20261022/result-06.xcresult`。最终结果以该实际 bundle 和 receipt 为准。
 
 原始 runner 日志和命令位于 `/private/tmp/xunju-top-floor-ios-20261022/`。真实截图、`.xcresult` 与用户视觉批准尚缺，组件仍未通过 UI gate。不得把新增测试或 bundle 生成当作原生行为通过证据；不继续完整页面业务整合，不合并或部署。
