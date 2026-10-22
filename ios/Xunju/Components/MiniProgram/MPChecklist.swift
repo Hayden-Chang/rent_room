@@ -63,7 +63,7 @@ struct MPSwipeMotion {
         } else { active = distanceDecision ? id : nil }
         dragging = nil
     }
-    func reveal(_ id: String) { dragging = nil; active = id }
+    func reveal(_ id: String) { trace("reveal \(id)"); dragging = nil; active = id }
     func close() { trace("close"); active = nil; dragging = nil }
     @discardableResult func consumeTap() -> Bool {
         let wasOpen = active != nil || dragging != nil
