@@ -45,6 +45,7 @@ export const houseTopics = h => {
     options.splice(at<0?options.length:at,0,'合租');return {...f,options};
   })};
   if(t.path?.some(p=>normalGroups.includes(p.id)))t={...t,path:t.path.map(p=>normalGroups.includes(p.id)?{...p,aggregate:true,presence:true,detailsWithoutPresence:true,...(['topic_10','topic_11'].includes(p.id)?{skippable:false,absenceLabel:'不涉及'}:{})}:p)};
+  if(t.path?.some(p=>p.id==='topic_68'))t={...t,path:t.path.map(p=>p.id==='topic_68'?{...p,skippable:true}:p)};
   if(t.fields.some(f=>currentLabels[f.id]||['f12_2','f77_0','2a7b314c-220f-4d89-a77c-4708bee21df6'].includes(f.id)))t={...t,fields:t.fields.map(f=>{
     if(currentLabels[f.id])return {...f,label:currentLabels[f.id]};
     if(['f12_2','2a7b314c-220f-4d89-a77c-4708bee21df6'].includes(f.id))return {...f,role:'inspection-check'};

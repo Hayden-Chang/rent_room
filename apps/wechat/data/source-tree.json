@@ -4224,7 +4224,8 @@
               ],
               "inspection": {
                 "presence": false,
-                "aggregate": true
+                "aggregate": true,
+                "skippable": true
               }
             },
             "children": [
