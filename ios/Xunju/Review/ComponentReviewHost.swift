@@ -2,7 +2,7 @@
 import SwiftUI
 
 enum ReviewSurface: String {
-    case homes, checklist, account, fields, summary, place, routes, speed, coach
+    case homes, checklist, account, fields, summary, place, routes, speed, coach, wheels
     case speedConsent = "speed-consent"
     case measurements
     case media, headings, corridor
@@ -32,7 +32,9 @@ struct ComponentReviewHost: View {
     @State private var event = ""
 
     var body: some View {
-        if surface == .topFloor {
+        if surface == .wheels {
+            WheelInputReviewHost()
+        } else if surface == .topFloor {
             TopFloorReviewHost()
         } else if surface == .corridor {
             CorridorTitleReviewHost()
@@ -54,7 +56,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -89,6 +91,7 @@ struct ComponentReviewHost: View {
 
     private var title: String {
         switch surface {
+        case .wheels: "清单轮盘组件"
         case .homes: "我的房源"
         case .checklist: "清单组件"
         case .account: "登录组件"

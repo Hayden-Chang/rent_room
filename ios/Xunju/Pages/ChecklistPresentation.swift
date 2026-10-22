@@ -5,7 +5,7 @@ import Foundation
 enum ChecklistPresentation {
     static func item(_ field: JSONValue, hideDivider: Bool = false) -> MPFieldItem {
         let heading = field["heading"].string
-        let kind: MPFieldItem.Kind = heading == "category" ? .category : heading == "group" ? .group :
+        let kind: MPFieldItem.Kind = heading == "category" ? .category : heading == "group" ? .group : field["wheel"].bool ? .wheel :
             !field["options"].array.isEmpty ? .choice : field["type"].string == "n" ? .number :
             field["type"].string == "d" ? .date : .text
         let stats = field["stats"]
