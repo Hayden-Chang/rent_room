@@ -70,3 +70,17 @@
 组合 SHA `72da10b1e3b75f571a698e34e00767c387e55a62` 的 final campaign：7 UT 与楼道 UI 通过，顶楼 UI 在取消按钮出现前失败，合计 8 通过、1 失败。完整 `result-01.xcresult` 与退出 65 回执保留，UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56`，iPhone 16 / iOS 26.5。原始失败录像、层级和合成事件已导出至 `attachments-01/`，主 agent 直接查看：选是后自动异常正常，手势后行仍收起；XCTest 对 44 点选项按钮实际只注入 x=300→266、34 点/34 ms 的短促移动。仅凭这些证据不能确定组件拒绝还是输入未充分交付。
 
 单一失败恢复仅调整该测试的输入：在真实完整字段行上执行原生 `swipeLeft()`，保留取消按钮、答案不变、重启及改答的全部原断言和超时；启用已有 Debug `--parity-trace`，将原生识别轨迹存为附件，便于判别手势交付。生产代码、组件布局和业务状态未改。该精确方法重跑通过后，可与原 8 项按单一失败恢复规则组合，无需重跑通过项。44 点按钮上的极短原生 flick 没有被本次恢复运行覆盖，原失败继续保留。
+
+## 最终合并证据
+
+精确恢复候选 `a8090c5e87e7032c8071661c9ae722a4980d81a9`，相对原 campaign 的 `72da10b` 仅上述单个失败 UI 方法及说明改变；其余 7 UT、楼道 UI 与共享规则证据不受影响。共享 JS 三文件 38 项全部通过，日志 `ios-shared-final-02.log`。两端 7 份共享源码/回归文件逐文件哈希一致；小程序 #45 已于本次授权合入 main。
+
+`xunju-top-floor-merge-20261022-02` 被共享池自动分配至 iPhone 14 Pro / iOS 18.3.1，精确用例通过，但仅保留为兼容性补充证据，不替代原环境失败的恢复。随后使用 runner 官方 `--config` 参数，复制实时配置且只将设备名前缀收窄至原设备，池根、容量和锁协议不变，不修改共享配置或抢占设备。计划 `ios-plan-03.json`、配置 `ios-config-26.json`、精确命令 `ios-run-03.sh`、日志 `ios-runner-03.log` 均位于 `/private/tmp/xunju-top-floor-merge-20261022/`。
+
+原 iPhone 16 / iOS 26.5（23F77）、同 UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56` 的 `xunju-top-floor-merge-20261022-03` 精确用例通过，28.170 秒，0 跳过/失败，runner PID 62759，退出 0。结果 `/Volumes/mac2/codex-builds/xunju-top-floor-merge-20261022/result-03.xcresult`，回执 `/tmp/todo-ios-sim-pool/run-receipts/xunju-top-floor-merge-20261022-03.json`。构建/测试排队分别约 82.8/87.5 秒，构建约 19.4 秒；测试命令阶段约 53.7 秒，包含启动及收尾，不将余量都推为安装耗时。runner 使用本项目 fingerprint 的独立缓存 `time-fragment-dd-shared-47f6b702cf5f8a5c4dc71813-simulator`。完成后已确认本 run 没有活动 slot 或设备 lease。
+
+原 campaign 的 8 项通过与同原环境的精确恢复组成最终 7 UT、2 UI 通过证据。UI 始终只有两种精确方法，未运行全量 UI 或拆分扩大选择；没有重跑已通过项，没有更改产品或放宽断言/超时。首次失败、iOS 18 补充验证和最终恢复全部保留。
+
+六张 1178 × 2556 原始截图及原生 pan 轨迹原样保存至 `/Volumes/mac2/codex-builds/xunju-top-floor-merge-20261022/screenshots-03/`，`manifest.json` 含 SHA、bundle、原附件名及逐文件哈希。主 agent 逐张直接查看了这六张与原 campaign 的楼道展开/折叠两图：顶楼自动异常计数、左滑三个按钮、取消仍保留“是”与备注、重启及改否状态符合契约；取消与重启图的 SHA-256 完全一致。原生轨迹记录完整左滑到 -160 点、结束速度约 -953 点/秒、操作已展开，未用程序直接展开代替手势。
+
+主 agent 推送后再次审查最终 GitHub diff，13 文件；原生生产行组件、布局、工程真源和依赖未改，Debug 宿主显式隔离且 Release 不包含。用户先前对组件的视觉批准继续适用；没有新的产品视觉变更需再次审批。GitHub 没有状态检查或 PR workflow runs。本段补写发生在验证结束后，仅文档变化，后继提交与证据 SHA 的可执行输入等价；合入现有 iOS 开发线，不合入父 PR #39，不部署或发布。微信实际 UI/真机证据缺失继续保留，不以 iOS 证据代替。
