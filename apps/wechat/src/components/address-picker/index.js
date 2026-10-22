@@ -14,6 +14,7 @@ Component({
   methods:{
     noop(){},
     toggleMap(){this.picker.toggleMap();},
+    focus(){this.picker.focus();},
     input(e){this.picker.input(e.detail.value);},
     clear(){this.picker.input('');},
     locate(){this.picker.gps();},

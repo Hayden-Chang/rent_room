@@ -22,9 +22,13 @@ export class AddressPicker {
     const p=point(location),changed=addressChanged||JSON.stringify(p)!==JSON.stringify(this.location)||readonly!==this.state.readonly;
     this.initialized=true;if(!changed&&!initial)return;
     this.cancel();this.address=address;this.location=p;
-    this.update({readonly,query:'',items:[],busy:false,message:'',mode:'',collapsed:readonly?false:!initial&&addressChanged?true:this.state.collapsed});
+    this.update({readonly,query:'',items:[],busy:false,message:'',mode:'',collapsed:readonly?false:initial?!!(address.trim()||p):addressChanged?true:this.state.collapsed});
     if(p&&(!anchor||keepsLocation(address,anchor))){if(initial||readonly||!this.state.center)this.update({center:p});}
     else if(address&&!readonly)this.timer=setTimeout(()=>this.search(address,true),600);
+  }
+  focus() {
+    if(this.state.readonly||this.disposed)return;
+    this.update({collapsed:false});
   }
   input(query) {
     if(this.state.readonly)return;

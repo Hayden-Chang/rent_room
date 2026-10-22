@@ -3,6 +3,21 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {XMLParser} from 'fast-xml-parser';
 function component(name,extra={}){let spec;vm.runInNewContext(fs.readFileSync(`dist/components/${name}/index.js`,'utf8'),{Component:o=>spec=o,Date,setTimeout,clearTimeout,...extra});const c={...spec.methods,data:structuredClone(spec.data),setData(p){Object.assign(this.data,p);},triggerEvent:vi.fn()};return {c,spec};}
+it('expands on native search focus without typing, querying or changing the saved viewport',async()=>{
+ const place={id:'focus',address:'已有房源地址',location:{latitude:22.54,longitude:113.95}};
+ const places={nearby:vi.fn(async()=>[place]),search:vi.fn()},api=vi.fn(async()=>place.location);
+ const {c,spec}=component('address-picker',{getApp:()=>({service:{places,api}})});
+ Object.assign(c.data,{address:'',location:null,anchor:'',readonly:false});spec.lifetimes.attached.call(c);
+ try{
+  await c.picker.gps();c.use({currentTarget:{dataset:{id:place.id}}});c.data.scale=18;
+  expect(c.data.collapsed).toBe(true);expect(c.data.query).toBe('');
+  const markup=fs.readFileSync('dist/components/address-picker/index.wxml','utf8');
+  const input=markup.match(/<input\b[^>]*class="address-search"[^>]*>/)[0],handler=input.match(/bindfocus="([^"]+)"/)?.[1];
+  if(handler)c[handler]({detail:{value:''}});
+  expect(c.data).toMatchObject({collapsed:false,query:'',center:place.location,scale:18});
+  expect(api).toHaveBeenCalledTimes(1);expect(places.nearby).toHaveBeenCalledTimes(1);expect(places.search).not.toHaveBeenCalled();
+ }finally{spec.lifetimes.detached.call(c);}
+});
 it('removes the map title row while keeping the embedded picker and ordinary field controls',()=>{
  const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
  function visit(children){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;nodes.push({tag,attrs:node[':@']||{}});visit(node[tag]);}}visit(tree);
