@@ -40,3 +40,22 @@ it('renames screen-window result labels while keeping legacy values and issue ov
   expect(JSON.stringify(h)).toBe(before);expect(rules.toggleChoiceValue(f,h.answers[f.id],row.options.find(o=>o.selected).value)).toBe('');
  }
 });
+
+it('distinguishes the corridor condition heading from sanitation details for new and saved templates',()=>{
+ for(const legacy of [false,true]){
+  const h=freshHouse('楼道检查');
+  if(legacy)for(const t of h.templateTopics)if(t.path.some(p=>p.id==='topic_14')){
+   t.title='楼道卫生';t.path=t.path.map(p=>p.id==='topic_14'?{...p,title:'楼道卫生'}:p);
+  }
+  h.groups.topic_14={normal:'否',note:'原分组备注',issueFlag:true};
+  h.answers.f14_0={value:'否',note:'原卫生备注',issueFlag:true};
+  h.media=[{id:'corridor-photo',fieldId:'f14_0',type:'image',path:'/local/corridor'}];
+  const before=JSON.stringify(h),rows=allRows(h),group=rows.find(r=>r.id==='topic_14');
+  expect(group.title).toBe('楼道状况正常');expect(group.swipe.label).toBe('楼道状况正常');
+  expect(rows.find(r=>r.id==='f14_0').label).toBe('楼道卫生正常');
+  expect(rows.filter(r=>/^f14_/.test(r.id)).map(r=>r.id)).toEqual(['f14_0','f14_1','f14_2']);
+  expect(houseTopics(h).find(t=>t.path.some(p=>p.id==='topic_14')).title).toBe('楼道状况');
+  expect(formView(h,{query:'楼道状况'}).flatMap(s=>s.rows).some(r=>r.id==='topic_14')).toBe(true);
+  expect(JSON.stringify(h)).toBe(before);
+ }
+});
