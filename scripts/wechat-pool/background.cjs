@@ -1,6 +1,7 @@
 // Injected before the vendor document-start script in pool copies only.
 ;(() => {
   if (typeof nw === 'undefined' || typeof process === 'undefined' ||
+      process.env.WECHAT_POOL_UI_REVIEW === '1' ||
       process.env.WECHAT_POOL_BACKGROUND !== '1') return;
   const quiet = win => {
     if (!win || win.__poolQuiet) return win;

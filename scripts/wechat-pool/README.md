@@ -65,6 +65,8 @@ python3 /Volumes/mac2/codex-builds/wechat-instance-pool/runner/pool.py \
 
 回调环境：`WECHAT_WS_ENDPOINT`、`WECHAT_PROJECT_PATH`、`WECHAT_RUN_ID`、`WECHAT_SLOT_ID`、`WECHAT_ARTIFACT_DIR`。可用 `WECHAT_NODE` 指定 health probe 的 Node 路径；SDK 默认来自本脚本目录下的锁定依赖，`WECHAT_AUTOMATOR_MODULE` 仅用于显式诊断。
 
+用户要求人工点击或视觉验收时，可在固定入口前设置 `WECHAT_POOL_UI_REVIEW=1`，允许本次独占槽位的窗口正常显示、恢复和聚焦。默认仍为后台模式；前台验收任务不得并行占用桌面输入。模式变化时 runner 仅在本槽独占租约内重启该槽，后续默认任务会恢复后台策略；其他槽位不受影响。已知旧策略按源码 SHA-256 迁移，厂商脚本及未知资源改动仍拒绝覆盖。
+
 ```js
 const automator = require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 const mini = await automator.connect({wsEndpoint: process.env.WECHAT_WS_ENDPOINT});
