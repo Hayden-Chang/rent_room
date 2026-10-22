@@ -63,18 +63,10 @@ struct MPSwipeMotion {
         } else { active = distanceDecision ? id : nil }
         dragging = nil
     }
-    private func audit(_ message: String) {
-        #if DEBUG
-        if ProcessInfo.processInfo.arguments.contains("--wheel-gesture-trace") {
-            NSLog("[WheelGesture] %@", message)
-        }
-        #endif
-    }
-    func reveal(_ id: String) { audit("reveal \(id)"); dragging = nil; active = id }
+    func reveal(_ id: String) { dragging = nil; active = id }
     func close() { trace("close"); active = nil; dragging = nil }
     @discardableResult func consumeTap() -> Bool {
         let wasOpen = active != nil || dragging != nil
-        audit("tap active=\(active ?? "-") dragging=\(dragging ?? "-")")
         close(); return wasOpen
     }
 }
@@ -139,7 +131,7 @@ struct MPFieldRow: View {
                 }.frame(minHeight: height)
             }.clipped().contentShape(Rectangle())
                 .modifier(MPFieldSwipe(id: item.id, readonly: readonly, coordinator: coordinator))
-                .simultaneousGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                .highPriorityGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                     if !readonly { withAnimation(.easeOut(duration: 0.18)) { coordinator.reveal(item.id) } }
                 })
             if !item.inline && !item.heading { answer.padding(.top, 6).allowsHitTesting(offset == 0) }

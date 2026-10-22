@@ -3,10 +3,9 @@ import XCTest
 @MainActor final class WheelBusinessUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
     private let floor = "fc76beec-52e3-4fe9-a937-dec254d4cc4f"
-    private func launch(gestureTrace: Bool = false) -> XCUIApplication {
+    private func launch() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
-        if gestureTrace { app.launchArguments.append("--wheel-gesture-trace") }
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["home.add"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
@@ -71,7 +70,7 @@ import XCTest
         capture("app-form-zero-restored", app)
     }
     func testMonthsIssueEditingAndArchiveReadonly() {
-        let app = launch(gestureTrace: true), penalty = "f113_2"
+        let app = launch(), penalty = "f113_2"
         search("提前退租违约金", app); open(penalty, app); choose("6 个月", app)
         XCTAssertEqual(app.staticTexts["wheel.suffix"].label, "押金"); capture("app-form-fixed-deposit-six", app); confirm(app)
         let closedRow = app.otherElements["mp.field.\(penalty)"]
@@ -86,7 +85,8 @@ import XCTest
         capture("app-form-deposit-empty", app); confirm(app)
         open(penalty, app); choose("0.5 个月", app); confirm(app)
         app.staticTexts["mp.field.title.\(penalty)"].press(forDuration: 0.6)
-        let flag = app.buttons["mp.field.action.\(penalty).标记问题"]; XCTAssertTrue(flag.waitForExistence(timeout: 3)); flag.tap()
+        let flag = app.buttons["mp.field.action.\(penalty).标记问题"]; XCTAssertTrue(flag.waitForExistence(timeout: 3))
+        capture("app-form-field-actions", app); flag.tap()
         app.buttons["tab.问题"].tap(); open(penalty, app); choose("1 个月", app); confirm(app)
         capture("app-issue-wheel-saved", app)
         app.buttons["tab.清单"].tap(); search("租金", app)
