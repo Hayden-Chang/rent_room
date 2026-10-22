@@ -68,6 +68,7 @@ import CoreLocation
         let editedHouseAddress = address.value as? String ?? ""
         XCTAssertNotEqual(editedHouseAddress, savedHouseAddress)
         XCTAssertEqual(editedHouseAddress.replacingOccurrences(of: " ", with: ""), savedHouseAddress.replacingOccurrences(of: " ", with: ""))
+        XCTAssertEqual(app.buttons["place.mapToggle"].label, "展开地图")
         XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Editing the real house address must collapse the map")
         capture("house-map-03-manual-address-collapsed", app)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["tab.我的"].tap()
@@ -129,6 +130,7 @@ import CoreLocation
         let editedAddress = address.value as? String ?? ""
         XCTAssertNotEqual(editedAddress, selectedAddress)
         XCTAssertEqual(editedAddress.replacingOccurrences(of: "改址", with: ""), selectedAddress)
+        XCTAssertEqual(toggle.label, "展开地图", "Coordinate invalidation must collapse the map, not merely replace it with an empty placeholder")
         XCTAssertFalse(map.exists, "Manual workplace edits must collapse the map even when saved coordinates become invalid")
         capture("workplace-map-01-manual-collapsed", app)
         toggle.tap(); XCTAssertTrue(map.exists, "The prior camera must survive the address invalidating its coordinates")

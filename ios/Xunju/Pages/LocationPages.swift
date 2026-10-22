@@ -3,11 +3,12 @@ import SwiftUI
 struct PlacePicker: View {
     @Bindable var search: PlaceSearch
     var readonly = false
+    var address = ""
     let choose: (JSONValue) throws -> Void
     var body: some View {
         PlacePickerSurface(query: Binding(get: { search.query }, set: { search.query = $0; search.submit(debounce: true) }),
                            center: search.center, places: search.choices, busy: search.busy,
-                           message: search.message, permissionDenied: search.permissionDenied, readonly: readonly,
+                           message: search.message, permissionDenied: search.permissionDenied, readonly: readonly, address: address,
                            search: { search.submit() }, locate: { search.locate() }, retry: { search.submit() },
                            settings: { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } },
                            moved: search.moved, choose: { place in
@@ -25,7 +26,7 @@ struct HousePlaceField: View {
         _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.house(id)["location"], validScope: { workspace.store === store }))
     }
     var body: some View {
-        PlacePicker(search: search, readonly: workspace.store.house(id)["archived"].bool) { place in
+        PlacePicker(search: search, readonly: workspace.store.house(id)["archived"].bool, address: workspace.store.house(id)["address"].string) { place in
             try search.store.call("place", ["id": .string(id), "value": place])
         }
             .onAppear { if !workspace.store.house(id)["archived"].bool { search.start(address: workspace.store.house(id)["address"].string) } }
@@ -63,7 +64,7 @@ struct WorkplacePage: View {
                     }
                 }
                 XJCard {
-                    PlacePicker(search: search) { place in
+                    PlacePicker(search: search, address: text) { place in
                         try search.store.call("workplacePlace", ["value": place]); text = search.store.state["settings"]["workplace"].string; error = ""
                     }
                 }
