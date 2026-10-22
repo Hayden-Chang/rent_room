@@ -67,6 +67,8 @@ import MapKit
     func testLivePublicLandmarkSearchCompletesWithRealMapKitResults() async throws {
         do {
             let values = try await SystemPlacesClient().search("上海东方明珠广播电视塔", center: nil)
+            let report = values.prefix(5).map { "\($0.name) | \($0.address) | \($0.point.latitude),\($0.point.longitude)" }.joined(separator: "\n")
+            let attachment = XCTAttachment(string: "count=\(values.count)\n" + report); attachment.name = "public-landmark-sdk-results"; attachment.lifetime = .keepAlways; add(attachment)
             XCTAssertTrue(values.contains { $0.name.contains("东方明珠") || $0.address.contains("东方明珠") })
         } catch {
             var codes: [String] = [], current: NSError? = error as NSError

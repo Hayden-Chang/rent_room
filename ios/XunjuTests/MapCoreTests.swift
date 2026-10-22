@@ -15,6 +15,16 @@ private struct DelayedRouteHTTP: AuthTransport {
     }
 }
 
+private actor DeferredRouteTransport: MapTransport {
+    let started: XCTestExpectation
+    private var pending: CheckedContinuation<String, Error>?
+    init(started: XCTestExpectation) { self.started = started }
+    func request(_ input: String) async throws -> String {
+        try await withCheckedThrowingContinuation { pending = $0; started.fulfill() }
+    }
+    func finish() { pending?.resume(returning: #"{"statusCode":200,"data":{"resultCode":0,"results":[]}}"#); pending = nil }
+}
+
 @MainActor final class MapCoreTests: XCTestCase {
     private func directory() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appending(path: "map-core-\(UUID().uuidString)")
@@ -125,6 +135,24 @@ private struct DelayedRouteHTTP: AuthTransport {
             XCTAssertEqual(failure, ""); XCTAssertEqual(routes.first?["minutes"].int, 12)
             XCTAssertEqual(store.state, before, "Querying must not mutate saved records")
         }
+    }
+    func testCancellingPendingRouteQueryCompletesBeforeTransportReturns() async throws {
+        let started = expectation(description: "Route request started"), completed = expectation(description: "Cancelled query completed")
+        let transport = DeferredRouteTransport(started: started), store = try NativeStore(directory: directory(), network: transport)
+        let origin = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2304, 121.4737)])
+        let destination = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2404, 121.4837)])
+        var cancelled = false
+        let task = Task { @MainActor in
+            do { _ = try await store.query("commuteRoutes", ["key": .string("fixture"), "mode": .string("transit"), "origin": origin, "destination": destination]) }
+            catch { cancelled = error is CancellationError }
+            completed.fulfill()
+        }
+        let sent = await XCTWaiter.fulfillment(of: [started], timeout: 3); XCTAssertEqual(sent, .completed)
+        task.cancel()
+        let finished = await XCTWaiter.fulfillment(of: [completed], timeout: 1)
+        XCTAssertEqual(finished, .completed, "Cancelling a route must settle its continuation without waiting for network/JS completion")
+        await transport.finish(); await task.value
+        XCTAssertTrue(cancelled, "A cancelled route must never be treated as a provider response")
     }
     func testTransportRejectsUntrustedDomainsAndUnsupportedMethodsBeforeSending() async throws {
         let transport = NativeMapTransport(transport: MapHTTPStub { _ in XCTFail("Invalid request reached network"); return HTTPPayload(data: Data(), status: 500) })
