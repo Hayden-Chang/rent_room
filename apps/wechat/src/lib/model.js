@@ -1,3 +1,4 @@
+import {wheelConfig,wheelDisplay} from './wheel-input.js';
 import {keepsLocation} from './places.js';
 import topics from './topics.json' with {type:'json'};
 import * as rules from './source-model.js';
@@ -140,7 +141,7 @@ export function matches(h,t,f,view={}) {
 }
 export function fieldView(h,f) {
   const a=answer(h,f);
-  return {...f,heading:f.annotation||'',label:rules.isInspectionResult(f)?normalTitle(f.label):f.label,kind:'field',key:'f-'+f.id,value:rules.fieldValue(f,a),display:rules.fieldDisplayValue(f,a),note:a.note||'',photoRef:a.photo||'',otherText:a.otherText||'',other:rules.otherChoiceSelected(f,a),options:rules.choiceOptions(f).map(v=>({value:v,label:rules.isInspectionResult(f)?resultLabel(v):v,selected:rules.choiceSelected(f,a,v)})),problem:problem(f,a),media:(h.media||[]).filter(m=>m.fieldId===f.id),thumbnails:(h.media||[]).filter(m=>m.fieldId===f.id).slice(0,3),map:f.id===MAP_ID,inline:f.id!==MAP_ID&&(!rules.choiceOptions(f).length||rules.compactChoices(f)||['y','c','a'].includes(f.type))};
+  return {...f,wheel:!!wheelConfig(f),wheelDisplay:wheelDisplay(f,rules.fieldValue(f,a)),heading:f.annotation||'',label:rules.isInspectionResult(f)?normalTitle(f.label):f.label,kind:'field',key:'f-'+f.id,value:rules.fieldValue(f,a),display:rules.fieldDisplayValue(f,a),note:a.note||'',photoRef:a.photo||'',otherText:a.otherText||'',other:rules.otherChoiceSelected(f,a),options:rules.choiceOptions(f).map(v=>({value:v,label:rules.isInspectionResult(f)?resultLabel(v):v,selected:rules.choiceSelected(f,a,v)})),problem:problem(f,a),media:(h.media||[]).filter(m=>m.fieldId===f.id),thumbnails:(h.media||[]).filter(m=>m.fieldId===f.id).slice(0,3),map:f.id===MAP_ID,inline:f.id!==MAP_ID&&(!!wheelConfig(f)||!rules.choiceOptions(f).length||rules.compactChoices(f)||['y','c','a'].includes(f.type))};
 }
 export function formView(h,view={},folds={}) {
   const ts=houseTopics(h),groups=rules.inspectionGroups(ts),filtered=!!view.query||(view.filters||[]).length>0;
@@ -189,7 +190,7 @@ export function updateAnswer(h,id,prop,value) {
   const f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查项不存在');
   if(f.annotation&&!['note','issueFlag'].includes(prop))throw Error('父级节点只保存备注与问题标记');
   if(!['value','note','otherText','issueFlag'].includes(prop))throw Error('不支持的修改');
-  if(prop==='value'&&f.type==='n'&&value!==''&&(!Number.isFinite(Number(value))||Number(value)<0))throw Error('请填写非负数字');
+  if(prop==='value'&&f.type==='n'&&value!==''&&(!Number.isFinite(Number(value))||Number(value)<0&&!(id==='fc76beec-52e3-4fe9-a937-dec254d4cc4f'&&Number(value)===-1)))throw Error('请填写非负数字');
   h.answers[id]={...(h.answers[id]||{}),[prop]:value};
   if(prop==='value'){
     rules.syncGroupField(h,houseTopics(h),id);

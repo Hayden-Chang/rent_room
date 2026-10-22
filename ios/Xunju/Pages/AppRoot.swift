@@ -41,6 +41,7 @@ struct AppRoot: View {
 private struct WorkspaceRoot: View {
     @Bindable var workspace: AppWorkspace
     @State private var tab = "房源"
+    @State private var wheels = WheelInputPresentation()
     var body: some View {
         NavigationStack {
             Group {
@@ -53,6 +54,17 @@ private struct WorkspaceRoot: View {
                 XJTabBar(selection: $tab, items: [("房源", "home"), ("对比", "compare"), ("我的", "settings")])
             }.background(XJTheme.background)
         }.id(workspace.identityRevision).tint(XJTheme.primary)
+            .environment(\.wheelInput, wheels)
+            .allowsHitTesting(wheels.target == nil).accessibilityHidden(wheels.target != nil)
+            .overlay {
+                if let target = wheels.target, let spec = WheelFieldSpec.all[target.field.id] {
+                    WheelInputDialog(spec: spec, value: target.field["value"].string,
+                        close: { wheels.target = nil }, save: { value in
+                            workspace.perform { try wheels.save(value, store: workspace.store) }
+                        }).id(target.id)
+                }
+            }
+            .onChange(of: workspace.identityRevision) { wheels.target = nil }
             .task(id: workspace.identityRevision) {
                 if !AppWorkspace.isBusinessTest { workspace.billing.start(); await workspace.billing.load() }
             }
