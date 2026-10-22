@@ -30,7 +30,7 @@
 2. `...-02` / `efe1c1c`：4 UT 全通过，17 项选择 UI 通过（128.667 秒），另一个 UI 在最后遮罩取消处失败。此前关闭、放弃、清空、0 和滚回原值均已执行；保留完整日志、录屏、触点与原始附件，不称一次全绿。
 3. `0b4b3d2`：为 Picker 增加显式 contentShape 限制触摸区域；失败流程增加选择已生效断言及遮罩前后截图。`...-03` 仅重跑失败方法，88.583 秒通过；含选择落定前置断言、关闭/遮罩提示、继续编辑、放弃、清空、0、滚回原值及最终截图。复用上轮4 UT和17项选择UI，去重4 UT、2 UI均有通过证据；不是同一提交一次完整全绿。
 
-`02` 与 `03` 的计划、命令、日志和 `.xcresult` 位于本 worktree 忽略目录 `artifacts/ios-wheel-02/`、`artifacts/ios-wheel-03/`。共享构建缓存注册到本 worktree，实际名称 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-e3848fe0a88c9e75298b1629-simulator`；虽含历史前缀，未借用其他任务工作区。原截图为 1178×2556，设备 iPhone 16/iOS 26.5。
+`02` 与 `03` 的计划、命令、日志和 `.xcresult` 位于本 worktree 忽略目录 `artifacts/ios-wheel-02/`、`artifacts/ios-wheel-03/`。共享构建缓存注册到本 worktree，实际名称包含历史 `time-fragment-dd-shared` 前缀（完整本机路径仅保留于忽略目录的 runner 证据）；虽含历史前缀，未借用其他任务工作区。原截图为 1178×2556，设备 iPhone 16/iOS 26.5。
 
 ## 证据复用及后续边界
 

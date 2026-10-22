@@ -71,9 +71,19 @@
 - 实际设备为 **iPhone 16 / iOS 26.5（23F77）模拟器**，UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`。结果包为 `artifacts/ios-wheel-business-11/result.xcresult`，完整命令、日志、附件、source-head/status 和 summary 在同一目录；不是物理 iPhone 证据。
 - `final-plan.json` 确定最终 18 UT、3 UI，优先级依次为正式清单/其他/重启、月份/问题/只读、通勤可读性。公开 runner 的 `--validate-only` 校验通过，记录在 `final-selection-validation.log`。这些方法均复用同一源码、系统、配置、夹具及 11 号原始结果中的通过记录；**没有另跑一批最终测试**。`final-evidence.json` 列出来源和另两条已通过的开发阶段 UI；未改的组件阶段证据保留原 SHA，不计入本轮 23 项。
 - 主 agent 检查了最新 16 张 App 原图（1178×2556），确认正式页面的其他输入框、12 层原值、放弃修改提醒、空值/0/重启恢复、6/0.5 个月与固定押金、清空高度、长按操作栏、问题页、金额手填及归档只读。对通勤图另看完整原图，**“24 分钟”完整显示，查询按钮不重叠**；该查询使用受控服务夹具，不证明真实地图接口。
-- 两端交付目录为 `/Users/pc/.codex/visualizations/2026/10/22/01a1613d-d63a-7591-8492-fb4ce7cb7810/wheel-form-review/`，含 16 张 App 与 12 张小程序有效原图、HTML 索引及两个 manifest。原图复制后逐张比较 SHA-256，并校验解码与尺寸；未裁剪、重绘或修改内容。小程序 3 张仅背景的帧已排除，完整边界见 `docs/wechat/WHEEL_INPUTS.md` 所在的小程序分支。
+- 两端原图保存在本会话本地交付目录 `wheel-form-review/`，含 16 张 App 与 12 张小程序有效原图、HTML 索引及两个 manifest。原图复制后逐张比较 SHA-256，并校验解码与尺寸；未裁剪、重绘或修改内容。小程序 3 张仅背景的帧已排除，完整边界见 `docs/wechat/WHEEL_INPUTS.md` 所在的小程序分支。
 - 小程序已验证实际组件渲染及 59 项定向测试/官方编译；本轮两次原生交互请求因工具池无空闲槽位，回调未开始，**点击、滚动与保存的原生回归仍未验收**。未抢占其他任务。小程序通勤 0/120 分钟及查询并排效果也待原生核对，不能从 App 截图推断通过。
 
 主 agent 已复查 PR #48 的最终业务 diff、共享字段策略与模型、屏幕根弹窗/身份保护、只确定写入、备注/其他说明保留、归档限制、共享行手势及测试选择。没有发现尚未处理的 App 代码问题；远程 commit statuses 为空，不称 CI 通过。共享行非轮盘交互及其他/自定义金额两条风险已在同头开发批次验证；折叠逻辑有 UT，本轮未另跑折叠 UI。真机、系统返回手势、中文输入法和真实通勤网络不在证据范围内。
 
 绿色结果后只修改这份记录与组件审批记录，均为 Markdown；不改变源码、测试、脚本、资源、依赖或生成输入。文档提交后检查 `dbc8876..HEAD` 只含这两个文件，以同头测试作执行等价证据。分支基于 `codex/ios-parity-20261019`（4cabe5f），仍为独立 Draft PR #48；未合并、真机部署或发布。
+
+## 用户批准合入与基线整合
+
+用户收到本轮小程序手机预览码后明确回复“没问题，合入吧”，授权完成两端本次轮盘 PR 合入。App PR 保持原生开发分支目标，不连带合入其仍待独立验收的上游功能到 main。
+
+首次整合原生基线 `8643bda` 时，共享 updateAnswer 同时保留楼层 -1 和顶楼答案变化时重置自身问题覆盖；Debug 路由保留 wheels、top-floor、corridor，生成包从规范源重建。冻结 `66031687c843b421927905b429d659cc06e12fe6` 后，`xunju-wheel-business-20261022-12-merge` 在 **final-pr-head** 阶段执行 22 UT、3 个精确 UI，共 **25 项通过，0 失败/跳过**。新增影响选择为 TopFloorTests 的 3 个方法及 ComponentLogicTests/testReviewHostRequiresExplicitKnownSurface；原 18 UT 及 UI 前三优先级不变。共享 JS 的 model、inspection-wording、top-floor 三文件 38 项通过。
+
+12 号批次设备仍为 iPhone 16 / iOS 26.5（23F77），原 UDID；结果包、原始截图、完整日志和选择映射位于 `artifacts/ios-wheel-business-12-merge/`。构建 PID 87398、测试 PID 88117；runner receipt 构建/测试和最终退出均为 0，租约已释放。主 agent 从新结果导出原图，复核其他输入框、固定 6 个月/押金及完整 24 分钟与查询并排显示。
+
+合入前最后核对发现基线在执行期间再次前进到 `840d529`（已合入的 #50 自动异常判定）。模拟合并仅生成 XunjuCore.js 发生真实冲突，原模型和 source-model 可自动合并。12 号记录保留其原基线来源，不作为后续组合包的最终证据；按最新影响重新生成 bundle 并选择验证，不能静默复用为新提交通过。公开文档移除本机绝对路径，完整本机路径仅留忽略目录中的原始证据。
