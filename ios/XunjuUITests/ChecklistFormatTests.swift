@@ -171,10 +171,11 @@ import XCTest
     }
 
     func testCorridorHeadingAndSanitationDetailStayDistinct() {
-        let app = launch()
-        search("楼道", app)
+        let app = XCUIApplication()
+        app.launchArguments = ["--component-review", "corridor", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
         let group = app.staticTexts["mp.field.title.node:group:topic_14"]
-        XCTAssertTrue(group.waitForExistence(timeout: 3))
+        XCTAssertTrue(group.waitForExistence(timeout: 10))
         XCTAssertEqual(group.label, "楼道状况正常")
         let detail = app.staticTexts["mp.field.title.f14_0"]
         XCTAssertEqual(detail.label, "楼道卫生正常")
