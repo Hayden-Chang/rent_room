@@ -49,8 +49,12 @@ final class WheelInputReviewTests: XCTestCase {
         XCTAssertEqual(app.buttons["wheel.open.\(floor)"].value as? String, "0")
         open(floor, app); choose("1 层", app); choose("0 层", app); app.buttons["wheel.close"].tap(); closed(app)
         open(floor, app); choose("1 层", app)
+        let selected = expectation(for: NSPredicate(format: "value == %@", "1 层"), evaluatedWith: app.pickerWheels.firstMatch)
+        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 3), .completed)
+        capture("05-before-outside-cancel", app)
         app.otherElements["wheel.mask"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12)).tap()
-        XCTAssertTrue(app.buttons["wheel.discard"].exists)
+        XCTAssertTrue(app.buttons["wheel.discard"].waitForExistence(timeout: 3))
+        capture("06-outside-cancel-warning", app)
         app.buttons["wheel.discard"].tap(); closed(app)
         capture("05-saved-zero", app)
     }

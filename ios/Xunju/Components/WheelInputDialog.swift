@@ -108,7 +108,7 @@ struct WheelInputDialog: View {
                     ForEach(draft.choices.indices, id: \.self) { index in
                         Text(draft.choices[index].label).font(.system(size: 20)).tag(index)
                     }
-                }.pickerStyle(.wheel).labelsHidden().frame(height: 220).clipped()
+                }.pickerStyle(.wheel).labelsHidden().frame(height: 220).clipped().contentShape(Rectangle())
                     .padding(.top, 8).padding(.bottom, 16).accessibilityIdentifier("wheel.picker")
                 HStack(spacing: 12) {
                     Button("清空") { draft.clear() }.buttonStyle(MPButtonStyle(kind: .soft)).accessibilityIdentifier("wheel.clear")
