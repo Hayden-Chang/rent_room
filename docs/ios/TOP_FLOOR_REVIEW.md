@@ -56,3 +56,13 @@
 原始 runner 日志、计划、精确命令、摘要和首次附件导出位于 `/private/tmp/xunju-top-floor-ios-20261022/`。本说明补写发生在执行完成之后，和证据 SHA 比较仅为文档变化，功能/测试/配置/生成输入未变，复用原证据。
 
 状态：`REVIEW_READY`，待用户明确视觉批准后才继续完整页面业务整合。不合并或部署；未做最终 PR head 合并 campaign，也未声称整个 iOS 应用已验收。小程序侧尚有 3 个备份用例超时且工具池未取得截图，见 PR #45。
+
+## 用户批准与组合版本验证
+
+2026-10-22 用户明确回复“确认通过，合入”，组件视觉审批和两份 PR 的合并授权已取得。仅合入现有 iOS 开发线，不将父 PR #39 合入 main，不部署或发布。
+
+目标分支前进至 `5585607310f37b55c49f2fe17b1720352bc24d1b`（楼道标题 #44），生成清单、原生 core 和组件分派入口发生冲突。保留顶楼及楼道两项变更，从合并后的源清单重新生成两个产物；手工组合 Debug 组件分派，使两个显式入口都可用。冲突使旧证据失效，组合版本重新冻结后执行 final-pr-head campaign。
+
+原生定向集合为上述 6 UT 加 `XunjuTests/ComponentLogicTests/testReviewHostRequiresExplicitKnownSurface`，覆盖组合后的组件参数解析。UI 精确选择 2 项：新增 `XunjuUITests/TopFloorReviewTests/testYesAutomaticIssueSwipeCancellationAndRelaunch` 优先验证本需求；既有 `XunjuUITests/ChecklistFormatTests/testCorridorHeadingAndSanitationDetailStayDistinct` 验证冲突涉及的楼道入口与分组。没有执行全量单测或 UI 套件；2 项低于最终阶段 3 项上限。共享规则定向运行 top-floor、model、inspection-wording 三文件，覆盖合并后的清单、迁移、问题覆盖及楼道投影。
+
+最终计划、精确命令和日志存于 `/private/tmp/xunju-top-floor-merge-20261022/`；本段先提交后冻结，实际结果待执行结束后补记。小程序上一候选的 66 项已全部通过，旧超时记录保留，微信实际 UI 截图仍缺失；这些不作为 iOS 证据。

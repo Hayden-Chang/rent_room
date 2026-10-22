@@ -169,4 +169,23 @@ import XCTest
         XCTAssertTrue(app.buttons["mp.field.choice.f99_0.是"].isSelected)
         capture("conditional-contract-answer-restored", app)
     }
+
+    func testCorridorHeadingAndSanitationDetailStayDistinct() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--component-review", "corridor", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        let group = app.staticTexts["mp.field.title.node:group:topic_14"]
+        XCTAssertTrue(group.waitForExistence(timeout: 10))
+        XCTAssertEqual(group.label, "楼道状况正常")
+        let detail = app.staticTexts["mp.field.title.f14_0"]
+        XCTAssertEqual(detail.label, "楼道卫生正常")
+        capture("corridor-expanded", app)
+        group.tap()
+        XCTAssertEqual(group.value as? String, "已折叠")
+        XCTAssertFalse(detail.exists)
+        capture("corridor-collapsed", app)
+        group.tap()
+        XCTAssertEqual(group.value as? String, "已展开")
+        XCTAssertEqual(detail.label, "楼道卫生正常")
+    }
 }
