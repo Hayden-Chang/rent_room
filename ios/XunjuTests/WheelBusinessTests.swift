@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import Xunju
 
 @MainActor final class WheelBusinessTests: XCTestCase {
@@ -11,6 +12,13 @@ import XCTest
         let catalog = try store.call("catalog")["fields"].array
         let label = try XCTUnwrap(catalog.first { $0.id == id })["label"].string
         return try XCTUnwrap(try store.form(house, query: label).flatMap { $0["rows"].array }.first { $0.id == id })
+    }
+    func testCommuteWheelLabelHasSpaceForEveryMinuteOption() throws {
+        let spec = try XCTUnwrap(WheelFieldSpec.all["21255282-3663-4abe-b7de-d91eeb3825ed"])
+        let labelWidth = spec.choices.map { ($0.label as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 13)]).width }.max()!
+        let chevron = try XCTUnwrap(UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(pointSize: 10)))
+        let required = ceil(labelWidth + chevron.size.width + 8 + 24)
+        XCTAssertGreaterThanOrEqual(MPFieldRow.measurementWheelMinimumWidth, required, "Minute labels, chevron, spacing and padding must fit without truncation")
     }
     func testRealFormRoutesAllSeventeenWheelsAndKeepsMoneyManual() throws {
         let store = try store(), id = try store.add("实际表单")

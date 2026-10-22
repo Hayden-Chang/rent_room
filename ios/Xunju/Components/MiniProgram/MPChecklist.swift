@@ -90,6 +90,7 @@ struct MPFieldState {
 }
 
 struct MPFieldRow: View {
+    static let measurementWheelMinimumWidth: CGFloat = 76
     let item: MPFieldItem
     @Binding var state: MPFieldState
     var readonly = false
@@ -166,7 +167,7 @@ struct MPFieldRow: View {
                         Text(spec.choices(preserving: state.text).first { spec.key($0.value) == spec.key(state.text) }?.label ?? state.text).lineLimit(1)
                         Image(systemName: "chevron.down").font(.system(size: 10))
                     }.font(.system(size: 13)).foregroundStyle(state.text.isEmpty ? XJTheme.muted : XJTheme.ink)
-                        .padding(.horizontal, 12).frame(minWidth: measurement == nil ? 96 : 76, minHeight: 44)
+                        .padding(.horizontal, 12).frame(minWidth: measurement == nil ? 96 : Self.measurementWheelMinimumWidth, minHeight: 44)
                         .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                 }.buttonStyle(.plain).disabled(readonly).accessibilityIdentifier("mp.field.wheel.\(item.id)")
                     .accessibilityValue(state.text.isEmpty ? "未填写" : state.text)
