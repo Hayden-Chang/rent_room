@@ -12,6 +12,27 @@ import XCTest
         attachment.lifetime = .keepAlways; add(attachment)
     }
 
+    func testPlaceMapCollapsesAfterUseAndSearch() {
+        let app = launch("place"), query = app.textFields["place.query"]
+        let map = app.descendants(matching: .any)["place.map"]
+        XCTAssertTrue(query.waitForExistence(timeout: 10))
+        XCTAssertTrue(map.exists)
+        capture("map-01-expanded", app)
+        app.buttons["place.result.one"].tap()
+        XCTAssertTrue(map.waitForNonExistence(timeout: 3), "Using a place must collapse the map")
+        capture("map-02-used-collapsed", app)
+        let toggle = app.buttons["place.mapToggle"]
+        toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3))
+        capture("map-03-reopened", app)
+        query.tap(); query.typeText("公寓")
+        XCTAssertTrue(map.waitForNonExistence(timeout: 3), "Address input must collapse the map")
+        capture("map-04-typing-collapsed", app)
+        query.typeText("\n")
+        XCTAssertTrue(app.buttons["place.result.two"].exists)
+        toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3))
+        capture("map-05-search-reopened", app)
+    }
+
     func testPlaceSearchSelectionAndPermissionFallback() {
         let app = launch("place"), query = app.textFields["place.query"]
         XCTAssertTrue(query.waitForExistence(timeout: 10))
