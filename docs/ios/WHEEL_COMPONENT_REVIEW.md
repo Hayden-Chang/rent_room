@@ -7,6 +7,8 @@
 - 用户确认的 17 项规则在 `apps/wechat/src/lib/wheel-fields.json`；与本次小程序分支的文件逐字节一致。
 - `WheelFieldSpec` 读取同一 JSON 资源，`WheelInputDraft` 区分未填写、0、半个月、净变化及原记录。
 - `WheelInputDialog` 使用原生 Picker/wheel，居中展示，关闭、遮罩、清空、确定和放弃修改确认由组件处理；确认前不写业务 store。
+- 弹窗不显示“滑动选择”或“原记录”前缀，打开即定位已有值；旧数字按数值顺序展示。扣押金的滚轮只滚动“数值 + 个月”，右侧“押金”固定，空值时隐藏并保留固定大小的占位。
+- 评审宿主的朝向确定“其他”后，输入框紧跟该行下方；取消不应用选择，切换或清空后保留补充文字，再选其他恢复。
 - 仅 Debug 显式 `--component-review wheels` 启用独立宿主。宿主的内存状态、手填金额/网速用于组件验证，不是业务保存证据。
 - `ios/project.yml` 仅添加共享 JSON 资源。XcodeGen 2.45.4，经仓库包装脚本生成；生成的 Xunju.xcodeproj 不提交。
 
@@ -20,6 +22,7 @@
 | 仅显式评审参数启用 | XunjuTests/WheelInputTests/testReviewRequiresExplicitArgument |
 | 17 项逐项真实选择、固定床尺寸、朝向其他、手填例外 | XunjuUITests/WheelInputReviewTests/testAllSeventeenRulesAndManualExceptions |
 | 草稿、确定、清空、继续编辑、放弃、净变化和遮罩取消 | XunjuUITests/WheelInputReviewTests/testDraftConfirmClearAndDiscard |
+| 已有值初始定位、固定押金后缀、其他输入/恢复、清空前后高度与按钮对齐 | XunjuUITests/WheelInputReviewTests/testExistingValuesFixedSuffixAndOtherExplanation |
 
 共享 runner 实时配置容量 3，开发计划显式声明 XunjuTests/XunjuUITests；没有全量运行旧套件。
 
@@ -30,6 +33,17 @@
 `02` 与 `03` 的计划、命令、日志和 `.xcresult` 位于本 worktree 忽略目录 `artifacts/ios-wheel-02/`、`artifacts/ios-wheel-03/`。共享构建缓存注册到本 worktree，实际名称 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-e3848fe0a88c9e75298b1629-simulator`；虽含历史前缀，未借用其他任务工作区。原截图为 1178×2556，设备 iPhone 16/iOS 26.5。
 
 ## 证据复用及后续边界
+
+第二轮修订的最终证据为 `f87c903` / `xunju-wheel-components-20261022-07`：同一批 **4 UT、3 UI 全部通过**。原始日志、计划、命令、结果摘要及 `.xcresult` 在 `artifacts/ios-wheel-07/`，31 张 1178×2556 的实际截图由该结果包导出；仍是 iPhone 16 / iOS 26.5 模拟器与独立组件宿主，不是正式业务或真机证据。
+
+- `...-04` / `c0b5a7e`：4 UT、1 UI 通过，2 UI 失败。选值后立即读取曾得到瞬时空值，改为原生轮盘值条件等待；隐藏的押金 Text 仍存在辅助功能树，改为空值时移除 Text。
+- `...-05` / `fb74124`：原断言全部通过，但主 agent 导出读图时发现移除 Text 后的透明占位撑高弹窗，暂不用于最终视觉确认。
+- `...-06-red` / `d8a5fdb`：增加清空前后弹窗高度及按钮对齐回归断言，修复前精确用例失败于 **852 != 368**。完整失败结果包与日志保留。
+- `f87c903` 将该占位高度限制为 24；`...-07` 重新运行全部本次定向用例，验证清空前后弹窗仍为 368、按钮水平对齐，且其他输入、旧值定位、17 项选项及取消路径通过。不是仅凭测试计数判断视觉效果。
+
+测试输入 `SE 15` 证明文本可编辑及切换/清空后恢复；没有将其当作中文输入法或业务持久化证据。共享 runner 按计划租约运行，构建/测试命令 PID 为 16447/16580，设备 UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`；执行回执退出 0，测试租约已释放。代码完成后只更新本文，不改变执行输入。
+
+以下是第一轮证据的历史复用说明；第二轮当前效果以 `...-07` 为准。
 
 从 `efe1c1c` 到 `0b4b3d2` 只调整轮盘触摸范围及失败方法的前置观察。字段 JSON、草稿模型、布局、文案、资源和 17 项选择用例不变。策略 UT 证据可复用；17 项选择均在轮盘内部，遮罩范围修正不改变这些选项的规则和绘制，保留其原 SHA 来源，不能改称新提交截图。
 
