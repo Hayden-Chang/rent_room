@@ -116,10 +116,11 @@ struct WheelInputDialog: View {
                     if draft.spec.fixedSuffix.isEmpty { picker }
                     else {
                         picker.frame(width: 160)
-                        Text(draft.spec.fixedSuffix).font(.system(size: 20)).frame(width: 48, alignment: .leading).padding(.leading, -16)
-                            .opacity(draft.choices[draft.index].wheelLabel == draft.choices[draft.index].label ? 0 : 1)
-                            .accessibilityHidden(draft.choices[draft.index].wheelLabel == draft.choices[draft.index].label)
-                            .accessibilityIdentifier("wheel.suffix")
+                        Group {
+                            if draft.choices[draft.index].wheelLabel != draft.choices[draft.index].label {
+                                Text(draft.spec.fixedSuffix).font(.system(size: 20)).accessibilityIdentifier("wheel.suffix")
+                            } else { Color.clear.accessibilityHidden(true) }
+                        }.frame(width: 48, alignment: .leading).padding(.leading, -16)
                     }
                 }.frame(maxWidth: .infinity).padding(.top, 8).padding(.bottom, 16)
                 HStack(spacing: 12) {

@@ -22,7 +22,13 @@ final class WheelInputReviewTests: XCTestCase {
         XCTAssertTrue(button.isHittable); button.tap()
         XCTAssertTrue(app.otherElements["wheel.dialog"].waitForExistence(timeout: 3))
     }
-    private func choose(_ label: String, _ app: XCUIApplication) { app.pickerWheels.firstMatch.adjust(toPickerWheelValue: label) }
+    private func choose(_ label: String, _ app: XCUIApplication) {
+        let wheel = app.pickerWheels.firstMatch
+        XCTAssertTrue(wheel.waitForExistence(timeout: 3))
+        wheel.adjust(toPickerWheelValue: label)
+        let settled = expectation(for: NSPredicate(format: "value == %@", label), evaluatedWith: wheel)
+        XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 3), .completed)
+    }
     private func closed(_ app: XCUIApplication) {
         XCTAssertTrue(app.otherElements["wheel.dialog"].waitForNonExistence(timeout: 3))
     }
