@@ -38,6 +38,7 @@ private struct PlaceReviewHost: View {
     @State private var viewport = ""
     @State private var cameraDistance = ""
     @State private var pickerMount = 0
+    @State private var queryWrites = 0
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -45,7 +46,7 @@ private struct PlaceReviewHost: View {
                     TextField("手动填写地址", text: $address).textFieldStyle(.roundedBorder)
                         .submitLabel(.done).accessibilityIdentifier("review.placeAddress")
                     XJCard {
-                        PlacePickerSurface(query: $query, center: center, places: UtilityFixtures.places, message: message, permissionDenied: denied, readonly: readonly,
+                        PlacePickerSurface(query: Binding(get: { query }, set: { query = $0; queryWrites += 1 }), center: center, places: UtilityFixtures.places, message: message, permissionDenied: denied, readonly: readonly,
                                            address: address,
                                            reviewCameraChanged: { cameraDistance = String(format: "%.0f", $0) },
                                            search: { message = "" }, locate: { denied = true; message = "定位权限未开启，请在设置中允许访问位置" },
@@ -59,6 +60,7 @@ private struct PlaceReviewHost: View {
                     Text(viewport).font(.system(size: 10)).accessibilityIdentifier("review.placeViewport")
                     Text(cameraDistance).font(.system(size: 10)).accessibilityIdentifier("review.placeCameraDistance")
                     Text(String(pickerMount)).font(.system(size: 10)).accessibilityIdentifier("review.placeMount")
+                    Text(String(queryWrites)).font(.system(size: 10)).accessibilityIdentifier("review.placeQueryWrites")
                 }.padding(16)
             }.background(XJTheme.background).navigationTitle("地点组件").navigationBarTitleDisplayMode(.inline)
                 .toolbar {

@@ -73,10 +73,12 @@ import XCTest
         if map.exists { app.buttons["place.mapToggle"].tap() }
         XCTAssertTrue(map.waitForNonExistence(timeout: 3))
         XCTAssertEqual(query.value as? String, "搜索地址，更快填写")
+        let queryWrites = app.staticTexts["review.placeQueryWrites"], writesBeforeFocus = queryWrites.label
         query.tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
         XCTAssertTrue(map.waitForExistence(timeout: 3), "Search focus must expand the map without typing")
         XCTAssertEqual(query.value as? String, "搜索地址，更快填写")
+        XCTAssertEqual(queryWrites.label, writesBeforeFocus, "Focus must not resubmit an unchanged search query")
         capture("focus-01-expanded-without-text", app)
         query.typeText("\n")
         capture("focus-02-expanded-keyboard-dismissed", app)
