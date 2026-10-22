@@ -2,6 +2,7 @@ import {it,expect} from 'vitest';
 import config from '../src/lib/wheel-fields.json' with {type:'json'};
 import {wheelConfig,wheelItems,wheelKey,wheelSelection,wheelChanged} from '../src/lib/wheel-input.js';
 import {fields,freshHouse,updateAnswer,stats,fieldView} from '../src/lib/model.js';
+import {createStore} from '../src/lib/store.js';
 import {fieldRecorded} from '../src/lib/source-model.js';
 
 it('assigns precisely the agreed 17 fields, with money, unit prices, speed and dynamic costs remaining manual',()=>{
@@ -40,4 +41,15 @@ it('saves basement -1, rejects other negative numeric fields and counts zero as 
  expect(fieldView(h,fields.find(f=>f.id==='f1_5')).wheel).toBe(true);
  expect(fieldView(h,fields.find(f=>f.id==='f1_6')).wheel).toBe(false);
  expect(stats(h).done).toBeGreaterThan(0);
+});
+
+it('persists new day values and clearing across reload while retaining annotations',()=>{
+ let disk='';const adapter={read:()=>disk,write:value=>{disk=value;}};let store=createStore(adapter);const id=store.add('持久化验收');
+ store.edit(id,h=>{h.answers.f105_0={value:'7',note:'保留备注',issueFlag:true};});
+ store.answer(id,'f105_0','value','21');store=createStore(adapter);
+ expect(store.house(id).answers.f105_0).toEqual({value:'21',note:'保留备注',issueFlag:true});
+ expect(fieldRecorded(fields.find(f=>f.id==='f105_0'),store.house(id).answers.f105_0)).toBe(true);
+ store.answer(id,'f105_0','value','');store=createStore(adapter);
+ expect(store.house(id).answers.f105_0).toEqual({value:'',note:'保留备注',issueFlag:true});
+ expect(fieldRecorded(fields.find(f=>f.id==='f105_0'),store.house(id).answers.f105_0)).toBe(false);
 });
