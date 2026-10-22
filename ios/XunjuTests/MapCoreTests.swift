@@ -6,6 +6,34 @@ private struct MapHTTPStub: AuthTransport {
     func send(_ request: URLRequest) async throws -> HTTPPayload { try handler(request) }
 }
 
+private struct DelayedRouteHTTP: AuthTransport {
+    let returned: XCTestExpectation
+    func send(_ request: URLRequest) async throws -> HTTPPayload {
+        try await Task.sleep(for: .milliseconds(30))
+        returned.fulfill()
+        return HTTPPayload(data: Data(#"{"resultCode":0,"results":[{"lines":[{"segments":[{"segmentType":2,"segmentLine":[{"lineName":"2路","segmentTime":12,"segmentDistance":1800,"linePoint":"121.4737,31.2304;121.4837,31.2404"}]}]}]}]}"#.utf8), status: 200)
+    }
+}
+
+private struct EncodedRouteTransport: MapTransport {
+    let returned: XCTestExpectation
+    func request(_ input: String) async throws -> String {
+        let result = try await NativeMapTransport(transport: DelayedRouteHTTP(returned: XCTestExpectation(description: "HTTP returned"))).request(input)
+        returned.fulfill()
+        return result
+    }
+}
+
+private actor DeferredRouteTransport: MapTransport {
+    let started: XCTestExpectation
+    private var pending: CheckedContinuation<String, Error>?
+    init(started: XCTestExpectation) { self.started = started }
+    func request(_ input: String) async throws -> String {
+        try await withCheckedThrowingContinuation { pending = $0; started.fulfill() }
+    }
+    func finish() { pending?.resume(returning: #"{"statusCode":200,"data":{"resultCode":0,"results":[]}}"#); pending = nil }
+}
+
 @MainActor final class MapCoreTests: XCTestCase {
     private func directory() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appending(path: "map-core-\(UUID().uuidString)")
@@ -93,6 +121,82 @@ private struct MapHTTPStub: AuthTransport {
         try FileManager.default.removeItem(at: file)
         try store.call("computed", ["id": .string(id), "field": .string(field), "value": result])
         XCTAssertEqual(try NativeStore(directory: store.records.directory).house(id)["answers"][field]["value"].string, "108.25")
+    }
+    func testSuspendedRouteResponseCompletesJavaScriptBridge() async throws {
+        let returned = expectation(description: "Native transport returned")
+        let completed = expectation(description: "JavaScript route reply completed")
+        let store = try NativeStore(directory: directory(), network: EncodedRouteTransport(returned: returned))
+        let before = store.state
+        let origin = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2304, 121.4737)])
+        let destination = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2404, 121.4837)])
+        var routes: [JSONValue] = [], failure = ""
+        let task = Task { @MainActor in
+            do { routes = try await store.query("commuteRoutes", ["key": .string("fixture"), "mode": .string("transit"), "origin": origin, "destination": destination]).array }
+            catch { failure = error.localizedDescription }
+            completed.fulfill()
+        }
+        defer { task.cancel() }
+        let sent = await XCTWaiter.fulfillment(of: [returned], timeout: 3)
+        XCTAssertEqual(sent, .completed)
+        let result = await XCTWaiter.fulfillment(of: [completed], timeout: 3)
+        XCTAssertEqual(result, .completed, "The completed transport must settle the JavaScript promise on supported iOS runtimes")
+        if result == .completed {
+            XCTAssertEqual(failure, ""); XCTAssertEqual(routes.first?["minutes"].int, 12)
+            XCTAssertEqual(store.state, before, "Querying must not mutate saved records")
+        }
+    }
+    func testCancellingPendingRouteQueryCompletesBeforeTransportReturns() async throws {
+        let started = expectation(description: "Route request started"), completed = expectation(description: "Cancelled query completed")
+        let transport = DeferredRouteTransport(started: started), store = try NativeStore(directory: directory(), network: transport)
+        let origin = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2304, 121.4737)])
+        let destination = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2404, 121.4837)])
+        var cancelled = false
+        let task = Task { @MainActor in
+            do { _ = try await store.query("commuteRoutes", ["key": .string("fixture"), "mode": .string("transit"), "origin": origin, "destination": destination]) }
+            catch { cancelled = error is CancellationError }
+            completed.fulfill()
+        }
+        let sent = await XCTWaiter.fulfillment(of: [started], timeout: 3); XCTAssertEqual(sent, .completed)
+        task.cancel()
+        let finished = await XCTWaiter.fulfillment(of: [completed], timeout: 1)
+        XCTAssertEqual(finished, .completed, "Cancelling a route must settle its continuation without waiting for network/JS completion")
+        await transport.finish()
+        guard finished == .completed else { return }
+        await task.value
+        XCTAssertTrue(cancelled, "A cancelled route must never be treated as a provider response")
+    }
+    // Supplementary provider integration. A configured browser key opts in;
+    // public coordinates only, with status/count evidence and no credential URL.
+    func testLiveNativeRouteProviderReturnsUsablePublicRoute() async throws {
+        guard !NativeConfiguration.current.tiandituKey.isEmpty else { throw XCTSkip("Live provider requires a configured browser key") }
+        let input: JSONValue = .object(["url": .string("https://api.tianditu.gov.cn/transit"), "method": .string("GET"), "timeout": .number(12000), "data": .object(["tk": .string(NativeConfiguration.current.tiandituKey), "type": .string("busline"), "postStr": .string(#"{"startposition":"121.4737,31.2304","endposition":"121.4837,31.2404","linetype":"7"}"#)])])
+        let text = try await NativeMapTransport().request(String(decoding: JSONEncoder().encode(input), as: UTF8.self))
+        let response = try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)), data = response["data"]
+        let report = "HTTP=\(response["statusCode"].int), code=\(data["code"].string), message=\(data["msg"].string), resultCode=\(data["resultCode"].string), count=\(data["results"].array.count)"
+        let attachment = XCTAttachment(string: report); attachment.name = "native-public-route-provider-result"; attachment.lifetime = .keepAlways; add(attachment)
+        XCTAssertEqual(response["statusCode"].int, 200, report)
+        XCTAssertFalse(data["results"].array.isEmpty, report)
+    }
+    func testStalledRouteDeadlineCompletesAndLateReplyCannotChangeRecords() async throws {
+        let started = expectation(description: "Route started"), completed = expectation(description: "Deadline settled")
+        let transport = DeferredRouteTransport(started: started)
+        let store = try NativeStore(directory: directory(), network: transport, mapQueryTimeout: .milliseconds(50))
+        let before = store.state
+        let origin = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2304, 121.4737)])
+        let destination = try store.call("coordinate", ["property": .string("toMap"), "value": point(31.2404, 121.4837)])
+        var failure = ""
+        let task = Task { @MainActor in
+            do { _ = try await store.query("commuteRoutes", ["key": .string("fixture"), "mode": .string("transit"), "origin": origin, "destination": destination]) }
+            catch { failure = error.localizedDescription }
+            completed.fulfill()
+        }
+        let sent = await XCTWaiter.fulfillment(of: [started], timeout: 2); XCTAssertEqual(sent, .completed)
+        let settled = await XCTWaiter.fulfillment(of: [completed], timeout: 1)
+        XCTAssertEqual(settled, .completed)
+        await transport.finish()
+        guard settled == .completed else { task.cancel(); return }
+        await task.value
+        XCTAssertTrue(failure.contains("超时")); XCTAssertEqual(store.state, before)
     }
     func testTransportRejectsUntrustedDomainsAndUnsupportedMethodsBeforeSending() async throws {
         let transport = NativeMapTransport(transport: MapHTTPStub { _ in XCTFail("Invalid request reached network"); return HTTPPayload(data: Data(), status: 500) })

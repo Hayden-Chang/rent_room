@@ -14,6 +14,11 @@ import XCTest
     }
 }
 
+@MainActor private struct UnavailableSystemPlaces: NativePlacesClient {
+    func search(_ keyword: String, center: GeographicPoint?) async throws -> [NativePlace] { throw URLError(.notConnectedToInternet) }
+    func reverse(_ point: GeographicPoint) async throws -> NativePlace? { throw URLError(.notConnectedToInternet) }
+}
+
 @MainActor final class UtilityFlowTests: XCTestCase {
     private func root() throws -> URL {
         let url = FileManager.default.temporaryDirectory.appending(path: "utility-flows-\(UUID().uuidString)")
@@ -29,6 +34,23 @@ import XCTest
         XCTAssertEqual(search.message, "")
         search.cancel(); await operation?.value
         XCTAssertEqual(workspace.store.state, before)
+    }
+    func testConfiguredPlaceSearchUsesMiniProgramParserAndPreservesSavedCoordinate() async throws {
+        let store = try NativeStore(directory: root(), network: UtilityNetworkFixture.transport)
+        let search = PlaceSearch(store: store, places: NativePlaceService(client: UnavailableSystemPlaces()), mapKey: "fixture", validScope: { true })
+        let before = store.state
+        search.query = "阳光"; await search.submit()?.value
+        XCTAssertEqual(search.attribution, "天地图"); XCTAssertEqual(search.message, ""); XCTAssertFalse(search.busy)
+        let choice = try XCTUnwrap(search.choices.first), selected = try search.selected(choice)
+        XCTAssertEqual(choice.name, "阳光小区"); XCTAssertEqual(store.state, before)
+        XCTAssertEqual(search.nativePoint(selected["location"]), choice.point)
+        XCTAssertNotEqual(GeographicPoint(selected["location"]), choice.point, "Canonical GCJ-02 storage must be retained")
+        try store.call("workplacePlace", ["value": selected]); search.didSelect(choice)
+        XCTAssertTrue(search.choices.isEmpty); XCTAssertFalse(search.busy)
+        XCTAssertEqual(try NativeStore(directory: store.records.directory).state["settings"]["workplaceLocation"], selected["location"])
+        await search.submit()?.value
+        XCTAssertTrue(search.choices.contains { $0.id == "center" }, "Reopening the map must use the canonical reverse-geocoding result")
+        search.cancel()
     }
     func testUsingPlaceDismissesCandidatesUntilAnotherSearch() async throws {
         let store = try NativeStore(directory: root())

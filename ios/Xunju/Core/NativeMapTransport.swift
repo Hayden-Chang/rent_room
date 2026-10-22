@@ -6,7 +6,7 @@ protocol MapTransport: Sendable {
 
 /// Only the original Tianditu GET endpoints can be reached from JavaScriptCore.
 struct NativeMapTransport: MapTransport {
-    var transport: any AuthTransport = URLSessionAuthTransport()
+    var transport: any AuthTransport = BrowserMapHTTP()
     private struct Input: Decodable { let url: String; let method: String; let timeout: Double; let data: [String: JSONValue] }
     func request(_ input: String) async throws -> String {
         let value = try JSONDecoder().decode(Input.self, from: Data(input.utf8))
