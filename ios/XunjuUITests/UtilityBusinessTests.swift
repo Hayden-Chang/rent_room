@@ -18,7 +18,8 @@ import CoreLocation
         reappeared.isInverted = true
         XCTAssertEqual(XCTWaiter.wait(for: [reappeared], timeout: 2), .completed, "Candidates must remain dismissed across debounce and camera callbacks")
         XCTAssertEqual(app.textFields["place.query"].value as? String, "搜索地址，更快填写")
-        XCTAssertTrue(app.descendants(matching: .any)["place.map"].exists)
+        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Using a place must collapse the real page map")
+        XCTAssertEqual(app.buttons["place.mapToggle"].label, "展开地图")
     }
     func testRealGuidePlaceWorkplaceAndCommutePersistAfterRelaunch() {
         let app = launch()
@@ -35,14 +36,38 @@ import CoreLocation
         demo.swipeLeft()
         app.buttons["coach.preference"].tap(); capture("31-business-coach-field", app); next.tap()
         XCTAssertFalse(next.exists)
-        let checklist = app.textFields["mp.checklist.search"]; checklist.tap(); checklist.typeText("地图")
+        let checklist = app.textFields["mp.checklist.search"]; checklist.tap(); checklist.typeText("地址")
         app.buttons["checklist.keyboard.done"].tap()
         let place = app.textFields["place.query"]; XCTAssertTrue(place.waitForExistence(timeout: 3))
         place.tap(); place.typeText("阳光\n")
         let houseChoice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '阳光小区'")).firstMatch
         XCTAssertTrue(houseChoice.waitForExistence(timeout: 4)); houseChoice.tap()
         assertCandidatesStayDismissed(app)
+        let address = app.textFields["mp.field.input.f1_1"]
+        let savedHouseAddress = address.value as? String ?? ""
+        XCTAssertTrue(savedHouseAddress.contains("阳光小区"))
         capture("32-business-house-place", app)
+        app.navigationBars.buttons.firstMatch.tap(); app.buttons["house.选点与通勤"].tap()
+        let reopenedFilter = app.textFields["mp.checklist.search"]
+        reopenedFilter.tap(); reopenedFilter.typeText("地址"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertTrue(place.waitForExistence(timeout: 3))
+        XCTAssertEqual(address.value as? String, savedHouseAddress)
+        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Reentering the saved house must keep the map collapsed")
+        capture("house-map-01-reentered-collapsed", app)
+        place.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        XCTAssertEqual(place.value as? String, "搜索地址，更快填写")
+        XCTAssertTrue(app.descendants(matching: .any)["place.map"].exists, "Search focus must immediately expand the house map")
+        capture("house-map-02-focus-without-typing", app)
+        place.typeText("\n")
+        // Bring the external field below the map above the footer without panning MapKit.
+        let scroll = app.scrollViews.firstMatch
+        scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.85)).press(forDuration: 0.05, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.3)))
+        XCTAssertTrue(address.isHittable); address.tap(); address.typeText("3栋")
+        app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertEqual(address.value as? String, savedHouseAddress + "3栋")
+        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Editing the real house address must collapse the map")
+        capture("house-map-03-manual-address-collapsed", app)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["tab.我的"].tap()
         app.buttons["settings.workplace"].tap()
         let search = app.textFields["place.query"]; XCTAssertTrue(search.waitForExistence(timeout: 3)); search.tap(); search.typeText("办公楼\n")
@@ -63,6 +88,13 @@ import CoreLocation
         XCTAssertTrue(answer.waitForExistence(timeout: 3)); XCTAssertEqual(answer.value as? String, "24")
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.选点与通勤"].waitForExistence(timeout: 10))
         app.buttons["house.选点与通勤"].tap(); XCTAssertFalse(next.exists)
+        let persistedFilter = app.textFields["mp.checklist.search"]
+        persistedFilter.tap(); persistedFilter.typeText("地址"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertTrue(address.waitForExistence(timeout: 3))
+        XCTAssertEqual(address.value as? String, savedHouseAddress + "3栋")
+        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
+        capture("house-map-04-relaunched-collapsed", app)
+        persistedFilter.tap(); persistedFilter.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 2))
         let restored = app.textFields["mp.checklist.search"]; restored.tap(); restored.typeText("公交地铁")
         app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(answer.value as? String, "24")
         capture("35-business-commute-restored", app)
@@ -82,11 +114,32 @@ import CoreLocation
     }
     func testManualWorkplaceSaveAndClearSurviveRelaunch() {
         let app = launch(); app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
-        let address = app.textFields["workplace.address"]; XCTAssertTrue(address.waitForExistence(timeout: 3))
-        address.tap(); address.typeText("手工地址18号"); app.buttons["完成"].firstMatch.tap()
+        let address = app.textFields["workplace.address"], query = app.textFields["place.query"]
+        let map = app.descendants(matching: .any)["place.map"], toggle = app.buttons["place.mapToggle"]
+        XCTAssertTrue(address.waitForExistence(timeout: 3))
+        query.tap(); query.typeText("办公楼\n")
+        let office = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '办公楼'")).firstMatch
+        XCTAssertTrue(office.waitForExistence(timeout: 4)); office.tap(); assertCandidatesStayDismissed(app)
+        let selectedAddress = address.value as? String ?? ""
+        XCTAssertTrue(selectedAddress.contains("办公楼"))
+        toggle.tap(); XCTAssertTrue(map.exists)
+        address.tap(); address.typeText("改址"); app.buttons["完成"].firstMatch.tap()
+        XCTAssertEqual(address.value as? String, selectedAddress + "改址")
+        XCTAssertFalse(map.exists, "Manual workplace edits must collapse the map even when saved coordinates become invalid")
+        capture("workplace-map-01-manual-collapsed", app)
+        toggle.tap(); XCTAssertTrue(map.exists, "The prior camera must survive the address invalidating its coordinates")
+        capture("workplace-map-02-retained-camera", app)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
-        XCTAssertEqual(address.value as? String, "手工地址18号")
+        XCTAssertEqual(address.value as? String, selectedAddress + "改址")
+        XCTAssertFalse(map.exists, "A saved text-only workplace must reopen collapsed")
+        capture("workplace-map-03-relaunched-collapsed", app)
+        query.tap(); XCTAssertTrue(app.keyboards.firstMatch.exists)
+        XCTAssertEqual(toggle.label, "收起地图", "Search focus must expand a saved text-only workplace without typing")
+        XCTAssertTrue(app.buttons["place.locate"].exists)
+        XCTAssertEqual(query.value as? String, selectedAddress + "改址", "Focusing must preserve the saved query")
+        capture("workplace-map-04-focus-without-typing", app)
+        query.typeText("\n")
         app.buttons["workplace.clear"].tap(); XCTAssertFalse(app.buttons["workplace.clear"].exists)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
@@ -112,6 +165,7 @@ import CoreLocation
         assertCandidatesStayDismissed(app)
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
         capture("42-simulated-location-selected", app)
+        app.buttons["place.mapToggle"].tap()
         locate.tap(); XCTAssertTrue(center.waitForExistence(timeout: 10), "Locating again must reopen candidates")
         center.tap(); assertCandidatesStayDismissed(app)
         capture("43-simulated-location-selected-again", app)
@@ -140,6 +194,8 @@ import CoreLocation
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
         XCTAssertEqual(address.value as? String, saved)
+        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
+        app.buttons["place.mapToggle"].tap()
         XCTAssertTrue(app.buttons["place.result.center"].waitForExistence(timeout: 20))
         capture("system-places-live-restored", app)
     }
