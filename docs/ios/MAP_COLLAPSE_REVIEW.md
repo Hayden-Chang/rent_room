@@ -1,4 +1,51 @@
-# 地图自动收起组件评审（2026-10-22）
+# 地图自动收起修复与评审（2026-10-22）
+
+当前：组件已获用户批准，正式房源/上班地址接入完成，地图定向验证通过。
+
+## 用户批准后的正式页面接入
+
+用户在本会话明确回复“没问题”，本轮组件状态为 `APPROVED`。随后接入 `LocationPages.swift`：PlacePicker传入真实外部address；HousePlaceField读取房源地址，WorkplacePage使用手填text。没有改布局、查询服务、GCJ-02存储格式或工程配置。未合并、真机安装或发布。
+
+真实页面回归补充发现：选点后的地图若从未发生相机回调，手填导致坐标失效时，原组件会移除MapKit、变成占位区。组件现在在获得有效位置后保留地图实例和position，尚无MapCamera回调也能再次展开原视野；不将失效坐标写回房源。既有原生平移后的完整相机恢复规则保持不变。
+
+### 本轮失败与修正边界
+
+- 测试提交1571252、旧页面red-01构建成功，停在脚本假设“文字从末尾追加”；实际光标在开头，尚未到达地图断言。这是测试前提问题，不记为产品复现。
+- d314904修正文字观察后，旧页面red-02失败于手填后的再次展开。导出截图虽名为manual-collapsed，实际清楚显示“收起地图”和展开的占位区，因此不能把原生Map节点消失当作已经收起。正式接入后增加开关文案断言。
+- 509e747的green-01：4 UT通过；4 UI中仅模拟系统定位通过，3失败。上班地址失败证明首个相机回调前的实例丢失；房源用例在引导结束后的清单搜索输入未获得焦点，尚未到地图步骤，改用用户实际的基本信息标题入口。补充在线SDK用例失败，UI快照显示“地点查询失败，请重试或手动填写地址”；没有返回公开地标。保留此失败，不将固定网络数据通过称为在线查询通过。
+- 288c1e3修复相机实例边界，并按实际基本信息入口验证；以下为重新计算的定向测试记录。所有原失败xcresult、日志和附件均保留，未覆盖或终止。
+
+### 影响映射与证据
+
+UT为UtilityFlowTests下4个精确方法：testUsingPlaceDismissesCandidatesUntilAnotherSearch（选择取消候选与显式重搜）、testHouseSelectionRoundTripKeepsCandidatesDismissed（房源坐标读回）、testPlaceSelectionPersistsCanonicalAddressAndWorkplaceWithoutChangingAnswers（房源/上班保存重载且不改答案）、testClearingOrInvalidatingLocationRemovesDisplayedPointAndOldCandidates（清空/失效坐标及旧候选）。未运行全量UT。
+
+开发阶段UI按影响选择真实房源/上班页面、连续模拟定位和相机组件。补充在线SDK失败独立保留，查询提供方和客户端代码本次未修改，不作为离线交互门禁；没有声称SDK现网查询通过。
+
+最终PR-head按上限选择3个精确UI：UtilityBusinessTests/testHouseMapReentryFocusAndAddressPersistAfterRelaunch（实际基本信息重进、空搜索焦点、手填、磁盘重启），UtilityBusinessTests/testManualWorkplaceSaveAndClearSurviveRelaunch（坐标失效、地图实例保留、纯文字地址重启与焦点、清空重启），UtilityReviewTests/testPlaceMapExpandsForSearchAndCollapsesAfterUseOrManualAddress（已批准的原生平移、搜索、手填和完整相机恢复）。模拟定位为开发阶段额外影响覆盖；权限/设置和只读组件沿用前轮证据，变更仅在坐标失效前后保留Map实例，不改变固定有效center、readonly或权限分支。
+
+### 第二轮诊断与官方资料
+
+288c1e3的green-02：4 UT通过；连续模拟定位与相机组件2 UI通过，2页面UI失败。上班地址在第一次点击展开行后仍显示“展开地图”，录像及合成触点确认点击位于整行中部（196.5,339.33）；在按钮label的可见frame内补充contentShape(Rectangle())。原房源串联用例已通过重进收起、空输入焦点与手填收起，随后通勤等待超时；失败录像显示起终点标记与地址均在，状态仍为“查询中…”，不能声称通勤通过。保留该原用例，新增独立房源地图回归，不依赖路线查询即可完成地图交互及磁盘重启验证。
+
+按research-after-two-failed-attempts在下一轮编辑前核对Apple资料（2026-10-22访问）：[WWDC23 MapKit for SwiftUI](https://developer.apple.com/videos/play/wwdc2023/10043/)说明默认相机回调在地图交互结束时触发、position独立表示相机位置；[contentShape](https://developer.apple.com/documentation/swiftui/view/contentshape(_:eofill:))定义命中形状；[waitForExistence](https://developer.apple.com/documentation/xcuiautomation/xcuielement/waitforexistence(timeout:))用于等待可访问性节点出现。本次API均已在iOS18.3.1可用；应用到35a49ff的最小差异为整行命中区，测试在真实Map节点上使用条件等待，不加固定sleep、不放宽坐标或地址断言。
+
+### 最终验证结果
+
+冻结源码 `35a49ffcfd3da3163921fd74abc0868fd2656ef4`，`final-pr-head`计划 **4 UT / 3 UI，7通过、0失败、0跳过**，一次完整通过。本轮没有运行全量suite。房源独立方法49.548秒、上班地址33.953秒、相机组件25.575秒；只表示方法执行时间，包含构建与启动收尾的runner墙钟不与其混算。
+
+- 计划 `/private/tmp/rent-room-map-collapse-20261022/ios-business-green-03-plan.json`，完整原始命令 `ios-business-green-03-command.sh`、日志 `ios-business-green-03.log`、summary `ios-business-green-03-summary.json`均在同目录。
+- 结果包 `/Volumes/mac2/codex-builds/xunju-map-business-20261022-green-03.xcresult`；共享runner PID3332、slot1，测试子进程3508，退出码0。真实执行凭据 `ios-business-green-03-execution.json`；receipt `/tmp/todo-ios-sim-pool/run-receipts/xunju-map-business-20261022-green-03.json`；完成后本run的owner/lease均已释放。
+- iPhone14 Pro / iOS18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`；仓库包装脚本与XcodeGen2.45.4。缓存 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-ccf0d0815539d3e202f08802-simulator`，没有生成工程进入diff。
+- 原始19张1178×2556附件与manifest在 `/private/tmp/rent-room-map-collapse-20261022/ios-business-green-03-attachments/`。显示副本在 `/Users/pc/.codex/visualizations/2026/10/22/01a1613d-4a43-7142-9c62-95a0f560db41/map-collapse/ios-business/`，provenance.json记录源码、测试、设备、尺寸、SHA256和原始路径；复制前后字节一致。
+- 主agent查看房源重进、纯文字地址重启、手填后原地图恢复、上班地址与焦点截图，以及组件相机恢复截图。组件本批中心31.2304,121.4900、距离2483米，展开/搜索/手填恢复断言通过。纯文字地址重启会预填搜索并显示候选，地图仍收起；未改搜索结果列表。
+- 真实房源焦点截图中的地图被键盘及清单布局遮挡，但真实Map节点和展开状态断言已通过，不声称聚焦时地图全部可见。上班重启截图拍在导航转场中，不作稳定外观样例；可交付的稳定样例使用house-map-01-reentered-collapsed及house-map-04-retained-camera等原始图片。
+- 页面使用UUID隔离NativeStore、真实页面导航和磁盘重启；POI与地点网络为显式固定数据，MapKit渲染、原生操作和业务保存是真实实现。补充在线地标查询失败及串联通勤超时仍未解决，不把本轮地图交互通过说成这些服务通过或整个父PR可发布。
+- 本源码之后仅追加本文档；生产、测试、资源、工程配置与运行输入不变，复用35a49ff的本地证据。主agent已检查最终6文件diff，无存储、查询服务或生成工程修改。PR #42保持Draft，父分支为未合并的#39；没有远程CI状态或workflow结果可宣称通过。没有合并、真机安装或发布。
+
+
+本节以下为组件批准前的历史评审记录；其中“等待批准/正式接入尚未完成”描述对应历史提交，当前状态以本节为准。
+
+## 批准前的组件评审（历史）
 
 本次仅评审原生地点组件：已有地址、坐标或预填地址重新显示时保持收起；搜索框获得焦点、输入或清空时自动展开地图；点击“使用”或搜索结果、外部手填地址变化时收起地图，保留搜索结果和“展开地图”入口。再次展开恢复完整 MapCamera（中心、距离、方向和倾角），不主动请求 GPS。隐藏地图不参与点击或无障碍导航；只读地图仍可查看。
 
