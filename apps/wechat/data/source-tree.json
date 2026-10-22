@@ -209,7 +209,7 @@
             "meta": {
               "id": "f1_balcony",
               "type": "y",
-              "fact": true,
+              "fact": false,
               "legacyType": "y",
               "phase": "房源信息",
               "hint": "选择户型、朝向，填写实际面积和月租。顶楼、阳台按事实记录。",
@@ -1435,7 +1435,7 @@
                   {
                     "id": "f16_0_option_a106270e-f552-474d-a7a9-5ffc789dcbd4",
                     "kind": "option",
-                    "title": "<1:3（优质）",
+                    "title": "≤ 1:3（优质）",
                     "children": []
                   },
                   {
@@ -1447,7 +1447,7 @@
                   {
                     "id": "f16_0_option_52660a82-334f-4bf8-b038-161b265985a5",
                     "kind": "option",
-                    "title": ">1:5（拥挤）",
+                    "title": "≥ 1:5（拥挤）",
                     "children": []
                   }
                 ]
