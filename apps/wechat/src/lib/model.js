@@ -6,6 +6,7 @@ export {topics, rules};
 export const clone = value => JSON.parse(JSON.stringify(value));
 export const uid = () => 'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
 export const fields = topics.flatMap(t=>t.fields);
+const topFloorField=fields.find(f=>f.id==='f1_top');
 export const categories = [...new Set(topics.map(t=>t.category))];
 export const MAP_ID = fields.find(f=>f.label==='地图（和地址联动）').id;
 export const emptyState = () => ({version:2,houses:[],settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
@@ -42,7 +43,22 @@ const resultLabel = (value,absenceLabel='没有') => ({'正常':'是','有问题
 export function freshHouse(name,settings={}) {
   const hidden=new Set(settings.template==='自定义'?settings.hiddenFields||[]:[]);
   const selected=topics.map(t=>({...clone(t),fields:t.fields.filter(f=>!hidden.has(f.id)).map(clone)})).filter(t=>t.fields.length);
-  return {id:uid(),name:name.trim()||'新房源',address:'',answers:{},groups:{},extras:[],media:[],issues:[],summary:'',decision:'',archived:false,createdAt:new Date().toISOString(),templateTopics:selected,checklistRevision:2};
+  return {id:uid(),name:name.trim()||'新房源',address:'',answers:{},groups:{},extras:[],media:[],issues:[],summary:'',decision:'',archived:false,createdAt:new Date().toISOString(),templateTopics:selected,checklistRevision:2,topFloorRevision:1};
+}
+// The saved question determines the old answer's meaning. Revision-two records
+// without a snapshot used “非顶楼”; earlier positive questions already mean “顶楼”.
+export function migrateTopFloor(h) {
+  if(h.topFloorRevision===1)return h;
+  const saved=h.templateTopics?.flatMap(t=>t.fields).find(f=>f.id===topFloorField.id);
+  const negative=saved?saved.label==='非顶楼':h.checklistRevision===2;
+  const a=h.answers?.[topFloorField.id];
+  if(negative&&a){
+    h.previousTopFloorAnswer=clone(a);
+    if(['是','否'].includes(a.value))a.value=a.value==='是'?'否':'是';
+  }
+  if(saved)Object.assign(saved,{label:topFloorField.label,badValue:topFloorField.badValue,fact:true,invertLegacyYes:false});
+  h.topFloorRevision=1;
+  return h;
 }
 export function addCostField(h,groupId,label,fieldId='cost_'+groupId+'_'+uid()) {
   if(h.archived)throw Error('归档房源只读，请先还原');
@@ -190,7 +206,9 @@ export function updateAnswer(h,id,prop,value) {
   if(f.annotation&&!['note','issueFlag'].includes(prop))throw Error('父级节点只保存备注与问题标记');
   if(!['value','note','otherText','issueFlag'].includes(prop))throw Error('不支持的修改');
   if(prop==='value'&&f.type==='n'&&value!==''&&(!Number.isFinite(Number(value))||Number(value)<0))throw Error('请填写非负数字');
-  h.answers[id]={...(h.answers[id]||{}),[prop]:value};
+  const previous=h.answers[id]||{};
+  h.answers[id]={...previous,[prop]:value};
+  if(id===topFloorField.id&&prop==='value'&&previous.value!==value)delete h.answers[id].issueFlag;
   if(prop==='value'){
     rules.syncGroupField(h,houseTopics(h),id);
     if(id==='f1_1'){
@@ -246,7 +264,7 @@ export function validateState(state) {
 export function prepareImport(raw) {
   validateState(raw);
   return raw.houses.map(source=>{
-    const h=clone(source);h.media||=[];h.issues||=[];h.extras||=[];h.groups||={};h.archived=!!h.archived;h.templateTopics||=clone(topics);
+    const h=migrateTopFloor(clone(source));h.media||=[];h.issues||=[];h.extras||=[];h.groups||={};h.archived=!!h.archived;h.templateTopics||=clone(topics);
     rules.normalizeHouse(h,h.templateTopics);rules.migrateBehavior(h,h.templateTopics);return mergeElectricity(h);
   });
 }

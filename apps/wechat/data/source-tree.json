@@ -163,11 +163,12 @@
           {
             "id": "f1_top",
             "kind": "field",
-            "title": "非顶楼",
+            "title": "顶楼",
             "meta": {
               "id": "f1_top",
               "type": "y",
               "fact": true,
+              "badValue": "是",
               "legacyType": "y",
               "phase": "房源信息",
               "hint": "选择户型、朝向，填写实际面积和月租。顶楼、阳台按事实记录。",
