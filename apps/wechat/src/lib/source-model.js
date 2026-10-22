@@ -76,8 +76,13 @@ export function validTopics(topics) {
   }));
 }
 
+const automaticProblemChoices = {
+  f16_0:'≥ 1:5（拥挤）',
+  f51_1:'不够用',f51_2:'不够用',f120_0:'否',
+  f21_1:'无',f62_1:'大于 1 分钟',f83_1:'无网络',
+};
 export function isProblem(f, a = {}) {
-  if(f.id==='f16_0')return fieldValue(f,a)==='≥ 1:5（拥挤）';
+  if(hasOwn(automaticProblemChoices,f.id))return fieldValue(f,a)===automaticProblemChoices[f.id];
   if(isInspectionResult(f))return a.value==='有问题';
   if(f.role==='inspection-check')return a.value==='否';
   if (['y','c','a'].includes(f.type)) return f.badValue === '否' && a.value === '否';
