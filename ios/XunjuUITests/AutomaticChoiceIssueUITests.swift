@@ -6,6 +6,20 @@ import XCTest
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
+    private func waitForStablePosition(_ element: XCUIElement) {
+        var previousFrame = CGRect.null
+        var stableSamples = 0
+        let stable = NSPredicate { _, _ in
+            guard element.isHittable else { stableSamples = 0; return false }
+            let frame = element.frame
+            stableSamples = frame == previousFrame ? stableSamples + 1 : 0
+            previousFrame = frame
+            return !frame.isEmpty && stableSamples >= 2
+        }
+        let settled = expectation(for: stable, evaluatedWith: element)
+        XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 5), .completed,
+                       "Wait for scrolling to settle before selecting an answer")
+    }
     func testSixChoicesAutomaticallyFlagAndPersistWhileNotApplicableClears() {
         let app = XCUIApplication()
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
@@ -47,7 +61,9 @@ import XCTest
         capture("six-automatic-issues-after-relaunch", app)
         let notApplicable = app.buttons["mp.field.choice.f120_0.不涉及"]
         for _ in 0..<3 { if notApplicable.isHittable { break }; app.swipeUp() }
-        XCTAssertTrue(notApplicable.isHittable); notApplicable.tap()
+        XCTAssertTrue(notApplicable.isHittable)
+        waitForStablePosition(notApplicable)
+        notApplicable.tap()
         XCTAssertTrue(app.staticTexts["需要关注 · 5"].waitForExistence(timeout: 3))
         capture("residence-not-applicable-clears-automatic-issue", app)
     }
