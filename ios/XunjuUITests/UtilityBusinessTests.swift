@@ -36,41 +36,14 @@ import CoreLocation
         demo.swipeLeft()
         app.buttons["coach.preference"].tap(); capture("31-business-coach-field", app); next.tap()
         XCTAssertFalse(next.exists)
-        let basic = app.staticTexts["mp.field.title.node:category:房源基本信息"]
-        let place = app.textFields["place.query"]
-        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
-        XCTAssertTrue(place.waitForExistence(timeout: 3))
+        let checklist = app.textFields["mp.checklist.search"]; checklist.tap(); checklist.typeText("地图")
+        app.buttons["checklist.keyboard.done"].tap()
+        let place = app.textFields["place.query"]; XCTAssertTrue(place.waitForExistence(timeout: 3))
         place.tap(); place.typeText("阳光\n")
         let houseChoice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '阳光小区'")).firstMatch
         XCTAssertTrue(houseChoice.waitForExistence(timeout: 4)); houseChoice.tap()
         assertCandidatesStayDismissed(app)
-        let address = app.textFields["mp.field.input.f1_1"]
-        let savedHouseAddress = address.value as? String ?? ""
-        XCTAssertTrue(savedHouseAddress.contains("阳光小区"))
         capture("32-business-house-place", app)
-        app.navigationBars.buttons.firstMatch.tap(); app.buttons["house.选点与通勤"].tap()
-        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
-        XCTAssertTrue(place.waitForExistence(timeout: 3))
-        XCTAssertEqual(address.value as? String, savedHouseAddress)
-        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Reentering the saved house must keep the map collapsed")
-        capture("house-map-01-reentered-collapsed", app)
-        place.tap()
-        XCTAssertTrue(app.keyboards.firstMatch.exists)
-        XCTAssertEqual(place.value as? String, "搜索地址，更快填写")
-        XCTAssertTrue(app.descendants(matching: .any)["place.map"].exists, "Search focus must immediately expand the house map")
-        capture("house-map-02-focus-without-typing", app)
-        place.typeText("\n")
-        // Bring the external field below the map above the footer without panning MapKit.
-        let scroll = app.scrollViews.firstMatch
-        scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.85)).press(forDuration: 0.05, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.3)))
-        XCTAssertTrue(address.isHittable); address.tap(); address.typeText(" ")
-        app.buttons["checklist.keyboard.done"].tap()
-        let editedHouseAddress = address.value as? String ?? ""
-        XCTAssertNotEqual(editedHouseAddress, savedHouseAddress)
-        XCTAssertEqual(editedHouseAddress.replacingOccurrences(of: " ", with: ""), savedHouseAddress.replacingOccurrences(of: " ", with: ""))
-        XCTAssertEqual(app.buttons["place.mapToggle"].label, "展开地图")
-        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Editing the real house address must collapse the map")
-        capture("house-map-03-manual-address-collapsed", app)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["tab.我的"].tap()
         app.buttons["settings.workplace"].tap()
         let search = app.textFields["place.query"]; XCTAssertTrue(search.waitForExistence(timeout: 3)); search.tap(); search.typeText("办公楼\n")
@@ -91,11 +64,6 @@ import CoreLocation
         XCTAssertTrue(answer.waitForExistence(timeout: 3)); XCTAssertEqual(answer.value as? String, "24")
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.选点与通勤"].waitForExistence(timeout: 10))
         app.buttons["house.选点与通勤"].tap(); XCTAssertFalse(next.exists)
-        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
-        XCTAssertTrue(address.waitForExistence(timeout: 3))
-        XCTAssertEqual(address.value as? String, editedHouseAddress)
-        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
-        capture("house-map-04-relaunched-collapsed", app)
         let restored = app.textFields["mp.checklist.search"]; restored.tap(); restored.typeText("公交地铁")
         app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(answer.value as? String, "24")
         capture("35-business-commute-restored", app)
@@ -113,6 +81,54 @@ import CoreLocation
         XCTAssertFalse(app.buttons["place.result.center"].exists)
         capture("45-business-archived-map", app)
     }
+    func testHouseMapReentryFocusAndAddressPersistAfterRelaunch() {
+        let app = launch()
+        app.buttons["home.add"].tap()
+        let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
+        name.tap(); name.typeText("地图状态回归"); app.buttons["prompt.confirm"].tap()
+        let next = app.buttons["coach.next"]; XCTAssertTrue(next.waitForExistence(timeout: 5))
+        for _ in 0..<3 { next.tap() }
+        app.buttons["coach.preference"].tap(); next.tap()
+        XCTAssertTrue(next.waitForNonExistence(timeout: 3))
+        let basic = app.staticTexts["mp.field.title.node:category:房源基本信息"]
+        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
+        let query = app.textFields["place.query"], address = app.textFields["mp.field.input.f1_1"]
+        let map = app.descendants(matching: .any)["place.map"], toggle = app.buttons["place.mapToggle"]
+        XCTAssertTrue(query.waitForExistence(timeout: 3)); query.tap(); query.typeText("阳光\n")
+        let choice = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '阳光小区'")).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 4)); choice.tap(); assertCandidatesStayDismissed(app)
+        let savedAddress = address.value as? String ?? ""; XCTAssertTrue(savedAddress.contains("阳光小区"))
+        app.navigationBars.buttons.firstMatch.tap(); app.buttons["house.地图状态回归"].tap()
+        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
+        XCTAssertTrue(address.waitForExistence(timeout: 3)); XCTAssertEqual(address.value as? String, savedAddress)
+        XCTAssertEqual(toggle.label, "展开地图"); XCTAssertFalse(map.exists)
+        capture("house-map-01-reentered-collapsed", app)
+        query.tap(); XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+        XCTAssertEqual(query.value as? String, "搜索地址，更快填写")
+        XCTAssertTrue(map.waitForExistence(timeout: 3), "Focusing the empty search must expand the saved house map")
+        capture("house-map-02-focus-without-typing", app)
+        query.typeText("\n")
+        let scroll = app.scrollViews.firstMatch
+        scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.85)).press(forDuration: 0.05, thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.02, dy: 0.3)))
+        XCTAssertTrue(address.isHittable); address.tap(); address.typeText("改址")
+        app.buttons["checklist.keyboard.done"].tap()
+        let editedAddress = address.value as? String ?? ""
+        XCTAssertNotEqual(editedAddress, savedAddress)
+        XCTAssertEqual(editedAddress.replacingOccurrences(of: "改址", with: ""), savedAddress)
+        XCTAssertEqual(toggle.label, "展开地图"); XCTAssertFalse(map.exists)
+        capture("house-map-03-manual-address-collapsed", app)
+        toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3), "The saved map must survive invalidated house coordinates")
+        capture("house-map-04-retained-camera", app)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["house.地图状态回归"].waitForExistence(timeout: 10)); app.buttons["house.地图状态回归"].tap()
+        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
+        XCTAssertTrue(address.waitForExistence(timeout: 3)); XCTAssertEqual(address.value as? String, editedAddress)
+        XCTAssertEqual(toggle.label, "展开地图"); XCTAssertFalse(map.exists)
+        capture("house-map-05-relaunched-collapsed", app)
+        query.tap(); XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+        XCTAssertEqual(toggle.label, "收起地图"); XCTAssertEqual(query.value as? String, editedAddress)
+        capture("house-map-06-text-address-focus", app)
+    }
     func testManualWorkplaceSaveAndClearSurviveRelaunch() {
         let app = launch(); app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
         let address = app.textFields["workplace.address"], query = app.textFields["place.query"]
@@ -123,7 +139,7 @@ import CoreLocation
         XCTAssertTrue(office.waitForExistence(timeout: 4)); office.tap(); assertCandidatesStayDismissed(app)
         let selectedAddress = address.value as? String ?? ""
         XCTAssertTrue(selectedAddress.contains("办公楼"))
-        toggle.tap(); XCTAssertTrue(map.exists)
+        toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3)); XCTAssertEqual(toggle.label, "收起地图")
         address.tap(); address.typeText("改址"); app.buttons["完成"].firstMatch.tap()
         let editedAddress = address.value as? String ?? ""
         XCTAssertNotEqual(editedAddress, selectedAddress)
@@ -131,7 +147,7 @@ import CoreLocation
         XCTAssertEqual(toggle.label, "展开地图", "Coordinate invalidation must collapse the map, not merely replace it with an empty placeholder")
         XCTAssertFalse(map.exists, "Manual workplace edits must collapse the map even when saved coordinates become invalid")
         capture("workplace-map-01-manual-collapsed", app)
-        toggle.tap(); XCTAssertTrue(map.exists, "The prior camera must survive the address invalidating its coordinates")
+        toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3), "The prior camera must survive the address invalidating its coordinates")
         capture("workplace-map-02-retained-camera", app)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()

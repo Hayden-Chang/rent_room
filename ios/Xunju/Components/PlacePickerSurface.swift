@@ -82,6 +82,7 @@ struct PlacePickerSurface: View {
                         Image(systemName: collapsed ? "chevron.down" : "chevron.up")
                     }.font(.system(size: 13)).padding(.horizontal, 12).frame(minHeight: 44)
                         .background(XJTheme.background).clipShape(RoundedRectangle(cornerRadius: 8))
+                        .contentShape(Rectangle())
                 }.buttonStyle(.plain).foregroundStyle(XJTheme.primary).accessibilityIdentifier("place.mapToggle")
             }
             ZStack(alignment: .topTrailing) {
