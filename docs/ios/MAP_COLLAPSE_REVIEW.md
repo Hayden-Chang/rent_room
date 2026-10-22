@@ -1,6 +1,6 @@
 # 地图自动收起组件评审（2026-10-22）
 
-本次仅评审原生地点组件：搜索框输入或清空时自动展开地图；点击“使用”或搜索结果、外部手填地址变化时收起地图，保留搜索结果和“展开地图”入口。再次展开恢复完整 MapCamera（中心、距离、方向和倾角），不主动请求 GPS。隐藏地图不参与点击或无障碍导航；只读地图仍可查看。
+本次仅评审原生地点组件：已有地址、坐标或预填地址重新显示时保持收起；搜索框获得焦点、输入或清空时自动展开地图；点击“使用”或搜索结果、外部手填地址变化时收起地图，保留搜索结果和“展开地图”入口。再次展开恢复完整 MapCamera（中心、距离、方向和倾角），不主动请求 GPS。隐藏地图不参与点击或无障碍导航；只读地图仍可查看。
 
 ## 范围和接入边界
 
@@ -9,7 +9,38 @@
 - 评审宿主候选地点为固定夹具；地图为真实 MapKit，平移使用原生手势。宿主选点不写房源，不代表业务保存或物理 GPS 已验收。
 - `reviewCameraChanged` 仅在 Debug 编译，普通业务调用为 nil；用于读回真实相机距离，不改变相机决策。
 
-## 本轮搜索展开修订与当前证据
+## 本轮同步：重进保持收起，聚焦立即展开
+
+源码证据提交 `fc6692f6ebc84254baa0b5100cd38e90fa851a66`。`PlacePickerSurface` 初次显示根据地址、中心和预填query初始化收起，空白地点与只读地图仍可显示；通过FocusState显式展开，绑定忽略未变化的文字。对PlaceSearch.start稍后预填的纯文字地址，在用户尚未操作时仍保持收起，用户已聚焦/输入/手动展开后的异步预填不会替其收起。
+
+共用组件由既有HousePlaceField/WorkplacePage调用，本轮没有改LocationPages、PlaceSearch、房源存储或工程配置。Debug宿主保留地址与中心，使用独立id重建同一生产组件，新增挂载代次与查询写入计数；全部只在DEBUG编译。重进证据是组件重新挂载，不代表真实房源导航、磁盘保存与重新打开的完整业务E2E。正式手填字段的外部address参数接入仍遵守上面的批准边界。
+
+### 修改前与诊断
+
+- `d398720`只增加测试/宿主，生产组件仍为旧版。red-01：iPhone14 Pro/iOS18.3.1，2方法1失败/1通过，失败为 `Reentering a saved address must keep the map collapsed`。空搜索首次聚焦旧版已可展开，没有把这个通过场景说成焦点不展开的失败。
+- 随后`067636f`只增加查询写入计数，仍不改生产组件。focus-red-02：iPhone16/iOS26.5，单方法失败，焦点没有输入文字却写回查询2次（0→2），失败为 `Focus must not resubmit an unchanged search query`。因此新版本使用显式焦点并跳过相同值写回，使展开不再依赖该副作用。
+- 两次原始结果分别为 `/Volumes/mac2/codex-builds/xunju-map-focus-reentry-20261022-red-01.xcresult` 和 `xunju-map-focus-reentry-20261022-focus-red-02.xcresult`；日志及summary在 `/private/tmp/rent-room-map-collapse-20261022/ios-focus-*`。未强停或覆盖失败结果。
+
+### 修复后结果
+
+共享runner最终计划0 UT/3 UI，三个精确方法一次完整通过（0失败/0跳过），未运行全量suite。未增加镜像组件状态的UT；本轮只改SwiftUI本地交互，沿用真实UI验证。
+
+| 精确方法 | 本轮证据 |
+| --- | --- |
+| `XunjuUITests/UtilityReviewTests/testPlaceMapExpandsForSearchAndCollapsesAfterUseOrManualAddress` | 选点后保持地址，id重建后挂载计数变1且地图仍隐藏；后续原生平移、选点/搜索/手填收起与中心/距离恢复均通过，9张图 |
+| `XunjuUITests/UtilityReviewTests/testPlaceSearchSelectionAndPermissionFallback` | 空query只点击搜索框，键盘出现、地图展开、query仍为空且写入计数保持0；搜索选点及权限/设置入口通过，5张图 |
+| `XunjuUITests/UtilityReviewTests/testReadOnlyMapHidesEditingAndLocationActions` | 从初始收起状态切到只读，地图显示且编辑/定位入口隐藏，通过，1张图 |
+
+- 设备：iPhone14 Pro / iOS18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`，1178×2556截图。
+- runner PID92002、slot1，UI子进程92420，退出码0，完成后本任务owner/lease已释放。缓存 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-ccf0d0815539d3e202f08802-simulator`；仓库包装脚本与XcodeGen2.45.4，未提交生成工程。
+- 计划 `/private/tmp/rent-room-map-collapse-20261022/ios-focus-reentry-green-plan.json`，日志同目录 `ios-focus-reentry-green.log`，runner receipt `/tmp/todo-ios-sim-pool/run-receipts/xunju-map-focus-reentry-20261022-green-01.json`。
+- 结果包 `/Volumes/mac2/codex-builds/xunju-map-focus-reentry-20261022-green-01.xcresult`；原始15张附件及manifest在 `/private/tmp/rent-room-map-collapse-20261022/ios-focus-reentry-attachments/`。
+- 显示副本 `/Users/pc/.codex/visualizations/2026/10/22/01a1613d-4a43-7142-9c62-95a0f560db41/map-collapse/ios-focus-reentry/`，provenance.json逐图记录原始路径、测试、尺寸和SHA256，复制前后字节一致。
+- 主agent已查看重进前后、空输入焦点和键盘、视野恢复与只读原始截图；重进后只剩“展开地图”，焦点态搜索框仍显示占位词且地图与键盘同时可见。本轮POI/权限仍为固定夹具，真实MapKit和原生操作，未做物理设备或真实业务保存验证。
+
+当前 `REVIEW_READY`，等用户视觉批准；未合并、真机安装或发布。证据源码之后仅追加本文档，生产、宿主、UI测试与构建配置相同，复用fc6692f结果，不将文档提交称为新测试来源。
+
+## 前轮搜索展开修订与证据
 
 按用户最新反馈，只有用户编辑/清空搜索框才主动展开；选择结果后程序清空搜索词继续保持收起，外部手填地址变化仍收起。未改正式页面或业务模型。
 
