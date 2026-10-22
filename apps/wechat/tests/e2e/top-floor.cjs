@@ -3,9 +3,11 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 if(!process.env.WECHAT_WS_ENDPOINT||!process.env.WECHAT_ARTIFACT_DIR)throw Error('Use the shared WeChat pool');
 const automator=require(process.env.WECHAT_AUTOMATOR_MODULE||'/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 const out=process.env.WECHAT_ARTIFACT_DIR,steps=[];
-const timer=setTimeout(()=>{console.error('Top-floor UI test timed out');process.exit(1);},110000);
+let stage='connect';
+async function bounded(name,work){stage=name;console.log('UI: '+name);let timeout;try{return await Promise.race([work(),new Promise((_,reject)=>{timeout=setTimeout(()=>reject(Error(name+' protocol timeout')),15000);})]);}finally{clearTimeout(timeout);}}
+const timer=setTimeout(()=>{fs.writeFileSync(path.join(out,'timeout.json'),JSON.stringify({stage,steps}));console.error('Top-floor UI test timed out at '+stage);process.exit(1);},110000);
 (async()=>{
- const mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
+ const mini=await bounded('connect',()=>automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT}));
  const shot=name=>mini.screenshot({path:path.join(out,name+'.png')});
  let page,id;
  const read=()=>mini.evaluate(id=>{
@@ -14,14 +16,14 @@ const timer=setTimeout(()=>{console.error('Top-floor UI test timed out');process
  },id);
  async function wait(test,label){const until=Date.now()+6000;while(Date.now()<until){const value=await read();if(test(value))return value;await page.waitFor(100);}throw Error(label+' not reached');}
  const row=()=>page.$('.field-branch[data-scroll-key="field-f-f1_top"] field-row');
- async function open(){page=await mini.reLaunch('/pages/detail/index?id='+encodeURIComponent(id));await page.waitFor('input.grow');await (await page.$('input.grow')).input('顶楼');await page.waitFor('.field-branch[data-scroll-key="field-f-f1_top"]');}
+ async function open(){await bounded('open checklist and search',async()=>{page=await mini.reLaunch('/pages/detail/index?id='+encodeURIComponent(id));await page.waitFor('input.grow');await (await page.$('input.grow')).input('顶楼');await page.waitFor('.field-branch[data-scroll-key="field-f-f1_top"]');});}
  async function choose(value){await (await (await row()).$('button[data-value="'+value+'"]')).tap();}
  try{
-  id=await mini.evaluate(()=>{
+  id=await bounded('prepare isolated fixture',()=>mini.evaluate(()=>{
    const service=getApp().service;
    if(!service.root.includes('xunju-test-top-floor-20261022'))throw Error('Isolated root required');
    const id=service.store.add('顶楼检查');service.store.answer(id,'f1_top','note','已确认楼层与隔热情况');return id;
-  });
+  }));
   await open();assert.equal(await (await (await row()).$('.label')).text(),'顶楼');await shot('top-floor-01-unanswered');
   await choose('是');await wait(v=>v.answer.value==='是'&&v.stats.issues===1,'automatic issue');
   assert(await (await row()).$('.field.bad'));await shot('top-floor-02-yes-automatic-issue');steps.push('yes automatically marks an issue');

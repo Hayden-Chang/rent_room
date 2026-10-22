@@ -17,6 +17,11 @@ function legacy(value,override) {
 }
 
 describe('top-floor answer and independent issue override',()=>{
+ it('does not activate dormant negative issue metadata on other fact fields',()=>{
+  const h=freshHouse('其他事实项'),delivery=fields.find(f=>f.id==='f8_2');
+  expect(delivery.fact).toBe(true);expect(delivery.badValue).toBeUndefined();
+  updateAnswer(h,delivery.id,'value','否');expect(stats(h).issues).toBe(0);
+ });
  it('generates a top-floor fact with yes as the automatic issue value',()=>{
   expect(fields.find(f=>f.id==='f1_top')).toMatchObject({label:'顶楼',fact:true,badValue:'是'});
   const h=freshHouse('新房源');expect(fieldView(h,field(h)).problem).toBe(false);
