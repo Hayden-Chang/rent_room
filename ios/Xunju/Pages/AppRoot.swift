@@ -55,7 +55,7 @@ private struct WorkspaceRoot: View {
             }.background(XJTheme.background)
         }.id(workspace.identityRevision).tint(XJTheme.primary)
             .environment(\.wheelInput, wheels)
-            .allowsHitTesting(wheels.target == nil).accessibilityHidden(wheels.target != nil)
+            .accessibilityHidden(wheels.target != nil)
             .overlay {
                 if let target = wheels.target, let spec = WheelFieldSpec.all[target.field.id] {
                     WheelInputDialog(spec: spec, value: target.field["value"].string,
