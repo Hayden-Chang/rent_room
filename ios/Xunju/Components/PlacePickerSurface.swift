@@ -35,20 +35,29 @@ struct PlacePickerSurface: View {
     let choose: (PlaceChoice) -> Void
     @State private var position: MapCameraPosition = .automatic
     @State private var camera: MapCamera?
-    @State private var collapsed = false
+    @State private var collapsed = true
+    @State private var interacted = false
     @FocusState private var searchFocused: Bool
 
     var body: some View {
         VStack(spacing: 10) {
             if !readonly {
             HStack(spacing: 4) {
-                TextField("搜索地址，更快填写", text: Binding(get: { query }, set: { query = $0; collapsed = false }))
+                TextField("搜索地址，更快填写", text: Binding(get: { query }, set: {
+                    guard query != $0 else { return }
+                    expandForSearch(); query = $0
+                }))
                     .font(.system(size: 14)).submitLabel(.search)
                     .focused($searchFocused).onSubmit { searchFocused = false; search() }
-                    .onChange(of: query) { if query.count > 200 { query = String(query.prefix(200)) } }
+                    .onChange(of: query) {
+                        if query.count > 200 { query = String(query.prefix(200)) }
+                        // PlaceSearch.start can seed a saved text-only address after appearance.
+                        if !interacted && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { collapsed = true }
+                    }
+                    .onChange(of: searchFocused) { if searchFocused && !readonly { expandForSearch() } }
                     .accessibilityLabel("搜索地址").accessibilityIdentifier("place.query")
                 if !query.isEmpty {
-                    Button { collapsed = false; query = ""; search() } label: { Image(systemName: "xmark").font(.system(size: 14)).frame(width: 32, height: 42) }
+                    Button { expandForSearch(); query = ""; search() } label: { Image(systemName: "xmark").font(.system(size: 14)).frame(width: 32, height: 42) }
                         .accessibilityLabel("清空搜索").accessibilityIdentifier("place.clear")
                 }
             }.padding(.horizontal, 12).frame(minHeight: 44)
@@ -61,6 +70,7 @@ struct PlacePickerSurface: View {
             }
             if !readonly {
                 Button {
+                    interacted = true
                     searchFocused = false
                     if collapsed, let camera { position = .camera(camera) }
                     collapsed.toggle()
@@ -126,8 +136,15 @@ struct PlacePickerSurface: View {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }.foregroundStyle(XJTheme.ink).tint(XJTheme.primary)
-            .onAppear { recenter() }.onChange(of: center) { recenter() }
+            .onAppear {
+                collapsed = !readonly && (center != nil || !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                recenter()
+            }.onChange(of: center) { recenter() }
             .onChange(of: address) { if !readonly { collapsed = true } }
+    }
+
+    private func expandForSearch() {
+        interacted = true; collapsed = false
     }
 
     private func recenter() {
