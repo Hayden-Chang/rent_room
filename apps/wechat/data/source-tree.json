@@ -163,11 +163,12 @@
           {
             "id": "f1_top",
             "kind": "field",
-            "title": "非顶楼",
+            "title": "顶楼",
             "meta": {
               "id": "f1_top",
               "type": "y",
               "fact": true,
+              "badValue": "是",
               "legacyType": "y",
               "phase": "房源信息",
               "hint": "选择户型、朝向，填写实际面积和月租。顶楼、阳台按事实记录。",
@@ -1277,7 +1278,7 @@
           {
             "id": "topic_14",
             "kind": "group",
-            "title": "楼道卫生",
+            "title": "楼道状况",
             "meta": {
               "phase": "现场看房",
               "hint": "检查公共区域卫生、异味、照明及嘈杂程度。",
