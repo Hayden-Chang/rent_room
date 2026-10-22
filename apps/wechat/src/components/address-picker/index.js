@@ -1,7 +1,7 @@
 import {AddressPicker} from '../../lib/address-picker.js';
 Component({
   properties:{address:String,location:Object,anchor:String,readonly:Boolean,emptyText:{type:String,value:'搜索地址或点击定位，选择房源位置'}},
-  data:{center:null,query:'',items:[],mode:'',busy:false,message:'',locationAction:'',scale:16},
+  data:{center:null,query:'',items:[],mode:'',busy:false,message:'',locationAction:'',scale:16,collapsed:false},
   observers:{'address,location,anchor,readonly'(){this.picker?.sync(this.data);}},
   lifetimes:{
     attached(){
@@ -13,6 +13,7 @@ Component({
   },
   methods:{
     noop(){},
+    toggleMap(){this.picker.toggleMap();},
     input(e){this.picker.input(e.detail.value);},
     clear(){this.picker.input('');},
     locate(){this.picker.gps();},
@@ -26,7 +27,7 @@ Component({
     },
     region(e){
       const detail=e.detail||{},type=detail.type||e.type,cause=detail.causedBy||e.causedBy;
-      if(type!=='end'||!['drag','scale'].includes(cause))return;
+      if(this.data.collapsed||type!=='end'||!['drag','scale'].includes(cause))return;
       if(Number.isFinite(detail.scale))this.setData({scale:detail.scale});
       if(detail.centerLocation)this.picker.move(detail.centerLocation);
       else {

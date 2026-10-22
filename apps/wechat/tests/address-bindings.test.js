@@ -25,6 +25,13 @@ it('handles native drag and zoom end shapes while ignoring automatic region upda
 it('does not apply a delayed native center read after a newer search or detach',()=>{
  let success;const {c}=component('address-picker',{wx:{createMapContext:()=>({getCenterLocation:o=>success=o.success})}});c.picker={revision:1,disposed:false,move:vi.fn()};c.region({type:'end',causedBy:'drag'});c.picker.revision++;success({latitude:22,longitude:114});expect(c.picker.move).not.toHaveBeenCalled();
 });
+it('retains map scale through collapse and ignores late native region events',()=>{
+ const {c}=component('address-picker');c.picker={move:vi.fn(),toggleMap:()=>c.data.collapsed=!c.data.collapsed};
+ c.region({type:'end',causedBy:'scale',detail:{centerLocation:{latitude:22,longitude:114},scale:18}});
+ c.toggleMap();c.region({type:'end',causedBy:'drag',detail:{centerLocation:{latitude:23,longitude:115},scale:14}});
+ expect(c.data.scale).toBe(18);expect(c.picker.move).toHaveBeenCalledTimes(1);
+ c.toggleMap();expect(c.data.scale).toBe(18);
+});
 it('keeps map embedded and zoomable with one center pin and no fullscreen API',()=>{
  const markup=fs.readFileSync('dist/components/address-picker/index.wxml','utf8'),page=fs.readFileSync('dist/pages/detail/index.js','utf8');expect(markup).toContain('enable-zoom="{{true}}"');expect(markup).toContain('bindregionchange="region"');expect(markup.match(/class="center-pin"/g)).toHaveLength(1);expect(markup).not.toContain('markers=');expect(page).not.toContain('chooseLocation');expect(page).not.toContain('openLocation');
 });
