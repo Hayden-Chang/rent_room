@@ -9,7 +9,7 @@
 - 两套模板各自保存排序和停用项，保存编辑不切换当前模板。已有房源继续使用创建时的快照，不改答案、问题、备注或影像。
 - 老设置没有 selectedTemplate 时继续使用详细模式；只有首次模式页预选精简，避免替旧用户修改选择。
 - 精简包含 61 个文档确认的统一记录项（现场 53、合同 8），以及保留逐项的基本信息、费用、房东身份与产权、押金退还时间。全模板共 99 个字段，空白房源计数 99；详细模式原 302 个字段、初始适用计数 204 保持不变。
-- 合并项显示完整说明与精确选项，不提供子项展开。结果、问题标记、备注、影像使用同一个稳定字段 ID；普通备注不创建问题；完成度和问题各计一次。左滑教学定位实际合并项。
+- 合并项提供完整说明与精确选项，说明通过标题旁的眼睛独立展开/收起，不提供子项展开。结果、问题标记、备注、影像使用同一个稳定字段 ID；普通备注不创建问题；完成度和问题各计一次。左滑教学定位实际合并项。
 - 退房只含“押金退还时间”“退房保洁费用和要求已确认”，顺序固定。“入住前房东重新做卫生”在该组外。删除文档指定的合同分支与家具家电齐全项。
 - 混合模式房源可对比；只属于另一模板的项显示“不涉及”，不伪造详细子项答案。ZIP 保留模板快照及关联媒体。
 
@@ -63,3 +63,23 @@ WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 - 截图使用隔离夹具、直接控制器调用和真实微信渲染；不能代替点击、返回手势、拖动、左滑或真机验收。本轮没有重试已知无响应的 Page 点击协议。
 
 草稿交付，未合并、未部署、未发布。真实交互及用户视觉确认完成前不声明可合并。合入依赖小搭 PR #56；最终集成者应核对当时的基分支组合与受影响验证。
+
+## 说明眼睛开关补充（2026-10-24）
+
+根据后续标图，只有带说明的标题显示眼睛。初始收起说明、亮色无划线；点击展开后变灰并加划线，再点收起恢复亮色。每项独立，查看说明不折叠分组、不选择答案、不修改问题、备注或影像。归档房源仍可查看说明；同字段刷新保留展开状态，组件换成另一字段时恢复收起。
+
+应用代码 SHA：cda9030613a4289e134c573402ebcf67be1c35b9。此次仅修改共享 field-row 展示与局部状态，未改清单真源、房源快照或持久化结构。复用上节精简模型与模板流程的验证结果。
+
+定向重跑 field-row-events、field-row-swipe、field-row-placeholder、field-row-inline-actions、field-row-swipe-scope，5 文件 / 81 项通过，包含 8 项新的说明开关用例。验证有/无说明、往返切换、逐项独立、只读查看、分组折叠隔离、左滑结束误触、滚动和答案刷新保留。旧夹具原有 25 个失败：23 个把已有 swipeopen 教学通知误当业务操作，2 个缺少当前页面守卫要求的 service。核对变更前 699e86a 源码后，将通知单独记录并断言、补齐页面前置条件；没有修改生产左滑或账户逻辑。原失败日志保留为 eye-unit-before-fixture-update.log。
+
+官方 wcc/wcsc 检查通过，15 页、2,051,857 字节。日志位于 apps/wechat/artifacts/simple-mode/eye-build.log、eye-unit.log、eye-compile.log。命令：
+
+```sh
+WECHAT_TEST_DATA_ROOT=xunju-test-simple-20261024 node scripts/build.mjs
+node node_modules/vitest/vitest.mjs run tests/field-row-events.test.js tests/field-row-swipe.test.js tests/field-row-placeholder.test.js tests/field-row-inline-actions.test.js tests/field-row-swipe-scope.test.js
+node scripts/check.mjs
+```
+
+真实开发者工具 run df1de0cb3abf48609cc09bf7fbf1a609 在干净 cda9030 上通过，产生 17 张截图；产物 SHA-256 为 916d0b8f8efeccabf2a5823e8c46997fc94e08322fcf5c1a8013f60d9ed10bf6。重点核对默认收起、展开空调、只展开冰箱、再次全部收起、问题说明、长标题及分组眼睛的实际排版。截图前后断言存储中的房源字节内容未变；第 3 槽正常归还 idle，常驻进程保留。
+
+本地图集 artifacts/simple-mode-20261024/index.html 已更新，前 5 张为本次说明状态。原图复制后校验 SHA-256、PNG 尺寸并写入 delivery-manifest.json。截图状态通过生产控制器准备，测试通过实际 WXML 事件绑定验证局部逻辑；均不等同于真机点击证据，真实交互与视觉确认仍待验收。此补充为文档记录，不改变上述已验证应用代码。
