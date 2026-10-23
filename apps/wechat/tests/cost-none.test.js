@@ -64,7 +64,7 @@ it('binds the trailing none control and refreshes the saved page state on each t
  vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date});
  const c={...spec.methods,data:{...structuredClone(spec.data),field:page.data.sections.flatMap(s=>s.rows).find(r=>r.id==='f95_6')},setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){expect(name).toBe('answer');page.answer({detail});this.data.field=page.data.sections.flatMap(s=>s.rows).find(r=>r.id==='f95_6');}};
  const markup=fs.readFileSync('dist/components/field-row/index.wxml','utf8'),tag=markup.match(/<button[^>]*class="[^"]*cost-none[^>]*>/)?.[0];expect(tag).toBeTruthy();
- expect(markup).toMatch(/class="cost-entry"[\s\S]*<input[^>]*disabled="\{\{readonly\|\|field.noCost\}\}"[\s\S]*class="control choice cost-none/);
+ expect(markup).toMatch(/class="cost-entry"[\s\S]*<input[^>]*disabled="\{\{readonly\|\|field.noneSelected\}\}"[\s\S]*class="control choice cost-none/);
  const handler=tag.match(/catchtap="([^"]+)"/)[1];
  c[handler]();expect(c.data.field.noCost).toBe(true);expect(store.house(id).answers.f95_6.noCost).toBe(true);
  c[handler]();expect(c.data.field.noCost).toBe(false);

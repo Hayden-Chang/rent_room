@@ -84,6 +84,7 @@ export function toTopics(root) {
     if(typeof meta.unit==='string')f.unit=meta.unit;
     if(typeof meta.role==='string')f.role=meta.role;
     if(meta.cost===true)f.cost=true;
+    if(meta.allowNone===true)f.allowNone=true;
     if(meta.multiple===true)f.multiple=true;
     const condition=parseVisibilityCondition(meta.visibleWhen);if(condition)f.visibleWhen=condition;
     if(meta.resultSources&&typeof meta.resultSources.presence==='string'&&typeof meta.resultSources.condition==='string')f.resultSources={presence:meta.resultSources.presence,condition:meta.resultSources.condition};

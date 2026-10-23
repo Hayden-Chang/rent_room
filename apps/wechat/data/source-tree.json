@@ -6477,7 +6477,8 @@
                   "hint": "清点现有家具家电，问清缺少的是否可由房东补齐。",
                   "sources": [
                     "IMG_6317.PNG"
-                  ]
+                  ],
+                  "allowNone": true
                 },
                 "children": []
               },
@@ -6495,7 +6496,8 @@
                   "hint": "清点现有家具家电，问清缺少的是否可由房东补齐。",
                   "sources": [
                     "IMG_6317.PNG"
-                  ]
+                  ],
+                  "allowNone": true
                 },
                 "children": []
               },
@@ -6513,7 +6515,8 @@
                   "hint": "清点现有家具家电，问清缺少的是否可由房东补齐。",
                   "sources": [
                     "IMG_6317.PNG"
-                  ]
+                  ],
+                  "allowNone": true
                 },
                 "children": []
               }
