@@ -964,35 +964,6 @@
                   "phase": "现场看房",
                   "role": "inspection-check"
                 }
-              },
-              {
-                "id": "f11_1",
-                "kind": "field",
-                "title": "停车费（元/月）",
-                "meta": {
-                  "id": "f11_1",
-                  "type": "n",
-                  "options": null,
-                  "quick": false,
-                  "aliases": [
-                    {
-                      "id": "f95_4",
-                      "label": "停车费",
-                      "type": "t",
-                      "options": null,
-                      "quick": false
-                    }
-                  ],
-                  "legacyType": "n",
-                  "phase": "现场看房",
-                  "hint": "如需停车，确认车位及收费。",
-                  "sources": [
-                    "IMG_6310.PNG",
-                    "IMG_6313.PNG",
-                    "IMG_6326.PNG"
-                  ]
-                },
-                "children": []
               }
             ]
           },
@@ -9483,7 +9454,7 @@
                   "quick": false,
                   "legacyType": "t",
                   "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费记在停车条件。",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
                   "sources": [
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
@@ -9503,7 +9474,7 @@
                   "quick": false,
                   "legacyType": "t",
                   "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费记在停车条件。",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
                   "sources": [
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
@@ -9523,7 +9494,36 @@
                   "quick": false,
                   "legacyType": "t",
                   "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费记在停车条件。",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
+                  "sources": [
+                    "IMG_6310.PNG",
+                    "IMG_6313.PNG",
+                    "IMG_6326.PNG"
+                  ]
+                },
+                "children": []
+              },
+              {
+                "id": "f11_1",
+                "kind": "field",
+                "title": "停车费（元/月）",
+                "meta": {
+                  "id": "f11_1",
+                  "type": "n",
+                  "options": null,
+                  "quick": false,
+                  "aliases": [
+                    {
+                      "id": "f95_4",
+                      "label": "停车费",
+                      "type": "t",
+                      "options": null,
+                      "quick": false
+                    }
+                  ],
+                  "legacyType": "n",
+                  "phase": "询问与签约",
+                  "hint": "如需停车，确认车位及收费。",
                   "sources": [
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
@@ -9570,7 +9570,7 @@
                   "quick": false,
                   "legacyType": "t",
                   "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费记在停车条件。",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
                   "sources": [
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
@@ -9621,7 +9621,7 @@
                   "quick": false,
                   "legacyType": "t",
                   "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费记在停车条件。",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
                   "sources": [
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
@@ -9641,7 +9641,7 @@
                   "quick": false,
                   "legacyType": "t",
                   "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费记在停车条件。",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
                   "sources": [
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
