@@ -67,7 +67,7 @@
 .filter-toggle{display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.filter-chevron{width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-top:-4px}.filter-chevron.open{transform:rotate(225deg);margin-top:4px}
 
 .xiaoda-coach{position:fixed;inset:0;z-index:500;pointer-events:none}.coach-shade{position:absolute;background:#1b234957;pointer-events:auto}.coach-shade.full{inset:0}.xiaoda-highlight{position:absolute;border:2px solid #6763ed;border-radius:12px;box-sizing:border-box;pointer-events:none}.xiaoda-coach-card{pointer-events:auto;left:12px;right:12px;padding:20px;background:#fff;border-radius:24px;border:2px solid #e2e5ec}.xiaoda-coach-card .primary{margin-top:20px;width:100%}/* Companion guidance is a sibling of its target, never checklist content. */
-.fill-guide{position:relative;padding:0 0 16px;margin:12px 0 32px;background:transparent}
+.fill-guide{position:relative;padding:16px 0;margin:12px 0 32px;background:transparent}
 .fill-category-target .category-head{position:relative}
 .fill-category-target .category-head::before{content:"";position:absolute;left:-16px;top:18px;width:3px;height:24px;border-radius:0 3px 3px 0;background:#6763ed}
 .fill-phase-target{box-shadow:inset 0 0 0 2px #6763ed}
