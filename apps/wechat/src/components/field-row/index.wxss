@@ -45,7 +45,7 @@
 .description{font-size:12px;line-height:1.6;color:#667187;margin:4px 0 8px;white-space:pre-wrap}
 
 /* Keep the disclosure beside its title and outside answer/fold activation. */
-.description-toggle:not([size=mini]){flex:0 0 32px;width:32px;height:44px;min-height:44px;padding:0;margin:0;display:flex;align-items:center;justify-content:center;background:transparent;color:#4d56df;border-radius:6px;line-height:1}
+.description-toggle:not([size=mini]){flex:0 0 32px;width:32px;height:44px;min-height:44px;padding:0;margin:0;display:flex;align-items:center;justify-content:center;background:transparent;color:#000000;border-radius:6px;line-height:1}
 .description-toggle::after{border:0}.description-toggle.description-open{color:#98a1b1}
 .eye-icon{position:relative;display:block;width:20px;height:20px}
 .eye-outline{position:absolute;left:3px;top:3px;width:14px;height:14px;border:1.5px solid currentColor;border-radius:70% 15%;transform:rotate(45deg);box-sizing:border-box}
