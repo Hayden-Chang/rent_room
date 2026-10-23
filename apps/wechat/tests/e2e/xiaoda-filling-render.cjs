@@ -10,10 +10,10 @@ async function data(){return JSON.parse(await mini.evaluate(function(){
  for(var j=0;j<st.houses.length;j++)if(st.houses[j].id===p.data.id)answers=st.houses[j].answers;
  return JSON.stringify({route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,phase:p.data.phase,sections:sections,feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:answers});
 }));}
-async function route(url,method='reLaunch'){await mini.evaluate(function(url,method){wx[method]({url:url});return true;},url,method);console.log('navigation requested '+url);const target=url.split('?')[0].slice(1);for(let i=0;i<40;i++){const d=await data();if(d.route===target)return;await sleep(100);}throw Error('Navigation did not reach '+target);}
+async function route(url,method='reLaunch'){await mini.evaluate(function(url,method){wx[method]({url:url});return true;},url,method);console.log('navigation requested '+url);await sleep(800);const target=url.split('?')[0].slice(1);for(let i=0;i<40;i++){const d=await data();if(d.route===target)return;await sleep(100);}throw Error('Navigation did not reach '+target);}
 async function capture(key,title,description,expected){
  let d=await data();const length=Array.from(d.prompt?.text||d.homeMessage||'').length;
- await sleep(Math.min(3500,length*45+180));d=await data();
+ await sleep(d.prompt?.kind==='intro'?100:Math.min(3500,length*45+180));d=await data();
  if(expected?.kind!==undefined)assert.equal(d.prompt?.kind||null,expected.kind,key);
  if(expected?.target)assert.equal(d.prompt?.target,expected.target,key);
  if(expected?.home)assert.equal(d.route,'pages/home/index',key);
