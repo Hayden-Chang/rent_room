@@ -3,13 +3,14 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use shared pool');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const realTaps=process.env.XIAODA_REAL_TAPS==='1';
 const out=process.env.WECHAT_ARTIFACT_DIR;let mini;const captured=[];
 async function evaluate(fn,...args){const result=await mini.evaluate('function(){try{return ('+fn.toString()+').apply(null,arguments);}catch(e){return "__CALL_ERROR__"+e.stack;}}',...args);if(typeof result==='string'&&result.startsWith('__CALL_ERROR__'))throw Error(result);return result;}
 async function data(){return JSON.parse(await evaluate(function(){
  var p=getCurrentPages().slice(-1)[0],st=getApp().service.store.get();if(!p)return JSON.stringify({route:'',prompt:null});
  var sections=[],answers={};if(p.data.sections)for(var i=0;i<p.data.sections.length;i++){var section=p.data.sections[i];sections.push({title:section.title,rows:section.rows.length,expanded:section.expanded});}
  for(var j=0;j<st.houses.length;j++)if(st.houses[j].id===p.data.id)answers=st.houses[j].answers;
- return JSON.stringify({route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,anchor:p.data.fillAnchor,phase:p.data.phase,sections:sections,feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:answers});
+ return JSON.stringify({speech:p.data.coach?p.data.coachSteps[p.data.coach-1].text:p.route==='pages/welcome/index'?(p.data.step==='sort'?p.data.intro:'你喜欢哪种记录方式呀？'):'',route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,anchor:p.data.fillAnchor,phase:p.data.phase,sections:sections,feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:answers});
 }));}
 async function route(url,method='reLaunch'){
  await evaluate(function(url,method){getApp().__screenshotNav={done:false,error:''};wx[method]({url:url,success:function(){getApp().__screenshotNav.done=true;},fail:function(e){getApp().__screenshotNav.error=e.errMsg;}});return true;},url,method);
@@ -18,8 +19,8 @@ async function route(url,method='reLaunch'){
  throw Error('Navigation did not complete '+target+'; '+await evaluate(function(){return JSON.stringify({route:getCurrentPages().slice(-1)[0].route,nav:getApp().__screenshotNav});}));
 }
 async function capture(key,title,description,expected){
- let d=await data();const length=Array.from(d.prompt?.text||d.homeMessage||'').length;
- await sleep(d.route==='pages/capacity/index'?1500:Math.min(3500,length*45+180));d=await data();
+ let d=await data();const length=Array.from(d.speech||d.prompt?.text||d.homeMessage||'').length;
+ await sleep(d.route==='pages/capacity/index'?1500:length*45+300);d=await data();
  if(expected?.kind!==undefined)assert.equal(d.prompt?.kind||null,expected.kind,key);
  if(expected?.target)assert.equal(d.prompt?.target,expected.target,key);
  if(expected?.home)assert.equal(d.route,'pages/home/index',key);
@@ -30,6 +31,27 @@ async function capture(key,title,description,expected){
 (async()=>{const {cases,fillCategoryState}=await import('./xiaoda-filling-fixtures.mjs');mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});mini.on('exception',e=>console.log('APP EXCEPTION '+JSON.stringify(e)));mini.on('console',e=>{if(e.level==='error')console.log('APP ERROR '+JSON.stringify(e));});
 try{
  assert.ok((await evaluate(function(){return getApp().service.root;})).includes('/xunju-test-xiaoda-'));
+ if(process.env.XIAODA_OVERVIEW==='1'){
+  const {emptyState}=await import('../../src/lib/model.js');
+  await route('/pages/settings/index');
+  await evaluate(function(fixture){const store=getApp().service.store;store.change(function(s){Object.assign(s,fixture);},true);store.change(function(){},true);return true;},emptyState());
+  await route('/pages/welcome/index');await capture('overview-01-sort','首次排序：关注你的偏好','真实渲染，隔离夹具。');
+  await evaluate(function(){getApp().service.store.change(function(s){s.xiaoda.setup='mode';},true);return true;});
+  await route('/pages/welcome/index');await capture('overview-02-mode','记录方式：详细模式与精简占位','真实渲染，隔离夹具。');
+  await evaluate(function(){getApp().service.store.change(function(s){s.xiaoda.setup='done';},true);return true;});
+  await route('/pages/home/index');await capture('overview-03-first','引导创建第一套','真实渲染，隔离夹具。');
+  await route('/pages/new-house/index','navigateTo');await sleep(2000);await capture('overview-04-name','给房源起个名字','真实渲染，隔离夹具。');
+  await route('/pages/settings/index');
+  const id=await evaluate(function(){return getApp().service.store.add('小搭 · 参考优化验收');});
+  for(let n=1;n<=4;n++){
+   await route('/pages/settings/index');
+   await evaluate(function(n){getApp().service.store.change(function(s){s.xiaoda.tutorialStep=n;},true);return true;},n);
+   await route('/pages/detail/index?id='+id);await capture('overview-0'+(n+4)+'-coach','首次教学 '+n,'真实渲染，步骤由夹具准备。');
+  }
+  await route('/pages/settings/index');
+  await evaluate(function(){getApp().service.store.change(function(s){s.xiaoda.tutorialStep=0;s.xiaoda.feedback='done';},true);return true;});
+  await route('/pages/template-edit/index');await capture('overview-09-template','调整清单模板','真实渲染，隔离夹具。');
+ }
  const selected=process.env.XIAODA_CASES?cases.filter(c=>process.env.XIAODA_CASES.split(',').includes(c.key)):cases;
  for(const c of selected){
   console.log('prepare '+c.key);await route('/pages/settings/index');console.log('settings ready; inject fixture');
@@ -43,9 +65,10 @@ try{
    if(step.action==='tapIntro'){
     // Keep the finished speech visible well past the former 1.2 s timeout.
     await sleep(3000);const before=await data();assert.equal(before.prompt?.kind,'intro');
-    const page=await mini.currentPage(),button=await page.$('.fill-accept');assert.ok(button,'visible start button');await button.tap();
+    if(realTaps){const page=await mini.currentPage(),button=await page.$('.fill-accept');assert.ok(button,'visible start button');await button.tap();}
+    else await evaluate(function(){getCurrentPages().slice(-1)[0].acceptFilling();return true;});
     await sleep(600);const after=await data();assert.equal(after.prompt,null);assert.equal(after.sections[0].title,before.prompt.target);assert.equal(after.sections[0].expanded,true);
-    await capture(step.key,step.title,'真实点击“开始填写”；等待 3 秒不自动消失，点击后展开目标大项。',{kind:null});continue;
+    await capture(step.key,step.title,realTaps?'真实点击“开始填写”；等待 3 秒不自动消失，点击后展开目标大项。':'等待 3 秒提示仍保留；调用生产控制器展开目标，不作为真实点击证据。',{kind:null});continue;
    }
    if(step.action==='reopen'){await route('/pages/home/index');await route('/pages/detail/index?id='+c.id,'navigateTo');}
    else if(step.action==='completeCategory'){
@@ -57,5 +80,5 @@ try{
   }
  }
  fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(captured,null,2));
- fs.writeFileSync(path.join(out,'scope.json'),JSON.stringify({rendered:true,count:captured.length,interactionValidated:false,fixtureNavigation:true,directControllerCalls:true,realClickCases:captured.filter(c=>c.key==='02-basic-expanded'||c.key==='04-no-basic-expanded').map(c=>c.key),realPayments:false,realFeedback:false},null,2));
+ fs.writeFileSync(path.join(out,'scope.json'),JSON.stringify({rendered:true,count:captured.length,interactionValidated:false,fixtureNavigation:true,directControllerCalls:true,realClickCases:!realTaps?[]:captured.filter(c=>c.key==='02-basic-expanded'||c.key==='04-no-basic-expanded').map(c=>c.key),realPayments:false,realFeedback:false},null,2));
 }finally{mini.disconnect();}})().catch(error=>{fs.writeFileSync(path.join(out,'failure.json'),JSON.stringify({error:error.stack,captured:captured.map(c=>c.key)},null,2));console.error(error);process.exit(1);});

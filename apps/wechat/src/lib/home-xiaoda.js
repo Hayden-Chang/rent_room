@@ -1,6 +1,6 @@
 import {service,notify} from './ui.js';
 import {uid} from './model.js';
-export const homeXiaodaData={feedbackOpen:false,feedbackBusy:false,feedbackError:'',feedbackDraft:{},feedbackQuestions:[{id:'ease',title:'操作是否方便？',options:['方便','一般','不方便']},{id:'checklist',title:'检查项是否合理？',options:['合理','一般','不合理']},{id:'functionality',title:'功能是否正常？',options:['目前正常','遇到问题']}],homeMessage:'',homePose:'point',homeThank:false};
+export const homeXiaodaData={feedbackOpen:false,feedbackBusy:false,feedbackError:'',feedbackDraft:{},feedbackQuestions:[{id:'ease',title:'操作是否方便？',options:['方便','一般','不方便']},{id:'checklist',title:'检查项是否合理？',options:['合理','一般','不合理']},{id:'functionality',title:'功能是否正常？',options:['目前正常','遇到问题']}],homeMessage:'',homePose:'greet',homeThank:false};
 export const homeXiaodaMethods={
  showHomeXiaoda(){
   const state=service().store.get(),x=state.xiaoda;
@@ -10,7 +10,7 @@ export const homeXiaodaMethods={
    this.setData({feedbackOpen:true,feedbackDraft:x.feedbackDraft||{},homeMessage:'刚才用起来怎么样？说说你的感受吧！',homePose:'greet'});return;
   }
   if(this.data.homeThank){this.homeTyped();return;}if(this.data.feedbackOpen)return;
-  this.setData({homeMessage:!x.firstHouseId&&!x.legacy?'点这里，新建你的第一套房源吧！':x.returnGuide?'点这里，添加第二套房源。':'',homePose:'point'});
+  this.setData({homeMessage:!x.firstHouseId&&!x.legacy?'点这里，新建你的第一套房源吧！':x.returnGuide?'点这里，添加第二套房源。':'',homePose:'greet'});
  },
  feedbackChoice(e){this.setFeedback({...this.data.feedbackDraft,[e.currentTarget.dataset.key]:e.detail.value});},
  feedbackText(e){this.setFeedback({...this.data.feedbackDraft,message:e.detail.value});},

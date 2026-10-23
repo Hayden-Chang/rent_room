@@ -2,7 +2,7 @@ import {poseSource} from '../../lib/xiaoda-skin.js';
 import {createTypewriter} from '../../lib/typewriter.js';
 import {speechParts} from '../../lib/speech-parts.js';
 Component({
-  properties:{text:String,highlights:{type:Array,value:[]},pose:{type:String,value:'idle'},closable:Boolean,messageId:String},
+  properties:{text:String,layout:{type:String,value:'inline'},highlights:{type:Array,value:[]},pose:{type:String,value:'idle'},closable:Boolean,messageId:String},
   data:{shown:'',fullParts:[],shownParts:[],source:poseSource('idle'),finished:false},
   observers:{'text,messageId,highlights'(){this.startText();},pose(value){this.setData({source:poseSource(value)});}},
   lifetimes:{attached(){this.startText();},detached(){this.writer?.stop();}},

@@ -1,8 +1,10 @@
 <template name="filling-guide">
  <view class="fill-guide {{fillAnchor.kind==='return'?'fill-return':''}}">
+  <view wx:if="{{fillPrompt.kind==='return'}}" class="fill-heading">{{stats.total && stats.done===stats.total?'这套记录完成啦！':'换一套，继续看看'}}</view>
+  <view wx:elif="{{fillPrompt.kind!=='intro'}}" class="fill-milestone"><view class="guide-check"/><text>{{fillPrompt.kind==='phase'?'现场记录完成':'这一项记录好啦'}}</text></view>
   <view wx:if="{{fillAnchor.kind==='phase'}}" class="fill-destination">接下来 · {{phaseLabels[fillPrompt.phase]}} / {{fillPrompt.target}}</view>
-  <xiaoda text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" pose="{{fillPrompt.kind==='return'?'success':'think'}}" closable binddismiss="closeXiaoda"/>
-  <view class="row fill-actions"><button wx:if="{{fillPrompt.kind==='next'}}" bindtap="waitFilling">先等等</button><button wx:if="{{fillPrompt.kind==='phase'}}" bindtap="otherHouses">看看其他房子</button><button class="primary fill-accept" bindtap="acceptFilling">{{fillPrompt.kind==='return'?'‹ 返回房源列表':fillPrompt.kind==='intro'?'开始填写':fillPrompt.kind==='phase'?'继续填写':'好的'}}</button></view>
+  <xiaoda text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" layout="{{fillPrompt.kind==='return'?'hero':'compact'}}" pose="{{fillPrompt.kind==='return'?(stats.done===stats.total?'success':'bye'):'think'}}" closable binddismiss="closeXiaoda"/>
+  <view class="fill-actions"><button wx:if="{{fillPrompt.kind==='next'}}" class="guide-secondary" bindtap="waitFilling">先等等</button><button wx:if="{{fillPrompt.kind==='phase'}}" class="guide-secondary" bindtap="otherHouses">看看其他房子</button><button class="primary guide-primary fill-accept" hover-class="guide-pressed" bindtap="acceptFilling">{{fillPrompt.kind==='return'?'‹ 返回房源列表':fillPrompt.kind==='intro'?'开始填写':fillPrompt.kind==='phase'?'继续填写':'好的'}}</button></view>
  </view>
 </template>
 <view hidden="{{!accountReady}}">
@@ -11,15 +13,15 @@
  <view class="page detail {{restoringTab?'tab-restoring':''}}">
   <view wx:if="{{saveError}}" class="error" bindtap="retry">{{saveError}} 点击重试</view>
   <block wx:if="{{tab==='清单'}}">
-   <view class="card progress"><view class="row between"><text class="subtitle">现场检查</text><text>{{stats.done}} / {{stats.total}}</text></view><view class="track"><view style="width:{{stats.total?stats.done/stats.total*100:0}}%"/></view><view class="row between muted"><text>已记录 {{stats.done}} 项</text><text class="issue-text">{{stats.issues}} 项有问题</text></view></view>
+   <view class="card progress"><view class="row between"><text class="subtitle">记录进度</text><text>{{stats.done}} / {{stats.total}}</text></view><view class="track"><view style="width:{{stats.total?stats.done/stats.total*100:0}}%"/></view><view class="row between muted"><text>已记录 {{stats.done}} 项</text><text class="issue-text">{{stats.issues}} 项有问题</text></view></view>
    <view class="row phases" id="phase-area"><button wx:for="{{phases}}" wx:key="*this" id="coach-phase-{{index}}" class="chip {{phase===item?'selected':''}} {{fillPrompt && !coach && fillAnchor.kind==='phase' && fillPrompt.phase===item?'fill-phase-target':''}}" data-value="{{item}}" hover-class="none" bindtap="phase">{{phaseLabels[item]}}</button></view>
-   <template wx:if="{{fillPrompt && !coach && fillAnchor.kind==='phase'}}" is="filling-guide" data="{{fillPrompt,fillAnchor,phaseLabels}}"/>
+   <template wx:if="{{fillPrompt && !coach && fillAnchor.kind==='phase'}}" is="filling-guide" data="{{fillPrompt,fillAnchor,phaseLabels,stats}}"/>
    <view id="filter-area"><view class="row"><input class="grow" placeholder="搜索检查项、结果或备注" value="{{query}}" bindinput="search"/><button class="soft filter-toggle" hover-class="none" bindtap="toggleFilters" aria-expanded="{{showFilters}}" aria-label="{{showFilters?'收起筛选项':'展开筛选项'}}"><text>筛选 {{filters.length||''}}</text><view class="filter-chevron {{showFilters?'open':''}}" aria-hidden="true"/></button></view>
    <view wx:if="{{showFilters}}" id="filter-options" class="chips filters"><button class="chip {{!filters.length?'selected':''}}" data-value="全部" hover-class="none" bindtap="filter">全部</button><button wx:for="{{filterOptions}}" wx:key="label" class="chip {{item.selected?'selected':''}}" data-value="{{item.label}}" hover-class="none" bindtap="filter">{{item.label}}</button></view>
    </view><view class="space"/>
    <view wx:for="{{sections}}" wx:for-item="section" wx:key="title" class="card category {{fillPrompt && !coach && fillAnchor.kind==='category' && fillAnchor.id===section.id?'fill-category-target':''}}" id="{{section.id}}">
     <view class="category-head scroll-anchor" data-scroll-key="category-{{section.title}}"><field-row class="field-row" field="{{section.header}}" readonly="{{house.archived}}" bindfold="fold" bindaction="action"/></view>
-    <template wx:if="{{fillPrompt && !coach && fillAnchor.kind==='category' && fillAnchor.id===section.id}}" is="filling-guide" data="{{fillPrompt,fillAnchor,phaseLabels}}"/>
+    <template wx:if="{{fillPrompt && !coach && fillAnchor.kind==='category' && fillAnchor.id===section.id}}" is="filling-guide" data="{{fillPrompt,fillAnchor,phaseLabels,stats}}"/>
     <view wx:if="{{section.expanded}}" class="category-body"><block wx:for="{{section.rows}}" wx:for-item="r" wx:key="key">
      <view wx:if="{{r.kind==='group'}}" data-scroll-key="group-{{r.id}}" class="scroll-anchor group-node" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><field-row class="field-row" field="{{r.swipe}}" readonly="{{house.archived}}" bindfold="fold" bindgroup="group" bindaction="action"/></view>
      <view wx:elif="{{r.kind==='add-cost'}}" class="add-cost-row" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><button class="add-cost" data-group-id="{{r.id}}" aria-label="添加{{r.title}}" hover-class="none" bindtap="addCost">＋</button></view>
@@ -56,9 +58,9 @@
  <view wx:if="{{coach}}" class="xiaoda-coach">
   <view wx:if="{{!coachReady||coachMissing}}" class="coach-shade full" catchtap="noop" catchtouchmove="noop"/>
   <block wx:else><view class="coach-shade" style="left:0;top:0;right:0;height:{{coachRect.top}}px" catchtap="noop" catchtouchmove="noop"/><view class="coach-shade" style="left:0;top:{{coachRect.bottom}}px;right:0;bottom:0" catchtap="noop" catchtouchmove="noop"/><view class="coach-shade" style="left:0;top:{{coachRect.top}}px;width:{{coachRect.left}}px;height:{{coachRect.height}}px" catchtap="noop"/><view class="coach-shade" style="left:{{coachRect.right}}px;top:{{coachRect.top}}px;right:0;height:{{coachRect.height}}px" catchtap="noop"/><view class="xiaoda-highlight" style="left:{{coachRect.left}}px;top:{{coachRect.top}}px;width:{{coachRect.width}}px;height:{{coachRect.height}}px"/></block>
-  <view class="coach-card xiaoda-coach-card" style="top:{{coachCardTop}}px"><view class="muted">{{coach}} / 4</view><xiaoda pose="think" text="{{coachSteps[coach-1].text}}" highlights="{{coachSteps[coach-1].highlights}}" message-id="{{coach}}"/><view wx:if="{{coachError}}" class="error">{{coachError}}</view><button wx:if="{{coach!==3}}" class="primary" bindtap="coachNext">{{coach===4?'我会啦':'知道啦'}}</button></view>
+  <view class="coach-card xiaoda-coach-card" style="top:{{coachCardTop}}px"><view class="coach-progress"><text>{{coach}} / 4</text><view class="coach-dots"><view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="{{item<=coach?'done':''}}"/></view></view><view class="coach-heading">{{coachSteps[coach-1].title}}</view><xiaoda pose="{{coachSteps[coach-1].pose}}" text="{{coachSteps[coach-1].text}}" highlights="{{coachSteps[coach-1].highlights}}" message-id="{{coach}}"/><view wx:if="{{coachError}}" class="error">{{coachError}}</view><button wx:if="{{coach!==3}}" class="primary guide-primary" hover-class="guide-pressed" bindtap="coachNext">{{coach===4?'我会啦':'知道啦'}}</button></view>
  </view>
- <template wx:if="{{fillPrompt && !coach && tab==='清单' && fillAnchor.kind==='return'}}" is="filling-guide" data="{{fillPrompt,fillAnchor,phaseLabels}}"/>
+ <template wx:if="{{fillPrompt && !coach && tab==='清单' && fillAnchor.kind==='return'}}" is="filling-guide" data="{{fillPrompt,fillAnchor,phaseLabels,stats}}"/>
 
 </view>
 
