@@ -5,7 +5,7 @@ import {service,notify} from './ui.js';
 
 export const coachSteps=[
  {text:'看房分成三个阶段，可以在这里切换哦！\n看房前—了解房屋基本情况\n看房中—现场检查房屋细节\n选定后——核对费用与合同条款',highlights:['基本情况','现场检查','费用与合同']},
- {text:'想找还没填的，或者有问题的检查项？点这里筛一下。'},
+ {text:'点击里面的内容可以筛选哦'},
  {text:'在检查项上向左滑一下，试试看！'},
  {text:'这里可以标记问题、写备注，还能添加照片和视频。'}
 ];
@@ -25,7 +25,7 @@ export const coachMethods={
  },
  coachLayout(){
   if(!this.data.coach||this.unloaded||this.coachHidden)return;
-  const step=this.data.coach,q=this.createSelectorQuery(),selector=step===1?'#phase-area':step===2?'#filter-area':'#coach-field';
+  const step=this.data.coach,q=this.createSelectorQuery(),selector=step===1?'#phase-area':step===2?'#filter-options':'#coach-field';
   q.select(selector).boundingClientRect();q.select('.coach-card').boundingClientRect();q.selectViewport().scrollOffset();
   q.exec(([rect,card,viewport])=>{
    if(this.unloaded||this.coachHidden||this.data.coach!==step)return;
@@ -45,10 +45,9 @@ export const coachMethods={
    if(!this.coachSavedFolds)this.coachSavedFolds=JSON.parse(JSON.stringify(this.folds));
    this.folds[key]={...this.folds[key],...target?.folds};
    this.setData({phase:'全部',query:'',filters:[],showFilters:false,coachField:target?.field||null,coachReady:false});this.refresh({},()=>this.coachLayout());
-  }else this.setData({coachReady:false},()=>this.coachLayout());
+  }else this.setData({coachReady:false,...(this.data.coach===2?{showFilters:true}:{})},()=>this.coachLayout());
  },
  coachNext(){
-  if(this.data.coach===2&&!this.data.showFilters)return;
   if(this.data.coach===3)return;
   const next=this.data.coach===4?0:this.data.coach+1;
   try{service().store.change(s=>s.xiaoda.tutorialStep=next,true);}catch(error){this.setData({coachError:error.message});return;}
