@@ -89,7 +89,7 @@ const timer = setTimeout(() => { console.error('Parking UI test timed out'); pro
   await (await page.$('input.grow')).input('周期费用');
   await page.waitFor('.field-branch');
   const feeLabels=await Promise.all((await page.$$('.field-branch field-row .label')).map(r=>r.text()));
-  assert.equal(feeLabels.filter(t=>t==='电费').length,1);
+  assert.equal(feeLabels.filter(t=>t==='电费（元/度）').length,1);
   const fee=await page.$('.field-branch[data-scroll-key="field-f-617bd84f-3208-42ec-b2e4-5bb95d5c754c"] field-row');
   await (await fee.$('input.input')).input('60');
   await mini.screenshot({path:output('recurring-electricity.png')});

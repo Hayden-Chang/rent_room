@@ -17,6 +17,8 @@ const commuteLabels=Object.fromEntries(fields.filter(f=>['21255282-3663-4abe-b7d
 export const electricityField=fields.find(f=>f.id==='617bd84f-3208-42ec-b2e4-5bb95d5c754c');
 const duplicateElectricityId='b670b816-5107-4acf-96e0-cc28b84df4cc';
 export const costGroups={'019886c9-e108-45b4-a0c5-c20d594379e5':'周期费用','538ea220-cf80-418e-a492-8cc3792654be':'一次性费用'};
+const costLabels=Object.fromEntries(topics.filter(t=>t.path?.some(p=>costGroups[p.id])).flatMap(t=>t.fields.map(f=>[f.id,f.label])));
+const costName=label=>label.replace(/（元(?:\/[^）]+)?）$/,'').trim();
 export const customCostGroup=id=>Object.keys(costGroups).find(group=>new RegExp(`^cost_${group}_[a-zA-Z0-9]+$`).test(id));
 const parkingCostTopic=topics.find(t=>t.fields.some(f=>f.id==='f11_1'));
 function relocateParkingCost(ts) {
@@ -40,6 +42,7 @@ export const houseTopics = h => {
     if(![electricityField.id,duplicateElectricityId].includes(f.id))return [f];
     if(electricitySeen)return [];electricitySeen=true;return [{...f,...electricityField}];
   })};
+  if(t.fields.some(f=>costLabels[f.id]||f.id==='f96_1'))t={...t,fields:t.fields.filter(f=>f.id!=='f96_1').map(f=>costLabels[f.id]?{...f,label:costLabels[f.id]}:f)};
   const normalGroups=['90bf172a-1c92-41e3-9369-c64f5935e7d9','topic_10','topic_11'];
   if(t.fields.some(f=>f.id==='f1_2'&&!f.options?.includes('其他')))t={...t,fields:t.fields.map(f=>f.id==='f1_2'?{...f,options:[...(f.options||[]),'其他']}:f)};
   if(t.fields.some(f=>f.id==='f1_balcony'))t={...t,fields:t.fields.map(f=>f.id==='f1_balcony'?{...f,fact:false,badValue:'否'}:f)};
@@ -89,7 +92,7 @@ export function addCostField(h,groupId,label,fieldId='cost_'+groupId+'_'+uid()) 
   label=String(label||'').trim();if(!label||label.length>50)throw Error('费用名称需为 1 至 50 字');
   const ts=houseTopics(h),groupTopics=ts.filter(t=>t.path?.some(p=>p.id===groupId));
   if(!groupTopics.length)throw Error('费用分组不存在');
-  if(groupTopics.some(t=>t.fields.some(f=>f.label===label)))throw Error('该分组已有同名费用');
+  if(groupTopics.some(t=>t.fields.some(f=>costName(f.label)===costName(label))))throw Error('该分组已有同名费用');
   if(ts.some(t=>t.fields.some(f=>f.id===fieldId)))throw Error('费用编号重复');
   const base=groupTopics[0],at=base.path.findIndex(p=>p.id===groupId),field={id:fieldId,label,type:'n'};
   (h.extras||=[]).push({id:'topic_'+fieldId,title:costGroups[groupId],category:base.category,phase:base.phase,path:clone(base.path.slice(0,at+1)),fields:[field]});

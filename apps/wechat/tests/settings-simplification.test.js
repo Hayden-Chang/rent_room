@@ -30,7 +30,7 @@ it('uses a complete checklist for new houses while preserving old custom snapsho
  old.answers.legacy_0={value:'否',note:'纱窗破损',issueFlag:true};old.media=[{id:'photo',type:'image',path:'/user/photo.jpg',fieldId:'legacy_0'}];state.houses.push(old);
  const before=JSON.stringify(old);let saved=JSON.stringify(state);const adapter={read:()=>saved,write:v=>{saved=v;}};
  const store=createStore(adapter),id=store.add('新房源'),reloaded=createStore(adapter);
- expect(houseTopics(reloaded.house(id)).flatMap(t=>t.fields)).toHaveLength(302);
+ expect(houseTopics(reloaded.house(id)).flatMap(t=>t.fields)).toHaveLength(301);
  expect(JSON.stringify(reloaded.house(old.id))).toBe(before);
  expect(houseTopics(reloaded.house(old.id)).flatMap(t=>t.fields).some(f=>f.id==='f8_2')).toBe(false);
 });
