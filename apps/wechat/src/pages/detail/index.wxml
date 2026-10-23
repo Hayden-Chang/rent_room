@@ -4,7 +4,7 @@
  <view class="page detail {{restoringTab?'tab-restoring':''}}">
   <view wx:if="{{saveError}}" class="error" bindtap="retry">{{saveError}} 点击重试</view>
   <block wx:if="{{tab==='清单'}}">
-   <view class="card progress"><view class="row progress-meta"><text class="progress-count">{{stats.done}} / {{stats.total}}</text></view><view class="track"><view style="width:{{stats.total?stats.done/stats.total*100:0}}%"/></view><view class="row progress-meta muted"><text class="issue-text">{{stats.issues}} 项有问题</text></view></view>
+   <view class="card progress"><view class="row between"><text class="subtitle">总进度</text><text class="progress-count">{{stats.done}} / {{stats.total}}</text></view><view class="track"><view style="width:{{stats.total?stats.done/stats.total*100:0}}%"/></view><view class="row progress-meta muted"><text class="issue-text">{{stats.issues}} 项有问题</text></view></view>
    <view class="row phases"><button wx:for="{{phases}}" wx:key="*this" id="coach-phase-{{index}}" class="chip {{phase===item?'selected':''}}" data-value="{{item}}" hover-class="none" bindtap="phase">{{item}}</button></view>
    <view class="row"><input class="grow" placeholder="搜索检查项、结果或备注" value="{{query}}" bindinput="search"/><button class="soft" hover-class="none" bindtap="toggleFilters">筛选 {{filters.length||''}}</button></view>
    <view wx:if="{{showFilters}}" class="chips filters"><button class="chip {{!filters.length?'selected':''}}" data-value="全部" hover-class="none" bindtap="filter">全部</button><button wx:for="{{filterOptions}}" wx:key="label" class="chip {{item.selected?'selected':''}}" data-value="{{item.label}}" hover-class="none" bindtap="filter">{{item.label}}</button></view>
