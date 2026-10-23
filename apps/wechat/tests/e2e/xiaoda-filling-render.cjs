@@ -4,13 +4,11 @@ const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/
 if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use shared pool');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const out=process.env.WECHAT_ARTIFACT_DIR;let mini;const captured=[];
-async function data(){return JSON.parse(await mini.evaluate(function(){const p=getCurrentPages().slice(-1)[0],st=getApp().service.store.get();return JSON.stringify({route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,phase:p.data.phase,sections:p.data.sections?.map(function(s){return {title:s.title,rows:s.rows.length};}),feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:st.houses.find(function(h){return h.id===p.data.id;})?.answers,components:p.selectAllComponents('xiaoda').map(function(c){return {text:c.data.text,shown:c.data.shown,finished:c.data.finished};})});}));}
-async function route(url,method='reLaunch'){await mini.evaluate(function(url,method){wx[method]({url:url});return true;},url,method);const target=url.split('?')[0].slice(1);for(let i=0;i<40;i++){const d=await data();if(d.route===target)return;await sleep(100);}throw Error('Navigation did not reach '+target);}
+async function data(){return JSON.parse(await mini.evaluate(function(){const p=getCurrentPages().slice(-1)[0],st=getApp().service.store.get();return JSON.stringify({route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,phase:p.data.phase,sections:p.data.sections?.map(function(s){return {title:s.title,rows:s.rows.length};}),feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:st.houses.find(function(h){return h.id===p.data.id;})?.answers});}));}
+async function route(url,method='reLaunch'){await mini.evaluate(function(url,method){wx[method]({url:url});return true;},url,method);console.log('navigation requested '+url);const target=url.split('?')[0].slice(1);for(let i=0;i<40;i++){const d=await data();if(d.route===target)return;await sleep(100);}throw Error('Navigation did not reach '+target);}
 async function capture(key,title,description,expected){
- let d=await data();const length=Math.max(0,...d.components.map(c=>Array.from(c.text||'').length));
- if(d.prompt?.kind==='intro'){
-  for(let i=0;i<20&&!d.components.some(c=>c.finished);i++){await sleep(60);d=await data();}
- }else {await sleep(Math.min(3500,length*45+250));d=await data();}
+ let d=await data();const length=Array.from(d.prompt?.text||d.homeMessage||'').length;
+ await sleep(Math.min(3500,length*45+180));d=await data();
  if(expected?.kind!==undefined)assert.equal(d.prompt?.kind||null,expected.kind,key);
  if(expected?.target)assert.equal(d.prompt?.target,expected.target,key);
  if(expected?.home)assert.equal(d.route,'pages/home/index',key);
