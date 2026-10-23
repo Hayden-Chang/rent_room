@@ -55,3 +55,17 @@
 
 
 后续纯截图补拍run `a7d51034f9db49d884a46cbea0b9854c` 也在工具接口报错，未取得新的模板页画面。最终交付排序页采用run `9b9fb1d9a5954ac6ad3a1fc6e8d03d45` 的 `sort-updated.png`，sourceHead为3a02688、sourceStatus为空；此图已人工核对，但整个辅助脚本结果仍为failed。归档位于 `artifacts/xiaoda-20261023/sort-revision/`，包含四次收据、日志、截图及回调；预览页已将旧模板截图明确标注为待更新。池收据记录任务结束，实例恢复idle。未继续改动业务代码或操作其他任务实例。
+
+## 阶段文案与关键词强调（2026-10-23）
+
+阶段按钮展示为“全部 / 基本情况 / 现场检查 / 费用与合同”，仍使用原阶段筛选值，不改存档、分组或筛选行为。保留开头说明，后续三行使用用户指定文案：
+
+- 看房前—了解房屋基本情况
+- 看房中—现场检查房屋细节
+- 选定后——核对费用与合同条款
+
+“基本情况”“现场检查”“费用与合同”使用黄色加粗；删除“想一起看，就选‘全部’”。小搭接收独立highlight词组，以纯文本分段显示；逐字输出途中即强调已显示的关键词字符，完整占位与可见文字使用相同字重，避免换行抖动。无highlight的普通台词保持原样。
+
+代码 `3b999adc2a978d6dc4afe1928302fc108dbf9af5`：新增 `xiaoda-speech.test.js` 3项，覆盖部分关键词、Unicode/空文本、隐藏暂停/继续和替换消息。重跑该文件及 `xiaoda.test.js`、`onboarding.test.js`、`onboarding-target.test.js`、`onboarding-icons.test.js`、`detail-filter.test.js`、`detail-navigation.test.js`、`first-meeting-runtime.test.js`，8个文件59项通过；官方编译通过，1,979,302字节。与384da06相比仅详情展示、小搭文字组件及新文本分段函数/测试变化，其余业务与后端证据仍适用。
+
+实际渲染run `677f736380eb43398d8308df56de63ae` 通过，冻结源码3b999ad且工作树干净，第3槽结束后恢复idle。`phase-complete.png` 已核对三阶段名称、三个黄色加粗词组、删除的结尾及按钮无截断；归档在 `artifacts/xiaoda-20261023/phase-revision/`。两次截图都已完成文字输出，不能作为逐帧动画证据；逐字中途强调、暂停及消息替换由新增组件计时器测试验证。该run使用前置数据与导航，不替代真实点击/手势验收。
