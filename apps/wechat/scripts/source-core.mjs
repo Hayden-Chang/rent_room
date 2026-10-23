@@ -83,6 +83,7 @@ export function toTopics(root) {
     const f={id:n.id,label:n.title,type:meta.type||'t',fact:meta.fact===true,invertLegacyYes:meta.invertLegacyYes===true};
     if(typeof meta.unit==='string')f.unit=meta.unit;
     if(typeof meta.role==='string')f.role=meta.role;
+    if(meta.cost===true)f.cost=true;
     if(meta.multiple===true)f.multiple=true;
     const condition=parseVisibilityCondition(meta.visibleWhen);if(condition)f.visibleWhen=condition;
     if(meta.resultSources&&typeof meta.resultSources.presence==='string'&&typeof meta.resultSources.condition==='string')f.resultSources={presence:meta.resultSources.presence,condition:meta.resultSources.condition};

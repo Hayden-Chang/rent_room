@@ -32,6 +32,7 @@ export function otherChoiceSelected(f,a={}) {
 
 // Keep the selected option separate from its explanation, including when hidden.
 export function fieldDisplayValue(f,a={}) {
+  if(f.cost&&a.noCost===true)return '无';
   const detail=String(a.otherText??'').trim();
   if(!otherChoiceSelected(f,a)||!detail)return fieldValue(f,a);
   return choiceValues(f,a).map(v=>v.trim()==='其他'?`${v}：${detail}`:v).join('、');
@@ -44,6 +45,7 @@ export function toggleChoiceValue(f,a,value) {
 }
 
 export function fieldRecorded(f,a={}) {
+  if(f.cost&&a.noCost===true)return true;
   if(wheelConfig(f))return fieldValue(f,a).trim()!=='';
   const options=choiceOptions(f),values=choiceValues(f,a);
   return options.length?values.length>0&&values.every(v=>options.includes(v)):fieldValue(f,a).trim()!=='';

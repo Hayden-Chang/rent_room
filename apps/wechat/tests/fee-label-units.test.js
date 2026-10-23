@@ -3,7 +3,7 @@ import {freshHouse,houseTopics,formView,emptyState,clone,stats,issueEntries,comp
 import {createStore} from '../src/lib/store.js';
 
 const recurring='019886c9-e108-45b4-a0c5-c20d594379e5',once='538ea220-cf80-418e-a492-8cc3792654be';
-const labels=['燃气费（元/立方米）','水费（元/吨）','电费（元/度）','清洁费（元/月）','物业费（元/月）','网费（元/月）','垃圾费（元/月）','管理费（元/月）','取暖费（元/月）','电梯费（元/月）','停车费（元/月）'];
+const labels=['电费（元/度）','水费（元/吨）','燃气费（元/立方米）','网费（元/月）','物业费（元/月）','停车费（元/月）','清洁费（元/月）','垃圾费（元/月）','管理费（元/月）','取暖费（元/月）','电梯费（元/月）'];
 const oneTime=['中介费（元）','门卡/门锁费（元）','退房保洁费（元）','折旧/损耗费（元）','消毒费（元）'];
 const groupFields=(h,id)=>houseTopics(h).filter(t=>t.path?.some(p=>p.id===id)).flatMap(t=>t.fields);
 const visible=h=>formView(h,{query:'费用'}).flatMap(s=>s.rows).filter(r=>r.kind==='field');

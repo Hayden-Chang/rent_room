@@ -56,7 +56,7 @@ let stage='connect';const timer=setTimeout(()=>{console.error('Timeout: '+stage)
   }
   const search=async query=>{await mini.callWxMethod('pageScrollTo',{scrollTop:0,duration:0});await page.waitFor('input.grow');await (await page.$('input.grow')).input(query);};
   const labels=async()=>Promise.all((await page.$$('.field-branch field-row .label')).map(e=>e.text()));
-  const recurring=['燃气费（元/立方米）','水费（元/吨）','电费（元/度）','清洁费（元/月）','物业费（元/月）','网费（元/月）','垃圾费（元/月）','管理费（元/月）','取暖费（元/月）','电梯费（元/月）','停车费（元/月）'];
+  const recurring=['电费（元/度）','水费（元/吨）','燃气费（元/立方米）','网费（元/月）','物业费（元/月）','停车费（元/月）','清洁费（元/月）','垃圾费（元/月）','管理费（元/月）','取暖费（元/月）','电梯费（元/月）'];
   stage='recurring search';console.log(stage);await search('周期费用');
   await page.waitFor('.field-branch');assert.deepEqual(await labels(),recurring);
   await mini.screenshot({path:path.join(out,'recurring-top.png')});
