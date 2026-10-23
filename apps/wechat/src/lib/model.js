@@ -20,10 +20,23 @@ export const electricityField=fields.find(f=>f.id==='617bd84f-3208-42ec-b2e4-5bb
 const duplicateElectricityId='b670b816-5107-4acf-96e0-cc28b84df4cc';
 export const costGroups={'019886c9-e108-45b4-a0c5-c20d594379e5':'周期费用','538ea220-cf80-418e-a492-8cc3792654be':'一次性费用'};
 export const customCostGroup=id=>Object.keys(costGroups).find(group=>new RegExp(`^cost_${group}_[a-zA-Z0-9]+$`).test(id));
+const parkingCostTopic=topics.find(t=>t.fields.some(f=>f.id==='f11_1'));
+function relocateParkingCost(ts) {
+ const groupId=parkingCostTopic.path.at(-1).id;
+ const source=ts.find(t=>t.fields.some(f=>f.id==='f11_1')&&!t.path?.some(p=>p.id===groupId));
+ if(!source)return ts;
+ const field=source.fields.find(f=>f.id==='f11_1');
+ const result=ts.map(t=>t.path?.some(p=>p.id===groupId)?t:{...t,fields:t.fields.filter(f=>f.id!=='f11_1')});
+ if(result.some(t=>t.fields.some(f=>f.id==='f11_1')))return result;
+ const target=result.findIndex(t=>t.path?.some(p=>p.id===groupId));
+ if(target<0)result.push({...parkingCostTopic,fields:[field]});
+ else result[target]={...result[target],fields:[...result[target].fields,field]};
+ return result;
+}
 // Apply current group controls to saved templates without rewriting their answers or snapshots.
 export const houseTopics = h => {
  let electricitySeen=false;
- return [...(h.templateTopics||topics),...(h.extras||[])].map(t=>{
+ return relocateParkingCost([...(h.templateTopics||topics),...(h.extras||[])]).map(t=>{
   if(t.category==='费用与付款'||t.path?.some(p=>p.id==='category_11'))t={...t,phase:'询问与签约'};
   if(t.fields.some(f=>[electricityField.id,duplicateElectricityId].includes(f.id)))t={...t,fields:t.fields.flatMap(f=>{
     if(![electricityField.id,duplicateElectricityId].includes(f.id))return [f];
@@ -50,6 +63,7 @@ export const houseTopics = h => {
  }).filter(t=>t.fields.length).sort((a,b)=>h.displayCategoryOrder?(h.displayCategoryOrder.indexOf(a.category)-h.displayCategoryOrder.indexOf(b.category)):0);
 };
 const normalTitle = title => title.endsWith('正常')?title:title+'正常';
+const groupResultTitle = g => g.id==='topic_13'?'回家路线安全':normalTitle(g.title);
 const resultLabel = (value,absenceLabel='没有') => ({'正常':'是','有问题':'否','没有':absenceLabel}[value]||value);
 function snapshotTopics(settings) {
   if(!settings.templates)return null;
@@ -124,7 +138,7 @@ export function activeEntries(h,options) {
     else if(g.permissionFieldId)f={...g.fields.find(f=>f.id===g.permissionFieldId),groupRole:'permission'};
     else if(g.presence)f={id:'presence_'+g.id,label:'有'+g.title,type:'y',fact:true,groupRole:'presence'};
     if(f)list.push({topic:t,field:{...f,groupId:g.id}});
-    if(!rules.groupSkipped(g,h)&&(!g.presence||rules.groupAnswer(h,g.id).presence==='是')&&rules.groupAnswer(h,g.id).normal==='否'&&!rules.groupFields(g,h).some(f=>problem(f,h.answers[f.id])))list.push({topic:t,field:{id:'normal_'+g.id,label:g.title+'正常',type:'y',badValue:'否',groupId:g.id,groupRole:'normal'}});
+    if(!rules.groupSkipped(g,h)&&(!g.presence||rules.groupAnswer(h,g.id).presence==='是')&&rules.groupAnswer(h,g.id).normal==='否'&&!rules.groupFields(g,h).some(f=>problem(f,h.answers[f.id])))list.push({topic:t,field:{id:'normal_'+g.id,label:groupResultTitle(g),type:'y',badValue:'否',groupId:g.id,groupRole:'normal'}});
   }
   return list;
 }
@@ -200,7 +214,7 @@ export function formView(h,view={},folds={}) {
       if(filtered&&!entries.some(e=>(e.topic.path||[]).some(p=>p.id===n.g.id)))return;
       let options=[],selected='',skipped=false;
       if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?(g.id==='topic_53'?['正常','有问题']:['正常','有问题','没有']):g.aggregate?['是','否']:[];}
-      const title=(g?.aggregate||g?.presence)&&!g.permissionFieldId?normalTitle(n.g.title):n.g.title;
+      const title=(g?.aggregate||g?.presence)&&!g.permissionFieldId?groupResultTitle(n.g):n.g.title;
       const choices=options.map(value=>({value,label:g?.presence?resultLabel(value,g.absenceLabel):value,selected:value===selected}));
       const swipe={...fieldView(h,nodeById.get('node:group:'+n.g.id)),label:title,expanded,skippable:!!g?.skippable,skipped,options:skipped?[]:choices};
       rows.push({kind:'group',key:'g-'+n.g.id,id:n.g.id,title,depth,expanded,skippable:!!g?.skippable,skipped,options:choices,swipe});
