@@ -64,5 +64,19 @@ it('does not report mode confirmation or template save as successful on storage 
  r.m.failDisk(true);
  list.confirm();expect(r.backs).toBe(0);expect(r.app.service.store.get().settings.selectedTemplate).toBeUndefined();
  const editor=r.load('template-edit',{mode:'simple'});editor.save();expect(r.backs).toBe(0);
- r.m.failDisk(false);list.confirm();expect(r.backs).toBe(1);expect(r.app.service.store.get().settings.selectedTemplate).toBe('simple');
+ r.m.failDisk(false);list.confirm();list.guardLeft();expect(r.backs).toBe(1);expect(r.app.service.store.get().settings.selectedTemplate).toBe('simple');
+});
+
+it('guards an unconfirmed template choice and can continue, discard or confirm',()=>{
+ const r=runtime(),p=r.load('templates');p.choose({currentTarget:{dataset:{mode:'simple'}}});p.back();expect(p.data.leaveOpen).toBe(true);
+ p.stay();expect(p.data).toMatchObject({leaveOpen:false,selected:'simple',dirty:true,backGuard:true});expect(r.app.service.store.get().settings.selectedTemplate).toBeUndefined();
+ p.guardLeft();expect(p.data.leaveOpen).toBe(true);p.discard();p.guardLeft();expect(r.backs).toBe(1);expect(r.app.service.store.get().settings.selectedTemplate).toBeUndefined();
+ const again=r.load('templates');again.choose({currentTarget:{dataset:{mode:'simple'}}});again.back();again.confirm();again.guardLeft();expect(r.backs).toBe(2);expect(r.app.service.store.get().settings.selectedTemplate).toBe('simple');
+});
+it('does not ask when the selection is unchanged or restored to its original value',()=>{
+ const r=runtime(),p=r.load('templates');p.choose({currentTarget:{dataset:{mode:'simple'}}});p.choose({currentTarget:{dataset:{mode:'detailed'}}});p.guardLeft();expect(p.data.leaveOpen).toBe(false);p.back();expect(r.backs).toBe(1);
+});
+it('keeps a pending choice while opening its editor without showing the exit question',()=>{
+ const r=runtime(),p=r.load('templates');p.choose({currentTarget:{dataset:{mode:'simple'}}});p.open({currentTarget:{dataset:{mode:'detailed'}}});p.guardLeft();expect(p.data.leaveOpen).toBe(false);
+ p.onHide();p.onShow();expect(p.data).toMatchObject({selected:'simple',backGuard:true});expect(r.app.service.store.get().settings.selectedTemplate).toBeUndefined();
 });

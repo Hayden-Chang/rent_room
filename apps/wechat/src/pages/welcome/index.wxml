@@ -6,13 +6,13 @@
   <view class="modes">
    <view class="mode {{mode==='simple'?'selected':''}}" data-mode="simple" bindtap="selectMode">
     <view class="subtitle">精简模式</view>
-    <view class="example"><view class="example-title">门窗</view><text>检查开关是否顺畅、锁具是否正常、密封是否严实，以及有无破损。</text><text class="example-result">检查结果：〔统一记录〕</text><text>备注：卧室窗户关不严。</text></view>
+    <view class="example"><view class="example-title">门窗</view><text>检查开关是否顺畅、锁具是否正常、密封是否严实，以及有无破损。</text><view class="example-result">检查结果：<text class="example-token">〔统一记录〕</text></view><text>备注：卧室窗户关不严。</text></view>
     <text class="mode-summary">看说明，统一记录。</text>
     <button class="mode-choice" data-mode="simple" catchtap="selectMode" aria-label="{{mode==='simple'?'已选择精简模式':'选择精简模式'}}"><text class="mode-check">{{mode==='simple'?'☑':'☐'}}</text> 精简模式</button>
    </view>
    <view class="mode {{mode==='detailed'?'selected':''}}" data-mode="detailed" bindtap="selectMode">
     <view class="subtitle">详细模式</view>
-    <view class="example"><view class="example-title">门窗</view><text>{{example}}</text><text class="example-result">各子项分别记录结果，也可以添加备注。</text></view>
+    <view class="example"><view class="example-title">门窗</view><view wx:for="{{example}}" wx:key="*this">{{item}}：<text class="example-token">〔填写〕</text></view><text class="example-result">各子项分别记录结果，也可以添加备注。</text></view>
     <text class="mode-summary">逐项检查，分别记录。</text>
     <button class="mode-choice" data-mode="detailed" catchtap="selectMode" aria-label="{{mode==='detailed'?'已选择详细模式':'选择详细模式'}}"><text class="mode-check">{{mode==='detailed'?'☑':'☐'}}</text> 详细模式</button>
    </view>
