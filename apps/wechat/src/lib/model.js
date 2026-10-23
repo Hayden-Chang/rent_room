@@ -27,6 +27,7 @@ export const houseTopics = h => {
     if(electricitySeen)return [];electricitySeen=true;return [{...f,...electricityField}];
   })};
   const normalGroups=['90bf172a-1c92-41e3-9369-c64f5935e7d9','topic_10','topic_11'];
+  if(t.fields.some(f=>f.id==='f1_2'&&!f.options?.includes('其他')))t={...t,fields:t.fields.map(f=>f.id==='f1_2'?{...f,options:[...(f.options||[]),'其他']}:f)};
   if(t.fields.some(f=>f.id==='f1_balcony'))t={...t,fields:t.fields.map(f=>f.id==='f1_balcony'?{...f,fact:false,badValue:'否'}:f)};
   if(t.fields.some(f=>f.id==='f16_0'))t={...t,fields:t.fields.map(f=>f.id==='f16_0'?{...f,type:'s',options:rules.choiceOptions(f)}:f)};
   if(t.path?.some(p=>normalGroups.includes(p.id)))t={...t,path:t.path.map(p=>normalGroups.includes(p.id)?{...p,aggregate:true,presence:true,detailsWithoutPresence:true,...(['topic_10','topic_11'].includes(p.id)?{skippable:false,absenceLabel:'不涉及'}:{})}:p)};

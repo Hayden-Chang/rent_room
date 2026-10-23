@@ -72,7 +72,8 @@
                 "大单间",
                 "一室一厅",
                 "两室一厅",
-                "三室一厅"
+                "三室一厅",
+                "其他"
               ],
               "quick": false,
               "fact": true,
@@ -117,6 +118,12 @@
                 "id": "f1_2_option_3",
                 "kind": "option",
                 "title": "三室一厅",
+                "children": []
+              },
+              {
+                "id": "f1_2_option_4",
+                "kind": "option",
+                "title": "其他",
                 "children": []
               }
             ]
