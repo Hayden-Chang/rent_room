@@ -34,10 +34,20 @@ let stage='connect';const timer=setTimeout(()=>{console.error('Timeout: '+stage)
     const rows=data.sections.flatMap(s=>s.rows).filter(r=>r.kind==='field');
     assert.equal(rows.length,expected);assert.ok(rows.every(r=>r.label.endsWith('）')));
     assert.ok(!rows.some(r=>r.id==='f96_1'));assert.ok(!data.coach);
+    // App data can lead the rendered frame. Wait for the matching row count,
+    // then allow the screenshot channel to catch up with the completed paint.
+    await mini.evaluate(expected=>new Promise((resolve,reject)=>{
+     let tries=0;const check=()=>wx.createSelectorQuery().selectAll('.field-branch').boundingClientRect(rects=>{
+      if(rects.length===expected)wx.nextTick(()=>setTimeout(resolve,300));
+      else if(++tries>30)reject(Error('Fee rows did not render'));
+      else setTimeout(check,100);
+     }).exec();check();
+    }),expected);
     fs.writeFileSync(path.join(out,name+'-state.json'),JSON.stringify(data,null,2));
     await mini.screenshot({path:path.join(out,name+'-top.png')});
     if(name==='recurring'){
      await mini.evaluate(()=>{wx.pageScrollTo({scrollTop:600,duration:0});});
+     await mini.evaluate(()=>new Promise(resolve=>wx.nextTick(()=>setTimeout(resolve,300))));
      await mini.screenshot({path:path.join(out,name+'-bottom.png')});
     }
    }
