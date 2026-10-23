@@ -60,7 +60,7 @@ try{
   await route('/pages/home/index');await route('/pages/detail/index?id='+c.id,'navigateTo');
   if(c.phase)await evaluate(function(phase){const p=getCurrentPages().slice(-1)[0];p.setData({phase:phase});p.refresh();return true;},c.phase);
   await capture(c.key,c.title,c.description,c.expected);
-  for(const step of c.steps){
+  for(const step of process.env.XIAODA_CAPTURE_STEPS==='0'?[]:c.steps){
    console.log('state transition '+step.action);
    if(step.action==='tapIntro'){
     // Keep the finished speech visible well past the former 1.2 s timeout.

@@ -2,10 +2,10 @@
  <view id="filling-guide" class="fill-guide fill-{{fillAnchor.kind}}">
   <view wx:if="{{fillPrompt.kind==='return'}}" class="fill-heading">{{stats.total && stats.done===stats.total?'这套记录完成啦！':'换一套，继续看看'}}</view>
   <view wx:if="{{fillAnchor.kind==='phase'}}" class="fill-destination">下一步，切换到「{{phaseLabels[fillPrompt.phase]}}」</view>
-  <xiaoda text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" layout="{{fillPrompt.kind==='return'?'hero':'compact'}}" pose="{{fillPrompt.kind==='return'?(stats.done===stats.total?'success':'bye'):'think'}}" closable binddismiss="closeXiaoda"/>
-  <view class="fill-actions"><button wx:if="{{fillPrompt.kind==='next'}}" class="guide-secondary" bindtap="waitFilling">先等等</button><button wx:if="{{fillPrompt.kind==='phase'}}" class="guide-secondary" bindtap="otherHouses">看看其他房子</button><button class="primary guide-primary fill-accept" hover-class="guide-pressed" bindtap="acceptFilling">{{fillPrompt.kind==='return'?'‹ 返回房源列表':'去填写「'+fillPrompt.target+'」'}}</button></view>
-  <view wx:if="{{fillAnchor.kind==='category'}}" class="fill-pointer" aria-hidden="true"/>
-  <view wx:elif="{{fillAnchor.kind==='phase'}}" class="fill-phase-pointers" aria-hidden="true"><view wx:for="{{['全部','房源','现场','询问签约']}}" wx:key="*this"><view wx:if="{{item===fillPrompt.phase}}" class="fill-pointer"/></view></view>
+  <xiaoda wx:if="{{fillPrompt.kind!=='return'}}" text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" layout="compact" pose="think" closable binddismiss="closeXiaoda" target-pointer="{{fillAnchor.kind==='category'?'50%':fillPrompt.phase==='房源'?'calc(35.294% - 55.412px)':fillPrompt.phase==='现场'?'calc(58.824% - 33.176px)':'calc(85.294% - 9.412px)'}}">
+   <view slot="actions" class="fill-actions"><button class="primary guide-primary fill-accept" hover-class="guide-pressed" catchtap="acceptFilling">去填写</button><button wx:if="{{fillPrompt.kind==='next'}}" class="guide-secondary" catchtap="waitFilling">再等等</button><button wx:if="{{fillPrompt.kind==='phase'}}" class="guide-secondary" catchtap="otherHouses">看看其他房子</button></view>
+  </xiaoda>
+  <block wx:else><xiaoda text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" layout="hero" pose="{{stats.done===stats.total?'success':'bye'}}" closable binddismiss="closeXiaoda"/><view class="fill-actions"><button class="primary guide-primary fill-accept" hover-class="guide-pressed" bindtap="acceptFilling">‹ 返回房源列表</button></view></block>
  </view>
 </template>
 <view hidden="{{!accountReady}}">
