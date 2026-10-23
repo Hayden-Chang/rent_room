@@ -7,8 +7,8 @@ const hasContent=value=>value!==undefined&&value!==null&&String(value).length>0;
 let activeRow=null;
 Component({
  properties:{field:Object,readonly:Boolean,hideDivider:Boolean,address:String,location:Object,anchor:String},
- data:{descriptionOpen:false,speedTest:false,commute:false,actions:false,offset:0,dragging:false,valueFocused:false,otherFocused:false,valueFilled:false,otherFilled:false},
- observers:{readonly(value){if(value)this.closeSwipe();},'field.id'(id){this.setData({speedTest:id===SPEED_FIELD_ID,commute:!!commuteMode(id)});if(this.fieldId!==id){this.closeSwipe();this.setData({descriptionOpen:false,valueFocused:false,otherFocused:false});this.fieldId=id;}},'field.value'(value){this.setData({valueFilled:hasContent(value)});},'field.otherText'(value){this.setData({otherFilled:hasContent(value)});}},
+ data:{speedTest:false,commute:false,actions:false,offset:0,dragging:false,valueFocused:false,otherFocused:false,valueFilled:false,otherFilled:false},
+ observers:{readonly(value){if(value)this.closeSwipe();},'field.id'(id){this.setData({speedTest:id===SPEED_FIELD_ID,commute:!!commuteMode(id)});if(this.fieldId!==id){this.closeSwipe();this.setData({valueFocused:false,otherFocused:false});this.fieldId=id;}},'field.value'(value){this.setData({valueFilled:hasContent(value)});},'field.otherText'(value){this.setData({otherFilled:hasContent(value)});}},
  lifetimes:{detached(){if(activeRow===this)activeRow=null;}},
  methods:{
   selectPlace(e){if(!this.data.readonly)this.triggerEvent('selectplace',e.detail);},
@@ -66,11 +66,6 @@ Component({
    if(this.gesture?this.gesture.axis==='y':Date.now()>=(this.suppressTapUntil||0))this.closeSwipe();
   },
   bodyStart(){this.suppressTapUntil=0;this.dismissedTouch=!!activeRow;if(activeRow)activeRow.closeSwipe();},
-  toggleDescription(){
-   if(!this.data.field.description||Date.now()<(this.suppressTapUntil||0))return;
-   if(activeRow)activeRow.closeSwipe();this.closeSwipe();this.dismissedTouch=false;
-   this.setData({descriptionOpen:!this.data.descriptionOpen});
-  },
   consumeDismissal(){const dismissed=this.dismissedTouch||this.data.actions||Date.now()<(this.suppressTapUntil||0);this.dismissedTouch=false;if(dismissed)this.closeSwipe();return dismissed;},
   tapHead(){
    if(Date.now()<(this.suppressTapUntil||0))return;
