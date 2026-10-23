@@ -61,8 +61,8 @@ it('confirms a template switch separately from opening or editing a template row
 });
 it('does not report mode confirmation or template save as successful on storage failure',()=>{
  const r=runtime(),list=r.load('templates');list.choose({currentTarget:{dataset:{mode:'simple'}}});
- const write=r.app.service.store.change;r.app.service.store.change=()=>{throw Error('保存失败');};
+ r.m.failDisk(true);
  list.confirm();expect(r.backs).toBe(0);expect(r.app.service.store.get().settings.selectedTemplate).toBeUndefined();
  const editor=r.load('template-edit',{mode:'simple'});editor.save();expect(r.backs).toBe(0);
- r.app.service.store.change=write;list.confirm();expect(r.backs).toBe(1);expect(r.app.service.store.get().settings.selectedTemplate).toBe('simple');
+ r.m.failDisk(false);list.confirm();expect(r.backs).toBe(1);expect(r.app.service.store.get().settings.selectedTemplate).toBe('simple');
 });

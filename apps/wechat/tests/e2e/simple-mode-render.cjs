@@ -7,20 +7,24 @@ async function evaluate(fn,...args){const result=await mini.evaluate('function()
 async function data(){return JSON.parse(await evaluate(function(){const p=getCurrentPages().slice(-1)[0];return JSON.stringify({route:p.route,mode:p.data.mode,selected:p.data.selected,sections:p.data.sections,coach:p.data.coach,coachField:p.data.coachField,issues:p.data.issueRows,settings:getApp().service.store.get().settings});}));}
 async function route(url,method='reLaunch'){
  await evaluate(function(url,method){getApp().__simpleNav={done:false,error:''};wx[method]({url:url,success:function(){getApp().__simpleNav.done=true;},fail:function(e){getApp().__simpleNav.error=e.errMsg;}});return true;},url,method);
- await sleep(600);for(let i=0;i<100;i++){const r=await evaluate(function(){return getApp().__simpleNav;});if(r.error)throw Error(r.error);if(r.done&&(await data()).route===url.split('?')[0].slice(1))return;await sleep(100);}throw Error('Navigation timeout '+url);
+ await sleep(600);for(let i=0;i<100;i++){const r=await evaluate(function(){return getApp().__simpleNav;});if(r.error)throw Error(r.error+' '+JSON.stringify(await data()));if(r.done&&(await data()).route===url.split('?')[0].slice(1))return;await sleep(100);}throw Error('Navigation timeout '+url);
 }
-async function inject(state){await route('/pages/settings/index');await evaluate(function(state){const store=getApp().service.store;store.change(function(s){Object.assign(s,state);},true);store.change(function(){},true);return true;},state);}
+async function inject(state){await route('/pages/settings/index','switchTab');await evaluate(function(state){const store=getApp().service.store;store.change(function(s){Object.assign(s,state);},true);store.change(function(){},true);return true;},state);}
 async function capture(key,title){await sleep(1300);await mini.screenshot({path:path.join(out,key+'.png')});const record={key,title,...await data()};captures.push(record);fs.writeFileSync(path.join(out,key+'.json'),JSON.stringify(record,null,2));console.log('captured '+key);}
 async function call(action,...args){return evaluate(function(action,args){getCurrentPages().slice(-1)[0][action].apply(getCurrentPages().slice(-1)[0],args);return true;},action,args);}
 (async()=>{const {emptyState,freshHouse,houseTopics}=await import('../../src/lib/model.js'),{templateConfig}=await import('../../src/lib/templates.js');
  mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  try{
   assert.ok((await evaluate(function(){return getApp().service.root;})).includes('/xunju-test-simple-'));
+  // Let the app finish its own first-run redirect before starting fixture navigation.
+  let stable=0;for(let i=0;i<60&&stable<3;i++){const ready=await evaluate(function(){const p=getCurrentPages().slice(-1)[0];return !!p&&p.accountPageReady&&!getCurrentPages().some(function(p){return p.welcomeOpening;});});stable=ready?stable+1:0;await sleep(500);}assert.equal(stable,3,'Initial page never became ready');
+  console.log('Initial route '+(await data()).route);
+  await evaluate(function(){getApp().service.store.change(function(s){s.xiaoda.setup='done';},true);return true;});
   const state=emptyState();state.xiaoda.setup='mode';state.xiaoda.draft=templateConfig();await inject(state);await route('/pages/welcome/index');
   assert.equal((await data()).mode,'simple');await capture('01-simple-default','首次预选精简模式');
   let realClick=false;
   if(process.env.SIMPLE_CLICK==='1')try{
-   console.log('pointer: select detailed');const page=await mini.currentPage(),button=await page.$('.mode-choice[data-mode="detailed"]');assert.ok(button);await button.tap();assert.equal((await data()).mode,'detailed');assert.equal((await data()).settings.selectedTemplate,undefined);realClick=true;
+   console.log('pointer: select detailed');await Promise.race([(async()=>{const page=await mini.currentPage(),button=await page.$('.mode-choice[data-mode="detailed"]');assert.ok(button);await button.tap();})(),sleep(8000).then(()=>{throw Error('Page element protocol did not respond within 8 seconds');})]);assert.equal((await data()).mode,'detailed');assert.equal((await data()).settings.selectedTemplate,undefined);realClick=true;
   }catch(error){fs.writeFileSync(path.join(out,'interaction-failure.json'),JSON.stringify({error:error.stack},null,2));console.log('Pointer verification failed: '+error.message);}
   if(!realClick)await call('selectMode',{currentTarget:{dataset:{mode:'detailed'}}});
   await capture('02-detailed-choice','详细模式互斥选择');

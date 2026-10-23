@@ -6,6 +6,7 @@ import {templateConfig} from '../src/lib/templates.js';
 import {createStore} from '../src/lib/store.js';
 import {progress} from '../src/lib/xiaoda-flow.js';
 import {coachTarget} from '../src/lib/onboarding.js';
+import {makeBackup,readBackup} from './helpers/backup.js';
 const simple=()=>freshHouse('精简',{selectedTemplate:'simple'});
 const all=h=>houseTopics(h).flatMap(t=>t.fields);
 function memory(){let disk;return {read:()=>disk,write:v=>disk=v};}
@@ -64,6 +65,11 @@ describe('mode snapshots and records',()=>{
   const a=simple(),b=freshHouse('详细'),f=all(a).find(f=>f.label==='电梯使用正常');updateAnswer(a,f.id,'value','没有');
   expect(formView(a,{query:'维保记录'}).flatMap(s=>s.rows).some(r=>r.id===f.id)).toBe(true);
   expect(comparison([a,b]).find(r=>r.id===f.id).values).toEqual(['没有','不涉及']);
+ });
+ it('round-trips merged answers, flags, notes and associated media through ZIP',async()=>{
+  const h=simple(),id='simple_13';h.answers[id]={value:'否',note:'晚上复查',issueFlag:true};h.media=[{id:'photo',type:'image',fieldId:id,path:'/noise.png'}];
+  const bytes=new Uint8Array([137,80,78,71,1,2,3]),backup=await readBackup(makeBackup({...emptyState(),houses:[h]},()=>bytes));
+  const restored=backup.houses[0];expect(restored.checklistMode).toBe('simple');expect(restored.templateTopics).toEqual(h.templateTopics);expect(restored.answers).toEqual(h.answers);expect(restored.media[0].fieldId).toBe(id);expect(backup.files[restored.media[0].path]).toEqual(bytes);expect(stats(restored).issues).toBe(1);
  });
  it('rejects invalid mode metadata and an empty compact template',()=>{
   for(const patch of [s=>s.settings.selectedTemplate='bad',s=>s.xiaoda.draftMode='bad',s=>{s.houses=[simple()];s.houses[0].checklistMode='bad';},s=>{const c=templateConfig();s.settings.templates={simple:{...c,disabled:c.order}};}]){
