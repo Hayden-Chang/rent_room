@@ -83,3 +83,9 @@ node scripts/check.mjs
 真实开发者工具 run df1de0cb3abf48609cc09bf7fbf1a609 在干净 cda9030 上通过，产生 17 张截图；产物 SHA-256 为 916d0b8f8efeccabf2a5823e8c46997fc94e08322fcf5c1a8013f60d9ed10bf6。重点核对默认收起、展开空调、只展开冰箱、再次全部收起、问题说明、长标题及分组眼睛的实际排版。截图前后断言存储中的房源字节内容未变；第 3 槽正常归还 idle，常驻进程保留。
 
 本地图集 artifacts/simple-mode-20261024/index.html 已更新，前 5 张为本次说明状态。原图复制后校验 SHA-256、PNG 尺寸并写入 delivery-manifest.json。截图状态通过生产控制器准备，测试通过实际 WXML 事件绑定验证局部逻辑；均不等同于真机点击证据，真实交互与视觉确认仍待验收。此补充为文档记录，不改变上述已验证应用代码。
+
+## 眼睛改为黑色（2026-10-24）
+
+用户确认默认眼睛改用黑色。应用 SHA 022ec129dc8637bbd3b6eabc1adfc54e6594625e 相对 c05c004 仅修改 field-row 一处 WXSS 颜色为 #000000，展开状态仍为 #98a1b1。逻辑、模板、测试、依赖均未变，复用 cda9030 的 81 项组件测试证据，不新增颜色常量单测。重新构建及官方编译通过，包大小仍为 2,051,857 字节。
+
+从现有渲染用例提取仅家电默认收起、空调展开两种受影响状态；回调保存在 apps/wechat/artifacts/simple-mode/eye-black-render.cjs。run 993b00105254441e8822541880d2ac47 在干净 022ec12 上通过，两张实际截图已检查；快照 SHA-256 为 225b6dd713b0a0a84f0fb3494a3b7ad3d909e854c42a30a12f446c929c463b6c。第 3 槽已正常归还。日志为 eye-black-build.log、eye-black-compile.log。最新图集：artifacts/simple-mode-20261024/eye-black/index.html，原流程图集保留并标明颜色已更新。仍为草稿与控制器准备的渲染证据，未声明真机交互或用户视觉验收完成。
