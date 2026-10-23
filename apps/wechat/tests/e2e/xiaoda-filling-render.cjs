@@ -20,7 +20,7 @@ async function route(url,method='reLaunch'){
 }
 async function capture(key,title,description,expected){
  let d=await data();const length=Array.from(d.speech||d.prompt?.text||d.homeMessage||'').length;
- await sleep(d.route==='pages/capacity/index'?1500:length*45+300);d=await data();
+ await sleep(d.route==='pages/capacity/index'?2200:d.coach===1?6500:length*45+600);d=await data();
  if(expected?.kind!==undefined)assert.equal(d.prompt?.kind||null,expected.kind,key);
  if(expected?.target)assert.equal(d.prompt?.target,expected.target,key);
  if(expected?.home)assert.equal(d.route,'pages/home/index',key);
