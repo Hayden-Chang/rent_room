@@ -12,7 +12,7 @@ export const coachSteps=[
 export function coachTarget(h){
  const topics=houseTopics(h),expanded=Object.fromEntries(topics.flatMap(t=>[[t.category,true],...(t.path||[]).map(p=>[p.id,true])]));
  const rows=formView(h,{phase:'全部'},expanded).flatMap(s=>s.rows).filter(r=>r.kind==='field'&&!r.map);
- const field=rows.find(r=>r.label.includes('出风'))||rows[0];
+ const field=rows.find(r=>h.checklistMode==='simple'?r.id.startsWith('simple_'):r.label.includes('出风'))||rows[0];
  const topic=field&&topics.find(t=>t.fields.some(f=>f.id===field.id));
  return field?{field,folds:Object.fromEntries([[topic.category,true],...(topic.path||[]).map(p=>[p.id,true])])}:null;
 }

@@ -1,6 +1,8 @@
 import templateCategories from './template-categories.json' with {type:'json'};
 
 export {templateCategories};
+export const modeLabels={simple:'精简模式',detailed:'详细模式'};
+export const selectedMode=settings=>settings?.selectedTemplate==='simple'?'simple':'detailed';
 export function templateConfig(settings={},mode='detailed') {
   const saved=settings.templates?.[mode]||{};
   return {order:[...new Set([...(saved.order||[]),...templateCategories])].filter(id=>templateCategories.includes(id)),

@@ -1,1 +1,6 @@
-<view wx:if="{{accountReady}}" class="page"><view class="card"><view class="menu muted">精简模式<text>待完善</text></view><button class="menu" bindtap="open"><text>详细模式</text><text>☑　›</text></button></view><button class="primary" bindtap="confirm">确定</button></view>
+<view wx:if="{{accountReady}}" class="page">
+ <view class="card"><view wx:for="{{modes}}" wx:key="id" class="menu template-row" data-mode="{{item.id}}" bindtap="open">
+  <text class="grow">{{item.label}}</text><button class="template-choice" data-mode="{{item.id}}" catchtap="choose" aria-label="{{selected===item.id?'已选择':'选择'}}{{item.label}}">{{selected===item.id?'☑':'☐'}}</button><text class="template-arrow">›</text>
+ </view></view>
+ <button class="primary" bindtap="confirm">确定</button>
+</view>

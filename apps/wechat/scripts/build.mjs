@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {build} from 'esbuild';
 import {toTopics, validTree} from './source-core.mjs';
+import {toSimpleTopics} from './simple-core.mjs';
 import {loadMapKey} from './map-config.mjs';
 import {apiUrl} from './api-config.mjs';
 const mapKey=await loadMapKey();
@@ -11,6 +12,8 @@ if(testRoot&&!/^xunju-test-[a-z0-9-]+$/.test(testRoot))throw Error('Invalid isol
 const source=JSON.parse(await fs.readFile('data/source-tree.json','utf8'));
 if(!validTree(source.tree))throw Error('Invalid source tree');
 const topics=toTopics(source.tree);
+const simpleSpec=JSON.parse(await fs.readFile('data/simple-checklist.json','utf8'));
+await fs.writeFile('src/lib/simple-topics.json',JSON.stringify(toSimpleTopics(topics,simpleSpec)));
 await fs.writeFile('src/lib/topics.json',JSON.stringify(topics));
 await fs.writeFile('src/lib/template-categories.json',JSON.stringify([...new Set(topics.map(t=>t.category))]));
 const privateConfig=await fs.readFile('dist/project.private.config.json').catch(()=>null);
