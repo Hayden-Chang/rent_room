@@ -16,12 +16,12 @@ const timer=setTimeout(()=>{fs.writeFileSync(path.join(out,'timeout.json'),JSON.
    if(!rows.length){if(++tries>50)return reject(Error('Category rows missing'));setTimeout(poll,100);return;}
    Promise.all(rows.map(c=>new Promise(done=>{
     const q=c.createSelectorQuery();
-    for(const selector of ['.heading-progress','.heading-progress-fill','.heading-count','.label'])q.select(selector).boundingClientRect();
+    for(const selector of ['.heading-progress','.heading-progress-fill','.heading-count','.label'])q.select(selector).fields({rect:true,size:true,computedStyle:['background-color']});
     q.exec(rects=>done({label:c.data.field.label,stats:c.data.field.stats,track:rects[0],fill:rects[1],count:rects[2],title:rects[3]}));
    }))).then(values=>{if(values.every(v=>v.track?.width&&v.count?.width))resolve(values);else if(++tries>50)reject(Error('Progress not rendered'));else setTimeout(poll,100);});
   }poll();
  })));
- function check(rows){for(const row of rows){const expected=row.stats.total?row.stats.done/row.stats.total:0;assert(Math.abs(row.fill.width-row.track.width*expected)<1,row.label+' fill matches count');assert(row.track.right<=row.count.left,row.label+' progress is left of count');assert(row.title.right<=row.track.left,row.label+' title does not overlap progress');assert.equal(row.track.height,4);}}
+ function check(rows){for(const row of rows){const expected=row.stats.total?row.stats.done/row.stats.total:0;assert(Math.abs(row.fill.width-row.track.width*expected)<1,row.label+' fill matches count');assert(row.track.right<=row.count.left,row.label+' progress is left of count');assert(row.title.right<=row.track.left,row.label+' title does not overlap progress');assert.equal(row.track.height,4);assert.equal(row.fill['background-color'],row.stats.total>0&&row.stats.done===row.stats.total?'rgb(22, 163, 74)':'rgb(77, 86, 223)',row.label+' only completed progress is green');}}
  try{
   const id=await step('prepare full checklist fixture',()=>mini.evaluate(()=>{
    const service=getApp().service;if(!service.root.includes('/xunju-test-category-progress/'))throw Error('Disposable root required');
@@ -37,15 +37,19 @@ const timer=setTimeout(()=>{fs.writeFileSync(path.join(out,'timeout.json'),JSON.
    const store=getApp().service.store;store.edit(id,h=>{
     const categories=[...new Set(h.templateTopics.map(t=>t.category))].slice(0,4);
     h.templateTopics=categories.map((category,i)=>({id:'progress-topic-'+i,category,title:category,phase:'现场看房',path:[{id:'progress-root-'+i,title:category}],fields:[0,1].map(j=>({id:'progress-'+i+'-'+j,label:j?'通风满意':'采光满意',type:'y',fact:true,options:['是','否'],...(i===3?{visibleWhen:{fieldId:'unused-controller',value:'是'}}:{})}))}));
-    h.answers={'progress-1-0':{value:'是',issueFlag:true},'progress-2-0':{value:'是'},'progress-2-1':{value:'否'}};
+    h.answers={'progress-1-0':{value:'是',issueFlag:true},'progress-2-0':{value:'是',issueFlag:true},'progress-2-1':{value:'否'}};
    });
   },id));
   page=await mini.reLaunch(route);report.boundaries=await geometry();check(report.boundaries);
   assert.deepEqual(report.boundaries.map(r=>[r.stats.done,r.stats.total]),[[0,2],[1,2],[2,2],[0,0]]);
-  await shot('category-progress-empty-partial-full');report.steps.push('zero, half, full and zero-total render correctly with issue count');
+  await shot('category-progress-empty-partial-full');report.steps.push('zero and half stay purple, full turns green even with an issue, zero-total stays empty');
   page=await mini.reLaunch(route);const reopened=await geometry();check(reopened);
   assert.deepEqual(reopened.map(r=>r.stats),report.boundaries.map(r=>r.stats));
-  report.steps.push('page reload preserves all displayed progress');report.passed=true;
+  report.steps.push('page reload preserves all displayed progress');
+  await step('prepare incomplete-again fixture',()=>mini.evaluate(id=>getApp().service.store.answer(id,'progress-2-1','value',''),id));
+  await mini.reLaunch(route);const incomplete=await geometry();check(incomplete);assert.equal(incomplete[2].stats.done,1);
+  report.incompleteAgain=incomplete[2];await shot('category-progress-incomplete-again');
+  report.steps.push('clearing an answer returns completed progress to purple');report.passed=true;
  }catch(error){report.error=error.stack;throw error;}
  finally{fs.writeFileSync(path.join(out,'assertions.json'),JSON.stringify(report,null,2));mini.disconnect();clearTimeout(timer);}
 })().then(()=>process.exit(0)).catch(error=>{console.error(error.stack);process.exit(1);});
