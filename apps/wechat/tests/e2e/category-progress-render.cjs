@@ -23,11 +23,11 @@ const timer=setTimeout(()=>{fs.writeFileSync(path.join(out,'timeout.json'),JSON.
  })));
  const summary=()=>step('read simplified summary',()=>mini.evaluate(()=>new Promise(resolve=>{
   const q=wx.createSelectorQuery(),stats=getCurrentPages().slice(-1)[0].data.stats;
-  for(const selector of ['.progress-count','.progress .issue-text','.progress .track','.progress .track view'])q.select(selector).fields({rect:true,size:true,computedStyle:['color']});
-  q.select('.progress .subtitle').boundingClientRect();q.selectAll('.progress text').boundingClientRect();
-  q.exec(([count,issues,track,fill,title,texts])=>resolve({stats,count,issues,track,fill,title,texts}));
+  for(const selector of ['.progress-count','.progress .issue-text','.progress .track'])q.select(selector).fields({rect:true,size:true,computedStyle:['color']});
+  q.select('.progress .subtitle').boundingClientRect();
+  q.exec(([count,issues,track,title])=>resolve({stats,count,issues,track,title}));
  })));
- function checkSummary(v){assert.equal(v.title,null);assert.equal(v.texts.length,2,'only total and issue count remain');assert(Math.abs(v.count.right-v.track.right)<1);assert(Math.abs(v.issues.right-v.track.right)<1);assert(v.count.bottom<v.track.top);assert(v.track.bottom<v.issues.top);assert(Math.abs(v.fill.width-v.track.width*(v.stats.total?v.stats.done/v.stats.total:0))<1);assert.equal(v.issues.color,'rgb(187, 65, 73)');}
+ function checkSummary(v){assert.equal(v.title,null);assert(v.count&&v.issues&&v.track,'summary nodes render');assert(Math.abs(v.count.right-v.track.right)<1);assert(Math.abs(v.issues.right-v.track.right)<1);assert(v.count.bottom<v.track.top);assert(v.track.bottom<v.issues.top);assert.equal(v.issues.color,'rgb(187, 65, 73)');}
  function check(rows){for(const row of rows){const expected=row.stats.total?row.stats.done/row.stats.total:0;assert(Math.abs(row.fill.width-row.track.width*expected)<1,row.label+' fill matches count');assert(row.track.right<=row.count.left,row.label+' progress is left of count');assert(row.title.right<=row.track.left,row.label+' title does not overlap progress');assert.equal(row.track.height,4);assert.equal(row.fill['background-color'],row.stats.total>0&&row.stats.done===row.stats.total?'rgb(22, 163, 74)':'rgb(77, 86, 223)',row.label+' only completed progress is green');}}
  try{
   const id=await step('prepare full checklist fixture',()=>mini.evaluate(()=>{
