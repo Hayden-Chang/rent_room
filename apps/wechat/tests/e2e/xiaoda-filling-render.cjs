@@ -4,7 +4,12 @@ const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/
 if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use shared pool');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const out=process.env.WECHAT_ARTIFACT_DIR;let mini;const captured=[];
-async function data(){return JSON.parse(await mini.evaluate(function(){const p=getCurrentPages().slice(-1)[0],st=getApp().service.store.get();return JSON.stringify({route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,phase:p.data.phase,sections:p.data.sections?.map(function(s){return {title:s.title,rows:s.rows.length};}),feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:st.houses.find(function(h){return h.id===p.data.id;})?.answers});}));}
+async function data(){return JSON.parse(await mini.evaluate(function(){
+ var p=getCurrentPages().slice(-1)[0],st=getApp().service.store.get();if(!p)return JSON.stringify({route:'',prompt:null});
+ var sections=[],answers={};if(p.data.sections)for(var i=0;i<p.data.sections.length;i++){var section=p.data.sections[i];sections.push({title:section.title,rows:section.rows.length});}
+ for(var j=0;j<st.houses.length;j++)if(st.houses[j].id===p.data.id)answers=st.houses[j].answers;
+ return JSON.stringify({route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,phase:p.data.phase,sections:sections,feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:answers});
+}));}
 async function route(url,method='reLaunch'){await mini.evaluate(function(url,method){wx[method]({url:url});return true;},url,method);console.log('navigation requested '+url);const target=url.split('?')[0].slice(1);for(let i=0;i<40;i++){const d=await data();if(d.route===target)return;await sleep(100);}throw Error('Navigation did not reach '+target);}
 async function capture(key,title,description,expected){
  let d=await data();const length=Array.from(d.prompt?.text||d.homeMessage||'').length;
