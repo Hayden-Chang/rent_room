@@ -16,6 +16,9 @@ it.each([false,true])('shows parking cost once under recurring costs with legacy
  h.media=[{id:'parking-bill',type:'image',path:'/local/bill.jpg',fieldId}];
  const before=JSON.stringify(h),ts=costTopics(h);
  expect(ts).toHaveLength(1);expect(ts[0].category).toBe('费用与付款');expect(ts[0].path.at(-1).id).toBe(groupId);
+ expect(ts[0].phase).toBe('询问与签约');
+ expect(formView(h,{phase:'询问签约',query:'停车费'}).flatMap(s=>s.rows).some(r=>r.id===fieldId)).toBe(true);
+ expect(formView(h,{phase:'现场',query:'停车费'}).flatMap(s=>s.rows).some(r=>r.id===fieldId)).toBe(false);
  const row=formView(h,{query:'周期费用'}).flatMap(s=>s.rows).find(r=>r.id===fieldId);
  expect(row).toMatchObject({label:'停车费（元/月）',value:'200',note:'车位包月',problem:true});
  expect(row.media).toHaveLength(1);

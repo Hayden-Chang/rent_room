@@ -9367,7 +9367,7 @@
                 "children": [],
                 "meta": {
                   "type": "n",
-                  "phase": "现场看房",
+                  "phase": "询问与签约",
                   "options": null
                 }
               },
@@ -9378,7 +9378,7 @@
                 "children": [],
                 "meta": {
                   "type": "n",
-                  "phase": "现场看房",
+                  "phase": "询问与签约",
                   "options": null
                 }
               },
@@ -9389,7 +9389,7 @@
                 "children": [],
                 "meta": {
                   "type": "n",
-                  "phase": "现场看房",
+                  "phase": "询问与签约",
                   "options": null,
                   "aliases": [
                     {
@@ -9406,7 +9406,7 @@
                 "children": [],
                 "meta": {
                   "type": "n",
-                  "phase": "现场看房",
+                  "phase": "询问与签约",
                   "options": null
                 }
               },
@@ -9417,7 +9417,7 @@
                 "children": [],
                 "meta": {
                   "type": "n",
-                  "phase": "现场看房",
+                  "phase": "询问与签约",
                   "options": null
                 }
               },
@@ -9428,7 +9428,7 @@
                 "children": [],
                 "meta": {
                   "type": "n",
-                  "phase": "现场看房",
+                  "phase": "询问与签约",
                   "options": null
                 }
               },
@@ -9439,7 +9439,7 @@
                 "children": [],
                 "meta": {
                   "type": "n",
-                  "phase": "现场看房",
+                  "phase": "询问与签约",
                   "options": null
                 }
               },
@@ -9522,7 +9522,7 @@
                     }
                   ],
                   "legacyType": "n",
-                  "phase": "现场看房",
+                  "phase": "询问与签约",
                   "hint": "如需停车，确认车位及收费。",
                   "sources": [
                     "IMG_6310.PNG",
