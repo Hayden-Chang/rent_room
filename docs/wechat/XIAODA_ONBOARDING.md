@@ -17,13 +17,13 @@
 | 生产边界 | 定向测试文件（apps/wechat/tests/） |
 | --- | --- |
 | 新旧进度、模板、关闭、推荐、资源、打字和反馈 | xiaoda.test.js、first-meeting-runtime.test.js、onboarding.test.js、onboarding-target.test.js、onboarding-icons.test.js、template-fold.test.js |
-| 真实左滑事件 | field-row-swipe.test.js |
+| 真实左滑事件 | field-row-swipe.test.js、detail-navigation.test.js、detail-filter.test.js |
 | 容量规则、续接和支付协议 | capacity.test.js、capacity-runtime.test.js、billing.test.js、capacity-config.test.js |
-| 本机持久化、账号迁移、页面隔离 | model.test.js、guest-storage.test.js、account-runtime.test.js、account-storage.test.js、platform.test.js、runtime.test.js、settings-simplification.test.js |
+| 本机持久化、账号迁移、页面隔离 | model.test.js、parking-recurring-cost.test.js、cost-phase.test.js、guest-storage.test.js、account-runtime.test.js、account-storage.test.js、platform.test.js、runtime.test.js、settings-simplification.test.js |
 | 容量影响导入、备份及错误回滚 | transfer.test.js、transfer-page.test.js |
 | 构建入口与配置 | auth-build-config.test.js、map-build-config.test.js、官方wcc/wcsc检查 |
 
-使用 Node24.19.0，运行上述22个文件，不运行全量本地测试。后端 Python3.12.14 隔离环境执行 `test_rent_room_capacity.py` 与 `test_rent_room_feedback.py`，77项通过；首轮缺少PyYAML的环境问题已修复。前端旧用例中依赖“免费2套”的夹具已改为新边界或明确使用已购包，保留原数据回滚与账号隔离断言。
+使用 Node24.19.0，运行上述26个文件，不运行全量本地测试。后端 Python3.12.14 隔离环境执行 `test_rent_room_capacity.py` 与 `test_rent_room_feedback.py`，77项通过；首轮缺少PyYAML的环境问题已修复。前端旧用例中依赖“免费2套”的夹具已改为新边界或明确使用已购包，保留原数据回滚与账号隔离断言。
 
 ## UI证据与限制
 
@@ -34,3 +34,6 @@
 工具池证据根：`/Volumes/mac2/codex-builds/wechat-instance-pool/runs/`。测试日志根：`/private/tmp/xiaoda-validation/`。最终提交、编译体积、截图run与测试结果在交付后补充。主工作区未修改，未部署、未发布、未实付。
 
 当前 UI 门禁未通过：需恢复交互工具或在真机检查排序、五种筛选、左滑后三个按钮、模板三选退出，以及支付/登录后续接；还需用户确认视觉效果。不得因渲染测试或单测通过而合并。
+
+
+主线在开发期间前进到4422ab4（停车费分组与回家路线文案），已无冲突合入任务分支，重新生成清单并补充停车费/阶段、详情导航/筛选组合验证。审查补充：用户主动切阶段、搜索、折叠、切页或开始填写时收起旧提示，取消待执行的自动滚动。

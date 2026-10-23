@@ -22,6 +22,7 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     return {sections,filterOptions:this.data.filterChoices.map(label=>({label,selected:view.filters.includes(label)}))};
   },
   updateChecklist(patch){
+    this.inputFilling();
     const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}
     const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters,...patch};
     this.setData({...patch,...this.checklistData(h,view)});
@@ -31,7 +32,7 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     wx.setNavigationBarTitle({title:h.name});this.syncFilling();
   },
   retry(){service().store.save();},
-  fold(e){if(this.dismissSwipe())return;const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});const folds=this.folds[key]||={};const {id,expanded}=e.detail?.id?e.detail:e.currentTarget.dataset;folds[id]=!expanded;this.refresh();},
+  fold(e){if(this.dismissSwipe())return;this.inputFilling();const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});const folds=this.folds[key]||={};const {id,expanded}=e.detail?.id?e.detail:e.currentTarget.dataset;folds[id]=!expanded;this.refresh();},
   phase(e){if(this.dismissSwipe())return;const phase=e.currentTarget.dataset.value;if(phase===this.data.phase)return;this.updateChecklist({phase});},search(e){const query=e.detail.value;if(query===this.data.query)return;this.updateChecklist({query});},
   toggleFilters(){if(this.dismissSwipe())return;this.setData({showFilters:!this.data.showFilters},()=>{if(this.data.coach===2)this.coachLayout();});},filter(e){if(this.dismissSwipe())return;const v=e.currentTarget.dataset.value;if(v==='全部'&&!this.data.filters.length)return;this.updateChecklist({filters:v==='全部'?[]:this.data.filters.includes(v)?this.data.filters.filter(x=>x!==v):[...this.data.filters,v]});},
   measureTab(){
@@ -47,7 +48,7 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     if(this.unloaded||!this.data.tabs.includes(target))return;
     this.requestedTab=target;
     if(this.switchingTab||this.commuteRestoring||target===this.data.tab)return;
-    this.switchingTab=true;
+    this.inputFilling();this.switchingTab=true;
     try{
       while(!this.unloaded&&this.requestedTab!==this.data.tab){
         const from=this.data.tab,position=await this.measureTab();
@@ -80,10 +81,10 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
       if(!this.unloaded&&this.data.restoringTab)this.setData({restoringTab:false});
     }
   },
-  answer(e){attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);const h=service().store.house(this.data.id);this.setData({stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''});this.syncFilling();});},
-  choose(e){attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
-  group(e){if(this.dismissSwipe())return;const {id,op,value}=e.detail?.id?e.detail:e.currentTarget.dataset;attempt(()=>{service().store.group(this.data.id,id,op,value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[id]=true;this.refresh();});},
-  action(e){return attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查节点不存在');if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!issueEntries(h).some(e=>e.field.id===id));this.refresh();}
+  answer(e){this.inputFilling();attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);const h=service().store.house(this.data.id);this.setData({stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''});this.syncFilling();});},
+  choose(e){this.inputFilling();attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
+  group(e){if(this.dismissSwipe())return;this.inputFilling();const {id,op,value}=e.detail?.id?e.detail:e.currentTarget.dataset;attempt(()=>{service().store.group(this.data.id,id,op,value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[id]=true;this.refresh();});},
+  action(e){this.inputFilling();return attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查节点不存在');if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!issueEntries(h).some(e=>e.field.id===id));this.refresh();}
     if(action==='wheel'&&!h.archived){wx.hideKeyboard();this.dismissSwipe();this.setData({wheelField:{...f,value:rules.fieldValue(f,h.answers[id])}});}
     if(action==='note')this.openNote({sheet:'note',noteId:id,noteTitle:f.label,note:h.answers[id]?.note||''});
     if(action==='media'){await service().chooseMedia(h.id,id);this.refresh();}

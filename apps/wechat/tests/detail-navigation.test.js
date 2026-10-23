@@ -17,7 +17,7 @@ function harness(){
     pageScrollTo({scrollTop:top,duration,complete}){scrollTop=Math.max(0,Math.min(top,heights[page.data.tab]));scrolls.push({tab:page.data.tab,top:scrollTop,duration,hidden:page.data.restoringTab});page.onPageScroll?.({scrollTop});if(holdScroll)completions.push(complete);else complete?.();},
   };
   const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
-  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
+  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx,{packs:1});
   function open(id=app.service.store.add('状态保留')){
     scrollTop=0;
     vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);

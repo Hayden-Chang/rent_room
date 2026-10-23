@@ -86,6 +86,7 @@ export const coachMethods={
    this.setData({...view});this.refresh({},()=>{const section=this.data.sections.find(s=>s.title===target.category);if(section)wx.pageScrollTo({selector:'#'+section.id,duration:250});});
   }catch(error){notify(error);}
  },
+ inputFilling(){if(!this.data.fillPrompt||this.data.coach)return;try{if(this.data.fillPrompt.kind==='intro')service().store.edit(this.data.id,h=>h.xiaoda.intro='done',true);this.clearFilling();}catch(error){notify(error);}},
  waitFilling(){try{this.clearFilling();}catch(error){notify(error);}},
  otherHouses(){try{this.clearFilling();this.setData({fillPrompt:{kind:'return',text:'那就先看看其他房子吧～',id:'return-'+Date.now()}});}catch(error){notify(error);}},
  async closeXiaoda(){this.clearCoachTimer();try{const res=await service().api('showActionSheet',{itemList:['当前房源关闭','今天关闭','永久关闭']});

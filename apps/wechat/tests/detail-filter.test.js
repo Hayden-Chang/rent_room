@@ -10,7 +10,7 @@ function setup(){
  house.answers.f1_6={value:'4800',note:'保留备注',issueFlag:true};
  house.media=[{id:'photo',type:'image',fieldId:'f1_6',path:'/test/photo.jpg'},{id:'video',type:'video',path:'/test/video.mp4'}];
  let page,titleCalls=0;
- const service={store:{house:()=>house,status:()=>({error:''})}};
+ const service={store:{get:()=>({xiaoda:{}}),house:()=>house,status:()=>({error:''})}};
  vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({
   Page:p=>page=p,getApp:()=>({service}),wx:{setNavigationBarTitle(){titleCalls++;},navigateBack(){}}
  }));

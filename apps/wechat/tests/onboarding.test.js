@@ -25,3 +25,8 @@ it('reopens the actual action row by field identity when resuming tutorial step 
  const h=harness(),p=h.open();reachSwipe(p);p.coachSwiped({detail:{id:p.data.coachField.id}});p.onUnload();const resumed=h.open(),reveal=vi.fn();
  resumed.selectAllComponents=()=>[{data:{field:{id:'another'}},reveal:()=>{throw Error('wrong row');}},{data:{field:resumed.data.coachField},reveal}];resumed.coachLayout();expect(resumed.data.coach).toBe(4);expect(reveal).toHaveBeenCalledOnce();
 });
+
+it('cancels the pending automatic category jump when the user starts navigating independently',()=>{
+ const h=harness(),p=h.open();reachSwipe(p);p.coachSwiped({detail:{id:p.data.coachField.id}});p.coachNext();p.fillTyped();p.phase({currentTarget:{dataset:{value:'现场'}}});
+ vi.advanceTimersByTime(2000);expect(p.data.phase).toBe('现场');expect(p.data.fillPrompt).toBeNull();expect(h.app.service.store.house(h.id).xiaoda.intro).toBe('done');
+});
