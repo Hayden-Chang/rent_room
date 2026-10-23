@@ -33,7 +33,7 @@ const shot=name=>mini.screenshot({path:path.join(out,name+'.png')});
  await shot('04-stage-typing');await sleep(6500);await shot('05-stage');
  await step('continue to filters',async()=>{await(await page.$('.coach-card .primary')).tap();});await until(s=>s.data.coach===2);
  await until(s=>s.data.showFilters);
- await step('select an actual filter choice',async()=>{await(await page.$('#filter-options [data-value="未记录"]')).tap();});
+ await step('select an actual filter choice',async()=>{const choices=await page.$$('#filter-options .chip');assert.equal(await choices[1].text(),'未记录');await choices[1].tap();});
  await until(s=>s.data.filters.includes('未记录'));await shot('06-filters');
  await step('continue to swipe',async()=>{await(await page.$('.coach-card .primary')).tap();});await until(s=>s.data.coach===3&&s.data.coachReady);
  await shot('07-before-swipe');const row=await page.$('#coach-field .field-row'),front=await row.$('.swipe-shell'),pos=await front.offset();
