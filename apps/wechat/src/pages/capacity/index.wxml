@@ -1,6 +1,6 @@
 <view wx:if="{{accountReady}}" class="page capacity-page">
  <xiaoda wx:if="{{!busy || thanking}}" pose="{{thanking?'success':'expect'}}" text="{{thanking?'谢谢主人，您现在多了 10 套房源额度啦！':'主人，可以投喂我一个小饼干吗？'}}" bindtyped="paidTyped"/>
- <block wx:if="{{!thanking}}"><view class="card capacity-summary"><view class="subtitle">房源额度</view><view class="capacity-number">{{used}}<text> / {{limit}} 套</text></view><view class="muted">当前未归档房源 / 额度上限</view></view>
- <view class="card pack-card"><view class="subtitle">🍪 1 块小饼干 = 增加 10 套房源额度</view><view class="muted">每套未归档房源占用 1 套额度，归档或彻底删除后释放。额度无有效期。</view><view wx:if="{{intent.kind==='restore'}}" class="muted">当前没有可用额度，额度足够后就能恢复这套房源啦。</view><view wx:if="{{!authenticated}}" class="muted">购买前需微信登录，登录后继续当前操作。</view><button class="primary purchase-pack" loading="{{busy}}" disabled="{{busy}}" bindtap="purchase">{{authenticated?'¥1.99 购买小饼干':'微信登录后购买'}}</button><button disabled="{{busy}}" bindtap="cancel">先等等</button></view>
+ <block wx:if="{{!thanking}}"><view class="card capacity-summary"><view class="subtitle">房源额度</view><view class="capacity-number">{{used}}<text> / {{limit}} 套</text></view></view>
+ <view class="card pack-card"><view class="subtitle">🍪 1 块小饼干 = 增加 10 套房源额度</view><view wx:if="{{intent.kind==='restore'}}" class="muted">当前没有可用额度，额度足够后就能恢复这套房源啦。</view><button class="primary purchase-pack" loading="{{busy}}" disabled="{{busy}}" bindtap="purchase">{{authenticated?'¥1.99 购买小饼干':'微信登录后购买'}}</button><button disabled="{{busy}}" bindtap="cancel">先等等</button></view>
  <view wx:if="{{error}}" class="error">{{error}}</view><button class="link restore-purchases" disabled="{{busy}}" bindtap="restore">{{authenticated?'刷新容量':'微信登录并恢复容量'}}</button></block>
 </view>
