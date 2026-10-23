@@ -25,7 +25,7 @@
 
 ## 生成关系与数据保护
 
-- `data/source-tree.json` 经构建脚本转换为 `src/lib/topics.json`；后者是生成文件，不手工修补。
+- `data/source-tree.json` 经构建脚本转换为 `src/lib/topics.json` 和只含一级标题的 `src/lib/template-categories.json`；两者均为生成文件，不手工修补。
 - `src/` 经构建输出到 `dist/`；`dist/project.config.json` 的 AppID、基础库和编译选项来自 `scripts/build.mjs`。
 - `build` 会重新创建 `dist/` 并保留已有 `dist/project.private.config.json`。每个任务独立构建，不在其他任务正在使用的输出目录运行。
 - 微信开发者工具导入当前 worktree 的 `apps/wechat/dist`。确认实际打开路径与被测提交一致，避免误测旧工程。
@@ -79,3 +79,21 @@ npm run package
 ### 地图配置（2026-10-13）
 
 `build` 在生成文件前检查地点查询Key；读取优先级和本机共享路径见 [应用说明](../../apps/wechat/README.md#地点查询构建配置)。新 worktree 不能仅凭构建/上传成功断言地图可用。改动构建配置时运行 `tests/map-build-config.test.js`；运行时回归选 `tests/runtime.test.js` 和 `tests/places.test.js`。离线测试可显式使用 `WECHAT_ALLOW_MISSING_MAP_KEY=1`，不得将该产物用于真实地图验收。
+
+
+## 小搭首次见面（2026-10-23）
+
+需求及本版用户决定见 [实现与验收记录](XIAODA_ONBOARDING.md)。新用户排序、详细模式、首次阶段/筛选/左滑教学均保存本机进度，不提供跳过；旧存档缺少进度标记时迁移为已完成。此处的“旧用户”以本机既有存档为依据；清空数据后的未登录设备无法凭空识别历史身份。
+
+- `lib/xiaoda-state.js`：进度、兼容迁移、关闭作用域及数据校验。
+- `lib/templates.js`：类别排序/停用；新房源快照保留原始顺序。详情临时展示顺序不改默认模板。
+- `lib/xiaoda-flow.js`：真实结果完成度、首次完成去重和下一类别推荐。
+- `lib/onboarding.js`：真实页面锚点与界面协调；前三步完成条件来自实际筛选/左滑事件。
+- `components/xiaoda` + `lib/typewriter.js`：静态姿态、逐字输出及隐藏/移除时计时器清理。
+- `lib/xiaoda-skin.js`：开发时替换的资源包入口。只映射 idle/greet/point/think/expect/success/bye 语义姿态；未知姿态回落 idle。PNG 位于 `src/assets/xiaoda/`，透明背景、256×256，来自本次用户提供的三张动作图。
+- `lib/house-intent.js`：新建/恢复续接，容量不足先保存操作意图，登录迁移后由服务端确认额度才继续；新建在名称提交时才占用容量。
+- `lib/home-xiaoda.js` + `lib/feedback.js`：一次性反馈邀请、重试请求号与真实服务端 receipt 校验。
+
+构建使用压缩后的独立 IIFE 入口；模板排序页面仅携带标题，避免重复打入完整清单导致主包超过2MB。不要把测试页面/测试数据打入正式包。
+
+服务端依赖 [model_server PR #95](https://github.com/Hayden-Chang/model_server/pull/95)。登录/权益/订单请求携带 `X-Rent-Room-Capacity-Version: 1`；先部署兼容后端再发布新小程序，旧客户端保留旧响应口径。反馈接口未部署时保留输入并显示失败，不显示感谢成功。

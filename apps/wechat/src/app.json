@@ -11,7 +11,10 @@
     "pages/speed-test/index",
     "pages/issue/index",
     "pages/capacity/index",
-    "pages/commute/index"
+    "pages/commute/index",
+    "pages/welcome/index",
+    "pages/new-house/index",
+    "pages/template-edit/index"
   ],
   "window": {
     "navigationBarTitleText": "寻居 · 看房手记",

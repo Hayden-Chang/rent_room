@@ -48,7 +48,7 @@ Component({
     const velocity=p&&elapsed>0?(last.x-first.x)/elapsed:0;
     const flick=Math.abs(g.dx)>=TOUCH_SLOP&&Math.abs(velocity)>=FLICK_SPEED;
     const open=flick?velocity<0:g.dx<=-SWIPE_DISTANCE?true:g.dx>=SWIPE_DISTANCE?false:g.base<0;
-    if(open)this.reveal();else this.closeSwipe();
+    if(open){this.reveal();this.triggerEvent('swipeopen',{id:this.data.field.id});}else this.closeSwipe();
    }else this.setData({dragging:false});
    this.gesture=null;
    // Phone traces can contain start/end without a native tap. Only a fresh,

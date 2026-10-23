@@ -5,16 +5,16 @@
   <view wx:if="{{saveError}}" class="error" bindtap="retry">{{saveError}} 点击重试</view>
   <block wx:if="{{tab==='清单'}}">
    <view class="card progress"><view class="row between"><text class="subtitle">现场检查</text><text>{{stats.done}} / {{stats.total}}</text></view><view class="track"><view style="width:{{stats.total?stats.done/stats.total*100:0}}%"/></view><view class="row between muted"><text>已记录 {{stats.done}} 项</text><text class="issue-text">{{stats.issues}} 项有问题</text></view></view>
-   <view class="row phases"><button wx:for="{{phases}}" wx:key="*this" id="coach-phase-{{index}}" class="chip {{phase===item?'selected':''}}" data-value="{{item}}" hover-class="none" bindtap="phase">{{item}}</button></view>
-   <view class="row"><input class="grow" placeholder="搜索检查项、结果或备注" value="{{query}}" bindinput="search"/><button class="soft" hover-class="none" bindtap="toggleFilters">筛选 {{filters.length||''}}</button></view>
+   <view class="row phases" id="phase-area"><button wx:for="{{phases}}" wx:key="*this" id="coach-phase-{{index}}" class="chip {{phase===item?'selected':''}}" data-value="{{item}}" hover-class="none" bindtap="phase">{{item}}</button></view>
+   <view id="filter-area"><view class="row"><input class="grow" placeholder="搜索检查项、结果或备注" value="{{query}}" bindinput="search"/><button class="soft" hover-class="none" bindtap="toggleFilters">筛选 {{filters.length||''}}</button></view>
    <view wx:if="{{showFilters}}" class="chips filters"><button class="chip {{!filters.length?'selected':''}}" data-value="全部" hover-class="none" bindtap="filter">全部</button><button wx:for="{{filterOptions}}" wx:key="label" class="chip {{item.selected?'selected':''}}" data-value="{{item.label}}" hover-class="none" bindtap="filter">{{item.label}}</button></view>
-   <view class="space"/>
+   </view><view class="space"/>
    <view wx:for="{{sections}}" wx:for-item="section" wx:key="title" class="card category" id="{{section.id}}">
     <view class="category-head scroll-anchor" data-scroll-key="category-{{section.title}}"><field-row class="field-row" field="{{section.header}}" readonly="{{house.archived}}" bindfold="fold" bindaction="action"/></view>
     <view wx:if="{{section.expanded}}" class="category-body"><block wx:for="{{section.rows}}" wx:for-item="r" wx:key="key">
      <view wx:if="{{r.kind==='group'}}" data-scroll-key="group-{{r.id}}" class="scroll-anchor group-node" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><field-row class="field-row" field="{{r.swipe}}" readonly="{{house.archived}}" bindfold="fold" bindgroup="group" bindaction="action"/></view>
      <view wx:elif="{{r.kind==='add-cost'}}" class="add-cost-row" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><button class="add-cost" data-group-id="{{r.id}}" aria-label="添加{{r.title}}" hover-class="none" bindtap="addCost">＋</button></view>
-     <view wx:else id="{{coach===4 && r.id===coachField.id?'coach-field':''}}" class="field-branch scroll-anchor" data-scroll-key="field-{{r.key}}" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><field-row class="field-row" field="{{r}}" hide-divider="{{section.rows[index+1] && section.rows[index+1].kind==='group'}}" readonly="{{house.archived}}" address="{{house.address}}" location="{{house.location}}" anchor="{{house.locationAddress}}" bindselectplace="selectPlace" bindanswer="answer" bindchoose="choose" bindaction="action"/></view>
+     <view wx:else id="{{coach>=3 && r.id===coachField.id?'coach-field':''}}" class="field-branch scroll-anchor" data-scroll-key="field-{{r.key}}" style="margin-left:{{r.depth>2?24:r.depth*12}}px"><field-row class="field-row" field="{{r}}" hide-divider="{{section.rows[index+1] && section.rows[index+1].kind==='group'}}" readonly="{{house.archived}}" address="{{house.address}}" location="{{house.location}}" anchor="{{house.locationAddress}}" bindselectplace="selectPlace" bindanswer="answer" bindchoose="choose" bindaction="action" bindswipeopen="coachSwiped"/></view>
     </block></view>
    </view>
    <view wx:if="{{!sections.length}}" class="empty">没有符合条件的检查项</view>
@@ -24,7 +24,7 @@
    <text wx:if="{{house.archived && item.caption}}" class="media-caption">{{item.caption}}</text>
    <button wx:elif="{{!house.archived}}" class="media-caption {{item.caption?'':'media-caption-add'}}" data-id="{{item.id}}" bindtap="editMediaNote" aria-label="{{item.caption?'编辑影像备注':'添加影像备注'}}" hover-class="none">{{item.caption||'＋'}}</button>
   </view></view></block>
-  <block wx:if="{{tab==='问题'}}"><view class="row between section-title"><text>需要关注 · {{stats.issues}}</text></view><view wx:if="{{!issueRows.length&&!manualIssues.length}}" class="empty"><view class="subtitle">目前没有标记的问题</view>未检查的项目仍需继续查看。</view><view wx:for="{{issueRows}}" wx:key="id" class="card"><text class="muted">{{item.category}}</text><field-row class="field-row" field="{{item}}" readonly="{{house.archived}}" address="{{house.address}}" location="{{house.location}}" anchor="{{house.locationAddress}}" bindselectplace="selectPlace" bindanswer="answer" bindchoose="choose" bindaction="action"/></view><view wx:for="{{manualIssues}}" wx:key="id" class="card manual-issue" data-id="{{item.id}}" bindtap="openIssue">
+  <block wx:if="{{tab==='问题'}}"><view class="row between section-title"><text>需要关注 · {{stats.issues}}</text></view><view wx:if="{{!issueRows.length&&!manualIssues.length}}" class="empty"><view class="subtitle">目前没有标记的问题</view>未检查的项目仍需继续查看。</view><view wx:for="{{issueRows}}" wx:key="id" class="card"><text class="muted">{{item.category}}</text><field-row class="field-row" field="{{item}}" readonly="{{house.archived}}" address="{{house.address}}" location="{{house.location}}" anchor="{{house.locationAddress}}" bindselectplace="selectPlace" bindanswer="answer" bindchoose="choose" bindaction="action" bindswipeopen="coachSwiped"/></view><view wx:for="{{manualIssues}}" wx:key="id" class="card manual-issue" data-id="{{item.id}}" bindtap="openIssue">
    <view class="row"><text class="grow manual-title">{{item.title}}</text><button disabled="{{house.archived}}" class="{{item.resolved?'soft':'danger'}}" data-id="{{item.id}}" catchtap="resolve">{{item.resolved?'已解决':'待跟进'}}</button></view>
    <text wx:if="{{item.note}}" class="manual-note">{{item.note}}</text>
    <view wx:if="{{item.media.length}}" class="manual-media-grid" catchtap="noop">
@@ -44,23 +44,13 @@
   <block wx:if="{{sheet==='mediaNote'}}"><view class="subtitle">影像备注</view><textarea class="note-input media-note-input" value="{{note}}" disabled="{{house.archived}}" maxlength="10000" placeholder="添加标题或备注，可换行" bindinput="note" focus="{{noteFocus}}" bindblur="noteBlur" fixed="{{true}}" adjust-position="{{false}}" hold-keyboard="{{true}}" bindfocus="noteKeyboard" bindkeyboardheightchange="noteKeyboard"/><view wx:if="{{saveError}}" class="error">{{saveError}}</view><view class="row"><button bindtap="close">取消</button><button wx:if="{{!house.archived}}" class="primary" bindtap="saveMediaNote">保存备注</button></view></block>
   <block wx:if="{{sheet==='link'}}"><view class="subtitle">关联检查项</view><input placeholder="搜索检查项" value="{{linkQuery}}" bindinput="linkSearch"/><scroll-view scroll-y style="height:45vh"><button wx:for="{{linkFields}}" wx:key="id" class="menu" data-id="{{item.id}}" bindtap="linkMedia">{{item.label}}</button></scroll-view></block>
  </view></view>
- <view wx:if="{{coach}}" class="coach-layer {{coachReady?'':'coach-measuring'}}" catchtouchmove="noop" catchtap="noop">
-  <view wx:if="{{!coachReady||coachMissing}}" class="coach-dim"/>
-  <block wx:if="{{coachReady&&!coachMissing}}">
-   <view class="coach-highlight {{coach===4?'coach-highlight-row':''}}" style="left:{{coachRect.left}}px;top:{{coachRect.top}}px;width:{{coachRect.width}}px;height:{{coachRect.height}}px"/>
-   <view class="coach-pointer" style="left:{{coachPointer.left}}px;top:{{coachPointer.top}}px;height:{{coachPointer.height}}px"/>
-   <view wx:if="{{coach===4}}" class="coach-demo" style="left:{{coachRect.left}}px;top:{{coachRect.top}}px;width:{{coachRect.width}}px" catchtouchstart="coachTouchStart" catchtouchend="coachTouchEnd">
-    <view class="coach-demo-label {{coachSwiped?'coach-demo-open':''}}">{{coachField.label}}</view>
-    <view class="coach-demo-actions {{coachSwiped?'coach-demo-actions-open':''}}"><view class="coach-demo-action" aria-label="标记问题"><image src="/assets/icons/swipe-issue.png"/></view><view class="coach-demo-action" aria-label="备注"><image src="/assets/icons/swipe-note.png"/></view><view class="coach-demo-action" aria-label="影像"><image class="coach-media-icon" src="/assets/icons/coach-media.png"/></view></view>
-   </view>
-  </block>
-  <view class="coach-card {{coach===4?'coach-card-last':''}}" style="top:{{coachCardTop}}px">
-   <view class="coach-step">{{coach}} / 4</view><view class="coach-title">{{coachSteps[coach-1].title}}</view><view class="coach-body">{{coachSteps[coach-1].body}}</view>
-   <view wx:if="{{coach===4}}" class="coach-preference" bindtap="hideCoach" role="checkbox" aria-checked="{{hideCoach}}"><view class="coach-checkbox {{hideCoach?'coach-checked':''}}">{{hideCoach?'✓':''}}</view><text>不再自动显示</text></view>
-   <view wx:if="{{coachMissing}}" class="coach-error">当前清单没有可演示的检查项。</view><view wx:if="{{coachError}}" class="coach-error">{{coachError}}</view>
-   <button class="coach-next" bindtap="coachNext">知道了</button>
-  </view>
+ <view wx:if="{{coach}}" class="xiaoda-coach">
+  <view wx:if="{{!coachReady||coachMissing}}" class="coach-shade full" catchtap="noop" catchtouchmove="noop"/>
+  <block wx:else><view class="coach-shade" style="left:0;top:0;right:0;height:{{coachRect.top}}px" catchtap="noop" catchtouchmove="noop"/><view class="coach-shade" style="left:0;top:{{coachRect.bottom}}px;right:0;bottom:0" catchtap="noop" catchtouchmove="noop"/><view class="coach-shade" style="left:0;top:{{coachRect.top}}px;width:{{coachRect.left}}px;height:{{coachRect.height}}px" catchtap="noop"/><view class="coach-shade" style="left:{{coachRect.right}}px;top:{{coachRect.top}}px;right:0;height:{{coachRect.height}}px" catchtap="noop"/><view class="xiaoda-highlight" style="left:{{coachRect.left}}px;top:{{coachRect.top}}px;width:{{coachRect.width}}px;height:{{coachRect.height}}px"/></block>
+  <view class="coach-card xiaoda-coach-card" style="top:{{coachCardTop}}px"><view class="muted">{{coach}} / 4</view><xiaoda pose="point" text="{{coachSteps[coach-1].text}}" message-id="{{coach}}"/><view wx:if="{{coachError}}" class="error">{{coachError}}</view><button wx:if="{{coach!==3}}" class="primary" disabled="{{coach===2&&!showFilters}}" bindtap="coachNext">{{coach===4?'我会啦':'知道啦'}}</button></view>
  </view>
+ <view wx:if="{{fillPrompt && !coach && tab==='清单'}}" class="fill-guide"><xiaoda text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" pose="{{fillPrompt.kind==='return'?'success':'point'}}" closable binddismiss="closeXiaoda" bindtyped="fillTyped"/><view wx:if="{{fillPrompt.kind!=='intro'}}" class="row fill-actions"><button wx:if="{{fillPrompt.kind==='next'}}" bindtap="waitFilling">先等等</button><button wx:if="{{fillPrompt.kind==='phase'}}" bindtap="otherHouses">看看其他房子</button><button class="primary" bindtap="acceptFilling">{{fillPrompt.kind==='return'?'‹ 返回房源列表':fillPrompt.kind==='phase'?'继续填写':'好的'}}</button></view></view>
+
 </view>
 
 </view>

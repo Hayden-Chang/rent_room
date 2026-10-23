@@ -11,13 +11,13 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
     if(!url)throw Error('房源包暂未开放购买，请稍后再试');
     if(authenticated&&!session?.token)throw Error('请重新登录微信后重试');
     const token=authenticated?session.token:'';
-    const response=await api('request',{url:url+path,method,data,timeout:12000,header:{'content-type':'application/json',...(token?{Authorization:'Bearer '+token}:{})}});
+    const response=await api('request',{url:url+path,method,data,timeout:12000,header:{'content-type':'application/json','x-rent-room-capacity-version':'1',...(token?{Authorization:'Bearer '+token}:{})}});
     if(response.statusCode===401){onExpired();throw Error('登录已过期，请重新登录');}
     if(response.statusCode<200||response.statusCode>=300)throw Error(response.data?.detail?.message||'购买记录暂时无法确认，请稍后重试');
     return response.data;
   }
   function accept(data){
-    if(!Number.isSafeInteger(data.packs)||data.packs<0||!Number.isSafeInteger(2+data.packs*HOUSE_PACK.size))throw Error('购买记录无效，请稍后重试');
+    if(!Number.isSafeInteger(data.packs)||data.packs<0||!Number.isSafeInteger(1+data.packs*HOUSE_PACK.size))throw Error('购买记录无效，请稍后重试');
     cached.packs=data.packs;persist();return snapshot();
   }
   async function orderState(){

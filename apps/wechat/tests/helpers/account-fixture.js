@@ -2,8 +2,8 @@ import {createPlatform} from '../../src/lib/platform.js';
 
 // Page-only regression fixtures deliberately bypass network identity. Authentication
 // is tested separately against the real App and built bundles in account-runtime.
-export function localPageFixture(app,wx){
-  const service=createPlatform(wx),account={id:'a'.repeat(64),number:'AAAAAAAAAAAA',label:'微信用户'};
+export function localPageFixture(app,wx,{packs=0}={}){
+  const service=createPlatform(wx,{session:{packs}}),account={id:'a'.repeat(64),number:'AAAAAAAAAAAA',label:'微信用户'};
   app.auth={service,isAuthenticated:()=>true,snapshot:()=>({state:'authenticated',account}),ready:Promise.resolve(true),subscribe:()=>()=>{},save:()=>service.store.save()};
 }
 
@@ -14,8 +14,9 @@ export function accountWx(){
     renameSync(a,b){if(failing)throw Error('disk full');if(!disk.has(a))throw Error('missing');disk.set(b,disk.get(a));disk.delete(a);},unlinkSync:p=>disk.delete(p)};
   const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>fs,
     login:options=>{calls.push({login:true});options.success({code:'test-one-time-code'});},
-    request:options=>{calls.push({url:options.url,method:options.method,data:options.data});Promise.resolve().then(()=>response?response(options):({statusCode:200,data:options.url.endsWith('/session')?{account:identity,token:'token-'+identity,packs,limit:2+10*packs}:{packs,limit:2+10*packs}})).then(options.success,options.fail);return {abort(){}};},
+    request:options=>{calls.push({url:options.url,method:options.method,data:options.data});Promise.resolve().then(()=>response?response(options):({statusCode:200,data:options.url.endsWith('/session')?{account:identity,token:'token-'+identity,packs,limit:1+10*packs}:{packs,limit:1+10*packs}})).then(options.success,options.fail);return {abort(){}};},
     showModal:options=>{calls.push({modal:options});options.success({confirm:confirmation});},
+    navigateTo:options=>{routes.push(options.url);options.complete?.();options.success?.();},getWindowInfo:()=>({windowWidth:390,windowHeight:720}),pageScrollTo:o=>o.complete?.(),
     reLaunch:options=>{routes.push(options.url);options.success?.();},switchTab:options=>{routes.push(options.url);options.success?.();},
     hideTabBar(){tabBarVisible=false;},showTabBar(){tabBarVisible=true;},
     setNavigationBarTitle(){},showToast(){},getStorageSync:key=>storage.get(key),setStorageSync:(key,v)=>storage.set(key,v)};

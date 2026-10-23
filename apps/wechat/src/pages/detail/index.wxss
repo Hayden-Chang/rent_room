@@ -63,3 +63,5 @@
 .note-sheet textarea{height:160px;min-height:48px;flex:1 1 160px}
 .note-sheet .subtitle{margin-bottom:12px}
 .note-sheet .row{margin-top:12px}
+
+.xiaoda-coach{position:fixed;inset:0;z-index:500;pointer-events:none}.coach-shade{position:absolute;background:#1b234957;pointer-events:auto}.coach-shade.full{inset:0}.xiaoda-highlight{position:absolute;border:2px solid #6763ed;border-radius:12px;box-sizing:border-box;pointer-events:none}.xiaoda-coach-card{pointer-events:auto;left:12px;right:12px;padding:14px;background:#f5f7fb;border-radius:20px}.xiaoda-coach-card .primary{margin-top:12px}.fill-guide{position:fixed;left:12px;right:12px;bottom:124px;z-index:30;border-radius:20px;padding:10px;background:#f5f7fb;box-shadow:0 8px 36px #26345424}.fill-actions{justify-content:flex-end;margin-top:10px}.fill-actions button{margin:0;font-size:14px}

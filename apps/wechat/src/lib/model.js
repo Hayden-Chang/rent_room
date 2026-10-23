@@ -1,3 +1,5 @@
+import {newXiaoda,validateXiaoda} from './xiaoda-state.js';
+import {templateConfig,assertTemplate} from './templates.js';
 import {wheelConfig,wheelDisplay} from './wheel-input.js';
 import {keepsLocation} from './places.js';
 import topics from './topics.json' with {type:'json'};
@@ -10,7 +12,7 @@ export const fields = topics.flatMap(t=>t.fields);
 const topFloorField=fields.find(f=>f.id==='f1_top');
 export const categories = [...new Set(topics.map(t=>t.category))];
 export const MAP_ID = fields.find(f=>f.label==='地图（和地址联动）').id;
-export const emptyState = () => ({version:2,houses:[],settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
+export const emptyState = () => ({version:2,houses:[],xiaoda:newXiaoda(),settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
 const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83');
 const corridorGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_14');
 const commuteLabels=Object.fromEntries(fields.filter(f=>['21255282-3663-4abe-b7de-d91eeb3825ed','3c70cda2-7c6c-4fa6-b2db-b647af24ba72'].includes(f.id)).map(f=>[f.id,f.label]));
@@ -45,14 +47,19 @@ export const houseTopics = h => {
     title:t.title==='楼道卫生'?corridorGroup.title:t.title,
     path:t.path.map(p=>p.id===corridorGroup.id?{...p,title:corridorGroup.title}:p)};
   return t;
- }).filter(t=>t.fields.length);
+ }).filter(t=>t.fields.length).sort((a,b)=>h.displayCategoryOrder?(h.displayCategoryOrder.indexOf(a.category)-h.displayCategoryOrder.indexOf(b.category)):0);
 };
 const normalTitle = title => title.endsWith('正常')?title:title+'正常';
 const resultLabel = (value,absenceLabel='没有') => ({'正常':'是','有问题':'否','没有':absenceLabel}[value]||value);
+function snapshotTopics(settings) {
+  if(!settings.templates)return null;
+  const config=templateConfig(settings);assertTemplate(config);
+  return config.order.flatMap(id=>config.disabled.includes(id)?[]:topics.filter(t=>t.category===id));
+}
 export function freshHouse(name,settings={}) {
   const hidden=new Set(settings.template==='自定义'?settings.hiddenFields||[]:[]);
-  const selected=topics.map(t=>({...clone(t),fields:t.fields.filter(f=>!hidden.has(f.id)).map(clone)})).filter(t=>t.fields.length);
-  return {id:uid(),name:name.trim()||'新房源',address:'',answers:{},groups:{},extras:[],media:[],issues:[],summary:'',decision:'',archived:false,createdAt:new Date().toISOString(),templateTopics:selected,checklistRevision:2,topFloorRevision:1};
+  const selected=(snapshotTopics(settings)||topics).map(t=>({...clone(t),fields:t.fields.filter(f=>!hidden.has(f.id)).map(clone)})).filter(t=>t.fields.length);
+  return {id:uid(),name:name.trim()||'新房源',address:'',answers:{},groups:{},extras:[],media:[],issues:[],summary:'',decision:'',archived:false,createdAt:new Date().toISOString(),templateTopics:selected,checklistMode:'detailed',checklistOrder:[...new Set(selected.map(t=>t.category))],xiaoda:{intro:'pending',seenCompleted:[],touched:{}},checklistRevision:2,topFloorRevision:1};
 }
 // The saved question determines the old answer's meaning. Revision-two records
 // without a snapshot used “非顶楼”; earlier positive questions already mean “顶楼”.
@@ -254,6 +261,9 @@ export function validateState(state) {
   assertSafe(state);
   if(!state||![1,2].includes(state.version)||!Array.isArray(state.houses))throw Error('不是有效的房源备份');
   if(state.settings&&(typeof state.settings!=='object'||Array.isArray(state.settings)||state.settings.hiddenFields&&(!Array.isArray(state.settings.hiddenFields)||state.settings.hiddenFields.some(x=>typeof x!=='string'))))throw Error('设置数据无效');
+  validateXiaoda(state);
+  if(state.xiaoda?.draft)assertTemplate(state.xiaoda.draft);
+  if(state.settings?.templates?.detailed)assertTemplate(state.settings.templates.detailed);
   const ids=new Set();
   for(const h of state.houses) {
     if(!h||typeof h.id!=='string'||ids.has(h.id)||typeof h.name!=='string'||!h.answers||Array.isArray(h.answers)||typeof h.answers!=='object')throw Error('房源数据格式错误');

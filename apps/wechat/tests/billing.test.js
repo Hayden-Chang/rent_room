@@ -114,3 +114,6 @@ describe('server-confirmed capacity purchases',()=>{
   expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toBe(false);
  });
 });
+it('requests the one-free-slot protocol without changing purchase identifiers',async()=>{
+ const f=fixture();await f.billing.refresh();expect(f.calls.filter(c=>c.name==='request').every(c=>c.args.header['x-rent-room-capacity-version']==='1')).toBe(true);
+});

@@ -15,37 +15,37 @@ const choices=houses=>houses.map(h=>({id:h.id,mode:'add'}));
 const current='/user/xunju/state.json';
 describe('house ZIP transfer transactions',()=>{
  it('checks added capacity before extracting media and permits replacement at a full account',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('原记录');p.store.add('第二套');
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('原记录');
   const incoming=media({...freshHouse('覆盖'),id}),pending=await select(m,p,[incoming]),append=m.io.appendFileSync;let writes=0;
   m.io.appendFileSync=(...args)=>{writes++;return append(...args);};
   await expect(p.commitImport(pending,[{id,mode:'copy'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY',additional:1});expect(writes).toBe(0);expect(p.store.house(id).name).toBe('原记录');
-  await p.commitImport(pending,[{id,mode:'replace'}]);expect(p.store.house(id).name).toBe('覆盖');expect(p.store.capacity().used).toBe(2);
+  await p.commitImport(pending,[{id,mode:'replace'}]);expect(p.store.house(id).name).toBe('覆盖');expect(p.store.capacity().used).toBe(1);
  });
  it('checks an archived-to-active replacement before extracting media at full capacity',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('归档');p.store.archive(id,true);p.store.add('A');p.store.add('B');
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('归档');p.store.archive(id,true);p.store.add('A');
   const incoming=media({...freshHouse('恢复备份'),id}),pending=await select(m,p,[incoming]),saved=m.disk.get(current),append=m.io.appendFileSync;let writes=0;
   m.io.appendFileSync=(...args)=>{writes++;return append(...args);};
   await expect(p.commitImport(pending,[{id,mode:'replace'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY',additional:1});
   expect(writes).toBe(0);expect(m.disk.get(current)).toBe(saved);expect(p.store.house(id).archived).toBe(true);
  });
  it('releases a slot when replacing an active record with an archived backup',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A');p.store.add('B');
+  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A');
   const pending=await select(m,p,[{...freshHouse('已归档备份'),id,archived:true}]);
   await p.commitImport(pending,[{id,mode:'replace'}]);
-  expect(createPlatform(m.wx).store.capacity()).toMatchObject({used:1,remaining:1});expect(p.store.house(id).archived).toBe(true);
+  expect(createPlatform(m.wx).store.capacity()).toMatchObject({used:0,remaining:1});expect(p.store.house(id).archived).toBe(true);
  });
  it('uses the net active count for a mixed replacement, addition and archived copy',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A'),archived=p.store.add('归档');p.store.archive(archived,true);p.store.add('B');
+  const m=mockWx(),p=createPlatform(m.wx),archived=p.store.add('归档');p.store.archive(archived,true);const id=p.store.add('A');
   const incoming=[{...freshHouse('A 已归档'),id,archived:true},freshHouse('C'),{...freshHouse('归档副本'),id:archived,archived:true}],pending=await select(m,p,incoming);
   await p.commitImport(pending,[{id,mode:'replace'},{id:incoming[1].id,mode:'add'},{id:archived,mode:'copy'}]);
-  const loaded=createPlatform(m.wx).store;expect(loaded.capacity()).toMatchObject({used:2,remaining:0});expect(loaded.get().houses).toHaveLength(5);
+  const loaded=createPlatform(m.wx).store;expect(loaded.capacity()).toMatchObject({used:1,remaining:0});expect(loaded.get().houses).toHaveLength(4);
   expect(loaded.house(id).archived).toBe(true);expect(loaded.get().houses.filter(h=>h.archived)).toHaveLength(3);
  });
  it('allows a capacity-neutral replacement of historic over-capacity records',async()=>{
   const m=mockWx(),houses=[freshHouse('A'),freshHouse('B'),freshHouse('C')];m.disk.set(current,JSON.stringify({...emptyState(),houses}));
   const p=createPlatform(m.wx),pending=await select(m,p,[{...houses[0],summary:'继续更新'}]);
   await p.commitImport(pending,[{id:houses[0].id,mode:'replace'}]);
-  expect(createPlatform(m.wx).store.capacity()).toMatchObject({used:3,over:1});expect(p.store.house(houses[0].id).summary).toBe('继续更新');
+  expect(createPlatform(m.wx).store.capacity()).toMatchObject({used:3,over:2});expect(p.store.house(houses[0].id).summary).toBe('继续更新');
  });
  it('cancels streaming export after account invalidation and removes its partial output',async()=>{
   const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('A');m.disk.set('/photo',new Uint8Array([1,2,3]).buffer);p.store.edit(id,h=>media(h,'/photo'));
@@ -66,7 +66,7 @@ describe('house ZIP transfer transactions',()=>{
   expect(loaded.house(b.id)).toMatchObject({archived:true,summary:'完整总结',extras:b.extras,groups:b.groups,templateTopics:b.templateTopics});expect(loaded.get().settings.workplace).toBe('本机地址');expect([...new Uint8Array(m.disk.get(loaded.house(b.id).media[0].path))]).toEqual([1,2,3]);
  });
  it('requires an explicit conflict decision and distinguishes same-name houses with different IDs',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('同名');const original=clone(p.store.house(id)),other=freshHouse('同名');
+  const m=mockWx(),p=createPlatform(m.wx,{session:{packs:1}}),id=p.store.add('同名');const original=clone(p.store.house(id)),other=freshHouse('同名');
   const pending=await select(m,p,[original,other]);
   await expect(p.commitImport(pending,[{id,mode:'add'}])).rejects.toThrow('覆盖或新增副本');expect(p.store.get().houses).toHaveLength(1);
   await p.commitImport(pending,[{id:other.id,mode:'add'}]);expect(p.store.get().houses).toHaveLength(2);expect(p.store.house(id)).toEqual(original);expect(p.store.house(other.id).name).toBe('同名');
@@ -81,13 +81,13 @@ describe('house ZIP transfer transactions',()=>{
   expect(m.disk.has(oldPath)).toBe(true);loaded.store.recover();expect(loaded.store.house(id).name).toBe('旧名');expect(m.disk.has(loaded.store.house(id).media[0].path)).toBe(true);
  });
  it('rolls back every selected house and all new files when a later media write fails',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('原记录'),incoming=media({...freshHouse('覆盖'),id}),other=media(freshHouse('新增'));
+  const m=mockWx(),p=createPlatform(m.wx,{session:{packs:1}}),id=p.store.add('原记录'),incoming=media({...freshHouse('覆盖'),id}),other=media(freshHouse('新增'));
   const pending=await select(m,p,[incoming,other]),before=JSON.stringify(p.store.get()),saved=m.disk.get(current),append=m.io.appendFileSync;let writes=0;
   m.io.appendFileSync=(...args)=>{if(++writes===2)throw Error('disk full');append(...args);};
   await expect(p.commitImport(pending,[{id,mode:'replace'},{id:other.id,mode:'add'}])).rejects.toThrow('空间不足');expect(JSON.stringify(p.store.get())).toBe(before);expect(m.disk.get(current)).toBe(saved);expect([...m.disk.keys()].filter(k=>k.includes('/media/'))).toEqual([]);
  });
  it('rolls back extracted files and both memory/durable houses on state rename failure, then retries once',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx),id=p.store.add('原记录'),incoming=media({...freshHouse('替换'),id}),other=media(freshHouse('新'));
+  const m=mockWx(),p=createPlatform(m.wx,{session:{packs:1}}),id=p.store.add('原记录'),incoming=media({...freshHouse('替换'),id}),other=media(freshHouse('新'));
   const pending=await select(m,p,[incoming,other]),saved=m.disk.get(current),rename=m.io.renameSync;m.io.renameSync=()=>{throw Error('full');};
   const selected=[{id,mode:'replace'},{id:other.id,mode:'add'}];await expect(p.commitImport(pending,selected)).rejects.toThrow('保存失败');expect(p.store.house(id).name).toBe('原记录');expect(m.disk.get(current)).toBe(saved);expect(createPlatform(m.wx).store.get().houses).toHaveLength(1);expect([...m.disk.keys()].filter(k=>k.includes('/media/'))).toEqual([]);
   m.io.renameSync=rename;await p.commitImport(pending,selected);expect(createPlatform(m.wx).store.get().houses).toHaveLength(2);
@@ -111,9 +111,9 @@ describe('house ZIP transfer transactions',()=>{
   await p.commitImport(pending,[{id:h.id,mode:'add'}]);const exported=await p.exportFile([h.id]);p.discardExport(exported);expect(Math.max(...lengths)).toBeLessThanOrEqual(256*1024);expect(lengths.length).toBeGreaterThan(2);expect(closed).toBe(2);
  });
  it('permits replacement at purchased capacity beyond 200 houses but atomically refuses a new copy',async()=>{
-  const m=mockWx(),p=createPlatform(m.wx,{session:{account:'transfer-fixture',packs:20}});p.store.change(s=>s.houses=Array.from({length:202},(_,i)=>freshHouse('房源'+i)));const source=clone(p.store.get().houses[0]),pending=await select(m,p,[{...source,name:'覆盖成功'}]);
-  await expect(p.commitImport(pending,[{id:source.id,mode:'copy'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY'});expect(p.store.get().houses).toHaveLength(202);
-  await p.commitImport(pending,[{id:source.id,mode:'replace'}]);expect(createPlatform(m.wx).store.house(source.id).name).toBe('覆盖成功');expect(p.store.get().houses).toHaveLength(202);
+  const m=mockWx(),p=createPlatform(m.wx,{session:{account:'transfer-fixture',packs:20}});p.store.change(s=>s.houses=Array.from({length:201},(_,i)=>freshHouse('房源'+i)));const source=clone(p.store.get().houses[0]),pending=await select(m,p,[{...source,name:'覆盖成功'}]);
+  await expect(p.commitImport(pending,[{id:source.id,mode:'copy'}])).rejects.toMatchObject({code:'HOUSE_CAPACITY'});expect(p.store.get().houses).toHaveLength(201);
+  await p.commitImport(pending,[{id:source.id,mode:'replace'}]);expect(createPlatform(m.wx).store.house(source.id).name).toBe('覆盖成功');expect(p.store.get().houses).toHaveLength(201);
  });
  it('exports only selected archived and active houses with actual bytes and no global settings',async()=>{
   const m=mockWx(),p=createPlatform(m.wx,{session:{account:'transfer-fixture',packs:1}}),a=p.store.add('A'),b=p.store.add('B'),c=p.store.add('C');p.store.change(s=>s.settings.workplace='不随包迁移');p.store.archive(b,true);m.disk.set('/photo',new Uint8Array([4,5]).buffer);p.store.edit(a,h=>media(h,'/photo'));

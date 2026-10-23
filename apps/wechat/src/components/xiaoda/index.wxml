@@ -1,0 +1,1 @@
+<view class="xiaoda"><image class="character" src="{{source}}" mode="aspectFit" aria-label="小搭"/><view class="bubble" catchtap="finish"><text class="reserve" aria-hidden="true">{{text}}</text><text class="spoken">{{shown}}<text wx:if="{{!finished}}" class="cursor">▏</text></text></view><button wx:if="{{closable}}" class="close" aria-label="关闭小搭" catchtap="close">×</button></view>

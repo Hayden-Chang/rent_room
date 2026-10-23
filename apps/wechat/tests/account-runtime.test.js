@@ -10,13 +10,13 @@ afterEach(()=>vi.useRealTimers());
 function harness(m=accountWx()){
   let app,page;const context=vm.createContext({wx:m.wx,App:value=>{app=value;},Page:value=>{page=value;},getApp:()=>app,console,setTimeout,clearTimeout});
   const launch=()=>{vm.runInContext(appCode,context);app.onLaunch();return app;};launch();
-  return {m,context,get app(){return app;},launch,page(name){vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(values,done){Object.assign(this.data,values);done?.();};return page;}};
+  return {m,context,get app(){return app;},launch,page(name){vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(values,done){Object.assign(this.data,values);done?.();};page.createSelectorQuery=()=>{const q={select:()=>q,selectViewport:()=>q,boundingClientRect:()=>q,scrollOffset:()=>q,exec:cb=>cb([{left:20,top:50,width:350,height:60},{height:250},{scrollTop:0}])};return q;};return page;}};
 }
 const loginMaskVisible=()=>fs.readFileSync('dist/pages/home/index.wxml','utf8').includes('login-mask');
 it('creates a local free store without requesting identity before an explicit login',async()=>{
   const h=harness(),p=h.page('home');h.app.onShow();p.onLoad();p.onShow();
-  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);expect(h.m.calls).toEqual([]);expect(p.data.accountReady).toBe(true);
-  await h.app.auth.login();expect(h.app.auth.isAuthenticated()).toBe(true);expect(p.data.accountReady).toBe(true);expect(p.data.houses).toEqual([]);expect(h.m.routes).toEqual([]);
+  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.m.calls).toEqual([]);expect(p.data.accountReady).toBe(true);
+  await h.app.auth.login();expect(h.app.auth.isAuthenticated()).toBe(true);expect(p.data.accountReady).toBe(true);expect(p.data.houses).toEqual([]);expect(h.m.routes.filter(url=>url!=='/pages/welcome/index')).toEqual([]);
   expect(h.m.calls.find(c=>c.url)).toEqual({url:'https://login.example.com/api/rent-room/session',method:'POST',data:{code:'test-one-time-code'}});
 });
 
@@ -24,24 +24,24 @@ it('creates a local free store without requesting identity before an explicit lo
 it('shows failure and prevents duplicate login while retaining free local access',async()=>{
   const h=harness(),p=h.page('home');p.onLoad();let reject;h.m.respond(()=>new Promise((_,r)=>{reject=r;}));
   const first=h.app.auth.login(),duplicate=h.app.auth.login();for(let n=0;!reject&&n<20;n++)await Promise.resolve();expect(reject).toBeTypeOf('function');expect(h.m.calls.filter(c=>c.url)).toHaveLength(1);reject(Error('网络不可用'));await Promise.all([first,duplicate]);
-  expect(h.app.auth.snapshot().error).toContain('网络');expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);h.m.respond(null);await h.app.auth.login();expect(h.app.service).toBeTruthy();
+  expect(h.app.auth.snapshot().error).toContain('网络');expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);h.m.respond(null);await h.app.auth.login();expect(h.app.service).toBeTruthy();
 });
 it('times out a hanging login and ignores its late result',async()=>{
   vi.useFakeTimers();const h=harness();let resolve;h.m.respond(()=>new Promise(r=>{resolve=r;}));const login=h.app.auth.login();
-  await vi.advanceTimersByTimeAsync(15001);expect(await login).toBe(false);resolve({statusCode:200,data:{account:A,token:'t'.repeat(43),packs:0,limit:2}});await Promise.resolve();
-  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);expect(h.app.auth.snapshot().error).toContain('超时');
+  await vi.advanceTimersByTimeAsync(15001);expect(await login).toBe(false);resolve({statusCode:200,data:{account:A,token:'t'.repeat(43),packs:0,limit:1}});await Promise.resolve();
+  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.app.auth.snapshot().error).toContain('超时');
 });
 it('restores only after checking the current WeChat identity and separates two accounts',async()=>{
   const h=harness();await h.app.auth.login();const id=h.app.service.store.add('仅 A 可见'),aRoot=h.app.service.root;
-  h.launch();expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);h.app.onShow();await h.app.auth.ready;expect(h.app.service.store.house(id)).toBeTruthy();
+  h.launch();expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);h.app.onShow();await h.app.auth.ready;expect(h.app.service.store.house(id)).toBeTruthy();
   h.m.identity(B);h.launch();h.app.onShow();expect(h.app.service).toBeNull();await h.app.auth.ready;expect(h.app.service.store.get().houses).toEqual([]);expect(h.app.service.root).not.toBe(aRoot);
   h.m.identity(A);h.launch();h.app.onShow();await h.app.auth.ready;expect(h.app.service.store.house(id).name).toBe('仅 A 可见');
 });
 it('logout keeps local data, clears pending imports and requires another login',async()=>{
   const h=harness();await h.app.auth.login();const old=h.app.service,id=old.store.add('保留');h.app.pendingImport={houses:[]};
   const p=h.page('settings');p.onLoad();p.onShow();await p.logout();
-  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);expect(h.app.pendingImport).toBeNull();expect(()=>old.store.get()).toThrow('登录');
-  h.launch();h.app.onShow();await h.app.auth.ready;expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);await h.app.auth.login();expect(h.app.service.store.house(id)).toBeTruthy();
+  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.app.pendingImport).toBeNull();expect(()=>old.store.get()).toThrow('登录');
+  h.launch();h.app.onShow();await h.app.auth.ready;expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);await h.app.auth.login();expect(h.app.service.store.house(id)).toBeTruthy();
 });
 it('keeps unsaved input and the session when logout cannot save',async()=>{
   const h=harness();await h.app.auth.login();const id=h.app.service.store.add('未保存');h.m.failDisk(true);
@@ -65,8 +65,8 @@ it('leaves unowned records intact when identity or backup creation fails',async(
   m.failDisk(false);expect(await h.app.auth.login()).toBe(true);expect(h.app.service.store.get().houses[0].name).toBe('旧记录');
 });
 it('does not accept a malformed identity or a late login after logout',async()=>{
-  const h=harness();h.m.identity('../bad');expect(await h.app.auth.login()).toBe(false);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);
-  let resolve;h.m.respond(()=>new Promise(r=>{resolve=r;}));const login=h.app.auth.login();await Promise.resolve();await Promise.resolve();h.app.auth.logout();resolve({statusCode:200,data:{account:A,token:'t'.repeat(43),packs:0,limit:2}});await login;expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);
+  const h=harness();h.m.identity('../bad');expect(await h.app.auth.login()).toBe(false);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);
+  let resolve;h.m.respond(()=>new Promise(r=>{resolve=r;}));const login=h.app.auth.login();await Promise.resolve();await Promise.resolve();h.app.auth.logout();resolve({statusCode:200,data:{account:A,token:'t'.repeat(43),packs:0,limit:1}});await login;expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);
 });
 it('blocks stale page events after an explicit account change',async()=>{
   const h=harness();await h.app.auth.login();const p=h.page('archive');p.onLoad();p.onShow();p.onHide();h.m.identity(B);h.app.auth.login();
@@ -80,7 +80,7 @@ it('preserves an import preview across successful same-account verification',asy
 it('keeps account files private and offers free recording when remembered verification fails',async()=>{
   const h=harness();await h.app.auth.login();h.app.service.store.add('保留');const bytes=h.m.disk.get(h.app.service.root+'/state.json');
   h.m.respond(()=>Promise.reject(Error('连接失败')));h.launch();h.app.onShow();await h.app.auth.ready;
-  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);expect([...h.m.disk.values()]).toContain(bytes);
+  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect([...h.m.disk.values()]).toContain(bytes);
 });
 it('missing backend configuration blocks login while allowing local recording',async()=>{
   let app;const m=accountWx(),code=buildSync({entryPoints:['src/app.js'],bundle:true,write:false,format:'cjs',platform:'browser',define:{__WECHAT_API_URL__:'""'}}).outputFiles[0].text;
@@ -96,20 +96,20 @@ it('keeps a foreground return from photo/file pickers within the authenticated s
 it('never calls the backend when WeChat does not issue a login code',async()=>{
   for(const mode of ['cancel','empty']){
     const h=harness();h.m.wx.login=options=>mode==='cancel'?options.fail({errMsg:'cancel'}):options.success({});
-    expect(await h.app.auth.login()).toBe(false);expect(h.m.calls.some(c=>c.url)).toBe(false);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);
+    expect(await h.app.auth.login()).toBe(false);expect(h.m.calls.some(c=>c.url)).toBe(false);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);
   }
 });
 it('rejects backend errors even if their body contains an account identifier',async()=>{
   for(const statusCode of [401,403,429,500]){
-    const h=harness();h.m.respond(()=>Promise.resolve({statusCode,data:{account:A,token:'t'.repeat(43),packs:0,limit:2}}));
-    expect(await h.app.auth.login()).toBe(false);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);
+    const h=harness();h.m.respond(()=>Promise.resolve({statusCode,data:{account:A,token:'t'.repeat(43),packs:0,limit:1}}));
+    expect(await h.app.auth.login()).toBe(false);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);
   }
 });
 
 it('uses one authenticated session for local records and server entitlements',async()=>{
   const h=harness();h.m.packs(1);await h.app.auth.login();
-  expect(h.app.service.store.capacity().limit).toBe(12);
-  const credentials=[];h.m.respond(options=>{credentials.push(options.header.Authorization);return {statusCode:200,data:options.url.endsWith('/catalog')?{available:false}:{packs:1,limit:12}};});
+  expect(h.app.service.store.capacity().limit).toBe(11);
+  const credentials=[];h.m.respond(options=>{credentials.push(options.header.Authorization);return {statusCode:200,data:options.url.endsWith('/catalog')?{available:false}:{packs:1,limit:11}};});
   await h.app.service.billing.refresh();
   expect(h.m.calls.filter(c=>c.login)).toHaveLength(1);
   expect(credentials.filter(Boolean)).toEqual(['Bearer token-'+A]);
@@ -120,22 +120,22 @@ it('paid capacity and pending input never leak across accounts',async()=>{
   const h=harness();h.m.packs(1);await h.app.auth.login();const old=h.app.service;
   old.store.add('A1');old.store.add('A2');old.store.add('A3');h.app.pendingHouseName='A 的草稿';
   h.app.auth.logout();expect(h.app.pendingHouseName).toBe('');h.m.identity(B);h.m.packs(0);await h.app.auth.login();
-  expect(h.app.service.store.capacity()).toMatchObject({used:0,limit:2});
+  expect(h.app.service.store.capacity()).toMatchObject({used:0,limit:1});
   expect(h.app.service.root).not.toBe(old.root);
   await expect(old.billing.refresh()).rejects.toThrow('登录');
-  h.app.service.store.add('B1');h.app.service.store.add('B2');expect(()=>h.app.service.store.add('B3')).toThrow();
+  h.app.service.store.add('B1');expect(()=>h.app.service.store.add('B2')).toThrow();
 });
 it('expired bearer tokens return to login without erasing saved records or starting another identity flow',async()=>{
   const h=harness();await h.app.auth.login();const service=h.app.service,id=service.store.add('保留');
   h.m.respond(options=>({statusCode:options.url.endsWith('/catalog')?200:401,data:{available:false}}));
   await expect(service.billing.refresh()).rejects.toThrow('登录已过期');
-  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);expect(h.m.routes.at(-1)).toBe('/pages/home/index');
+  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.m.routes.at(-1)).toBe('/pages/home/index');
   expect(h.m.calls.filter(c=>c.login)).toHaveLength(1);
   h.m.respond(null);await h.app.auth.login();expect(h.app.service.store.house(id)).toBeTruthy();
 });
 it('rejects a login response without a valid token or consistent capacity',async()=>{
-  for(const data of [{account:A,packs:0,limit:2},{account:A,token:'t'.repeat(43),packs:1,limit:2},{account:A,token:'t'.repeat(43),packs:-1,limit:-8}]){
-    const h=harness();h.m.respond(()=>({statusCode:200,data}));expect(await h.app.auth.login()).toBe(false);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);
+  for(const data of [{account:A,packs:0,limit:1},{account:A,token:'t'.repeat(43),packs:1,limit:1},{account:A,token:'t'.repeat(43),packs:-1,limit:-8}]){
+    const h=harness();h.m.respond(()=>({statusCode:200,data}));expect(await h.app.auth.login()).toBe(false);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);
   }
 });
 it('ignores entitlement responses that finish after logout',async()=>{
@@ -143,7 +143,7 @@ it('ignores entitlement responses that finish after logout',async()=>{
   h.m.respond(options=>options.url.endsWith('/catalog')?{statusCode:200,data:{available:false}}:new Promise(resolve=>{release=resolve;}));
   const refresh=old.billing.refresh();while(!release)await Promise.resolve();h.app.auth.logout();
   release({statusCode:200,data:{packs:99}});await expect(refresh).rejects.toThrow('登录状态已变化');
-  expect(old.billing.snapshot().packs).toBe(0);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(2);
+  expect(old.billing.snapshot().packs).toBe(0);expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);
 });
 
 it('removes old home data immediately and renders only the newly authenticated account',async()=>{
@@ -163,7 +163,7 @@ it('does not change another page tab bar and unsubscribes when home is destroyed
 
 it('keeps authenticated content during repeated house navigation instead of showing the login sheet',async()=>{
   const h=harness();h.m.wx.navigateTo=options=>h.m.routes.push(options.url);
-  await h.app.auth.login();const id=h.app.service.store.add('连续查看的房源');
+  await h.app.auth.login();h.app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.tutorialStep=0;s.xiaoda.feedback='done';});const id=h.app.service.store.add('连续查看的房源');
   const home=h.page('home');home.onLoad();home.onShow();
   for(let n=0;n<3;n++){
     home.open({currentTarget:{dataset:{id}}});home.onHide();
@@ -221,4 +221,9 @@ it('ignores pending nickname reviews and avatar callbacks from a previous sessio
  expect(h.app.service.profile.read()).toEqual({nickname:'',avatarUrl:''});
  const next=h.page('settings');next.onLoad();next.onShow();next.nicknameChanged({detail:{value:'已离开'}});next.onUnload();next.nicknameReviewed({detail:{pass:true}});next.chooseAvatar({detail:{avatarUrl:'/temporary/avatar'}});
  expect(h.app.service.profile.read()).toEqual({nickname:'',avatarUrl:''});
+});
+it('clears feedback text and pending thank-you when the home account changes',async()=>{
+ const h=harness();await h.app.auth.login();h.app.service.store.change(s=>s.xiaoda.setup='done');const page=h.page('home');page.onLoad();page.onShow();
+ page.setData({feedbackOpen:true,feedbackDraft:{message:'A 的私人反馈'},homeThank:true});h.app.auth.logout();
+ expect(page.data).toMatchObject({feedbackOpen:false,feedbackDraft:{},homeThank:false});
 });

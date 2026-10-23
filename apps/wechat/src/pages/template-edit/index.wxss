@@ -1,0 +1,1 @@
+.nav{display:flex;align-items:center;background:#f5f7fb;font-size:17px;font-weight:600}.nav button{margin:0 16px 0 4px;padding:0 15px;font-size:34px;background:transparent;line-height:44px}.nav button::after{border:0}.editor{padding-bottom:100px}.save{position:fixed;left:20px;right:20px;bottom:calc(16px + env(safe-area-inset-bottom))}.sheet button{margin-top:12px}

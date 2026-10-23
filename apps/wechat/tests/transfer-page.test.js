@@ -8,7 +8,7 @@ import {makeBackup,readBackup} from './helpers/backup.js';
 import {mockWx} from './helpers/wx.js';
 const event=(id,mode)=>({currentTarget:{dataset:{id,mode}}});
 function fixture(){
- const m=mockWx(),service=createPlatform(m.wx);let page;
+ const m=mockWx(),service=createPlatform(m.wx,{session:{packs:1}});let page;
  const app={service},context=vm.createContext(pageContextFixture({wx:m.wx,Page:o=>page=o,getApp:()=>app,console,setTimeout,clearTimeout}));
  vm.runInContext(fs.readFileSync('dist/pages/import/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};
  return {...m,page,service};
