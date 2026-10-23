@@ -7,7 +7,7 @@ import {XMLParser} from 'fast-xml-parser';
 // checks component event wiring; native hit testing still needs phone acceptance.
 function fixture(){
  let spec,now=1000;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date:{now:()=>now}});
- const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'floor',inline:true,value:'是'},readonly:false},events:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){this.events.push({name,detail});}};
+ const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'floor',inline:true,value:'是'},readonly:false},events:[],notifications:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){(name==='swipeopen'?this.notifications:this.events).push({name,detail});}};
  const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
  function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
  const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass)&&(klass!=='choice'||!n.attrs.class.includes(' skip ')));
@@ -29,7 +29,7 @@ function fixture(){
   }
   return caught;
  }
- return {c,find,dispatch,findTag:tag=>nodes.find(n=>n.tag===tag&&!n.parents.some(p=>(p.attrs.class||'').split(' ').includes('speed-entry'))),advance:ms=>{now+=ms;}};
+ return {c,find,dispatch,observe:(key,value)=>spec.observers[key].call(c,value),attr:(node,key)=>vm.runInNewContext(node.attrs[key].slice(2,-2),c.data),findTag:tag=>nodes.find(n=>n.tag===tag&&!n.parents.some(p=>(p.attrs.class||'').split(' ').includes('speed-entry'))),advance:ms=>{now+=ms;}};
 }
 it('swiping from an answer option opens the row without selecting that option',()=>{
  const {c,find,dispatch}=fixture(),choice=find('choice');
@@ -39,7 +39,7 @@ it('swiping from an answer option opens the row without selecting that option',(
 it('the title opens actions through the same full-row gesture path',()=>{
  const {c,find,dispatch}=fixture(),title=find('label');
  dispatch(title,'touchstart',220);dispatch(title,'touchmove',100);dispatch(title,'touchend',100);dispatch(title,'tap');
- expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
+ expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);expect(c.notifications).toEqual([{name:'swipeopen',detail:{id:'floor'}}]);
 });
 it.each(['flag','note-action','media-action'])('an exposed %s button routes its tap once, without the field dismissing first',klass=>{
  const {c,find,dispatch}=fixture(),choice=find('choice'),button=find(klass);
@@ -162,4 +162,59 @@ it('map dragging dismisses open actions while remaining outside the recognizer',
  const {c,findTag,dispatch}=fixture();c.data.field.map=true;c.reveal();
  const map=findTag('address-picker');dispatch(map,'touchstart',250);dispatch(map,'touchmove',150);dispatch(map,'touchend',150);
  expect(c.data.actions).toBe(false);expect(c.gesture).toBeFalsy();expect(c.events).toEqual([]);
+});
+
+it('description disclosure starts collapsed, toggles independently, and preserves recorded content',()=>{
+ const a=fixture(),b=fixture();
+ a.c.data.field={...a.c.data.field,label:'空调正常',description:'各功能和遥控正常',note:'已记下',problem:true,media:[{id:'photo'}]};
+ b.c.data.field={...b.c.data.field,label:'冰箱正常',description:'冷藏冷冻正常'};
+ const before=structuredClone(a.c.data.field),eye=a.find('description-toggle'),description=a.find('description');
+ expect(a.attr(description,'wx:if')).toBe(false);
+ expect(a.attr(eye,'aria-expanded')).toBe(false);expect(a.attr(eye,'aria-label')).toBe('展开空调正常的说明');
+ a.dispatch(eye,'touchstart');a.dispatch(eye,'touchend');a.dispatch(eye,'tap');
+ expect(a.attr(description,'wx:if')).toBe(true);expect(a.attr(a.find('eye-slash'),'wx:if')).toBe(true);
+ expect(a.attr(eye,'aria-label')).toBe('收起空调正常的说明');expect(b.c.data.descriptionOpen).toBe(false);
+ b.dispatch(b.find('description-toggle'),'tap');a.dispatch(eye,'tap');
+ expect(a.attr(description,'wx:if')).toBe(false);expect(a.attr(a.find('eye-slash'),'wx:if')).toBe(false);
+ expect(b.c.data.descriptionOpen).toBe(true);expect(a.c.data.field).toEqual(before);expect(a.c.events).toEqual([]);
+});
+it('fields without descriptions have no eye and ignore disclosure activation',()=>{
+ const r=fixture(),eye=r.find('description-toggle');
+ expect(r.attr(eye,'wx:if')).toBeFalsy();r.dispatch(eye,'tap');
+ expect(r.c.data.descriptionOpen).toBe(false);expect(r.c.events).toEqual([]);
+});
+it.each(['category','group'])('a %s description eye does not fold the heading or open actions',heading=>{
+ const r=fixture(),eye=r.find('description-toggle');
+ r.c.data.field={...r.c.data.field,heading,expanded:false,foldId:'parent',description:'说明'};
+ r.dispatch(eye,'touchstart');r.dispatch(eye,'touchend');r.dispatch(eye,'tap');
+ r.dispatch(eye,'longpress');
+ expect(r.c.data.descriptionOpen).toBe(true);expect(r.c.data.actions).toBe(false);expect(r.c.events).toEqual([]);
+ r.dispatch(r.find('label'),'touchstart');r.dispatch(r.find('label'),'touchend');r.dispatch(r.find('label'),'tap');
+ expect(r.c.events).toEqual([{name:'fold',detail:{id:'parent',expanded:false}}]);expect(r.c.data.descriptionOpen).toBe(true);
+});
+it('archived rows can read descriptions while their answers remain readonly',()=>{
+ const r=fixture();r.c.data.readonly=true;r.c.data.field.description='说明';
+ r.dispatch(r.find('description-toggle'),'tap');expect(r.c.data.descriptionOpen).toBe(true);
+ r.dispatch(r.find('choice'),'tap');expect(r.c.events).toEqual([]);
+ r.dispatch(r.find('description-toggle'),'tap');expect(r.c.data.descriptionOpen).toBe(false);
+});
+it('an explicit eye tap dismisses actions and opens the description without swallowing the next answer',()=>{
+ const r=fixture(),eye=r.find('description-toggle');r.c.data.field.description='说明';r.c.reveal();
+ r.dispatch(eye,'touchstart');r.dispatch(eye,'touchend');r.dispatch(eye,'tap');
+ expect(r.c.data.actions).toBe(false);expect(r.c.data.descriptionOpen).toBe(true);expect(r.c.events).toEqual([]);
+ r.dispatch(r.find('choice'),'touchstart');r.dispatch(r.find('choice'),'touchend');r.dispatch(r.find('choice'),'tap');
+ expect(r.c.events).toEqual([{name:'choose',detail:{id:'floor',value:'否'}}]);
+});
+it('scrolling from the eye does not start a row swipe, and a gesture-ending tap cannot toggle it',()=>{
+ const r=fixture(),eye=r.find('description-toggle');r.c.data.field.description='说明';
+ r.dispatch(eye,'touchstart',200);r.dispatch(eye,'touchmove',190,120);r.dispatch(eye,'touchend',190,120);
+ expect(r.c.gesture).toBeFalsy();expect(r.c.data.actions).toBe(false);
+ const title=r.find('label');r.dispatch(title,'touchstart',220);r.dispatch(title,'touchmove',100);r.dispatch(title,'touchend',100);r.dispatch(eye,'tap');
+ expect(r.c.data.descriptionOpen).toBe(false);
+ r.dispatch(eye,'touchstart');r.dispatch(eye,'touchend');r.dispatch(eye,'tap');expect(r.c.data.descriptionOpen).toBe(true);
+});
+it('answer refresh retains disclosure but reusing a row for another field resets it',()=>{
+ const r=fixture();r.c.data.field.description='说明';r.observe('field.id','floor');r.dispatch(r.find('description-toggle'),'tap');
+ r.observe('field.id','floor');r.observe('field.value','否');expect(r.c.data.descriptionOpen).toBe(true);
+ r.c.data.field={id:'other',description:'另一项'};r.observe('field.id','other');expect(r.c.data.descriptionOpen).toBe(false);
 });

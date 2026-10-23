@@ -4,7 +4,7 @@ const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/
 if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared pool');
 const out=process.env.WECHAT_ARTIFACT_DIR,sleep=ms=>new Promise(r=>setTimeout(r,ms));let mini;const captures=[];
 async function evaluate(fn,...args){const result=await mini.evaluate('function(){try{return ('+fn.toString()+').apply(null,arguments);}catch(e){return "__CALL_ERROR__"+e.stack;}}',...args);if(typeof result==='string'&&result.startsWith('__CALL_ERROR__'))throw Error(result);return result;}
-async function data(){return JSON.parse(await evaluate(function(){const p=getCurrentPages().slice(-1)[0];return JSON.stringify({route:p.route,mode:p.data.mode,selected:p.data.selected,sections:p.data.sections,coach:p.data.coach,coachField:p.data.coachField,issues:p.data.issueRows,settings:getApp().service.store.get().settings});}));}
+async function data(){return JSON.parse(await evaluate(function(){const p=getCurrentPages().slice(-1)[0];return JSON.stringify({route:p.route,mode:p.data.mode,selected:p.data.selected,sections:p.data.sections,coach:p.data.coach,coachField:p.data.coachField,issues:p.data.issueRows,descriptions:p.selectAllComponents('.field-row').map(function(c){return {id:c.data.field.id,label:c.data.field.label,hasDescription:!!c.data.field.description,open:c.data.descriptionOpen};}),settings:getApp().service.store.get().settings});}));}
 async function route(url,method='reLaunch'){
  await evaluate(function(url,method){getApp().__simpleNav={done:false,error:''};wx[method]({url:url,success:function(){getApp().__simpleNav.done=true;},fail:function(e){getApp().__simpleNav.error=e.errMsg;}});return true;},url,method);
  await sleep(600);for(let i=0;i<100;i++){const r=await evaluate(function(){return getApp().__simpleNav;});if(r.error)throw Error(r.error+' '+JSON.stringify(await data()));if(r.done&&(await data()).route===url.split('?')[0].slice(1))return;await sleep(100);}throw Error('Navigation timeout '+url);
@@ -39,7 +39,17 @@ async function call(action,...args){return evaluate(function(action,args){getCur
    const section=(await data()).sections.find(s=>s.title===name);assert.ok(section.expanded);await capture(key,title);
   }
   await category('周边与小区','05-simple-neighborhood','精简现场：说明与统一记录');
-  await category('家电','06-simple-appliances','家电合并项：是、否、没有');
+  await category('家电','06-simple-appliances','说明默认收起，标题旁亮色眼睛');
+  async function toggleDescription(label,expected){
+   const result=JSON.parse(await evaluate(function(label){const p=getCurrentPages().slice(-1)[0],c=p.selectAllComponents('.field-row').find(function(c){return c.data.field.label===label;});if(!c)throw Error('Missing description row '+label);const before=JSON.stringify(getApp().service.store.house(p.data.house.id));c.toggleDescription();return JSON.stringify({open:c.data.descriptionOpen,unchanged:before===JSON.stringify(getApp().service.store.house(p.data.house.id))});},label));
+   assert.equal(result.open,expected);assert.ok(result.unchanged,'Disclosure modified saved house');
+  }
+  assert.ok((await data()).descriptions.every(c=>!c.open));
+  await toggleDescription('空调正常',true);await capture('06b-description-open','展开空调说明：灰色划线眼睛');
+  await toggleDescription('冰箱正常',true);await toggleDescription('空调正常',false);
+  assert.ok((await data()).descriptions.find(c=>c.label==='冰箱正常').open);
+  await capture('06c-description-independent','收起空调说明，冰箱说明保持展开');
+  await toggleDescription('冰箱正常',false);await capture('06d-description-closed','再次收起，恢复亮色无划线眼睛');
   await category('身份与合同','07-simple-contract','合同保留逐项、合并项与退房分组',true);
   await evaluate(function(){const p=getCurrentPages().slice(-1)[0],q=p.createSelectorQuery();return new Promise(function(resolve,reject){q.selectAll('.scroll-anchor').fields({rect:true,dataset:true});q.selectViewport().scrollOffset();q.exec(function(values){const row=values[0].find(function(r){return r.dataset.scrollKey==='group-simple_checkout';});if(!row){reject(Error('Checkout anchor missing'));return;}wx.pageScrollTo({scrollTop:Math.max(0,row.top+values[1].scrollTop-16),duration:0,success:resolve,fail:reject});});});});await capture('08-checkout','退房仅保留两个子项');
   await category('房源基本信息','09-basic-retained','基本信息继续逐项填写');
@@ -47,6 +57,7 @@ async function call(action,...args){return evaluate(function(action,args){getCur
   detail.xiaoda.enabled=true;detail.xiaoda.tutorialStep=3;await inject(detail);await route('/pages/detail/index?id='+h.id);assert.ok((await data()).coachField.id.startsWith('simple_'));await capture('11-simple-swipe','精简模式用合并项进行左滑教学');
   detail.xiaoda.tutorialStep=0;detail.xiaoda.enabled=false;const f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.label==='隔音与噪音正常');h.answers[f.id]={value:'否',note:'晚上能听清隔壁说话，需再次确认。',issueFlag:true};
   await inject(detail);await route('/pages/detail/index?id='+h.id);await call('tab',{currentTarget:{dataset:{value:'问题'}}});assert.equal((await data()).issues.length,1);await capture('12-simple-issue','统一检查项的问题与备注只计一次');
+  await toggleDescription('隔音与噪音正常',true);await capture('12b-issue-description','问题项也可展开说明，保留答案和备注');
   fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(captures,null,2));
   fs.writeFileSync(path.join(out,'scope.json'),JSON.stringify({rendered:true,count:captures.length,fixtureState:true,directControllerCalls:true,realModeChoiceClick:realClick,fullInteractionValidated:false},null,2));
  }finally{mini.disconnect();}

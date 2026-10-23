@@ -3,7 +3,7 @@ import {it,expect,vi} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const point=x=>({touches:[{clientX:x,clientY:50}],changedTouches:[{clientX:x,clientY:50}]});
-function row(){let spec;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component(s){spec=s;},Date});return {...spec.methods,data:{...structuredClone(spec.data),field:{id:'window',inline:true,value:'是',note:'保留备注',media:[{id:'photo'}]}},events:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){this.events.push({name,detail});}};}
+function row(){let spec;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component(s){spec=s;},Date});return {...spec.methods,data:{...structuredClone(spec.data),field:{id:'window',inline:true,value:'是',note:'保留备注',media:[{id:'photo'}]}},events:[],notifications:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){(name==='swipeopen'?this.notifications:this.events).push({name,detail});}};}
 const tap=action=>({currentTarget:{dataset:{action,tray:true}}});
 it.each(['flag','note','media'])('an exposed %s button has its own touch boundary and executes exactly once',action=>{
  const markup=fs.readFileSync('dist/components/field-row/index.wxml','utf8');

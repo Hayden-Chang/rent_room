@@ -40,7 +40,7 @@ it('right-swipe handling includes the exposed action buttons',()=>{
 });
 function rows(){
  let spec;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component(o){spec=o;},Date});
- return id=>({...spec.methods,data:{...structuredClone(spec.data),field:{id,value:'原答案',note:'原备注',media:[{id:'photo'}]}},events:[],setData(v){Object.assign(this.data,v);},triggerEvent(name,detail){this.events.push({name,detail});}});
+ return id=>({...spec.methods,data:{...structuredClone(spec.data),field:{id,value:'原答案',note:'原备注',media:[{id:'photo'}]}},events:[],notifications:[],setData(v){Object.assign(this.data,v);},triggerEvent(name,detail){(name==='swipeopen'?this.notifications:this.events).push({name,detail});}});
 }
 const point=x=>({touches:[{clientX:x,clientY:50}],changedTouches:[{clientX:x,clientY:50}]});
 it('a first tap on another item dismisses without changing its answer',()=>{
@@ -83,7 +83,7 @@ it('the gesture-ending tap leaves the menu open, while a fresh title tap closes 
  c.start(point(30));c.end(point(30));c.tapHead();expect(c.data.actions).toBe(false);
 });
 it('navigation dismisses and switches in one tap, and hide/scroll dismiss without changing field content',async()=>{
- let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page(p){page=p;},setTimeout,clearTimeout,wx:{hideKeyboard(){},pageScrollTo({complete}){complete();}}}));
+ let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page(p){page=p;},getApp:()=>({service:{}}),setTimeout,clearTimeout,wx:{hideKeyboard(){},pageScrollTo({complete}){complete();}}}));
  const row=rows()('a'),before=JSON.stringify(row.data.field);page.selectAllComponents=()=>[row];page.setData=(v,cb)=>{Object.assign(page.data,v);cb?.();};page.refresh=(v,cb)=>page.setData(v,cb);page.tabPositions={};page.measureTab=async()=>({scrollTop:0,rows:[]});
  row.reveal();await page.tab({currentTarget:{dataset:{value:'影像'}}});expect(row.data.actions).toBe(false);expect(page.data.tab).toBe('影像');
  for(const event of ['onPageScroll','onHide']){row.reveal();page[event]();expect(row.data.offset).toBe(0);}
@@ -97,7 +97,7 @@ it('outside dismissal selects actual custom components with a supported class se
 });
 
 it('page scroll noise does not cancel an undecided or horizontal gesture, but a new vertical scroll dismisses',()=>{
- let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page(p){page=p;}}));
+ let page;vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page(p){page=p;},getApp:()=>({service:{}})}));
  const c=rows()('a');page.selectAllComponents=()=>[c];
  c.start(point(250));page.onPageScroll();expect(c.gesture).toBeTruthy();
  c.move(point(200));page.onPageScroll();expect(c.gesture?.axis).toBe('x');
