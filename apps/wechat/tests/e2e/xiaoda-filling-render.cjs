@@ -7,9 +7,9 @@ const out=process.env.WECHAT_ARTIFACT_DIR;let mini;const captured=[];
 async function evaluate(fn,...args){const result=await mini.evaluate('function(){try{return ('+fn.toString()+').apply(null,arguments);}catch(e){return "__CALL_ERROR__"+e.stack;}}',...args);if(typeof result==='string'&&result.startsWith('__CALL_ERROR__'))throw Error(result);return result;}
 async function data(){return JSON.parse(await evaluate(function(){
  var p=getCurrentPages().slice(-1)[0],st=getApp().service.store.get();if(!p)return JSON.stringify({route:'',prompt:null});
- var sections=[],answers={};if(p.data.sections)for(var i=0;i<p.data.sections.length;i++){var section=p.data.sections[i];sections.push({title:section.title,rows:section.rows.length});}
+ var sections=[],answers={};if(p.data.sections)for(var i=0;i<p.data.sections.length;i++){var section=p.data.sections[i];sections.push({title:section.title,rows:section.rows.length,expanded:section.expanded});}
  for(var j=0;j<st.houses.length;j++)if(st.houses[j].id===p.data.id)answers=st.houses[j].answers;
- return JSON.stringify({route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,phase:p.data.phase,sections:sections,feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:answers});
+ return JSON.stringify({route:p.route,coach:p.data.coach,prompt:p.data.fillPrompt,anchor:p.data.fillAnchor,phase:p.data.phase,sections:sections,feedbackOpen:p.data.feedbackOpen,homeMessage:p.data.homeMessage,returnGuide:st.xiaoda.returnGuide,houseId:p.data.id,answers:answers});
 }));}
 async function route(url,method='reLaunch'){
  await evaluate(function(url,method){getApp().__screenshotNav={done:false,error:''};wx[method]({url:url,success:function(){getApp().__screenshotNav.done=true;},fail:function(e){getApp().__screenshotNav.error=e.errMsg;}});return true;},url,method);
@@ -19,7 +19,7 @@ async function route(url,method='reLaunch'){
 }
 async function capture(key,title,description,expected){
  let d=await data();const length=Array.from(d.prompt?.text||d.homeMessage||'').length;
- await sleep(d.route==='pages/capacity/index'?1500:d.prompt?.kind==='intro'?650:Math.min(3500,length*45+180));d=await data();
+ await sleep(d.route==='pages/capacity/index'?1500:Math.min(3500,length*45+180));d=await data();
  if(expected?.kind!==undefined)assert.equal(d.prompt?.kind||null,expected.kind,key);
  if(expected?.target)assert.equal(d.prompt?.target,expected.target,key);
  if(expected?.home)assert.equal(d.route,'pages/home/index',key);
@@ -40,7 +40,13 @@ try{
   await capture(c.key,c.title,c.description,c.expected);
   for(const step of c.steps){
    console.log('state transition '+step.action);
-   if(step.action==='waitIntro'){await sleep(1600);await capture(step.key,step.title,'自动打字完成后的真实定位；未调用页面处理器。',{kind:null});continue;}
+   if(step.action==='tapIntro'){
+    // Keep the finished speech visible well past the former 1.2 s timeout.
+    await sleep(3000);const before=await data();assert.equal(before.prompt?.kind,'intro');
+    const page=await mini.currentPage(),button=await page.$('.fill-accept');assert.ok(button,'visible start button');await button.tap();
+    await sleep(600);const after=await data();assert.equal(after.prompt,null);assert.equal(after.sections[0].title,before.prompt.target);assert.equal(after.sections[0].expanded,true);
+    await capture(step.key,step.title,'真实点击“开始填写”；等待 3 秒不自动消失，点击后展开目标大项。',{kind:null});continue;
+   }
    if(step.action==='reopen'){await route('/pages/home/index');await route('/pages/detail/index?id='+c.id,'navigateTo');}
    else if(step.action==='completeCategory'){
     const state=JSON.parse(await evaluate(function(){return JSON.stringify(getApp().service.store.get());}));const next=fillCategoryState(state,c.id,step.category),h=next.houses.find(h=>h.id===c.id);
@@ -51,5 +57,5 @@ try{
   }
  }
  fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(captured,null,2));
- fs.writeFileSync(path.join(out,'scope.json'),JSON.stringify({rendered:true,count:captured.length,interactionValidated:false,fixtureNavigation:true,directControllerCalls:true,realPayments:false,realFeedback:false},null,2));
+ fs.writeFileSync(path.join(out,'scope.json'),JSON.stringify({rendered:true,count:captured.length,interactionValidated:false,fixtureNavigation:true,directControllerCalls:true,realClickCases:captured.filter(c=>c.key==='02-basic-expanded'||c.key==='04-no-basic-expanded').map(c=>c.key),realPayments:false,realFeedback:false},null,2));
 }finally{mini.disconnect();}})().catch(error=>{fs.writeFileSync(path.join(out,'failure.json'),JSON.stringify({error:error.stack,captured:captured.map(c=>c.key)},null,2));console.error(error);process.exit(1);});

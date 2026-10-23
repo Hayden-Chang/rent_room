@@ -61,18 +61,30 @@ export const coachMethods={
   if(!h||h.xiaoda?.intro!=='pending')return;
   if(!xiaodaEnabled(state,h)){service().store.edit(h.id,h=>h.xiaoda.intro='done',true);return;}
   const rows=progress(h),target=rows.find(r=>r.category==='房源基本信息'&&!r.complete)||rows.find(r=>!r.complete);
-  if(target)this.setData({fillPrompt:{kind:'intro',target:target.category,phase:target.phase,id:'intro-'+h.id,text:target.category==='房源基本信息'?'写一下房子的基本信息吧。':`先看看「${target.category}」吧。`}});
+  if(target)this.showFilling({kind:'intro',target:target.category,phase:target.phase,id:'intro-'+h.id,text:target.category==='房源基本信息'?'写一下房子的基本信息吧。':`先看看「${target.category}」吧。`});
  },
  syncFilling(){
   if(this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
   const state=service().store.get(),h=service().store.house(this.data.id),prompt=h?.xiaoda?.prompt;
-  if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.setData({fillPrompt:prompt});}
+  if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.showFilling(prompt);}
+  else if(this.data.fillPrompt)this.showFilling(this.data.fillPrompt);
  },
- fillTyped(){if(this.data.fillPrompt?.kind==='intro'){this.clearCoachTimer();this.coachTimer=setTimeout(()=>{if(!this.unloaded&&!this.coachHidden)this.acceptFilling();},1200);}},
+ showFilling(prompt){
+  const section=this.data.sections.find(s=>s.title===prompt.target);
+  const anchor=prompt.kind==='return'?{kind:'return'}:section?{kind:'category',id:section.id}:{kind:'phase',id:'phase-area'};
+  if(this.data.fillPrompt?.id===prompt.id&&this.data.fillAnchor?.kind===anchor.kind&&this.data.fillAnchor?.id===anchor.id)return;
+  this.setData({fillPrompt:prompt,fillAnchor:anchor},()=>this.locateFilling());
+ },
+ locateFilling(){
+  const {fillPrompt:prompt,fillAnchor:anchor}=this.data;
+  if(!prompt||!anchor?.id||!this.accountPageReady||this.data.coach||this.unloaded||this.coachHidden)return;
+  const key=prompt.id+':'+anchor.id;if(this.fillLocated===key)return;this.fillLocated=key;
+  wx.pageScrollTo({selector:'#'+anchor.id,duration:250});
+ },
  clearFilling(){
   this.clearCoachTimer();if(this.xiaodaService!==getApp().service)return;
   const h=service().store.house(this.data.id);if(h?.xiaoda?.prompt)service().store.edit(h.id,h=>delete h.xiaoda.prompt,true);
-  this.setData({fillPrompt:null});
+  this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null});
  },
  acceptFilling(){const prompt=this.data.fillPrompt;if(!prompt)return;
   try{
@@ -87,12 +99,12 @@ export const coachMethods={
  },
  inputFilling(){if(!this.data.fillPrompt||this.data.coach)return;try{if(this.data.fillPrompt.kind==='intro')service().store.edit(this.data.id,h=>h.xiaoda.intro='done',true);this.clearFilling();}catch(error){notify(error);}},
  waitFilling(){try{this.clearFilling();}catch(error){notify(error);}},
- otherHouses(){try{this.clearFilling();this.setData({fillPrompt:{kind:'return',text:'那就先看看其他房子吧～',id:'return-'+Date.now()}});}catch(error){notify(error);}},
+ otherHouses(){try{this.clearFilling();this.showFilling({kind:'return',text:'那就先看看其他房子吧～',id:'return-'+Date.now()});}catch(error){notify(error);}},
  async closeXiaoda(){this.clearCoachTimer();try{const res=await service().api('showActionSheet',{itemList:['当前房源关闭','今天关闭','永久关闭']});
    service().store.change(s=>{const h=s.houses.find(h=>h.id===this.data.id);h.xiaoda||={};h.xiaoda.intro='done';delete h.xiaoda.prompt;
     if(res.tapIndex===0)h.xiaoda.disabled=true;if(res.tapIndex===1)s.xiaoda.closedDate=localDay();if(res.tapIndex===2)s.xiaoda.enabled=false;},true);
-   this.setData({fillPrompt:null});if(res.tapIndex===2)notify('小搭已关闭，可以在设置中重新开启。');
-  }catch(error){notify(error);if(this.data.fillPrompt?.kind==='intro')this.fillTyped();}},
+   this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null});if(res.tapIndex===2)notify('小搭已关闭，可以在设置中重新开启。');
+  }catch(error){notify(error);}},
  leaveXiaoda(){this.clearCoachTimer();const platform=this.xiaodaService;if(platform!==getApp().service)return;
   const h=platform.store.house(this.data.id);if(!h||h.archived)return;
   try{platform.store.change(s=>{if(s.xiaoda.feedback==='unasked')s.xiaoda.feedback='pending';const current=s.houses.find(h=>h.id===this.data.id);if(current.xiaoda)delete current.xiaoda.prompt;},true);}catch(error){notify(error);}

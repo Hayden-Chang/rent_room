@@ -32,8 +32,8 @@ function save(key,title,s,{kind,target,phase,steps=[],intro=false,description=''
  if(intro)state.houses.find(h=>h.id===s.id).xiaoda.intro='pending';
  cases.push({key,title,description,state,id:s.id,phase,expected:kind?{kind,target}:intro?{kind:'intro'}:{kind:null},steps});
 }
-let s=fixture('basic');save('01-basic-intro','首次引导填写基本信息',s,{intro:true,steps:[{key:'02-basic-expanded',title:'介绍结束后自动展开基本信息',action:'waitIntro'}],description:'功能教学已完成；打字结束后自动定位，无需点击确认。'});
-s=fixture('no-basic',[light,noise,cost]);save('03-no-basic','已停用基本信息：引导首个保留大项',s,{intro:true,steps:[{key:'04-no-basic-expanded',title:'首个保留大项自动展开',action:'waitIntro'}]});
+let s=fixture('basic');save('01-basic-intro','首次引导填写基本信息',s,{intro:true,steps:[{key:'02-basic-expanded',title:'点击开始填写：展开基本信息',action:'tapIntro'}],description:'功能教学已完成；提示贴近大项并保持，点击开始填写后展开。'});
+s=fixture('no-basic',[light,noise,cost]);save('03-no-basic','已停用基本信息：引导首个保留大项',s,{intro:true,steps:[{key:'04-no-basic-expanded',title:'点击开始填写：展开首个保留大项',action:'tapIntro'}]});
 s=fixture('basic-to-onsite');fill(s,basic);save('05-basic-to-onsite','基本信息完成：推荐现场检查',s,{kind:'next',target:'周边与小区'});
 s=fixture('basic-to-contract',[basic,cost,contract]);fill(s,basic);save('06-basic-to-contract','没有现场大项：直接推荐费用与合同',s,{kind:'next',target:cost});
 s=fixture('onsite-new',[basic,light,noise,walls,cost,contract]);fill(s,basic);fill(s,light);save('07-onsite-new','现场大项完成：下一项尚未填写',s,{kind:'next',target:noise,phase:'现场'});
