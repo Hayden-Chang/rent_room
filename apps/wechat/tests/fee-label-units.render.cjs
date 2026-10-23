@@ -19,6 +19,31 @@ let stage='connect';const timer=setTimeout(()=>{console.error('Timeout: '+stage)
   },h);
   const route='/pages/detail/index?id='+h.id;
   let page=await mini.navigateTo(route);
+  if(process.argv.includes('--render-only')){
+   // Page.* may hang on this DevTools version. This branch prepares view state
+   // through the handler and proves rendering only, never real search/input.
+   for(const [query,name,expected] of [
+    ['周期费用','recurring',11],['一次性费用','one-time',5]
+   ]){
+    stage='render '+query;console.log(stage);
+    const data=JSON.parse(await mini.evaluate(query=>{
+     const p=getCurrentPages().slice(-1)[0];p.search({detail:{value:query}});
+     wx.pageScrollTo({scrollTop:0,duration:0});
+     return JSON.stringify({sections:p.data.sections,coach:p.data.coach});
+    },query));
+    const rows=data.sections.flatMap(s=>s.rows).filter(r=>r.kind==='field');
+    assert.equal(rows.length,expected);assert.ok(rows.every(r=>r.label.endsWith('）')));
+    assert.ok(!rows.some(r=>r.id==='f96_1'));assert.ok(!data.coach);
+    fs.writeFileSync(path.join(out,name+'-state.json'),JSON.stringify(data,null,2));
+    await mini.screenshot({path:path.join(out,name+'-top.png')});
+    if(name==='recurring'){
+     await mini.evaluate(()=>{wx.pageScrollTo({scrollTop:600,duration:0});});
+     await mini.screenshot({path:path.join(out,name+'-bottom.png')});
+    }
+   }
+   fs.writeFileSync(path.join(out,'assertions.json'),JSON.stringify({passed:true,boundary:'Render-only fallback: legacy fixture and search handler prepare view; screenshots prove rendering. Search/input interactions and phone acceptance remain unverified.'},null,2));
+   return;
+  }
   const search=async query=>{await mini.callWxMethod('pageScrollTo',{scrollTop:0,duration:0});await page.waitFor('input.grow');await (await page.$('input.grow')).input(query);};
   const labels=async()=>Promise.all((await page.$$('.field-branch field-row .label')).map(e=>e.text()));
   const recurring=['燃气费（元/立方米）','水费（元/吨）','电费（元/度）','清洁费（元/月）','物业费（元/月）','网费（元/月）','垃圾费（元/月）','管理费（元/月）','取暖费（元/月）','电梯费（元/月）','停车费（元/月）'];
