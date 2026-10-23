@@ -1,5 +1,11 @@
 # 小搭填写引导截图覆盖
 
+**最新返工：** 用户否定了内嵌大框，提示已改为卡片外独立气泡、短箭头与具体目标按钮；新截图验证记录见[优化记录](XIAODA_REFERENCE_REFINEMENT.md)。以下40图集保留为返工前历史。
+
+**2026-10-24初版：** 当前31种填写分支已经按新视觉重拍，并与9个首次见面/教学画面合成40图集：`artifacts/xiaoda-20261024/reference-refresh/index.html`。首次介绍改为点击“开始填写”才展开，气泡就近放在目标大项里，删除自动展开行为。完整版本、验证等价与失败边界见[本轮优化记录](XIAODA_REFERENCE_REFINEMENT.md)。旧图集已增加新图集入口，历史图片与收据仍保留。
+
+以下场景表沿用稳定编号；表后为2026-10-23历史记录，不能作为当前自动展开行为的说明。
+
 需求：[小搭首次见面流程与文案](https://chatgpt.com/space/page_f978312f402881919e066ebe0d9bc4c1)。用户在2026-10-23要求补齐基础信息、各种下一项推荐、返回和下一套房源的截图。
 
 已补齐31/31张独立的微信开发者工具截图，并逐张检查台词、目标大项、展开状态、返回按钮和第二套入口。图集为本工作树的 `artifacts/xiaoda-20261023/filling-cases/index.html`，支持分类和点击放大，总览页已增加入口。截图使用真实清单快照和生产store计算推荐，后续状态由生产控制器构造；这是渲染覆盖，不是用户真实点击、登录、支付或反馈服务验收。
@@ -7,9 +13,9 @@
 | 编号 | 场景 | 截图文件 |
 | --- | --- | --- |
 | 01 | 首次引导填写基本信息 | `01-basic-intro.png` |
-| 02 | 介绍结束后自动展开基本信息 | `02-basic-expanded.png` |
+| 02 | 接受“开始填写”后展开基本信息 | `02-basic-expanded.png` |
 | 03 | 已停用基本信息：引导首个保留大项 | `03-no-basic.png` |
-| 04 | 首个保留大项自动展开 | `04-no-basic-expanded.png` |
+| 04 | 接受“开始填写”后展开首个保留大项 | `04-no-basic-expanded.png` |
 | 05 | 基本信息完成：推荐现场检查 | `05-basic-to-onsite.png` |
 | 06 | 没有现场大项：直接推荐费用与合同 | `06-basic-to-contract.png` |
 | 07 | 现场大项完成：下一项尚未填写 | `07-onsite-new.png` |
@@ -40,7 +46,9 @@
 
 脚本：`apps/wechat/tests/e2e/xiaoda-filling-fixtures.mjs`、`xiaoda-filling-render.cjs`。截图及运行记录：`artifacts/xiaoda-20261023/filling-cases/`。
 
-本次应用生产代码未改动，仍对应ff07539；重新构建后，`xiaoda.test.js`、`onboarding.test.js`、`first-meeting-runtime.test.js`共3文件30项通过，官方编译通过，1,979,424字节。夹具生成时校验了推荐种类、目标与完成状态；夹具中的状态准备和直接控制器调用不冒充点击。
+## 2026-10-23历史验证记录
+
+当时应用生产代码未改动，仍对应ff07539；重新构建后，`xiaoda.test.js`、`onboarding.test.js`、`first-meeting-runtime.test.js`共3文件30项通过，官方编译通过，1,979,424字节。夹具生成时校验了推荐种类、目标与完成状态；夹具中的状态准备和直接控制器调用不冒充点击。
 
 ## 最终证据与验证边界
 

@@ -2,7 +2,7 @@
 
 用户提供18张多邻国、Finch参考截图，要求全面优化当前小搭引导。参考采用的是信息组织和交互层次：明确的阶段进度、带尾巴的角色气泡、大触控区主按钮、可辨识的选择状态、完成反馈，以及就近展示的操作指引。截图中涉及好友、通知、小组件、连胜与奖励的功能不属于本次业务需求；没有移植第三方角色、统计结论或奖励机制。
 
-## 本次实现
+## 全流程优化初版（填写卡片结构已被下节替代）
 
 - 首次排序：白底、双步骤进度、明确标题、带气泡的静态招呼姿势，排序列表与红色删除图标保持可用。已删除的两行操作说明不恢复。
 - 模式选择：纵向卡片；详细模式用边框和勾选双重标识，精简模式仍为不可选占位。保持本版不跳过的决策。
@@ -13,10 +13,43 @@
 - 首页续接：第二套推荐与添加按钮放在同一卡片中，移除脱离按钮的向下箭头。原首页添加事件和容量检查保持一致。
 - 反馈与容量：统一标题、选择态、主次按钮和关闭符号。保留可选反馈、真实保存确认、额度规则、登录与购买后续接；不恢复用户已删除的容量说明。
 
+## 填写提示与检查项分离（2026-10-24返工）
+
+用户否定“把小搭嵌入检查项大框”的初版。填写提示现在放在目标卡片之前，二者是并列节点；小搭区域透明、没有共同外框，气泡只包说话内容。短箭头连接到目标，目标标题边缘仅保留短色标。删除重复的绿色完成条，主按钮直接写“去填写「目标名称」”。隐藏目标对应的跨阶段提示放在阶段栏之前，箭头与相应阶段按钮对齐；点击后仍沿用原有展开、清除筛选和保存逻辑。整套完成的返回提示保持独立。
+
+参考：[Microsoft Fluent Popover](https://fluent2.microsoft.design/components/web/react/core/popover/usage)强调位置体现关联且不遮盖重要内容；[Atlassian Spotlight](https://atlassian.design/components/spotlight/code)区分目标与提示，并以相对定位关联。这次采用独立提示、实际目标、明确操作的关系，不移植其框架或素材。
+
+滚动定位改为外部提示的起点，让提示与紧随其后的目标一起进入视野。修改前2个定位回归按预期失败；修改后 `onboarding.test.js`、`onboarding-target.test.js`、`detail-navigation.test.js` 共33项通过。官方编译通过，15页面、1,990,633字节。实际截图待当前版本执行后补记；此前40图集为初版历史，不能代表本次返工效果。
+
 ## 模块边界
 
 `components/xiaoda`只负责静态资源、普通/紧凑/主视觉三种排版、气泡与逐字输出；业务页面传语义姿态，不使用图片手势推断目标方向。角色仍由`lib/xiaoda-skin.js`资源包替换。`styles/guidance.wxss`共享引导按钮与确认样式，不改一般业务按钮的默认样式。清单答案、模板快照、账号、支付和反馈接口无协议改动。
 
 ## 验证记录
 
-待本轮实际截图完成后补充运行收据与逐图检查结果。
+代码从 `5b49e09` 继续开发：`e46716f` 完成目标定位与手动开始；`662191b` 统一全流程视觉；`0eabed3` 压缩模式示例、收紧教学气泡并把完成条改为“上一项记录好啦”；`4a462e1` 恢复视觉检查中发现丢失的筛选上下箭头。除这些引导相关文件外，没有改写主工作区、支付服务或清单源。
+
+### 自动验证
+
+- 先增加首次提示等待、目标定位、停用基本信息的替代项、跨阶段保持当前视图、保存失败和重开续接回归；旧实现出现5项预期失败，修复后通过。
+- `662191b` 构建后，10个文件79项通过：`onboarding.test.js`、`onboarding-target.test.js`、`xiaoda.test.js`、`xiaoda-speech.test.js`、`onboarding-icons.test.js`、`detail-navigation.test.js`、`detail-filter.test.js`、`first-meeting-runtime.test.js`、`capacity-runtime.test.js`、`template-fold.test.js`。
+- `0eabed3` 改动仅为模式示例数据排版、紧凑气泡参数、完成条文案和截图等待；重跑 `first-meeting-runtime.test.js`、`onboarding-icons.test.js` 共6项通过，其余行为结果复用。`4a462e1` 只恢复筛选箭头CSS，无行为变化，以重新编译和实际画面验证，不增加样式字符串镜像测试。
+- 最新构建与官方wcc/wcsc通过：15页面、1,989,547字节，wcc20文件、wcsc21文件。测试根为 `xunju-test-xiaoda-20261023`。Node使用本机依赖运行时24.19.0；命令如下，未执行全量测试。
+
+```sh
+WECHAT_TEST_DATA_ROOT=xunju-test-xiaoda-20261023 node scripts/build.mjs
+node node_modules/vitest/vitest.mjs run tests/onboarding.test.js tests/onboarding-target.test.js tests/xiaoda.test.js tests/xiaoda-speech.test.js tests/onboarding-icons.test.js tests/detail-navigation.test.js tests/detail-filter.test.js tests/first-meeting-runtime.test.js tests/capacity-runtime.test.js tests/template-fold.test.js
+node scripts/check.mjs
+```
+
+### 画面与交互证据
+
+最终run `7d9e0449ccfb40458c37159d1bcb2a16` 通过，源码 `4a462e1333925a3acfbbbfbbdb49a47fafa96f25`、工作树干净，冻结摘要 `6d706ced3537bafa372f75361118fe00a861957fddd27db23b4e10b4cbb7e76b`。工具2.01.2510290、基础库3.17.3，第3槽复用PID 80644并归还idle。40张最终画面全部来自这一次run，尺寸为780×1342、780×1506或780×1688。
+
+逐图检查覆盖9个首次见面/教学与31种填写分支：完整台词、三阶段黄色强调、具体筛选选项、展开箭头、目标大项与替代项、主次按钮、已有答案保留、等待/重开、返回反馈、第二套和额度不足。最后19张像素变化画面重新检查，另21张与先前已检查画面SHA-256完全一致。图集路径为 `artifacts/xiaoda-20261024/reference-refresh/index.html`。图集同时保留原始PNG、同名状态JSON、逐图来源/尺寸/SHA-256、运行日志及范围声明。原始截图未裁切或重绘。
+
+第一次重拍run `ae6f8cd9116e4a26ba52d75b33bf08d3`（662191b，干净）通过，覆盖40画面；检查发现模式页占位说明被底栏遮挡、阶段教学未等台词完整，随后修正并以run `97620636162f405bbf7b60e5542ea95e`（0eabed3，干净）补拍22张。继续逐图核对时发现筛选箭头样式遗漏，4a462e1恢复并重拍整套；前两次画面作为过程证据保留，不混入最终图集。
+
+真实点击尝试run `f8d9bf06a9c6421aa00b601aadde2cea`（e46716f）在SDK查询 `.fill-accept` 时超时，未取得点击通过证据。渲染脚本明确标记 `interactionValidated:false`，状态准备和直接调用生产控制器不冒充用户操作。未执行真实反馈提交、支付、登录续接或iOS/Android手势验收；这些既有门禁及用户视觉确认仍需完成，PR保持草稿，未合并、部署或发布。
+
+当前agent复核本轮完整差异：角色资源与业务解耦；关闭触控区44px；提示与具体目标绑定；等待不会自动展开；保存失败保留提示；主动导航会收起旧提示；第二套按钮复用原容量检查。发现的模式拥挤、文案歧义、截图等待及筛选箭头回退均已修正。

@@ -79,7 +79,7 @@ export const coachMethods={
   const {fillPrompt:prompt,fillAnchor:anchor}=this.data;
   if(!prompt||!anchor?.id||!this.accountPageReady||this.data.coach||this.unloaded||this.coachHidden)return;
   const key=prompt.id+':'+anchor.id;if(this.fillLocated===key)return;this.fillLocated=key;
-  wx.pageScrollTo({selector:'#'+anchor.id,duration:250});
+  wx.pageScrollTo({selector:'#filling-guide',duration:250});
  },
  clearFilling(){
   this.clearCoachTimer();if(this.xiaodaService!==getApp().service)return;

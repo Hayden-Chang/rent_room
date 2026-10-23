@@ -43,10 +43,10 @@ it('allows continuing from the filter explanation without selecting or expanding
 });
 
 function intro(h){h.app.service.store.change(s=>s.xiaoda.tutorialStep=0);return h.open();}
-it('places the introduction inside its category and scrolls that heading into view',()=>{
+it('scrolls to the separate introduction so the message and following category stay visible together',()=>{
  const h=harness(),p=intro(h),section=p.data.sections.find(s=>s.title==='房源基本信息');
  expect(p.data.fillAnchor).toEqual({kind:'category',id:section.id});
- expect(h.wx.pageScrollTo).toHaveBeenLastCalledWith({selector:'#'+section.id,duration:250});
+ expect(h.wx.pageScrollTo).toHaveBeenLastCalledWith({selector:'#filling-guide',duration:250});
  expect(section.expanded).toBe(false);
 });
 it('anchors the introduction to the first retained category when basic information is disabled',()=>{
@@ -58,7 +58,7 @@ it('anchors a hidden cross-phase target to its phase without switching until acc
  const h=harness(),p=intro(h);p.phase({currentTarget:{dataset:{value:'现场'}}});
  h.app.service.store.edit(h.id,h=>h.xiaoda.prompt={kind:'phase',target:'费用与付款',phase:'询问签约',id:'cross',text:'继续填写费用。'});p.refresh();
  expect(p.data.fillAnchor).toEqual({kind:'phase',id:'phase-area'});expect(p.data.phase).toBe('现场');
- expect(h.wx.pageScrollTo).toHaveBeenLastCalledWith({selector:'#phase-area',duration:250});
+ expect(h.wx.pageScrollTo).toHaveBeenLastCalledWith({selector:'#filling-guide',duration:250});
  p.acceptFilling();expect(p.data.phase).toBe('询问签约');expect(p.data.sections[0].title).toBe('费用与付款');expect(p.data.sections[0].expanded).toBe(true);
 });
 it('retains the introduction after a failed save and resumes it after leaving without acceptance',()=>{
