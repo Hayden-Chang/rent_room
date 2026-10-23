@@ -88,7 +88,7 @@ npm run package
 - `lib/xiaoda-state.js`：进度、兼容迁移、关闭作用域及数据校验。
 - `lib/templates.js`：类别排序/停用；新房源快照保留原始顺序。详情临时展示顺序不改默认模板。
 - `lib/xiaoda-flow.js`：真实结果完成度、首次完成去重和下一类别推荐。
-- `lib/onboarding.js`：真实页面锚点与界面协调；前三步完成条件来自实际筛选/左滑事件。
+- `lib/onboarding.js`：真实页面锚点与界面协调；筛选步骤自动展开具体选项并可确认继续，左滑步骤必须由真实手势完成。
 - `components/xiaoda` + `lib/typewriter.js`：静态姿态、逐字输出及隐藏/移除时计时器清理。
 - `lib/xiaoda-skin.js`：开发时替换的资源包入口。只映射 idle/greet/point/think/expect/success/bye 语义姿态；未知姿态回落 idle。PNG 位于 `src/assets/xiaoda/`，透明背景、256×256，来自本次用户提供的三张动作图。
 - `lib/house-intent.js`：新建/恢复续接，容量不足先保存操作意图，登录迁移后由服务端确认额度才继续；新建在名称提交时才占用容量。
