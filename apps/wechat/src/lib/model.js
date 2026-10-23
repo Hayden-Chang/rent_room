@@ -18,10 +18,23 @@ export const electricityField=fields.find(f=>f.id==='617bd84f-3208-42ec-b2e4-5bb
 const duplicateElectricityId='b670b816-5107-4acf-96e0-cc28b84df4cc';
 export const costGroups={'019886c9-e108-45b4-a0c5-c20d594379e5':'周期费用','538ea220-cf80-418e-a492-8cc3792654be':'一次性费用'};
 export const customCostGroup=id=>Object.keys(costGroups).find(group=>new RegExp(`^cost_${group}_[a-zA-Z0-9]+$`).test(id));
+const parkingCostTopic=topics.find(t=>t.fields.some(f=>f.id==='f11_1'));
+function relocateParkingCost(ts) {
+ const groupId=parkingCostTopic.path.at(-1).id;
+ const source=ts.find(t=>t.fields.some(f=>f.id==='f11_1')&&!t.path?.some(p=>p.id===groupId));
+ if(!source)return ts;
+ const field=source.fields.find(f=>f.id==='f11_1');
+ const result=ts.map(t=>t.path?.some(p=>p.id===groupId)?t:{...t,fields:t.fields.filter(f=>f.id!=='f11_1')});
+ if(result.some(t=>t.fields.some(f=>f.id==='f11_1')))return result;
+ const target=result.findIndex(t=>t.path?.some(p=>p.id===groupId));
+ if(target<0)result.push({...parkingCostTopic,fields:[field]});
+ else result[target]={...result[target],fields:[...result[target].fields,field]};
+ return result;
+}
 // Apply current group controls to saved templates without rewriting their answers or snapshots.
 export const houseTopics = h => {
  let electricitySeen=false;
- return [...(h.templateTopics||topics),...(h.extras||[])].map(t=>{
+ return relocateParkingCost([...(h.templateTopics||topics),...(h.extras||[])]).map(t=>{
   if(t.fields.some(f=>[electricityField.id,duplicateElectricityId].includes(f.id)))t={...t,fields:t.fields.flatMap(f=>{
     if(![electricityField.id,duplicateElectricityId].includes(f.id))return [f];
     if(electricitySeen)return [];electricitySeen=true;return [{...f,...electricityField}];
