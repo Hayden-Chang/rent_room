@@ -68,7 +68,7 @@ try{
     if(realTaps){const page=await mini.currentPage(),button=await page.$('.fill-accept');assert.ok(button,'visible start button');await button.tap();}
     else await evaluate(function(){getCurrentPages().slice(-1)[0].acceptFilling();return true;});
     await sleep(600);const after=await data();assert.equal(after.prompt,null);assert.equal(after.sections[0].title,before.prompt.target);assert.equal(after.sections[0].expanded,true);
-    await capture(step.key,step.title,realTaps?'真实点击“开始填写”；等待 3 秒不自动消失，点击后展开目标大项。':'等待 3 秒提示仍保留；调用生产控制器展开目标，不作为真实点击证据。',{kind:null});continue;
+    await capture(step.key,step.title,realTaps?'真实点击“去填写”；等待 3 秒不自动消失，点击后展开目标大项。':'等待 3 秒提示仍保留；调用生产控制器展开目标，不作为真实点击证据。',{kind:null});continue;
    }
    if(step.action==='reopen'){await route('/pages/home/index');await route('/pages/detail/index?id='+c.id,'navigateTo');}
    else if(step.action==='completeCategory'){

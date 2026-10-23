@@ -72,12 +72,9 @@
 .fill-category-target .category-head::before{content:"";position:absolute;left:-16px;top:18px;width:3px;height:24px;border-radius:0 3px 3px 0;background:#6763ed}
 .fill-phase-target{box-shadow:inset 0 0 0 2px #6763ed}
 .fill-destination{color:#5250b5;font-weight:600;font-size:13px;margin:0 24px 0 84px}
-.fill-heading{font-size:23px;line-height:1.4;font-weight:700;color:#39416e;text-align:center;margin:0 24px 16px}
 .fill-actions{display:flex;align-items:center;gap:8px;margin:16px 0 0;white-space:normal}
 .fill-actions button:not([size=mini]){flex:1;min-width:0;margin:0;font-size:14px;min-height:44px;padding:10px 4px}
 .fill-actions .guide-primary:not([size=mini]){border-radius:12px;box-shadow:0 3px 0 #3836b3}
 .fill-actions .guide-secondary:not([size=mini]){background:transparent}
-.fill-return{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:30;padding:24px 20px 20px;border:2px solid #dcdff0;box-shadow:0 8px 28px #26345424;max-height:72vh;overflow:auto;border-radius:24px;background:#fff;margin:0}
-.fill-return .fill-actions{flex-direction:column;margin:20px 0 0}
-.fill-return .fill-actions .guide-primary:not([size=mini]){flex:none;width:100%;min-height:50px;font-size:16px;padding:12px 18px;box-shadow:0 4px 0 #3836b3}
+.fill-return{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:30;padding:12px 0 4px;max-height:60vh;overflow:auto;margin:0}
 .coach-progress{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:600;color:#70788b}.coach-dots{display:flex;gap:6px;flex:1}.coach-dots view{height:6px;border-radius:6px;background:#e9eaf2;flex:1}.coach-dots .done{background:#6159e8}.coach-heading{font-size:21px;font-weight:700;margin:12px 0 16px;color:#30394c}
