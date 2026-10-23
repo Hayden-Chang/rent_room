@@ -19,7 +19,7 @@ async function route(url,method='reLaunch'){
 }
 async function capture(key,title,description,expected){
  let d=await data();const length=Array.from(d.prompt?.text||d.homeMessage||'').length;
- await sleep(d.prompt?.kind==='intro'?650:Math.min(3500,length*45+180));d=await data();
+ await sleep(d.route==='pages/capacity/index'?1500:d.prompt?.kind==='intro'?650:Math.min(3500,length*45+180));d=await data();
  if(expected?.kind!==undefined)assert.equal(d.prompt?.kind||null,expected.kind,key);
  if(expected?.target)assert.equal(d.prompt?.target,expected.target,key);
  if(expected?.home)assert.equal(d.route,'pages/home/index',key);
