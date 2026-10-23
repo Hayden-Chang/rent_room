@@ -27,7 +27,7 @@ it('assigns every generated fee topic to signing with all field identities and o
  expect(topics).toEqual(source);
  expect(fees(topics)).toHaveLength(3);
  expect(fees(topics).find(t=>t.title==='一次性费用').sources).toEqual(['IMG_6292.PNG','IMG_6316.PNG','IMG_6319.PNG']);
- expect(fieldIds(fees(topics))).toHaveLength(21);
+ expect(fieldIds(fees(topics))).toHaveLength(20);
  expect(fees(topics).every(t=>t.phase===signing)).toBe(true);
  const h=freshHouse('新房源'),before=clone(h),total=stats(h);
  expect(visibleFees(h,'询问签约')).toEqual(fieldIds(fees(topics)));

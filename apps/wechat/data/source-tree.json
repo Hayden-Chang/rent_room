@@ -6477,7 +6477,8 @@
                   "hint": "清点现有家具家电，问清缺少的是否可由房东补齐。",
                   "sources": [
                     "IMG_6317.PNG"
-                  ]
+                  ],
+                  "allowNone": true
                 },
                 "children": []
               },
@@ -6495,7 +6496,8 @@
                   "hint": "清点现有家具家电，问清缺少的是否可由房东补齐。",
                   "sources": [
                     "IMG_6317.PNG"
-                  ]
+                  ],
+                  "allowNone": true
                 },
                 "children": []
               },
@@ -6513,7 +6515,8 @@
                   "hint": "清点现有家具家电，问清缺少的是否可由房东补齐。",
                   "sources": [
                     "IMG_6317.PNG"
-                  ]
+                  ],
+                  "allowNone": true
                 },
                 "children": []
               }
@@ -9361,31 +9364,9 @@
             "title": "周期费用",
             "children": [
               {
-                "id": "1e742428-1e5d-4f21-bbd3-68851a988588",
-                "kind": "field",
-                "title": "燃气费",
-                "children": [],
-                "meta": {
-                  "type": "n",
-                  "phase": "询问与签约",
-                  "options": null
-                }
-              },
-              {
-                "id": "f7152634-e248-4646-a0c5-07c8484ba66f",
-                "kind": "field",
-                "title": "水费",
-                "children": [],
-                "meta": {
-                  "type": "n",
-                  "phase": "询问与签约",
-                  "options": null
-                }
-              },
-              {
                 "id": "617bd84f-3208-42ec-b2e4-5bb95d5c754c",
                 "kind": "field",
-                "title": "电费",
+                "title": "电费（元/度）",
                 "children": [],
                 "meta": {
                   "type": "n",
@@ -9396,112 +9377,57 @@
                       "id": "b670b816-5107-4acf-96e0-cc28b84df4cc",
                       "label": "原重复电费"
                     }
-                  ]
+                  ],
+                  "cost": true
                 }
               },
               {
-                "id": "7a1344c5-67a7-4c33-b6cd-8b64fb0579b1",
+                "id": "f7152634-e248-4646-a0c5-07c8484ba66f",
                 "kind": "field",
-                "title": "清洁费",
+                "title": "水费（元/吨）",
                 "children": [],
                 "meta": {
                   "type": "n",
                   "phase": "询问与签约",
-                  "options": null
+                  "options": null,
+                  "cost": true
                 }
               },
               {
-                "id": "c7600efe-f02e-415e-9d7e-5616f3faf1e9",
+                "id": "1e742428-1e5d-4f21-bbd3-68851a988588",
                 "kind": "field",
-                "title": "物业费",
+                "title": "燃气费（元/立方米）",
                 "children": [],
                 "meta": {
                   "type": "n",
                   "phase": "询问与签约",
-                  "options": null
+                  "options": null,
+                  "cost": true
                 }
               },
               {
                 "id": "acde6fad-21cc-4689-8ce2-019414866ef0",
                 "kind": "field",
-                "title": "网费",
+                "title": "网费（元/月）",
                 "children": [],
                 "meta": {
                   "type": "n",
                   "phase": "询问与签约",
-                  "options": null
+                  "options": null,
+                  "cost": true
                 }
               },
               {
-                "id": "e1114e1c-e4aa-45ca-88cc-c4a35c918665",
+                "id": "c7600efe-f02e-415e-9d7e-5616f3faf1e9",
                 "kind": "field",
-                "title": "垃圾费",
+                "title": "物业费（元/月）",
                 "children": [],
                 "meta": {
                   "type": "n",
                   "phase": "询问与签约",
-                  "options": null
+                  "options": null,
+                  "cost": true
                 }
-              },
-              {
-                "id": "f95_0",
-                "kind": "field",
-                "title": "管理费",
-                "meta": {
-                  "id": "f95_0",
-                  "type": "n",
-                  "options": null,
-                  "quick": false,
-                  "legacyType": "t",
-                  "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
-                  "sources": [
-                    "IMG_6310.PNG",
-                    "IMG_6313.PNG",
-                    "IMG_6326.PNG"
-                  ]
-                },
-                "children": []
-              },
-              {
-                "id": "f95_3",
-                "kind": "field",
-                "title": "取暖费",
-                "meta": {
-                  "id": "f95_3",
-                  "type": "n",
-                  "options": null,
-                  "quick": false,
-                  "legacyType": "t",
-                  "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
-                  "sources": [
-                    "IMG_6310.PNG",
-                    "IMG_6313.PNG",
-                    "IMG_6326.PNG"
-                  ]
-                },
-                "children": []
-              },
-              {
-                "id": "f95_7",
-                "kind": "field",
-                "title": "电梯费",
-                "meta": {
-                  "id": "f95_7",
-                  "type": "n",
-                  "options": null,
-                  "quick": false,
-                  "legacyType": "t",
-                  "phase": "询问与签约",
-                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
-                  "sources": [
-                    "IMG_6310.PNG",
-                    "IMG_6313.PNG",
-                    "IMG_6326.PNG"
-                  ]
-                },
-                "children": []
               },
               {
                 "id": "f11_1",
@@ -9528,7 +9454,95 @@
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
                     "IMG_6326.PNG"
-                  ]
+                  ],
+                  "cost": true
+                },
+                "children": []
+              },
+              {
+                "id": "7a1344c5-67a7-4c33-b6cd-8b64fb0579b1",
+                "kind": "field",
+                "title": "清洁费（元/月）",
+                "children": [],
+                "meta": {
+                  "type": "n",
+                  "phase": "询问与签约",
+                  "options": null,
+                  "cost": true
+                }
+              },
+              {
+                "id": "e1114e1c-e4aa-45ca-88cc-c4a35c918665",
+                "kind": "field",
+                "title": "垃圾费（元/月）",
+                "children": [],
+                "meta": {
+                  "type": "n",
+                  "phase": "询问与签约",
+                  "options": null,
+                  "cost": true
+                }
+              },
+              {
+                "id": "f95_0",
+                "kind": "field",
+                "title": "管理费（元/月）",
+                "meta": {
+                  "id": "f95_0",
+                  "type": "n",
+                  "options": null,
+                  "quick": false,
+                  "legacyType": "t",
+                  "phase": "询问与签约",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
+                  "sources": [
+                    "IMG_6310.PNG",
+                    "IMG_6313.PNG",
+                    "IMG_6326.PNG"
+                  ],
+                  "cost": true
+                },
+                "children": []
+              },
+              {
+                "id": "f95_3",
+                "kind": "field",
+                "title": "取暖费（元/月）",
+                "meta": {
+                  "id": "f95_3",
+                  "type": "n",
+                  "options": null,
+                  "quick": false,
+                  "legacyType": "t",
+                  "phase": "询问与签约",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
+                  "sources": [
+                    "IMG_6310.PNG",
+                    "IMG_6313.PNG",
+                    "IMG_6326.PNG"
+                  ],
+                  "cost": true
+                },
+                "children": []
+              },
+              {
+                "id": "f95_7",
+                "kind": "field",
+                "title": "电梯费（元/月）",
+                "meta": {
+                  "id": "f95_7",
+                  "type": "n",
+                  "options": null,
+                  "quick": false,
+                  "legacyType": "t",
+                  "phase": "询问与签约",
+                  "hint": "询问管理、公摊、垃圾、取暖、消毒、门卡/门锁、电梯和折旧费用。停车费统一记在周期费用。",
+                  "sources": [
+                    "IMG_6310.PNG",
+                    "IMG_6313.PNG",
+                    "IMG_6326.PNG"
+                  ],
+                  "cost": true
                 },
                 "children": []
               }
@@ -9555,14 +9569,15 @@
                     "IMG_6292.PNG",
                     "IMG_6316.PNG",
                     "IMG_6319.PNG"
-                  ]
+                  ],
+                  "cost": true
                 },
                 "children": []
               },
               {
                 "id": "f95_6",
                 "kind": "field",
-                "title": "门卡/门锁费",
+                "title": "门卡/门锁费（元）",
                 "meta": {
                   "id": "f95_6",
                   "type": "n",
@@ -9575,7 +9590,8 @@
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
                     "IMG_6326.PNG"
-                  ]
+                  ],
+                  "cost": true
                 },
                 "children": []
               },
@@ -9606,14 +9622,15 @@
                     "IMG_6314.PNG",
                     "IMG_6319.PNG",
                     "IMG_6322.PNG"
-                  ]
+                  ],
+                  "cost": true
                 },
                 "children": []
               },
               {
                 "id": "f95_8",
                 "kind": "field",
-                "title": "折旧/损耗费",
+                "title": "折旧/损耗费（元）",
                 "meta": {
                   "id": "f95_8",
                   "type": "n",
@@ -9626,14 +9643,15 @@
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
                     "IMG_6326.PNG"
-                  ]
+                  ],
+                  "cost": true
                 },
                 "children": []
               },
               {
                 "id": "f95_5",
                 "kind": "field",
-                "title": "消毒费",
+                "title": "消毒费（元）",
                 "meta": {
                   "id": "f95_5",
                   "type": "n",
@@ -9646,29 +9664,8 @@
                     "IMG_6310.PNG",
                     "IMG_6313.PNG",
                     "IMG_6326.PNG"
-                  ]
-                },
-                "children": []
-              },
-              {
-                "id": "f96_1",
-                "kind": "field",
-                "title": "维修收费规则",
-                "meta": {
-                  "id": "f96_1",
-                  "type": "t",
-                  "options": null,
-                  "quick": false,
-                  "legacyType": "t",
-                  "phase": "询问与签约",
-                  "hint": "确认空调清洗、维修及退房保洁费，是否另行收取。",
-                  "sources": [
-                    "IMG_6310.PNG",
-                    "IMG_6326.PNG",
-                    "IMG_6314.PNG",
-                    "IMG_6319.PNG",
-                    "IMG_6322.PNG"
-                  ]
+                  ],
+                  "cost": true
                 },
                 "children": []
               }
