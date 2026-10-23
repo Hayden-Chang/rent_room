@@ -9,7 +9,7 @@
 - 两套模板各自保存排序和停用项，保存编辑不切换当前模板。已有房源继续使用创建时的快照，不改答案、问题、备注或影像。
 - 老设置没有 selectedTemplate 时继续使用详细模式；只有首次模式页预选精简，避免替旧用户修改选择。
 - 精简包含 61 个文档确认的统一记录项（现场 53、合同 8），以及保留逐项的基本信息、费用、房东身份与产权、押金退还时间。全模板共 99 个字段，空白房源计数 99；详细模式原 302 个字段、初始适用计数 204 保持不变。
-- 合并项提供完整说明与精确选项，说明通过标题旁的眼睛独立展开/收起，不提供子项展开。结果、问题标记、备注、影像使用同一个稳定字段 ID；普通备注不创建问题；完成度和问题各计一次。左滑教学定位实际合并项。
+- 合并项直接显示完整说明与精确选项，不提供子项展开。结果、问题标记、备注、影像使用同一个稳定字段 ID；普通备注不创建问题；完成度和问题各计一次。左滑教学定位实际合并项。
 - 退房只含“押金退还时间”“退房保洁费用和要求已确认”，顺序固定。“入住前房东重新做卫生”在该组外。删除文档指定的合同分支与家具家电齐全项。
 - 混合模式房源可对比；只属于另一模板的项显示“不涉及”，不伪造详细子项答案。ZIP 保留模板快照及关联媒体。
 
@@ -64,28 +64,14 @@ WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 
 草稿交付，未合并、未部署、未发布。真实交互及用户视觉确认完成前不声明可合并。合入依赖小搭 PR #56；最终集成者应核对当时的基分支组合与受影响验证。
 
-## 说明眼睛开关补充（2026-10-24）
+## 说明直接显示（2026-10-24）
 
-根据后续标图，只有带说明的标题显示眼睛。初始收起说明、亮色无划线；点击展开后变灰并加划线，再点收起恢复亮色。每项独立，查看说明不折叠分组、不选择答案、不修改问题、备注或影像。归档房源仍可查看说明；同字段刷新保留展开状态，组件换成另一字段时恢复收起。
+按用户最新要求，说明直接显示在对应检查项或分组标题下方；移除眼睛按钮、相关样式和展开状态。保留原说明全文、选项、问题、备注和影像；没有说明的项不增加内容。
 
-应用代码 SHA：cda9030613a4289e134c573402ebcf67be1c35b9。此次仅修改共享 field-row 展示与局部状态，未改清单真源、房源快照或持久化结构。复用上节精简模型与模板流程的验证结果。
+应用代码 SHA e267e6d2e7300976a442bc07f0677342a543d634。field-row 三个源文件及完整渲染回调恢复到 699e86a 的说明直接显示版本；相对 699e86a 的应用源码、构建入口和数据源无差异，因此精简模式与模板流程复用此前证据。取消开关后移除 8 项不再适用的开关用例，保留此前对既有 swipeopen 通知及页面 service 的夹具修正；定向重跑 field-row-events、field-row-swipe、field-row-placeholder、field-row-inline-actions、field-row-swipe-scope，5 文件 / 73 项全部通过。此前旧夹具失败日志仍保留。
 
-定向重跑 field-row-events、field-row-swipe、field-row-placeholder、field-row-inline-actions、field-row-swipe-scope，5 文件 / 81 项通过，包含 8 项新的说明开关用例。验证有/无说明、往返切换、逐项独立、只读查看、分组折叠隔离、左滑结束误触、滚动和答案刷新保留。旧夹具原有 25 个失败：23 个把已有 swipeopen 教学通知误当业务操作，2 个缺少当前页面守卫要求的 service。核对变更前 699e86a 源码后，将通知单独记录并断言、补齐页面前置条件；没有修改生产左滑或账户逻辑。原失败日志保留为 eye-unit-before-fixture-update.log。
+重新构建及官方 wcc/wcsc 检查通过，15 页、2,050,119 字节。日志为 apps/wechat/artifacts/simple-mode/description-visible-build.log、description-visible-unit.log、description-visible-compile.log。
 
-官方 wcc/wcsc 检查通过，15 页、2,051,857 字节。日志位于 apps/wechat/artifacts/simple-mode/eye-build.log、eye-unit.log、eye-compile.log。命令：
+从渲染回调选择家电、合同分组和问题备注三个受影响状态。局部回调为 apps/wechat/artifacts/simple-mode/description-visible-render.cjs，run b9b9a2ee3ac342af9ebd805a3cefa1fb 在干净 e267e6d 上通过，3 张截图逐张核对；第 3 槽归还 idle。快照 SHA-256 为 a35046a7e3fd6ba93246df4812464fa1b3f814a7d0e4a69eb2bd0c373451dfe5，与原 13 张流程截图的产物哈希相同。
 
-```sh
-WECHAT_TEST_DATA_ROOT=xunju-test-simple-20261024 node scripts/build.mjs
-node node_modules/vitest/vitest.mjs run tests/field-row-events.test.js tests/field-row-swipe.test.js tests/field-row-placeholder.test.js tests/field-row-inline-actions.test.js tests/field-row-swipe-scope.test.js
-node scripts/check.mjs
-```
-
-真实开发者工具 run df1de0cb3abf48609cc09bf7fbf1a609 在干净 cda9030 上通过，产生 17 张截图；产物 SHA-256 为 916d0b8f8efeccabf2a5823e8c46997fc94e08322fcf5c1a8013f60d9ed10bf6。重点核对默认收起、展开空调、只展开冰箱、再次全部收起、问题说明、长标题及分组眼睛的实际排版。截图前后断言存储中的房源字节内容未变；第 3 槽正常归还 idle，常驻进程保留。
-
-本地图集 artifacts/simple-mode-20261024/index.html 已更新，前 5 张为本次说明状态。原图复制后校验 SHA-256、PNG 尺寸并写入 delivery-manifest.json。截图状态通过生产控制器准备，测试通过实际 WXML 事件绑定验证局部逻辑；均不等同于真机点击证据，真实交互与视觉确认仍待验收。此补充为文档记录，不改变上述已验证应用代码。
-
-## 眼睛改为黑色（2026-10-24）
-
-用户确认默认眼睛改用黑色。应用 SHA 022ec129dc8637bbd3b6eabc1adfc54e6594625e 相对 c05c004 仅修改 field-row 一处 WXSS 颜色为 #000000，展开状态仍为 #98a1b1。逻辑、模板、测试、依赖均未变，复用 cda9030 的 81 项组件测试证据，不新增颜色常量单测。重新构建及官方编译通过，包大小仍为 2,051,857 字节。
-
-从现有渲染用例提取仅家电默认收起、空调展开两种受影响状态；回调保存在 apps/wechat/artifacts/simple-mode/eye-black-render.cjs。run 993b00105254441e8822541880d2ac47 在干净 022ec12 上通过，两张实际截图已检查；快照 SHA-256 为 225b6dd713b0a0a84f0fb3494a3b7ad3d909e854c42a30a12f446c929c463b6c。第 3 槽已正常归还。日志为 eye-black-build.log、eye-black-compile.log。最新图集：artifacts/simple-mode-20261024/eye-black/index.html，原流程图集保留并标明颜色已更新。仍为草稿与控制器准备的渲染证据，未声明真机交互或用户视觉验收完成。
+本地图集 artifacts/simple-mode-20261024/index.html 已恢复说明直接显示：使用本轮 3 张新截图，其余 10 张复用上述相同应用产物的原始截图。delivery-manifest.json 逐图记录来源和哈希，旧眼睛图集已标记废弃。截图为隔离夹具及控制器准备状态的真实渲染，实际点击和用户视觉确认仍待验收；保持草稿，未合并或发布。
