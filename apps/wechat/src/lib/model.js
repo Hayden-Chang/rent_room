@@ -22,6 +22,7 @@ export const customCostGroup=id=>Object.keys(costGroups).find(group=>new RegExp(
 export const houseTopics = h => {
  let electricitySeen=false;
  return [...(h.templateTopics||topics),...(h.extras||[])].map(t=>{
+  if(t.category==='费用与付款'||t.path?.some(p=>p.id==='category_11'))t={...t,phase:'询问与签约'};
   if(t.fields.some(f=>[electricityField.id,duplicateElectricityId].includes(f.id)))t={...t,fields:t.fields.flatMap(f=>{
     if(![electricityField.id,duplicateElectricityId].includes(f.id))return [f];
     if(electricitySeen)return [];electricitySeen=true;return [{...f,...electricityField}];
