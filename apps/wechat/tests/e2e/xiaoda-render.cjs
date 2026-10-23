@@ -8,6 +8,7 @@ try{
  assert.ok((await mini.evaluate(()=>getApp().service.root)).includes('/xunju-test-xiaoda-'));
  await snapshot('01-sort-complete',2600);
  await mini.evaluate(()=>getApp().service.store.change(s=>s.xiaoda.setup='mode',true));await mini.reLaunch('/pages/welcome/index');await snapshot('02-mode',1200);
+ await mini.evaluate(()=>getApp().service.store.change(s=>s.xiaoda.setup='done',true));await mini.reLaunch('/pages/home/index');await snapshot('02b-create-guide',1800);
  const id=await mini.evaluate(()=>{const store=getApp().service.store;store.change(s=>s.xiaoda.setup='done',true);return store.add('小搭验收房源');});
  for(let coach=1;coach<=4;coach++){
   await mini.evaluate(n=>getApp().service.store.change(s=>s.xiaoda.tutorialStep=n,true),coach);await mini.reLaunch('/pages/detail/index?id='+id);await snapshot('0'+(coach+2)+'-coach-'+coach,coach===1?6000:2300);
