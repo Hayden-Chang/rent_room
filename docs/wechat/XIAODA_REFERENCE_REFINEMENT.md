@@ -19,7 +19,13 @@
 
 参考：[Microsoft Fluent Popover](https://fluent2.microsoft.design/components/web/react/core/popover/usage)强调位置体现关联且不遮盖重要内容；[Atlassian Spotlight](https://atlassian.design/components/spotlight/code)区分目标与提示，并以相对定位关联。这次采用独立提示、实际目标、明确操作的关系，不移植其框架或素材。
 
-滚动定位改为外部提示的起点，让提示与紧随其后的目标一起进入视野。修改前2个定位回归按预期失败；修改后 `onboarding.test.js`、`onboarding-target.test.js`、`detail-navigation.test.js` 共33项通过。官方编译通过，15页面、1,990,633字节。实际截图待当前版本执行后补记；此前40图集为初版历史，不能代表本次返工效果。
+滚动定位改为外部提示的起点，让提示与紧随其后的目标一起进入视野。修改前2个定位回归按预期失败；修改后 `onboarding.test.js`、`onboarding-target.test.js`、`detail-navigation.test.js` 共33项通过。官方编译通过，15页面、1,990,633字节。最终展示调整为 `7e37c079e7829d525261ef08b8ea434d2bea2134`：主操作放在次操作右侧，补足关闭按钮顶端留白。该提交相对33项单测对应的 `4611902` 仅改变WXML按钮顺序和CSS顶端间距；JS、测试、导航tab绑定、生成清单与运行时相同，复用33项结果。重新官方编译通过，1,990,631字节。
+
+最终实际渲染 run `559bf9fc419a4485ac35b82d0fda4adb` 全部31张通过，源码7e37c07、工作树干净；冻结摘要 `2d499be7263e7a4c41c9472e98eeeeb3ea364ef365a16e3bd85395bfca441577`，DevTools 2.01.2510290 / 基础库3.17.3。第3槽归还idle，保留PID6041。31张中19张改动画面逐张直接检查，12张与已审查初版字节一致；尺寸780×1342或780×1506，PNG CRC、解码和SHA-256校验通过。图集包含同一场景前后对比：`artifacts/xiaoda-20261024/separate-guidance/index.html`。所有旧入口保留原图并链接到新版。
+
+恢复前run `4fdac176ed5641abb762542da592a9ad` 在打开工程时HTTP500，未进入应用；按用户既有授权仅恢复第3槽，维护收据 `bb7c26d320b049358da728a5647937dd` 保留。恢复后7图诊断run `316b4b1e45ba4d888d311b1782701d7c` 通过，发现主次按钮与箭头位置可进一步改善，调整后再执行上述31图最终run；没有操作其他槽位。
+
+本轮没有改支付、反馈、存储协议或皮肤资源。当前agent复核外部提示节点、目标定位、事件绑定、隐藏/续接及代码差异，未发现新增代码阻断项。真实点击、真机以及用户视觉批准仍待完成，PR保持草稿；GitHub对7e37c07返回0条PR触发workflow，不能当作CI通过。
 
 ## 模块边界
 
