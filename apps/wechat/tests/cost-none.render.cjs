@@ -8,7 +8,7 @@ let stage='connect';const timer=setTimeout(()=>{console.error('Timeout: '+stage)
  const mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  try{
   const {freshHouse}=await import('../src/lib/model.js'),h=freshHouse('费用无选项验收');
-  h.answers['617bd84f-3208-42ec-b2e4-5bb95d5c754c']={value:'88',note:'原金额保留'};
+  h.answers['617bd84f-3208-42ec-b2e4-5bb95d5c754c']={value:'88'};
   h.answers.f95_6={value:'50'};
   await mini.evaluate(h=>{const s=getApp().service;if(!s.root.includes('/xunju-test-cost-none-20261023/'))throw Error('Disposable root required');s.store.import([h]);},h);
   const route='/pages/detail/index?id='+h.id;await mini.navigateTo(route);
@@ -33,6 +33,7 @@ let stage='connect';const timer=setTimeout(()=>{console.error('Timeout: '+stage)
    assert.equal(data.row.cost,true);assert.equal(data.row.noCost,noCost);return data;
   };
   await prepare('周期费用',11);await capture('recurring-ready');
+  if(process.argv.includes('--ready-only'))return;
   const selected=await waitFor('617bd84f-3208-42ec-b2e4-5bb95d5c754c',true);
   assert.equal(selected.answer.value,'88');assert.equal(selected.row.value,'');assert.equal(selected.row.display,'无');await capture('recurring-none-selected');
   const restored=await waitFor('617bd84f-3208-42ec-b2e4-5bb95d5c754c',false);
