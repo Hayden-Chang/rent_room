@@ -4,7 +4,7 @@ import {xiaodaEnabled,localDay} from './xiaoda-state.js';
 import {service,notify} from './ui.js';
 
 export const coachSteps=[
- {text:'看房分成三个阶段，可以在这里切换哦！\n看房前——了解房屋基本情况\n看房中——现场检查房屋细节\n选定后——核对入住与合同条款\n想一起看，就选“全部”。'},
+ {text:'看房分成三个阶段，可以在这里切换哦！\n看房前—了解房屋基本情况\n看房中—现场检查房屋细节\n选定后——核对费用与合同条款',highlights:['基本情况','现场检查','费用与合同']},
  {text:'想找还没填的，或者有问题的检查项？点这里筛一下。'},
  {text:'在检查项上向左滑一下，试试看！'},
  {text:'这里可以标记问题、写备注，还能添加照片和视频。'}

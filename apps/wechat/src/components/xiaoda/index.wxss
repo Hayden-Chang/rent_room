@@ -1,1 +1,3 @@
 .xiaoda{display:flex;align-items:center;position:relative;min-height:100px;gap:8px}.character{width:86px;height:96px;flex-shrink:0}.bubble{position:relative;flex:1;background:white;border:1px solid #e3e5f4;border-radius:18px;padding:16px;font-size:15px;line-height:1.65;white-space:pre-wrap;color:#29324b;box-shadow:0 4px 18px #222d4d08}.reserve{visibility:hidden;display:block}.spoken{position:absolute;left:16px;right:16px;top:16px}.cursor{color:#4d56df}.close{position:absolute;right:-3px;top:-5px;padding:0;width:28px;height:28px;line-height:25px;border-radius:50%;background:white;color:#d94b55;font-size:25px;border:1px solid #eee}.close::after{border:0}
+
+.emphasis{color:#b8860b;font-weight:700}
