@@ -31,9 +31,9 @@
 
 `tests/e2e/xiaoda-render.cjs` 是明确的渲染补充：用状态夹具和导航生成真实工具像素，不能替代点击验收。已发现并修复 WXML 换行显示为实体、步骤4重开后动作栏未展开：根因是跨原生view的组件选择器返回空，按已渲染组件的真实字段ID重新定位。原失败画面及诊断保留于 runs `d6987b909bcf42e9ab239b248ff470d1`、`cec81516c7704502a6b202820e544dbf`。
 
-最终代码提交：前端 `5fb6fca012c5451a3a9caf1f38c62954d8dfdc86`，后端 `e2693cef687043b4aa17726197b3f9d92bf662ae`。前端26个文件共263项、后端77项定向测试通过。官方wcc/wcsc编译通过，15个页面，构建体积1,977,479字节。此后的文档归档提交不改变已验证代码。
+首次交付代码提交：前端 `5fb6fca012c5451a3a9caf1f38c62954d8dfdc86`，后端 `e2693cef687043b4aa17726197b3f9d92bf662ae`。前端26个文件共263项、后端77项定向测试通过。官方wcc/wcsc编译通过，15个页面，构建体积1,977,479字节。当次文档归档提交33c0dbe未改变已验证代码；后续展示调整见下节。
 
-最终渲染run为 `84e5972badc94f30be8d05faae47fcc2`，sourceHead与上述前端提交一致，sourceStatus为空，冻结源码摘要 `9b3174a168b36ef7528f8c610043482ea50c89d98d30b964c1a49b19e05bd9eb`。13张截图覆盖排序、模式、首次新建、四步教学、基本信息、反馈、容量、模板与命名；步骤4实际字段动作栏展开，offset为-132。运行结束后第3槽恢复idle，未保留任务租约。
+首次交付渲染run为 `84e5972badc94f30be8d05faae47fcc2`，sourceHead与上述前端提交一致，sourceStatus为空，冻结源码摘要 `9b3174a168b36ef7528f8c610043482ea50c89d98d30b964c1a49b19e05bd9eb`。13张截图覆盖排序、模式、首次新建、四步教学、基本信息、反馈、容量、模板与命名；步骤4实际字段动作栏展开，offset为-132。运行结束后第3槽恢复idle，未保留任务租约。
 
 本地归档位于本工作树的 `artifacts/xiaoda-20261023/`，`index.html` 为截图索引，另含运行收据、范围声明、编译与测试日志和交互失败收据。原始工具池证据根：`/Volumes/mac2/codex-builds/wechat-instance-pool/runs/`；测试日志根：`/private/tmp/xiaoda-validation/`。主工作区未修改，未部署、未发布、未实付。
 
@@ -43,3 +43,15 @@
 主线在开发期间前进到4422ab4（停车费分组与回家路线文案），已无冲突合入任务分支，重新生成清单并补充停车费/阶段、详情导航/筛选组合验证。审查补充：用户主动切阶段、搜索、折叠、切页或开始填写时收起旧提示，取消待执行的自动滚动。
 
 当前agent已审查最终代码差异，覆盖资源解耦、进度迁移、推荐中断、保存回滚、容量协议兼容和反馈入库，未发现新的代码阻断项。上述UI与真机验证缺口仍是合并门禁。交付为草稿 [前端PR #56](https://github.com/Hayden-Chang/rent_room/pull/56) 和 [后端PR #95](https://github.com/Hayden-Chang/model_server/pull/95)，后端协议须先上线再发布前端。
+
+
+## 排序页标注调整（2026-10-23）
+
+按用户截图删除自我介绍中的“你的看房搭子”和列表上方两行操作说明；垃圾桶改为固定红色线框图标，按钮右侧留12px外边距，按钮宽48px、图标宽24px。首次排序与模板编辑复用同一组件，停用/恢复和拖动事件均保留。实际截图发现全局 `button:not([size=mini])` 覆盖原间距，已提升局部选择器优先级后核对内移生效。
+
+代码提交 `3a0268896e847fc8497be45640a12d4deb3e608a`。与前次交付 `33c0dbe` 相比仅5个welcome/template-editor展示文件变化；业务状态、存储、接口和测试配置不变，保留此前未受影响的验证证据。本次重跑 `first-meeting-runtime.test.js`、`xiaoda.test.js`、`template-fold.test.js`、`settings-simplification.test.js` 共29项通过；官方wcc/wcsc编译通过，构建体积1,978,111字节。不为纯文案和样式新增镜像实现测试。
+
+状态读回辅助脚本在截图后触发SDK `Function has non-object prototype 'undefined' in instanceof check`，更改返回值格式仍未解决。保留失败runs `aedb943cf0e3422d809d56b9c399e39c`、`9b9fb1d9a5954ac6ad3a1fc6e8d03d45`、`9e76cb5609a04c609f81e659979463a0`；其中后两次排序页截图已实际核对文案、图标及内移。该异常未证明已修复，也不作为交互通过证据。PR仍为草稿，首次流程的真实交互与用户视觉批准门禁维持未通过。
+
+
+后续纯截图补拍run `a7d51034f9db49d884a46cbea0b9854c` 也在工具接口报错，未取得新的模板页画面。最终交付排序页采用run `9b9fb1d9a5954ac6ad3a1fc6e8d03d45` 的 `sort-updated.png`，sourceHead为3a02688、sourceStatus为空；此图已人工核对，但整个辅助脚本结果仍为failed。归档位于 `artifacts/xiaoda-20261023/sort-revision/`，包含四次收据、日志、截图及回调；预览页已将旧模板截图明确标注为待更新。池收据记录任务结束，实例恢复idle。未继续改动业务代码或操作其他任务实例。
