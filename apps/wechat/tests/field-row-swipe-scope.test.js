@@ -17,20 +17,21 @@ const has=(n,c)=>(n.attrs.class||'').split(' ').includes(c);
 it('keeps all primary answers inside one full-row gesture scope without catching native touchstart',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
  const label=all.find(n=>has(n,'label')),tray=all.find(n=>has(n,'swipe-tray'));
- const shell=all.find(n=>has(n,'swipe-shell'));
+ const shell=all.find(n=>has(n,'swipe-shell')),field=all.find(n=>has(n,'field'));
  expect(label.parents).toContain(shell);expect(tray.parents).toContain(shell);
  expect(label.parents.some(p=>p.attrs.style?.includes('translate'))).toBe(false);
  expect(tray.attrs.style).toContain('132+offset');
  const answers=all.filter(n=>has(n,'choices')||n.tag==='picker'||n.tag==='input'&&!has(n,'other'));
  expect(answers.length).toBeGreaterThan(2);
  for(const n of answers)expect(n.parents).toContain(shell);
- expect(shell.attrs.bindtouchstart).toBe('start');
+ expect(field.attrs.bindtouchstart).toBe('start');
+ expect(shell.parents).toContain(field);
  for(const n of answers){
   expect([n,...n.parents].some(p=>p.attrs.catchtouchstart)).toBe(false);
  }
  const attachments=all.filter(n=>['note','thumbs','other'].some(c=>has(n,c))||n.tag==='address-picker');
  expect(attachments.length).toBeGreaterThan(2);
- for(const n of attachments)expect(n.parents).not.toContain(shell);
+ for(const n of attachments){expect(n.parents).toContain(field);expect(n.parents).not.toContain(shell);}
 });
 it('right-swipe handling includes the exposed action buttons',()=>{
  const all=nodes('dist/components/field-row/index.wxml');
@@ -67,7 +68,7 @@ it('the first group answer tap closes the open menu and preserves the answer',()
  page.selectAllComponents=()=>[row];page.group({currentTarget:{dataset:{id:'g',op:'value',value:'否'}}});
  expect(row.data.actions).toBe(false);expect(mutations).toBe(0);
 });
-it('attachment-area touch dismisses once, never starts a drag, and permits the next choice',()=>{
+it('map-area touch dismisses once, never starts a drag, and permits the next choice',()=>{
  const create=rows(),a=create('a'),b=create('b');a.reveal();b.bodyStart();
  expect(a.data.actions).toBe(false);expect(b.gesture).toBeUndefined();
  b.choose({currentTarget:{dataset:{value:'否'}}});expect(b.events).toEqual([]);

@@ -26,7 +26,7 @@ it('inline options slide inside a clipped viewport without being unmounted or lo
  const css=fs.readFileSync('dist/components/field-row/index.wxss','utf8');
  expect(css).toMatch(/\.inline \.answer-options\{[^}]*overflow:hidden/);expect(css).toMatch(/\.inline \.choices\{[^}]*transition:transform 180ms ease-out/);
  const c=row(),before=structuredClone(c.data.field);c.start(point(220));c.move(point(154));expect(c.data.offset/132).toBe(-0.5);c.end(point(154));expect(c.data.offset/132).toBe(-1);
- c.bodyStart();expect(c.data.offset).toBe(0);expect(c.data.field).toEqual(before);
+ c.start(point(100));c.end(point(100));c.tapBody();expect(c.data.offset).toBe(0);expect(c.data.field).toEqual(before);
 });
 it('readonly actions stay inert and hidden choices cannot change an answer',()=>{
  const c=row();c.reveal();c.choose({currentTarget:{dataset:{value:'否'}}});expect(c.events).toEqual([]);
