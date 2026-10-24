@@ -58,3 +58,16 @@ PR 创建后的主 agent 复查已核对范围、共享策略、草稿/清空语
 设置中的模板二选一使用微信原生 radio/radio-group，替换字符方框；选中仅修改草稿，点“确定”才保存。点单选区域不会进入编辑页，点原文字/箭头仍打开对应模板。
 
 定向验证覆盖 input-fit、wheel-input、wheel-dialog、missing-config-none、cost-none、field-row-events、field-row-placeholder、field-row-swipe、field-row-inline-actions、model、simple-mode、welcome-mode、template-fold、commute-page、first-meeting-runtime、onboarding。本轮真实输入、免租期切换和模板单选回调为 `tests/e2e/input-fit-native.cjs`；隔离测试数据不使用手机原记录。证据位于本任务 `apps/wechat/artifacts/input-fit/`。
+
+
+### 本轮验证与交付边界
+
+业务与单测提交为 `566c0518f1b30827eb40c6f7b80f6cd8fec251a9`；最终脚本候选为 `a829f43de4f95449bee5e1f67c88e12a2186dd11`。主线仍为 `a496bac63f1f35f25d841add6481ad4e808ef7df`。两次提交间只有独立 E2E 记录器变化，业务源码、生成清单、单测、依赖及构建配置均相同，因此复用 16 文件 229 项通过和官方 wcc 20 / wcsc 22 编译结果。本节后续仅补文档。复现测试集为上段列出的 `tests/<名称>.test.js`，使用 Node 24 的 `node node_modules/vitest/vitest.mjs run` 运行；日志、编译回执及 SHA/场景映射位于忽略目录 `apps/wechat/artifacts/input-fit/`。
+
+风险映射：四个数值输入和旧值 → input-fit/model/commute-page；轮盘剩余策略 → wheel-input/wheel-dialog；免租期空值、无与数据保护 → input-fit/missing-config-none/cost-none/simple-mode；共享行绑定与手势 → field-row-*；模板选择草稿与保存 → input-fit/welcome-mode/template-fold，配合 first-meeting-runtime/onboarding。新增 9 项先在旧实现失败；第一轮旧 choice 定位命中新加的“无”，已按原选项 data-value 修正定位，所有原断言仍执行，失败日志保留。
+
+真实渲染：共享池 run `65ec4661a3ac485f9a9ef33b3798ac7f` 在干净候选上通过，冻结摘要 `71aa915161f289770f8d3ee77a9f4c560e91eec5840bdce52ac73a554c4480ce`。工具 Stable 2.01.2510290、基础库 3.17.3、iPhone 12/13 (Pro) 模拟器。`tests/e2e/input-fit-render.cjs` 使用隔离数据 `xunju-test-input-fit-20261024`，提供四个输入、免租期普通/无、模板两种选中状态共 8 张截图；值和草稿状态由夹具准备，**只证明真实渲染，不证明点击、保存或手机键盘**。
+
+原生尝试 `745b54aa7cac41caae04addbfd82e70c` 因 SDK 执行环境中的 JSON.parse 代理错误失败，改为 Node 侧解析。`c35142edcdfe43fb8c07efc7ec96ef51` 等待首个原生输入超时，CUA 输入未到达目标且返回 noWindowsAvailable；未把 handler 回放当作通过。渲染 run `67493f5159cb4f8a9b97ffc70443f9b4` 的免租期选中图过早；随后 `07a25b748c7e4b95ac9e0246df76710c` 页面等待失败。核对微信[导航回调](https://github.com/wechat-miniprogram/api-typings/blob/master/types/wx/lib.wx.api.d.ts)和[页面生命周期](https://github.com/wechat-miniprogram/api-typings/blob/master/types/wx/lib.wx.page.d.ts)后，等待成功回调、目标房源 ID、accountReady 与现有 onReady 标记，再取得上述有效图。原失败记录全部保留；最终图不使用早帧。
+
+主 agent 已复查 PR #73 的业务范围、生成源、旧记录兼容、选择草稿、只读状态和证据边界；GitHub commit statuses 为空，不能称为 CI 通过。PR 保持草稿，原生交互、手机体验和用户视觉确认未完成，未合入或发布。此前 main 预览码不包含此 PR。
