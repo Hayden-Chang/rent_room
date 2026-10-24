@@ -39,7 +39,7 @@ async function route(url){
    const config=templateConfig();config.order=[...scenario.first,...config.order.filter(c=>!scenario.first.includes(c))];config.disabled=scenario.disabled;
    const state=emptyState();state.settings.templates={detailed:config};state.settings.selectedTemplate='detailed';state.xiaoda.setup='done';state.xiaoda.tutorialStep=0;state.xiaoda.feedback='done';
    const h=freshHouse('排序引导验证',state.settings);state.houses=[h];state.xiaoda.firstHouseId=h.id;
-   await evaluate(function(serialized){getApp().service.store.change(function(s){Object.assign(s,JSON.parse(serialized));},true);return true;},JSON.stringify(state));
+   await evaluate(function(fixture){getApp().service.store.change(function(s){Object.assign(s,fixture);},true);return true;},state);
    await route('/pages/detail/index?id='+h.id);
    await sleep(1600);let result=await data();
    assert.equal(result.prompt.target,scenario.target);assert.equal(result.sections[0].title,scenario.target);assert.equal(result.anchor.id,result.sections[0].id);
