@@ -25,4 +25,3 @@ AssertionError: expected 1700 to be 120 // Object.is equality
       Tests  1 failed | 9 skipped (10)
    Start at  11:35:37
    Duration  6.10s (transform 69%, tests 17%, import 13%, worker 1%, environment 1%)
-
