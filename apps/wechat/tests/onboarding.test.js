@@ -97,6 +97,41 @@ it.each(['fees','other houses'])('shows the phase choice after only electrical/n
  }
  expect(JSON.stringify(h.app.service.store.house(h.id).answers)).toBe(answers);
 });
+function finalContractFixture(){
+ const h=harness();h.app.service.store.change(s=>s.xiaoda.tutorialStep=0);
+ h.app.service.store.edit(h.id,house=>{
+  house.xiaoda.intro='done';house.checklistOrder=['A','费用与付款','身份与合同'];
+  house.templateTopics=house.checklistOrder.map((category,i)=>({id:'finish-'+i,title:category,category,phase:i?'询问与签约':'现场看房',path:[],fields:[{id:'finish_'+i,label:'记录'+i,type:'s',options:['是','否'],fact:true}]}));
+ });
+ const p=h.open();p.phase({currentTarget:{dataset:{value:'询问签约'}}});
+ h.wx.pageScrollTo.mockClear();return {...h,p};
+}
+it('lets the user postpone the final contract exit without moving, navigating, losing answers or replaying on reopen',()=>{
+ const h=finalContractFixture(),p=h.p,view=JSON.stringify([p.data.phase,p.data.query,p.data.filters,p.folds]);
+ p.choose({detail:{id:'finish_2',value:'是'}});vi.advanceTimersByTime(1500);
+ expect(p.data.fillPrompt).toMatchObject({kind:'return',completed:'身份与合同'});expect(p.data.fillStage).toBe('ready');
+ expect(p.data.fillAnchor).toEqual({kind:'return'});p.waitFilling();
+ expect(p.data.fillPrompt).toBeNull();expect(h.app.service.store.house(h.id).xiaoda.prompt).toBeUndefined();
+ expect(h.wx.navigateBack).not.toHaveBeenCalled();expect(h.wx.pageScrollTo).not.toHaveBeenCalled();
+ expect(JSON.stringify([p.data.phase,p.data.query,p.data.filters,p.folds])).toBe(view);
+ expect(h.app.service.store.house(h.id).answers.finish_2.value).toBe('是');
+ expect(h.app.service.store.get().xiaoda.returnGuide).not.toBe(true);
+ p.onUnload();const reopened=h.open();vi.advanceTimersByTime(1500);expect(reopened.data.fillPrompt).toBeNull();
+});
+it('returns to the house list only after accepting the final contract exit',()=>{
+ const h=finalContractFixture();h.p.choose({detail:{id:'finish_2',value:'是'}});vi.advanceTimersByTime(1500);
+ h.p.acceptFilling();expect(h.wx.navigateBack).toHaveBeenCalledOnce();expect(h.app.service.store.get().xiaoda.returnGuide).toBe(true);
+ expect(h.app.service.store.house(h.id).answers.finish_2.value).toBe('是');
+});
+it('cancels the final contract exit if its last answer becomes incomplete before display',()=>{
+ const h=finalContractFixture();h.p.choose({detail:{id:'finish_2',value:'是'}});h.p.choose({detail:{id:'finish_2',value:'是'}});vi.advanceTimersByTime(1500);
+ expect(h.p.data.fillPrompt).toBeNull();expect(h.wx.navigateBack).not.toHaveBeenCalled();
+});
+it('keeps the final contract exit visible when postponing cannot be saved',()=>{
+ const h=finalContractFixture();h.p.choose({detail:{id:'finish_2',value:'是'}});vi.advanceTimersByTime(1500);
+ h.fail(true);h.p.waitFilling();expect(h.p.data.fillPrompt?.kind).toBe('return');expect(h.wx.navigateBack).not.toHaveBeenCalled();
+ h.fail(false);h.p.waitFilling();expect(h.p.data.fillPrompt).toBeNull();expect(h.app.service.store.house(h.id).answers.finish_2.value).toBe('是');
+});
 it('retains the introduction after a failed save and resumes it after leaving without acceptance',()=>{
  const h=harness(),p=intro(h);h.fail(true);p.acceptFilling();expect(p.data.fillPrompt.kind).toBe('intro');expect(h.app.service.store.house(h.id).xiaoda.intro).toBe('pending');
  h.fail(false);p.onUnload();const resumed=h.open();expect(resumed.data.fillPrompt.kind).toBe('intro');expect(resumed.data.fillAnchor.kind).toBe('category');

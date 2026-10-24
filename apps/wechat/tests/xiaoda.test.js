@@ -67,11 +67,20 @@ describe('completion recommendations',()=>{
   expect(s.get().xiaoda.prompt).toBeNull();expect(completionPrompt(s.get(),'C')).toBeNull();
   expect(progress(s.get())[0].complete).toBe(false);
  });
- it('does not go backwards across phases and respects the saved checklist order',()=>{
-  const s=scenario(['房源基本信息','A','费用与付款']);s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toBeNull();
+ it('ends the final contract item without going backwards and respects onsite saved order',()=>{
+  const s=scenario(['房源基本信息','A','费用与付款']);s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',text:'这套房子先记到这里，再看看其他房子吧。'});
   s.store.edit(s.h.id,h=>h.checklistOrder=['费用与付款','A','房源基本信息']);
-  expect(completionPrompt(s.get(),'费用与付款')).toMatchObject({target:'A'});
+  expect(completionPrompt(s.get(),'费用与付款')).toMatchObject({kind:'return'});
   s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({target:'房源基本信息'});
+ });
+ it('ends only the final contract category in saved order without claiming earlier gaps are complete',()=>{
+  const s=scenario(['A','费用与付款','身份与合同']);s.store.edit(s.h.id,h=>h.templateTopics.at(-1).phase='询问与签约');
+  s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'身份与合同'});
+  s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',completed:'身份与合同',text:'这套房子先记到这里，再看看其他房子吧。'});
+  s.store.edit(s.h.id,h=>h.checklistOrder=['A','身份与合同','费用与付款']);
+  s.answer(2,1,'否');expect(s.get().xiaoda.prompt).toBeNull();
+  s.answer(1,1,'否');expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',completed:'费用与付款'});
+  expect(progress(s.get()).find(r=>r.category==='A').complete).toBe(false);
  });
  it('offers the phase choice at the forward boundary despite earlier onsite gaps',()=>{
   const s=scenario(['A','B','费用与付款']);s.answer(0,0);s.answer(1,0);s.answer(1,1);

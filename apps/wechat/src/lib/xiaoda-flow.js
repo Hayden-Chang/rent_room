@@ -12,6 +12,7 @@ export function completionPrompt(h,completed) {
   const rows=progress(h),index=rows.findIndex(r=>r.category===completed),source=rows[index];
   if(!source)return null;
   if(rows.every(r=>r.complete))return {kind:'return',text:'这套房子记录好啦！再添加一套房源，对比看看吧。'};
+  if(source===rows.filter(r=>r.phase==='询问签约').at(-1))return {kind:'return',text:'这套房子先记到这里，再看看其他房子吧。'};
   // Completion guidance follows the saved checklist order and never wraps to earlier gaps.
   const target=rows.slice(index+1).find(r=>!r.complete);
   if(!target)return null;

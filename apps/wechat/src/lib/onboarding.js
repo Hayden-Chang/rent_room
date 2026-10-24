@@ -1,5 +1,5 @@
 import {formView,houseTopics} from './model.js';
-import {progress} from './xiaoda-flow.js';
+import {progress,completionPrompt} from './xiaoda-flow.js';
 import {xiaodaEnabled,localDay} from './xiaoda-state.js';
 import {service,notify} from './ui.js';
 
@@ -76,7 +76,7 @@ export const coachMethods={
   if(run!==this.fillRun||this.unloaded||this.coachHidden||getApp().service!==platform||this.data.id!==id||this.data.tab!=='清单'||this.data.coach||this.fillEditing||this.data.wheelField||this.data.sheet)return false;
   const h=platform.store.house(id);if(!h||h.archived||!xiaodaEnabled(platform.store.get(),h)||h.xiaoda?.prompt?.id!==prompt.id)return false;
   const rows=progress(h);if(this.fillCompleted&&!rows.some(r=>r.category===this.fillCompleted&&r.complete))return false;
-  return prompt.kind==='return'?rows.every(r=>r.complete):rows.some(r=>r.category===prompt.target&&!r.complete);
+  return prompt.kind==='return'?(rows.every(r=>r.complete)||completionPrompt(h,this.fillCompleted)?.kind==='return'):rows.some(r=>r.category===prompt.target&&!r.complete);
  },
  queueFilling(prompt){
   this.cancelFillingTransition();this.fillReturn=null;this.fillCompleted=prompt.completed||service().store.house(this.data.id)?.xiaoda?.seenCompleted?.at(-1);this.fillPending={prompt,platform:service(),id:this.data.id};this.scheduleFilling();
