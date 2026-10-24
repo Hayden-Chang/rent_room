@@ -25,7 +25,7 @@
 - 设置中的模板列表区分勾选与进入编辑。勾选后点击确定才用于之后新建的房源；未确认返回提供更换并退出、不更换并退出、继续选择。恢复原选项不再询问。
 - 两套模板各自保存排序和停用项，保存编辑不切换当前模板。已有房源继续使用创建时的快照，不改答案、问题、备注或影像。
 - 老设置没有 selectedTemplate 时继续使用详细模式；只有首次模式页预选精简，避免替旧用户修改选择。
-- 精简包含 61 个文档确认的统一记录项（现场 53、合同 8），以及保留逐项的基本信息、费用、房东身份与产权、押金退还时间。全模板共 99 个字段，空白房源计数 99；详细模式原 302 个字段、初始适用计数 204 保持不变。
+- 精简包含 62 个统一记录项（现场 53、合同 9），以及保留逐项的基本信息、费用、押金退还时间。根据[确认稿](https://chatgpt.com/space/page_e28419ff18308191abc9495f7f112288) sequence 20 的最新修订，“房东身份与产权”不保留子项，只提供“是 / 否”，原说明保留。当前完整精简模板共 96 个字段，空白房源适用计数 95；详细模式 301 个字段、初始适用计数 202，不受本次修订影响。
 - 合并项直接显示完整说明与精确选项，不提供子项展开。结果、问题标记、备注、影像使用同一个稳定字段 ID；普通备注不创建问题；完成度和问题各计一次。左滑教学定位实际合并项。
 - 退房只含“押金退还时间”“退房保洁费用和要求已确认”，顺序固定。“入住前房东重新做卫生”在该组外。删除文档指定的合同分支与家具家电齐全项。
 - 混合模式房源可对比；只属于另一模板的项显示“不涉及”，不伪造详细子项答案。ZIP 保留模板快照及关联媒体。
@@ -37,7 +37,7 @@
 | 文件 | 职责 |
 | --- | --- |
 | data/source-tree.json | 详细清单真源；精简保留的逐项字段也从这里取得 |
-| data/simple-checklist.json | 精简标题、说明、选项及 Page 块来源；simple_01 至 simple_61 是稳定 ID，调整文案不重新编号 |
+| data/simple-checklist.json | 精简标题、说明、选项及 Page 块来源；simple_01 至 simple_62 是稳定 ID，调整文案不重新编号；新增房东项仍放在合同类别首位 |
 | scripts/simple-core.mjs | 保留、合并和删除规则；检查源数据格式 |
 | scripts/build.mjs | 同时生成详细与精简清单 |
 | src/lib/simple-topics.json | 生成文件，禁止手改 |
@@ -92,6 +92,25 @@ WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 从渲染回调选择家电、合同分组和问题备注三个受影响状态。局部回调为 apps/wechat/artifacts/simple-mode/description-visible-render.cjs，run b9b9a2ee3ac342af9ebd805a3cefa1fb 在干净 e267e6d 上通过，3 张截图逐张核对；第 3 槽归还 idle。快照 SHA-256 为 a35046a7e3fd6ba93246df4812464fa1b3f814a7d0e4a69eb2bd0c373451dfe5，与原 13 张流程截图的产物哈希相同。
 
 本地图集 artifacts/simple-mode-20261024/index.html 已恢复说明直接显示：使用本轮 3 张新截图，其余 10 张复用上述相同应用产物的原始截图。delivery-manifest.json 逐图记录来源和哈希，旧眼睛图集已标记废弃。截图为隔离夹具及控制器准备状态的真实渲染，实际点击和用户视觉确认仍待验收；保持草稿，未合并或发布。
+
+## 房东身份与产权合并（2026-10-24）
+
+按确认稿 sequence 20，精简模式将原四个房东子项替换为 `simple_62`，只显示“是 / 否”及原说明。已有 `simple_01` 至 `simple_61` 的 ID 和内容均保持不变；详细清单未修改。已有房源继续使用创建时的快照，不自动把原四项答案推断成新项答案。新项问题、备注和媒体统一挂在 `simple_62`。
+
+代码及测试提交：`afca4a66943dea4acd6e58dd9c32d6c51fe950f8`，基线 `591f135d3216a60efe53124069bdb14a8225787d`，[PR #78](https://github.com/Hayden-Chang/rent_room/pull/78)。后续只补充本段验证记录，应用源码、测试、数据及构建配置与该提交相同，复用其验证证据。
+
+- 修复前新增用例 `records landlord identity as one yes/no item without child fields` 失败：实际没有可直接填写的单个房东项。修复后通过。
+- `node node_modules/vitest/vitest.mjs run tests/simple-mode.test.js`：14 项通过。覆盖生成结果、是否选项、折叠边界、统一完成/问题计数、旧房源快照与记录、ZIP 及媒体关联。
+- `node node_modules/vitest/vitest.mjs run tests/first-meeting-runtime.test.js -t 'preselects simple and applies the first sorting draft only to the chosen template'`：1 项通过，验证构建后的首次精简模板创建路径。没有运行全量测试。
+- `WECHAT_TEST_DATA_ROOT=xunju-test-simple-landlord-20261024 node scripts/build.mjs`、`node scripts/check.mjs` 通过；wcc 20、wcsc 22，15 页、2,044,853 字节。Node 24.19.0，Vitest 5.0.3。
+- 原始日志保存在本任务 worktree 的 `apps/wechat/artifacts/landlord-choice/`：`before.log`、`final-unit.log`、`final-runtime.log`、`build.log`、`compile.log`、`review.json`。最终 diff 已由当前 agent 复查，除房东项之外的生成清单逐项完全相同；GitHub 未返回任何 status checks 或 check runs，不将其视为远程 CI 通过。
+- 最小 UI 映射为新增 `tests/e2e/landlord-choice-render.cjs`，预期检查精简空白项、已记录问题项和详细四子项的实际渲染。固定三槽池 run `d63744d18ba04d3da3168eb840db8a40` 排队 300 秒后返回 `No free slot; active/orphan instances were not stopped`，未执行回调、未取得截图；这是基础设施阻碍，不能宣称 UI 验收通过。冻结快照哈希 `01a1fa1ea4ed7f11d9036ff0f20f5e60ab1f89cccd791925ced0587d6c93a582`，源码状态干净。receipt 保存在 `/Volumes/mac2/codex-builds/wechat-instance-pool/runs/d63744d18ba04d3da3168eb840db8a40/receipt.json`。
+
+后续验收：用户对 `eb5814638ea3102aff603921965f82317726ffc2` 手机预览明确确认“没问题，合入吧”。业务源码、清单、构建配置与该预览保持一致；后续仅修复渲染夹具并补充记录。
+
+- 渲染脚本改用应用自身 `store.add` 创建隔离房源，避免自动化桥将嵌套数组变成数字键对象；记录夹具写入后显式刷新页面。原数组类型、精确“是 / 否”、无子项、完成/问题计数、保存内容及详细模式四项断言均保留。之前失败和错误夹具截图保留，不作为产品通过证据。
+- 干净提交 `42c35bfe4591572d5d723b2ab59c6abfd4c6ba2b` 的固定三槽池 run `7a6b8f9f727b49f6954de2b499b95d7c` 通过，得到精简空白项、已记录问题项和详细四子项三张实际截图；第 3 槽已归还 idle。快照哈希 `8be985c5c8d264823cd4b6661df27c9f620530c091fd185b8964b63f4e9119bb`，证据在本任务 worktree 的 `artifacts/landlord-choice-phone-20261024/render/`。脚本为夹具渲染验证，不冒充原生点击测试。
+- 主 agent 与独立 sub-agent 审查无待处理问题。与已通过单测的 `afca4a6` 相比，单测及相关业务代码未变，复用 14+1 项结果；手机预览版到 `42c35bf` 只改渲染脚本，用户验收仍适用。后续文档记录不影响执行；按用户授权合入，不包含正式发布。
 
 
 ## 备注配色与完整左滑区域（2026-10-24）
