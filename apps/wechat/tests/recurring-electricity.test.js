@@ -51,16 +51,16 @@ it('deduplicates a legacy custom template containing only the second field and r
 });
 it('migrates imported electricity within capacity and preserves both records and input when full',()=>{
  let disk='';const io={read:()=>disk,write:value=>{disk=value;}};
- const store=createStore(io);store.add('已有房源');
+ const store=createStore(io,{getPacks:()=>1});for(let i=0;i<10;i++)store.add('已有房源 '+i);
  const h=legacy();h.answers[duplicate]={value:'42',note:'旧费用'};const before=JSON.stringify(h);
  store.import([h]);
- expect(store.capacity()).toMatchObject({used:2,limit:2});
+ expect(store.capacity()).toMatchObject({used:11,limit:11});
  expect(rows(createStore(io).house(h.id))[0]).toMatchObject({id:primary,value:'42',note:'旧费用'});
  expect(JSON.stringify(h)).toBe(before);
  const extra=legacy();extra.answers[duplicate]={value:'68'};
  const input=JSON.stringify(extra),saved=disk;
  expect(()=>store.import([extra])).toThrow('容量');
- expect(disk).toBe(saved);expect(store.get().houses).toHaveLength(2);expect(JSON.stringify(extra)).toBe(input);
+ expect(disk).toBe(saved);expect(store.get().houses).toHaveLength(11);expect(JSON.stringify(extra)).toBe(input);
 });
 it('combines electricity recovery with transactional retries without replacing the readable backup',()=>{
  const h=legacy();h.answers[duplicate]={value:'42',note:'旧电费'};h.media=[{id:'bill',type:'image',path:'/local/bill.jpg',fieldId:duplicate}];

@@ -1,1 +1,1 @@
-{"navigationBarTitleText": "看房清单", "usingComponents": {"field-row": "/components/field-row/index", "wheel-dialog": "/components/wheel-dialog/index"}}
+{"navigationBarTitleText": "看房清单", "usingComponents": {"field-row": "/components/field-row/index", "wheel-dialog": "/components/wheel-dialog/index", "xiaoda": "/components/xiaoda/index"}}

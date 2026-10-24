@@ -20,7 +20,7 @@ describe('source and conditional checklist',()=>{
 });
 describe('durable store and migrations',()=>{
  const adapter=()=>{let text='';return {read:()=>text,write:t=>{text=t;},previous:()=>text,preserveCorrupt:()=>{}};};
- it('persists reloadable isolated houses',()=>{const io=adapter(),s=createStore(io),a=s.add('A'),b=s.add('B');s.answer(a,'f1_6','value','4800');const reloaded=createStore(io);expect(reloaded.house(a).answers.f1_6.value).toBe('4800');expect(reloaded.house(b).answers.f1_6).toBeUndefined();});
+ it('persists reloadable isolated houses',()=>{const io=adapter(),s=createStore(io,{getPacks:()=>1}),a=s.add('A'),b=s.add('B');s.answer(a,'f1_6','value','4800');const reloaded=createStore(io);expect(reloaded.house(a).answers.f1_6.value).toBe('4800');expect(reloaded.house(b).answers.f1_6).toBeUndefined();});
  it('keeps inputs on disk failure and retries',()=>{const io=adapter(),s=createStore(io),id=s.add('A');const write=io.write;io.write=()=>{throw Error('full');};s.answer(id,'f1_6','value','5000');expect(s.status().error).toContain('保存失败');expect(s.house(id).answers.f1_6.value).toBe('5000');io.write=write;expect(s.save()).toBe(true);expect(createStore(io).house(id).answers.f1_6.value).toBe('5000');});
  it('does not report an import as successful when persistence fails',()=>{const io=adapter(),s=createStore(io);s.add('Existing');io.write=()=>{throw Error('full');};expect(()=>s.import([freshHouse('Incoming')])).toThrow();expect(s.get().houses.map(h=>h.name)).toEqual(['Existing']);});
  it('blocks overwrite of unreadable prior records',()=>{let writes=0;const s=createStore({read:()=>'{bad',write:()=>writes++});expect(s.status().blocked).toBe(true);expect(()=>s.add('A')).toThrow();s.save();expect(writes).toBe(0);});

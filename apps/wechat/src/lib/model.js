@@ -1,6 +1,9 @@
+import {newXiaoda,validateXiaoda} from './xiaoda-state.js';
+import {templateConfig,assertTemplate,selectedMode,modeLabels} from './templates.js';
 import {wheelConfig,wheelDisplay} from './wheel-input.js';
 import {keepsLocation} from './places.js';
 import topics from './topics.json' with {type:'json'};
+import simpleTopics from './simple-topics.json' with {type:'json'};
 import * as rules from './source-model.js';
 
 export {topics, rules};
@@ -11,7 +14,7 @@ const textNoneIds=new Set(fields.filter(f=>f.allowNone).map(f=>f.id));
 const topFloorField=fields.find(f=>f.id==='f1_top');
 export const categories = [...new Set(topics.map(t=>t.category))];
 export const MAP_ID = fields.find(f=>f.label==='地图（和地址联动）').id;
-export const emptyState = () => ({version:2,houses:[],settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
+export const emptyState = () => ({version:2,houses:[],xiaoda:newXiaoda(),settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
 const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83');
 const corridorGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_14');
 const lightGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_80');
@@ -38,7 +41,7 @@ function relocateParkingCost(ts) {
  else result[target]={...result[target],fields:[...result[target].fields,field]};
  return result;
 }
-// Apply current group controls to saved templates without rewriting their answers or snapshots.
+// Apply current group controls while keeping snapshot order, including saves with obsolete guidance pinning.
 export const houseTopics = h => {
  let electricitySeen=false;
  const saved=relocateParkingCost([...(h.templateTopics||topics),...(h.extras||[])]),ratio=saved.flatMap(t=>t.fields).find(f=>f.id==='f16_0');
@@ -90,10 +93,16 @@ export const houseTopics = h => {
 const normalTitle = title => title.endsWith('正常')?title:title+'正常';
 const groupResultTitle = g => g.id==='topic_13'?'回家路线安全':normalTitle(g.title);
 const resultLabel = (value,absenceLabel='没有') => ({'正常':'是','有问题':'否','没有':absenceLabel}[value]||value);
+function snapshotTopics(settings) {
+  const mode=selectedMode(settings),source=mode==='simple'?simpleTopics:topics;
+  if(!settings.templates)return source;
+  const config=templateConfig(settings,mode);assertTemplate(config);
+  return config.order.flatMap(id=>config.disabled.includes(id)?[]:source.filter(t=>t.category===id));
+}
 export function freshHouse(name,settings={}) {
   const hidden=new Set(settings.template==='自定义'?settings.hiddenFields||[]:[]);
-  const selected=topics.map(t=>({...clone(t),fields:t.fields.filter(f=>!hidden.has(f.id)).map(clone)})).filter(t=>t.fields.length);
-  return {id:uid(),name:name.trim()||'新房源',address:'',answers:{},groups:{},extras:[],media:[],issues:[],summary:'',decision:'',archived:false,createdAt:new Date().toISOString(),templateTopics:selected,checklistRevision:2,topFloorRevision:1};
+  const selected=(snapshotTopics(settings)||topics).map(t=>({...clone(t),fields:t.fields.filter(f=>!hidden.has(f.id)).map(clone)})).filter(t=>t.fields.length);
+  return {id:uid(),name:name.trim()||'新房源',address:'',answers:{},groups:{},extras:[],media:[],issues:[],summary:'',decision:'',archived:false,createdAt:new Date().toISOString(),templateTopics:selected,checklistMode:selectedMode(settings),checklistOrder:[...new Set(selected.map(t=>t.category))],xiaoda:{intro:'pending',seenCompleted:[],touched:{}},checklistRevision:2,topFloorRevision:1};
 }
 // The saved question determines the old answer's meaning. Revision-two records
 // without a snapshot used “非顶楼”; earlier positive questions already mean “顶楼”.
@@ -180,7 +189,7 @@ export function annotationEntries(h,ts=houseTopics(h)) {
     const path=t.path||[];
     for(const g of path.slice(groups.has(path[0]?.id)?0:1)){
       const id='node:group:'+g.id;
-      if(!nodes.has(id))nodes.set(id,{topic:t,field:{id,label:g.title,type:'t',fact:true,annotation:'group',foldId:g.id}});
+      if(!nodes.has(id))nodes.set(id,{topic:t,field:{id,label:g.title,type:'t',fact:true,annotation:'group',foldId:g.id,...(g.description?{description:g.description}:{})}});
     }
   }
   return [...nodes.values()];
@@ -209,7 +218,7 @@ export function inPhase(t,phase) {
 export function matches(h,t,f,view={}) {
   const a=answer(h,f),value=rules.fieldDisplayValue(f,a);
   if(!inPhase(t,view.phase))return false;
-  if(view.query&&!`${t.category} ${t.title} ${f.label} ${value} ${a.note||''}`.toLowerCase().includes(view.query.toLowerCase()))return false;
+  if(view.query&&!`${t.category} ${t.title} ${f.label} ${f.description||''} ${value} ${a.note||''}`.toLowerCase().includes(view.query.toLowerCase()))return false;
   const filters=view.filters||[];
   return !filters.length||filters.some(s=>({未记录:!f.annotation&&!rules.fieldRecorded(f,a),已记录:!f.annotation&&rules.fieldRecorded(f,a),有问题:problem(f,a),有备注:!!a.note,有影像:(h.media||[]).some(m=>m.fieldId===f.id)})[s]);
 }
@@ -299,7 +308,8 @@ export function updateGroup(h,id,operation,value) {
 export function comparison(houses,onlyDifferences=false) {
   if(houses.length<2||houses.length>3)throw Error('请选择 2 至 3 套房源');
   const activeIds=houses.map(h=>new Set(activeEntries(h).map(e=>e.field.id)));
-  const rows=fields.map(f=>({id:f.id,label:f.label,values:houses.map((h,index)=>{const active=activeIds[index].has(f.id);return !active?'不涉及':rules.fieldDisplayValue(f,h.answers[f.id])||'未填写';})}));
+  const catalog=[...new Map(houses.flatMap(h=>houseTopics(h).flatMap(t=>t.fields)).map(f=>[f.id,f])).values()];
+  const rows=catalog.map(f=>({id:f.id,label:f.label,values:houses.map((h,index)=>{const active=activeIds[index].has(f.id);return !active?'不涉及':rules.fieldDisplayValue(f,h.answers[f.id])||'未填写';})}));
   rows.push({id:'decision',label:'当前意向',values:houses.map(h=>h.decision||'待决定')},{id:'summary',label:'看房总结',values:houses.map(h=>h.summary||'未填写')},{id:'issues',label:'未解决问题',values:houses.map(h=>String(stats(h).issues))});
   return rows.filter(r=>!onlyDifferences||new Set(r.values).size>1);
 }
@@ -311,10 +321,15 @@ export function validateState(state) {
   assertSafe(state);
   if(!state||![1,2].includes(state.version)||!Array.isArray(state.houses))throw Error('不是有效的房源备份');
   if(state.settings&&(typeof state.settings!=='object'||Array.isArray(state.settings)||state.settings.hiddenFields&&(!Array.isArray(state.settings.hiddenFields)||state.settings.hiddenFields.some(x=>typeof x!=='string'))))throw Error('设置数据无效');
+  validateXiaoda(state);
+  if(state.xiaoda?.draft)assertTemplate(state.xiaoda.draft);
+  if(state.settings?.selectedTemplate!==undefined&&!Object.keys(modeLabels).includes(state.settings.selectedTemplate))throw Error('模板模式无效');
+  for(const mode of Object.keys(modeLabels))if(state.settings?.templates?.[mode])assertTemplate(state.settings.templates[mode]);
   const ids=new Set();
   for(const h of state.houses) {
     if(!h||typeof h.id!=='string'||ids.has(h.id)||typeof h.name!=='string'||!h.answers||Array.isArray(h.answers)||typeof h.answers!=='object')throw Error('房源数据格式错误');
     ids.add(h.id);
+    if(h.checklistMode!==undefined&&!Object.keys(modeLabels).includes(h.checklistMode))throw Error('房源模板模式无效');
     if(h.templateTopics&&!rules.validTopics(h.templateTopics))throw Error('清单模板无效');
     if(h.extras&&(!Array.isArray(h.extras)||h.extras.length&&!rules.validTopics(h.extras)))throw Error('自定义检查项无效');
     if(h.media&&(!Array.isArray(h.media)||h.media.some(m=>!m||typeof m.id!=='string'||!['image','video'].includes(m.type)||typeof m.path!=='string'||m.caption!==undefined&&(typeof m.caption!=='string'||m.caption.length>10000))))throw Error('影像数据无效');

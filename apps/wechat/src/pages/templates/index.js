@@ -1,6 +1,17 @@
-import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
-import {topics,fields,categories} from '../../lib/model.js';
-import {service,attempt,notify} from '../../lib/ui.js';
-const required=new Set([...topics[0].fields.map(f=>f.id),...fields.filter(f=>f.visibleWhen?.fieldId).map(f=>f.visibleWhen.fieldId),...topics.flatMap(t=>(t.path||[]).flatMap(g=>[g.permissionFieldId,g.visibleWhen?.fieldId])).filter(Boolean)]);
-Page(withAppShare(protectedPage({data:{mode:'完整',rows:[],query:'',expanded:'',searchFolds:{}},onLoad(){const s=service().store.get().settings;this.hidden=new Set(s.hiddenFields||[]);this.setData({mode:s.template});this.refresh();},refresh(){const rows=categories.map(title=>({title,expanded:this.data.query?(this.data.searchFolds[title]??true):this.data.expanded===title,fields:topics.filter(t=>t.category===title).flatMap(t=>t.fields).filter(f=>!this.data.query||f.label.includes(this.data.query)).map(f=>({...f,checked:this.data.mode==='完整'||!this.hidden.has(f.id),required:required.has(f.id)}))})).filter(c=>c.fields.length);this.setData({rows,selectedCount:fields.length-this.hidden.size});},mode(e){this.setData({mode:e.currentTarget.dataset.value});this.refresh();},fold(e){const title=e.currentTarget.dataset.value;if(this.data.query)this.setData({searchFolds:{...this.data.searchFolds,[title]:!(this.data.searchFolds[title]??true)}});else this.setData({expanded:this.data.expanded===title?'':title});this.refresh();},search(e){const query=e.detail.value;if(query===this.data.query)return;this.setData({query,searchFolds:{}});this.refresh();},toggle(e){const id=e.currentTarget.dataset.id;if(required.has(id)){notify('基础信息或条件控制项必须保留');return;}if(this.data.mode==='完整')this.hidden=new Set();this.hidden.has(id)?this.hidden.delete(id):this.hidden.add(id);this.setData({mode:'自定义'});this.refresh();},save(){attempt(()=>{service().store.change(s=>{s.settings.template=this.data.mode;s.settings.hiddenFields=[...this.hidden].filter(id=>!required.has(id));});notify('默认模板已保存，已有房源不变');});}})));
+import {service,notify} from '../../lib/ui.js';
+import {modeLabels,selectedMode} from '../../lib/templates.js';
+Page(protectedPage({
+ data:{modes:Object.keys(modeLabels).map(id=>({id,label:modeLabels[id]})),selected:'detailed',dirty:false,leaveOpen:false,backGuard:false,top:0},
+ onLoad(){this.original=selectedMode(service().store.get().settings);this.setData({selected:this.original,top:wx.getWindowInfo?.().statusBarHeight||20});},
+ onShow(){this.visible=true;this.openingEditor=false;this.setData({backGuard:this.data.dirty});},
+ onHide(){this.visible=false;},
+ choose(e){const mode=e.currentTarget.dataset.mode;if(Object.keys(modeLabels).includes(mode)){const dirty=mode!==this.original;this.setData({selected:mode,dirty,backGuard:dirty});}},
+ open(e){const mode=e.currentTarget.dataset.mode;if(!Object.keys(modeLabels).includes(mode))return;
+  this.openingEditor=true;this.setData({backGuard:false},()=>wx.navigateTo({url:'/pages/template-edit/index?mode='+mode,fail:()=>{this.openingEditor=false;this.setData({backGuard:this.data.dirty});}}));},
+ confirm(){try{service().store.change(s=>s.settings.selectedTemplate=this.data.selected,true);this.exit();}catch(error){notify(error);}},
+ back(){if(this.data.dirty)this.setData({leaveOpen:true});else this.exit();},
+ guardLeft(){if(this.exiting){wx.navigateBack();return;}if(this.openingEditor||!this.visible)return;if(this.data.dirty)this.setData({backGuard:false,leaveOpen:true},()=>this.setData({backGuard:true}));},
+ exit(){this.exiting=true;if(this.data.backGuard)this.setData({backGuard:false});else wx.navigateBack();},
+ discard(){this.exit();},stay(){this.setData({leaveOpen:false,backGuard:this.data.dirty});}
+}));

@@ -1,0 +1,27 @@
+
+ RUN  v5.0.3 /Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/xiaoda-wait-position-20261024/apps/wechat
+
+ ❯ tests/onboarding-wait-position.test.js (10 tests | 1 failed | 9 skipped) 378ms
+   × returns to the just-completed B field after postponing the partially filled A recommendation 376ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/onboarding-wait-position.test.js > returns to the just-completed B field after postponing the partially filled A recommendation
+AssertionError: expected 1700 to be 120 // Object.is equality
+
+- Expected
++ Received
+
+- 120
++ 1700
+
+ ❯ tests/onboarding-wait-position.test.js:41:23
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 9 skipped (10)
+   Start at  11:35:37
+   Duration  6.10s (transform 69%, tests 17%, import 13%, worker 1%, environment 1%)
