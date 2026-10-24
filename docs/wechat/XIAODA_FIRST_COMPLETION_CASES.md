@@ -65,3 +65,13 @@ node tests/e2e/xiaoda-filling-fixtures.mjs
 修正夹具后的 `83060ab7e780484983510d16afa740e7` passed：源码 `d12974222b215228bed7bb6d5c93d1058f1c9fdd`、工作树干净，构建快照仍为 `67fca469dab5cd25ec73da34f99af9f22b4b9a28a175e280c54eb8b37cfec3f8`。完整精简模板直接首次完成最后现场项，分别验证“去填写”打开费用与付款、“看看其他房子”→“返回房源列表”；前面未填写项未被改动，两支操作后四个现场答案保持一致。证据归档 `native-phase/`，失败尝试也在同级目录保留。
 
 最终本地复查：业务源码自 `8c8a070` 的 113 项定向测试、编译和两条核心原生流程通过后没有变化；`d129742` 仅改阶段测试的夹具隔离和文档，并在相同构建快照上补跑该测试成功。此后只补充本文执行结果。检查相对已整合主线的全部业务差异，未发现新增需修正项；`git diff --check` 通过。保留草稿 PR 等待手机验收，不把开发者工具点击等同于手机通过，不进行合入或发布。
+
+## 独立审查后的补修
+
+审查基线 `cbc88bc` 发现：旧存档缺少 completed 的待显示提示仍可能向前；新增换序原生脚本使用已合并的“隔音与噪音”；保存失败时改填另一项，记录中的旧提示已取消但页面卡片可能残留。
+
+补修仅扩展本次引导及测试范围：旧格式 completion 不补播，安全删除失败时保持隐藏、允许保存重试；页面在保存错误阻断前同步已取消/被另一来源替换的卡片，接受按钮再核对当前提示；保留同一来源出场过渡的既有行为、独立 intro 和“看看其他房子”的返回卡。换序测试提取共享前置夹具，使用当前精简模板“室内环境”四项，原生流程验证后面实际末项。新增恢复原生流程仅对隔离根目录的 state.pending.json 建目录制造真实写入失败，恢复目录后由用户可见重试入口保存，SDK 不调用目标 handler。
+
+失败证据在 `apps/wechat/artifacts/forward-only/review-fixes/`：`red.log` 为 2 条旧提示、2 条失败中改写（部分/首次完成）、1 条失效夹具共 5 条预期失败；`direct-red.log` 确认旧卡仍会展开 C。开发中 `focused.log` 118 通过、1 条出场切换失败，`entrance-green.log` 保留首次修正后仍失败的记录；区分另一来源取消与同来源新提示过渡后，`recovery-green.log` 六条定向通过。旧版手写提示的 2 处界面测试改为真实填写生成新格式提示；未削弱原先的顺序、锚点和动画断言。
+
+影响映射：onboarding 的旧提示加载/失败恢复/出场/接受 → onboarding.test.js、onboarding-wait-position.test.js；完成历史与顺序 → xiaoda.test.js、xiaoda-once.test.js；原生换序前置与两步引导 → xiaoda-native-fixtures.test.js；实际界面选择 → xiaoda-last-onsite-native.cjs；旧提示与失败恢复按钮 → xiaoda-recovery-native.cjs。未选择全量单测或全量 UI。

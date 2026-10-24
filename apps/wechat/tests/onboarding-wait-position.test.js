@@ -35,7 +35,7 @@ function harness(){
  const p=open();p.phase({currentTarget:{dataset:{value:'现场'}}});p.folds[JSON.stringify({phase:'现场',query:'',filters:[]})]={A:true,B:true,C:true};p.refresh();
  const choose=(field,value='是')=>page.choose({detail:{id:field,value}});
  choose('test_a_0');choose('test_b_0');top=1780;
- return {app,id,wx,scrolls,anchors,open,choose,get page(){return page;},get top(){return top;},get house(){return app.service.store.house(id);},fieldTop:()=>rects().find(r=>r.dataset.scrollKey==='field-test_b_1')?.top,
+ return {app,id,wx,disk,scrolls,anchors,open,choose,get page(){return page;},get top(){return top;},get house(){return app.service.store.house(id);},fieldTop:()=>rects().find(r=>r.dataset.scrollKey==='field-test_b_1')?.top,
   fail(v){fail=v;},defer(){defer=true;},flush(){defer=false;while(pending.length)pending.shift()();},setHeight(v){height=v;clamp();}};
 }
 
@@ -103,4 +103,49 @@ it('does not restart completed B after C was completed and cleared',async()=>{
 it('cancels the first completion if B becomes incomplete before the guide arrives',async()=>{
  const h=harness();h.choose('test_b_1','否');expect(h.page.fillCompleted).toBe('B');h.choose('test_b_1','否');
  await showGuide();expect(h.page.data.fillPrompt).toBeNull();expect(h.house.answers.test_b_1.value).toBe('');
+});
+
+it.each(['A','C'])('discards a legacy saved completion targeting %s without replaying it on reopen',async target=>{
+ const h=harness();h.app.service.store.answer(h.id,'test_b_1','value','是');
+ h.app.service.store.edit(h.id,house=>house.xiaoda.prompt={kind:'next',target,phase:'现场',id:'legacy-prompt',text:'旧提示'});
+ const answers=JSON.stringify(h.house.answers),history=JSON.stringify(h.house.xiaoda.seenCompleted);
+ const p=h.open();await showGuide();
+ expect(p.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeUndefined();
+ expect(JSON.stringify(h.house.answers)).toBe(answers);expect(JSON.stringify(h.house.xiaoda.seenCompleted)).toBe(history);
+ p.onUnload();h.open();await showGuide();expect(h.page.data.fillPrompt).toBeNull();
+ h.choose('test_b_0','否');await showGuide();expect(h.page.data.fillPrompt).toBeNull();
+ h.choose('test_a_1');await showGuide();expect(h.page.data.fillPrompt).toMatchObject({completed:'A',target:'C'});
+});
+
+it.each([false,true])('cancels a visible completion when another category changes during save failure (complete=%s)',async complete=>{
+ const h=harness();h.choose('test_b_1');await showGuide();expect(h.page.data.fillPrompt.target).toBe('C');
+ h.fail(true);h.choose(complete?'test_a_1':'test_a_0',complete?'是':'否');
+ expect(h.app.service.store.status().error).toContain('保存失败');expect(h.page.data.fillPrompt).toBeNull();
+ expect(h.house.answers[complete?'test_a_1':'test_a_0'].value).toBe(complete?'是':'否');
+ const answers=JSON.stringify(h.house.answers),history=JSON.stringify(h.house.xiaoda.seenCompleted);
+ h.fail(false);h.page.retry();await showGuide();
+ if(complete)expect(h.page.data.fillPrompt).toMatchObject({completed:'A',target:'C'});
+ else expect(h.page.data.fillPrompt).toBeNull();
+ expect(JSON.stringify(h.house.answers)).toBe(answers);expect(JSON.stringify(h.house.xiaoda.seenCompleted)).toBe(history);
+ const persisted=JSON.parse(h.disk.get(h.app.service.root+'/state.json')).houses.find(row=>row.id===h.id);
+ expect(JSON.stringify(persisted.answers)).toBe(answers);expect(JSON.stringify(persisted.xiaoda.seenCompleted)).toBe(history);
+ h.page.onUnload();h.open();await showGuide();expect(h.page.data.fillPrompt).toBeNull();
+ expect(JSON.stringify(h.house.answers)).toBe(answers);
+});
+
+it('keeps a legacy saved prompt hidden when its removal cannot be saved and retries safely',async()=>{
+ const h=harness();h.app.service.store.answer(h.id,'test_b_1','value','是');
+ h.app.service.store.edit(h.id,house=>{delete house.xiaoda.prompt.completed;house.xiaoda.prompt.target='A';});
+ const answers=JSON.stringify(h.house.answers);h.fail(true);h.open();await showGuide();
+ expect(h.page.data.fillPrompt).toBeNull();expect(h.app.service.store.status().error).toContain('保存失败');
+ h.fail(false);h.page.retry();await showGuide();expect(h.page.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeUndefined();
+ expect(JSON.stringify(h.house.answers)).toBe(answers);expect(h.house.xiaoda.seenCompleted).toContain('B');
+});
+
+it('never accepts a canceled visible completion after a direct save recovery',async()=>{
+ const h=harness(),key=JSON.stringify({phase:'现场',query:'',filters:[]});h.page.folds[key].C=false;h.page.refresh();
+ h.choose('test_b_1');await showGuide();h.fail(true);h.choose('test_a_0','否');
+ h.fail(false);h.app.service.store.save();const scrollCount=h.scrolls.length,folds=JSON.stringify(h.page.folds);h.page.acceptFilling();await showGuide();
+ expect(h.page.data.fillPrompt).toBeNull();expect(h.scrolls).toHaveLength(scrollCount);expect(h.house.answers.test_a_0.value).toBe('否');
+ expect(JSON.stringify(h.page.folds)).toBe(folds);
 });

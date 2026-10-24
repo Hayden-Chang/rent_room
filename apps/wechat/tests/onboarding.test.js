@@ -46,9 +46,9 @@ it('allows continuing from the filter explanation without selecting or expanding
 function intro(h){h.app.service.store.change(s=>s.xiaoda.tutorialStep=0);return h.open();}
 it.each([['隔音与噪音','现场'],['费用与付款','询问签约']])('accepts guidance for %s by scrolling and expanding without reordering the checklist', (target,phase)=>{
  const h=harness();h.app.service.store.change(s=>s.xiaoda.tutorialStep=0);
- h.app.service.store.edit(h.id,house=>{house.xiaoda.intro='done';house.templateTopics=house.templateTopics.filter(t=>['通风与采光','隔音与噪音','费用与付款'].includes(t.category));});
+ h.app.service.store.edit(h.id,house=>{house.xiaoda.intro='done';house.templateTopics=house.templateTopics.filter(t=>['房源基本信息',target].includes(t.category)).map(t=>t.category==='房源基本信息'?{...t,fields:t.fields.filter(f=>f.id==='f1_6')}:t);});
  const saved=h.app.service.store.house(h.id),before=[...new Set(houseTopics(saved).map(t=>t.category))],snapshot=JSON.stringify(saved.templateTopics);
- const p=h.open();h.app.service.store.edit(h.id,house=>house.xiaoda.prompt={kind:'next',target,phase,id:'keep-order',text:'继续填写。'});p.refresh();vi.advanceTimersByTime(1500);
+ const p=h.open();p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});vi.advanceTimersByTime(1500);
  expect(p.data.fillPrompt.target).toBe(target);h.wx.pageScrollTo.mockClear();p.acceptFilling();
  const after=h.app.service.store.house(h.id),section=p.data.sections.find(s=>s.title===target);
  expect([...new Set(houseTopics(after).map(t=>t.category))]).toEqual(before);
@@ -70,8 +70,8 @@ it('anchors the introduction to the first retained category when basic informati
  p.acceptFilling();expect(p.data.sections[0].title).toBe('通风与采光');expect(p.data.sections[0].expanded).toBe(true);
 });
 it('anchors a hidden cross-phase target to its phase without switching until acceptance',()=>{
- const h=harness(),p=intro(h);p.phase({currentTarget:{dataset:{value:'现场'}}});
- h.app.service.store.edit(h.id,h=>h.xiaoda.prompt={kind:'phase',target:'费用与付款',phase:'询问签约',id:'cross',text:'继续填写费用。'});p.refresh();
+ const h=harness();h.app.service.store.edit(h.id,house=>{house.xiaoda.intro='done';house.templateTopics=house.templateTopics.filter(t=>['房源基本信息','费用与付款'].includes(t.category)).map(t=>t.category==='房源基本信息'?{...t,fields:t.fields.filter(f=>f.id==='f1_6')}:t);});
+ const p=intro(h);p.phase({currentTarget:{dataset:{value:'现场'}}});p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});
  h.wx.pageScrollTo.mockClear();vi.advanceTimersByTime(1000);
  expect(p.data.fillAnchor).toEqual({kind:'phase',id:'phase-area'});expect(p.data.phase).toBe('现场');
  expect(h.wx.pageScrollTo).not.toHaveBeenCalled();expect(p.data.fillStage).toBe('ready');

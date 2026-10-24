@@ -64,9 +64,17 @@ export const coachMethods={
   if(target)this.showFilling({kind:'intro',target:target.category,phase:target.phase,id:'intro-'+h.id,text:target.category==='房源基本信息'?'写一下房子的基本信息吧。':`先看看「${target.category}」吧。`});
  },
  syncFilling(){
-  if(this.fillAccepting||this.fillingEntering()||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
-  if(service().store.status().error)return;
+  if(this.fillAccepting||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
   const state=service().store.get(),h=service().store.house(this.data.id),prompt=h?.xiaoda?.prompt;
+  // A failed dismissal save can leave the old card visible after an answer edit
+  // cancels/replaces its stored prompt. Reconcile before pausing on save errors.
+  if(!this.fillingEntering()&&this.data.fillPrompt?.completed&&this.data.fillPrompt.completed!==prompt?.completed){
+   this.cancelFillingTransition();this.fillReturn=null;this.fillLocated=null;
+   this.setData({fillPrompt:null,fillAnchor:null,fillStage:'ready',fillHeight:null});
+  }
+  if(this.fillingEntering()||service().store.status().error)return;
+  // Old saved completions used backward recommendations; never replay them.
+  if(prompt&&!prompt.completed){try{service().store.edit(h.id,h=>delete h.xiaoda.prompt,true);}catch(error){notify(error);}return;}
   if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.queueFilling(prompt);}
   else if(this.data.fillPrompt)this.showFilling(this.data.fillPrompt);
   this.scheduleFilling();
@@ -157,6 +165,7 @@ export const coachMethods={
  },
  acceptFilling(){const prompt=this.data.fillPrompt;if(!prompt||this.fillAccepting||this.xiaodaService!==getApp().service)return;
   if(service().store.status().error){notify(service().store.status().error);return;}
+  if(prompt.completed&&service().store.house(this.data.id)?.xiaoda?.prompt?.id!==prompt.id){this.syncFilling();return;}
   try{
    if(prompt.kind==='return'){service().store.change(s=>s.xiaoda.returnGuide=true,true);this.clearFilling();wx.navigateBack();return;}
    const rows=progress(service().store.house(this.data.id)),target=rows.find(r=>r.category===prompt.target&&!r.complete);if(!target){this.clearFilling();return;}
