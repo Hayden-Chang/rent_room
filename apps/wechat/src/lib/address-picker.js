@@ -11,23 +11,28 @@ function locationFailure(error) {
 export class AddressPicker {
   constructor({places,locate,render,select}) {
     Object.assign(this,{places,locate,render,select,revision:0,disposed:false});
-    this.state={center:null,query:'',items:[],mode:'',busy:false,message:'',locationAction:'',readonly:false};
+    this.state={center:null,query:'',items:[],mode:'',busy:false,message:'',locationAction:'',readonly:false,collapsed:false};
     this.address='';this.location=null;
   }
   update(patch){if(!this.disposed){if(patch.message==='')patch={...patch,locationAction:''};Object.assign(this.state,patch);this.render({...this.state});}}
   cancel(){clearTimeout(this.timer);this.revision++;}
   dispose(){this.cancel();this.disposed=true;}
   sync({address='',location,anchor='',readonly=false}) {
-    const p=point(location),changed=address!==this.address||JSON.stringify(p)!==JSON.stringify(this.location)||readonly!==this.state.readonly;
-    if(!changed)return;
+    const initial=!this.initialized,addressChanged=address!==this.address;
+    const p=point(location),changed=addressChanged||JSON.stringify(p)!==JSON.stringify(this.location)||readonly!==this.state.readonly;
+    this.initialized=true;if(!changed&&!initial)return;
     this.cancel();this.address=address;this.location=p;
-    this.update({readonly,query:'',items:[],busy:false,message:'',mode:''});
-    if(p&&(!anchor||keepsLocation(address,anchor)))this.update({center:p});
+    this.update({readonly,query:'',items:[],busy:false,message:'',mode:'',collapsed:readonly?false:initial?!!(address.trim()||p):addressChanged?true:this.state.collapsed});
+    if(p&&(!anchor||keepsLocation(address,anchor))){if(initial||readonly||!this.state.center)this.update({center:p});}
     else if(address&&!readonly)this.timer=setTimeout(()=>this.search(address,true),600);
+  }
+  focus() {
+    if(this.state.readonly||this.disposed)return;
+    this.update({collapsed:false});
   }
   input(query) {
     if(this.state.readonly)return;
-    this.cancel();this.update({query,items:[],mode:query.trim()?'search':'',busy:false,message:''});
+    this.cancel();this.update({query,collapsed:false,items:[],mode:query.trim()?'search':'',busy:false,message:''});
     if(query.trim())this.timer=setTimeout(()=>this.search(query.trim()),300);
     else if(this.state.center&&!this.matches(this.state.center))this.nearby(this.state.center);
   }
@@ -52,7 +57,7 @@ export class AddressPicker {
   async gps() {
     if(this.state.readonly||this.disposed)return;
     this.cancel();const revision=this.revision;
-    this.update({query:'',items:[],mode:'nearby',busy:true,message:''});
+    this.update({query:'',collapsed:false,items:[],mode:'nearby',busy:true,message:''});
     try {
       const center=point(await this.locate());
       if(this.disposed||revision!==this.revision)return;
@@ -61,7 +66,7 @@ export class AddressPicker {
     } catch(e) {if(revision===this.revision)this.update({busy:false,mode:'gps-error',...locationFailure(e)});}
   }
   move(center) {
-    const p=point(center);if(!p||this.state.readonly||distance(p,this.state.center)<2)return;
+    const p=point(center);if(!p||this.state.readonly||this.state.collapsed||distance(p,this.state.center)<2)return;
     this.cancel();this.update({center:p,query:'',items:[],busy:false,message:'',mode:''});
     if(!this.matches(p))this.nearby(p);
   }
@@ -82,7 +87,12 @@ export class AddressPicker {
     this.cancel();const selected={...item,address:preserveText?this.address:item.address};
     this.select(selected);
     this.address=selected.address;this.location=selected.location;
-    this.update({center:selected.location,query:'',items:[],mode:'',busy:false,message:''});
+    this.update({center:preserveText?(this.state.center||selected.location):selected.location,collapsed:true,query:'',items:[],mode:'',busy:false,message:''});
+  }
+  toggleMap(){
+    if(this.state.readonly||this.disposed)return;
+    if(!this.state.collapsed&&this.state.mode==='nearby'&&this.state.busy){this.cancel();this.update({busy:false});}
+    this.update({collapsed:!this.state.collapsed});
   }
   retry(){if(this.state.mode==='gps-error')return this.gps();if(this.state.mode==='search')return this.search(this.state.query.trim());if(this.state.mode==='manual')return this.search(this.address,true);if(this.state.center)return this.nearby(this.state.center,true);return this.gps();}
 }

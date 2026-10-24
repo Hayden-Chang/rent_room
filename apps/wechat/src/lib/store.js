@@ -1,11 +1,11 @@
 import {migrateXiaoda} from './xiaoda-state.js';
 import {updateGuidance} from './xiaoda-flow.js';
-import {emptyState,clone,validateState,freshHouse,updateAnswer,updateGroup,mergeElectricity,migrateTopFloor} from './model.js';
+import {emptyState,clone,validateState,freshHouse,updateAnswer,updateGroup,mergeElectricity,migrateTopFloor,syncElevatorPresence} from './model.js';
 import {capacityInfo,assertCapacity,activeHouseCount} from './capacity.js';
 
 export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1}={}) {
   let state=emptyState(),blocked=false,error='',revision=0;const listeners=new Set();
-  const migrate=h=>mergeElectricity(migrateTopFloor(h));
+  const migrate=h=>syncElevatorPresence(mergeElectricity(migrateTopFloor(h)));
   try {const raw=adapter.read();if(raw){state=migrateXiaoda(validateState(JSON.parse(raw)));state.houses.forEach(migrate);state.version=2;state.settings={...emptyState().settings,...state.settings};}}
   catch(e){blocked=true;error='已有记录读取失败，未覆盖原文件。请前往设置尝试恢复。';}
   function emit(){for(const f of listeners)f({error,blocked,revision});}

@@ -1,5 +1,6 @@
 import importlib.util
 import json
+import hashlib
 import os
 from pathlib import Path
 import subprocess
@@ -326,6 +327,22 @@ class PoolTests(unittest.TestCase):
             pool.configure_background(slot['app'])
         self.assertEqual((package / 'pool-background.cjs').read_text(), 'unexpected edit')
 
+    def test_background_upgrade_accepts_only_a_known_prior_policy_with_intact_vendor(self):
+        slot, _ = self.resident_fixture()
+        package = Path(slot['app']) / 'Contents/Resources/package.nw'
+        pool.configure_background(slot['app'])
+        vendor = (package / 'vendor.js').read_bytes()
+        previous = b'known previous quiet policy'
+        (package / 'pool-background.cjs').write_bytes(previous + b'\n' + vendor)
+        with patch.object(pool, 'LEGACY_BACKGROUND_HASHES', {hashlib.sha256(previous).hexdigest()}):
+            pool.configure_background(slot['app'])
+        self.assertEqual((package / 'vendor.js').read_bytes(), vendor)
+        self.assertEqual((package / 'pool-background.cjs').read_bytes(), Path(pool.__file__).with_name('background.cjs').read_bytes() + b'\n' + vendor)
+        (package / 'pool-background.cjs').write_bytes(previous + b'\nmodified vendor')
+        with patch.object(pool, 'LEGACY_BACKGROUND_HASHES', {hashlib.sha256(previous).hexdigest()}):
+            with self.assertRaisesRegex(RuntimeError, 'resource changed'):
+                pool.configure_background(slot['app'])
+
     def test_two_jobs_reuse_one_live_process_and_release_the_lease(self):
         slot, src = self.resident_fixture()
         launched, requests = [], []
@@ -370,6 +387,15 @@ class PoolTests(unittest.TestCase):
                 self.assertTrue(migrated['projectInitialized'])
                 self.assertNotEqual(migrated['runtimePid'], first['runtimePid'])
                 self.assertEqual(again['runtimePid'], migrated['runtimePid'])
+                with patch.dict(os.environ, {'WECHAT_POOL_UI_REVIEW': '1'}):
+                    review = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', 'pass'], 0))
+                    repeat = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', 'pass'], 0))
+                    self.assertNotEqual(review['runtimePid'], again['runtimePid'])
+                    self.assertEqual(repeat['runtimePid'], review['runtimePid'])
+                    self.assertEqual(pool.read_json(pool.runtime_path(self.root, slot))['backgroundPolicy'], 'ui-review-v1')
+                quiet = pool.read_json(pool.run(self.root, src, [sys.executable, '-c', 'pass'], 0))
+                self.assertNotEqual(quiet['runtimePid'], review['runtimePid'])
+                self.assertEqual(pool.read_json(pool.runtime_path(self.root, slot))['backgroundPolicy'], pool.BACKGROUND_POLICY)
         finally:
             for child in launched:
                 child.kill()

@@ -5,4 +5,4 @@ export function requireCapacity(additional=1){service().store.checkCapacity(addi
 export function watch(page){page.unsubscribe=service().store.subscribe(s=>page.setData({saveError:s.error}));page.setData({saveError:service().store.status().error});}
 export function unwatch(page){page.unsubscribe?.();}
 export async function confirm(title,content){const res=await service().api('showModal',{title,content,confirmText:'确认',cancelText:'取消'});return res.confirm;}
-export async function prompt(title,placeholder=''){const res=await service().api('showModal',{title,editable:true,placeholderText:placeholder,confirmText:'保存'});return res.confirm?(res.content||'').trim():null;}
+export async function prompt(title,placeholder='',content=''){const res=await service().api('showModal',{title,editable:true,placeholderText:placeholder,content,confirmText:'保存'});return res.confirm?(res.content||'').trim():null;}

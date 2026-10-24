@@ -9,7 +9,7 @@ function fixture(){
  let spec,now=1000;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date:{now:()=>now}});
  const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'floor',inline:true,value:'是'},readonly:false},events:[],notifications:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){(name==='swipeopen'?this.notifications:this.events).push({name,detail});}};
  const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
- function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
+ function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},text:node[tag].filter(n=>'#text' in n).map(n=>n['#text']).join(''),parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
  const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass)&&(klass!=='choice'||!n.attrs.class.includes(' skip ')));
  function dispatch(target,type,x=100,y=50,extra={}){
   const caught=[],path=[...target.parents,target];
@@ -29,8 +29,16 @@ function fixture(){
   }
   return caught;
  }
- return {c,find,dispatch,findTag:tag=>nodes.find(n=>n.tag===tag&&!n.parents.some(p=>(p.attrs.class||'').split(' ').includes('speed-entry'))),advance:ms=>{now+=ms;}};
+ return {c,find,dispatch,children:parent=>nodes.filter(n=>n.parents.at(-1)===parent),findTag:tag=>nodes.find(n=>n.tag===tag&&!n.parents.some(p=>(p.attrs.class||'').split(' ').includes('speed-entry'))),advance:ms=>{now+=ms;}};
 }
+it('places not-applicable after yes/no choices and keeps its group action',()=>{
+ const {c,find,children,dispatch}=fixture();
+ c.data.field={heading:'group',foldId:'topic_68',skippable:true,skipped:false,options:[{value:'是'},{value:'否'}]};
+ const buttons=children(find('choices')).filter(n=>n.tag==='button');
+ const labels=buttons.flatMap(n=>n.attrs['wx:for']?c.data.field.options.map(o=>o.label||o.value):n.text);
+ expect(labels).toEqual(['是','否','不涉及']);
+ dispatch(find('skip'),'tap');expect(c.events).toEqual([{name:'group',detail:{id:'topic_68',op:'skip'}}]);
+});
 it('swiping from an answer option opens the row without selecting that option',()=>{
  const {c,find,dispatch}=fixture(),choice=find('choice');
  dispatch(choice,'touchstart',280);dispatch(choice,'touchmove',180);dispatch(choice,'touchend',180);dispatch(choice,'tap',180);
