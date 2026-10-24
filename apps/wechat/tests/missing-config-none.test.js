@@ -12,7 +12,7 @@ it.each([false,true])('adds none to all three new or saved text inputs, legacy=%
  const h=freshHouse('配置');if(legacy)for(const t of h.templateTopics)for(const f of t.fields)delete f.allowNone;
  const before=clone(h);
  expect(rows(h).map(r=>[r.id,r.type,r.allowNone])).toEqual(ids.map(id=>[id,'t',true]));
- expect(houseTopics(h).flatMap(t=>t.fields).filter(f=>f.allowNone).map(f=>f.id)).toEqual(ids);
+ expect(houseTopics(h).flatMap(t=>t.fields).filter(f=>ids.includes(f.id)&&f.allowNone).map(f=>f.id)).toEqual(ids);
  expect(h).toEqual(before);
  const hidden=freshHouse('隐藏配置',{template:'自定义',hiddenFields:ids});expect(rows(hidden)).toEqual([]);
 });

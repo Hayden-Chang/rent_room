@@ -78,7 +78,7 @@ Component({
   emit(prop,value){if(!this.data.readonly)this.triggerEvent('answer',{id:this.data.field.id,prop,value});},
   handleInputFocus(e){if(activeRow)activeRow.closeSwipe();const input=e.currentTarget.dataset.input;this.setData({[input+'Focused']:true});this.triggerEvent('inputfocus',{id:this.data.field.id,input});},
   handleInputBlur(e){const input=e.currentTarget.dataset.input;this.setData({[input+'Focused']:false,[input+'Filled']:hasContent(e.detail.value)});this.triggerEvent('inputblur',{id:this.data.field.id,input});},
-  input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
+  input(e){this.setData({valueFilled:hasContent(e.detail.value)});if(this.data.field.id==='fc76beec-52e3-4fe9-a937-dec254d4cc4f'&&e.detail.value==='-')return;this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
   toggleNone(){const f=this.data.field;if(this.data.readonly||!(f.cost||f.allowNone)||Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal())return;this.emit(f.cost?'noCost':'none',!f.noneSelected);},
   choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly){if(this.data.field.heading)this.triggerEvent('group',{id:this.data.field.foldId,op:'value',value:e.currentTarget.dataset.value});else this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});}},
   trayAction(e){
@@ -86,6 +86,6 @@ Component({
    const action=e.currentTarget.dataset.action;if(!['flag','note','media'].includes(action))return;
    this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});
   },
-  action(e){if(e.currentTarget.dataset.tray)return this.trayAction(e);if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map','speed-test','commute','wheel'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
+  action(e){if(e.currentTarget.dataset.tray)return this.trayAction(e);if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(action==='wheel'&&this.data.field.noneSelected)return;if(this.data.readonly&&['flag','media','map','speed-test','commute','wheel'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
  }
 });

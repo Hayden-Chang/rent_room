@@ -47,3 +47,14 @@ PR 创建后的主 agent 复查已核对范围、共享策略、草稿/清空语
 合入前主线前进到 `b079ee6`，包含楼道标题、顶楼及选项异常判定。`402ef4710f33dcf2cbc39329cc0889d99105cf2c` 合并最新主线；共享模型的真实冲突同时保留楼层 -1 例外与顶楼答案改变时重置自身异常覆盖，其他字段的备注及标记仍保留。主 agent 复查最终差异仅为本次轮盘范围，未覆盖已合入规则。
 
 旧测试结果因真实冲突失效，未直接套用。重新构建正常用户预览配置后，原 7 文件加 `top-floor`、`automatic-choice-issues`、`elevator-ratio`、`balcony-issue` 共 **11 文件、106 项通过**；覆盖轮盘保存/空值、顶楼迁移/覆盖、旧电梯选项和自动问题并存。使用 Node 24.19.0、单 worker 及显式 20 秒测试上限，日志在 `apps/wechat/artifacts/wheel-merge-20261022/tests.log`。官方 wcc/wcsc 各 15 文件、12 页面通过，构建 2035288 字节。后续仅补此 Markdown 记录，执行输入与该验证提交等价。
+
+
+## 2026-10-24 手机反馈调整
+
+楼层、面积、公交地铁通行时间和开车通勤时间改为直接输入，通勤查询入口保留。面积允许原有小数，旧值、备注及影像保持；楼层用可输入负号的键盘，单独的负号只作为未提交输入，完整 -1 仍按原规则保存。其余轮盘策略保持，剩余 13 项。
+
+免租期在轮盘右侧增加“无”。“无”独立于空白和 0 天；选择后计为已记录，隐藏原天数并禁止打开轮盘，取消“无”恢复先前天数。新旧房源、精简/详细模板均适用。
+
+设置中的模板二选一使用微信原生 radio/radio-group，替换字符方框；选中仅修改草稿，点“确定”才保存。点单选区域不会进入编辑页，点原文字/箭头仍打开对应模板。
+
+定向验证覆盖 input-fit、wheel-input、wheel-dialog、missing-config-none、cost-none、field-row-events、field-row-placeholder、field-row-swipe、field-row-inline-actions、model、simple-mode、welcome-mode、template-fold、commute-page、first-meeting-runtime、onboarding。本轮真实输入、免租期切换和模板单选回调为 `tests/e2e/input-fit-native.cjs`；隔离测试数据不使用手机原记录。证据位于本任务 `apps/wechat/artifacts/input-fit/`。
