@@ -1,7 +1,7 @@
 import {moveItem,assertTemplate} from '../../lib/templates.js';
 Component({
  properties:{config:Object},data:{rows:[],dragging:'',error:''},
- observers:{config(value){if(value)this.setData({rows:value.order.map(title=>({title,disabled:value.disabled.includes(title)}))});}},
+ observers:{'config.**'(value){if(value)this.setData({rows:value.order.map(title=>({title,disabled:value.disabled.includes(title)}))});}},
  methods:{
   toggle(e){const title=e.currentTarget.dataset.title,config=this.data.config,next={order:[...config.order],disabled:config.disabled.includes(title)?config.disabled.filter(t=>t!==title):[...config.disabled,title]};
    try{assertTemplate(next);this.setData({error:''});this.triggerEvent('change',next);}catch(error){this.setData({error:error.message});wx.showToast({title:error.message,icon:'none'});}},
