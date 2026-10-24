@@ -16,10 +16,19 @@ async function state(){return JSON.parse(await evaluate(function(){const p=getCu
  mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  try{
   assert.ok((await evaluate(function(){return getApp().service.root;})).includes('/xunju-test-xiaoda-completion-'));
-  await evaluate(function(fixture){const store=getApp().service.store;store.change(s=>Object.assign(s,fixture),true);store.change(()=>{},true);wx.reLaunch({url:'/pages/detail/index?id=completion-review'});return true;},fixture);
+  // A freshly cleared pool project navigates from home to welcome. Wait for that
+  // startup navigation before installing the fixture and requesting another one.
+  let bootReady=false;
+  for(let i=0;i<80;i++){
+   bootReady=await evaluate(function(){const app=getApp(),p=getCurrentPages().slice(-1)[0];return !!app.service&&!!p?.accountPageReady&&p.route===(app.service.store.get().xiaoda.setup==='done'?'pages/home/index':'pages/welcome/index');});
+   if(bootReady)break;await sleep(100);
+  }
+  assert.ok(bootReady,'Startup page ready');
+  const navigation=await evaluate(function(fixture){const store=getApp().service.store;store.change(s=>Object.assign(s,fixture),true);store.change(()=>{},true);return new Promise(resolve=>wx.reLaunch({url:'/pages/detail/index?id=completion-review',success:()=>resolve('ok'),fail:error=>resolve(error.errMsg)}));},fixture);
+  assert.equal(navigation,'ok','Fixture navigation');
   let prepared=false;
   for(let i=0;i<80;i++){await sleep(100);if(await evaluate(function(){const p=getCurrentPages().slice(-1)[0];return p.route==='pages/detail/index'&&p.data.id==='completion-review'&&p.accountPageReady;})){prepared=true;break;}}
-  assert.ok(prepared,'Detail page ready');
+  assert.ok(prepared,'Detail page ready: '+await evaluate(function(){const p=getCurrentPages().slice(-1)[0];return JSON.stringify({route:p?.route,id:p?.data.id,ready:p?.accountPageReady,scope:getApp().auth.scope});}));
   await evaluate(function(){const p=getCurrentPages().slice(-1)[0];p.folds[JSON.stringify({phase:p.data.phase,query:p.data.query,filters:p.data.filters})]={'通风与采光':true,topic_21:true};return new Promise(resolve=>p.refresh({},()=>wx.nextTick(()=>{
    getApp().__completionTrace=[];getApp().__completionTouches=[];
    const original=p.setData;p.setData=function(patch,done){if('fillStage' in patch||'fillPrompt' in patch)getApp().__completionTrace.push({at:Date.now(),stage:patch.fillStage,promptId:patch.fillPrompt?.id});return original.call(this,patch,done);};
