@@ -69,10 +69,25 @@ export const coachMethods={
   if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.showFilling(prompt);}
   else if(this.data.fillPrompt)this.showFilling(this.data.fillPrompt);
  },
- showFilling(prompt){
+ fillingView(){return JSON.stringify([this.data.tab,this.data.phase,this.data.query,this.data.filters]);},
+ fillingCurrent(saved,run){return this.fillRun===run&&!this.unloaded&&!this.coachHidden&&!this.data.coach&&this.data.tab==='清单'&&this.data.id===saved.houseId&&this.fillingView()===saved.view&&getApp().service===saved.platform;},
+ async showFilling(prompt){
   const section=this.data.sections.find(s=>s.title===prompt.target);
   const anchor=prompt.kind==='return'?{kind:'return'}:section?{kind:'category',id:section.id}:{kind:'phase',id:'phase-area'};
   if(this.data.fillPrompt?.id===prompt.id&&this.data.fillAnchor?.kind===anchor.kind&&this.data.fillAnchor?.id===anchor.id)return;
+  if(this.fillPending?.id===prompt.id)return;
+  const run=this.fillRun=(this.fillRun||0)+1;
+  this.fillPending=null;if(this.fillReturn?.id!==prompt.id)this.fillReturn=null;
+  if(prompt.kind==='next'&&this.fillReturn?.id!==prompt.id){
+   const saved={id:prompt.id,houseId:this.data.id,platform:service(),view:this.fillingView()};this.fillPending=saved;
+   try{
+    // Measure before inserting the bubble: it can move every field below A.
+    const position=await this.measureTab();if(!this.fillingCurrent(saved,run)){if(this.fillPending===saved)this.fillPending=null;return;}
+    const rows=position.rows.filter(r=>r.dataset?.scrollKey&&r.bottom>r.top);
+    this.fillReturn={...saved,scrollTop:position.scrollTop,anchors:[...rows.filter(r=>r.bottom>0),...rows.filter(r=>r.bottom<=0).reverse()].map(r=>({key:r.dataset.scrollKey,top:r.top}))};
+    this.fillPending=null;
+   }catch(error){if(this.fillingCurrent(saved,run)){this.fillPending=null;notify(error);}return;}
+  }
   this.setData({fillPrompt:prompt,fillAnchor:anchor},()=>this.locateFilling());
  },
  locateFilling(){
@@ -81,10 +96,11 @@ export const coachMethods={
   const key=prompt.id+':'+anchor.id;if(this.fillLocated===key)return;this.fillLocated=key;
   wx.pageScrollTo({selector:'#filling-guide',duration:250});
  },
- clearFilling(){
+ clearFilling(done){
   this.clearCoachTimer();if(this.xiaodaService!==getApp().service)return;
   const h=service().store.house(this.data.id);if(h?.xiaoda?.prompt)service().store.edit(h.id,h=>delete h.xiaoda.prompt,true);
-  this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null});
+  const run=this.fillRun=(this.fillRun||0)+1;
+  this.fillPending=null;this.fillReturn=null;this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null},()=>done?.(run));
  },
  acceptFilling(){const prompt=this.data.fillPrompt;if(!prompt)return;
   try{
@@ -97,13 +113,24 @@ export const coachMethods={
    this.setData({...view});this.refresh({},()=>{const section=this.data.sections.find(s=>s.title===target.category);if(section)wx.pageScrollTo({selector:'#'+section.id,duration:250});});
   }catch(error){notify(error);}
  },
- inputFilling(){if(!this.data.fillPrompt||this.data.coach)return;try{if(this.data.fillPrompt.kind==='intro')service().store.edit(this.data.id,h=>h.xiaoda.intro='done',true);this.clearFilling();}catch(error){notify(error);}},
- waitFilling(){try{this.clearFilling();}catch(error){notify(error);}},
+ inputFilling(){if(this.data.coach)return;if(!this.data.fillPrompt&&!this.fillPending){this.fillRun=(this.fillRun||0)+1;return;}try{if(this.data.fillPrompt?.kind==='intro')service().store.edit(this.data.id,h=>h.xiaoda.intro='done',true);this.clearFilling();}catch(error){notify(error);}},
+ waitFilling(){try{
+  const saved=this.fillReturn;
+  this.clearFilling(async run=>{
+   if(!saved||!this.fillingCurrent(saved,run))return;
+   try{
+    const layout=await this.measureTab();if(!this.fillingCurrent(saved,run))return;
+    let scrollTop=saved.scrollTop;const rows=new Map(layout.rows.map(r=>[r.dataset?.scrollKey,r]));
+    for(const anchor of saved.anchors){const row=rows.get(anchor.key);if(row&&row.bottom>row.top){scrollTop=layout.scrollTop+row.top-anchor.top;break;}}
+    wx.pageScrollTo({scrollTop:Math.max(0,scrollTop),duration:0});
+   }catch(error){if(this.fillingCurrent(saved,run))notify(error);}
+  });
+ }catch(error){notify(error);}},
  otherHouses(){try{this.clearFilling();this.showFilling({kind:'return',text:'那就先看看其他房子吧～',id:'return-'+Date.now()});}catch(error){notify(error);}},
  async closeXiaoda(){this.clearCoachTimer();try{const res=await service().api('showActionSheet',{itemList:['当前房源关闭','今天关闭','永久关闭']});
    service().store.change(s=>{const h=s.houses.find(h=>h.id===this.data.id);h.xiaoda||={};h.xiaoda.intro='done';delete h.xiaoda.prompt;
     if(res.tapIndex===0)h.xiaoda.disabled=true;if(res.tapIndex===1)s.xiaoda.closedDate=localDay();if(res.tapIndex===2)s.xiaoda.enabled=false;},true);
-   this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null});if(res.tapIndex===2)notify('小搭已关闭，可以在设置中重新开启。');
+   this.clearFilling();if(res.tapIndex===2)notify('小搭已关闭，可以在设置中重新开启。');
   }catch(error){notify(error);}},
  leaveXiaoda(){this.clearCoachTimer();const platform=this.xiaodaService;if(platform!==getApp().service)return;
   const h=platform.store.house(this.data.id);if(!h||h.archived)return;

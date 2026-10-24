@@ -1,0 +1,35 @@
+
+ RUN  v5.0.3 /Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/xiaoda-wait-position-20261024/apps/wechat
+
+ ❯ tests/onboarding-wait-position.test.js (11 tests | 1 failed | 10 skipped) 38ms
+   × can display an already saved recommendation when opening the detail page 37ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/onboarding-wait-position.test.js > can display an already saved recommendation when opening the detail page
+AssertionError: expected null to match object { kind: 'next', target: 'A' }
+
+- Expected:
+{
+  "kind": "next",
+  "target": "A",
+}
+
++ Received:
+null
+
+ ❯ tests/onboarding-wait-position.test.js:65:60
+     63| it('can display an already saved recommendation when opening the detai…
+     64|  const h=harness();h.app.service.store.answer(h.id,'test_b_1','value',…
+     65|  const p=h.open();await settle();expect(p.data.fillPrompt).toMatchObje…
+       |                                                            ^
+     66|  p.refresh();await settle();expect(p.data.fillPrompt.target).toBe('A');
+     67| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 skipped (11)
+   Start at  11:42:47
+   Duration  278ms (transform 55%, import 25%, tests 19%, worker 1%)
