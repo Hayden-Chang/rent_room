@@ -71,3 +71,9 @@ PR 创建后的主 agent 复查已核对范围、共享策略、草稿/清空语
 原生尝试 `745b54aa7cac41caae04addbfd82e70c` 因 SDK 执行环境中的 JSON.parse 代理错误失败，改为 Node 侧解析。`c35142edcdfe43fb8c07efc7ec96ef51` 等待首个原生输入超时，CUA 输入未到达目标且返回 noWindowsAvailable；未把 handler 回放当作通过。渲染 run `67493f5159cb4f8a9b97ffc70443f9b4` 的免租期选中图过早；随后 `07a25b748c7e4b95ac9e0246df76710c` 页面等待失败。核对微信[导航回调](https://github.com/wechat-miniprogram/api-typings/blob/master/types/wx/lib.wx.api.d.ts)和[页面生命周期](https://github.com/wechat-miniprogram/api-typings/blob/master/types/wx/lib.wx.page.d.ts)后，等待成功回调、目标房源 ID、accountReady 与现有 onReady 标记，再取得上述有效图。原失败记录全部保留；最终图不使用早帧。
 
 主 agent 已复查 PR #73 的业务范围、生成源、旧记录兼容、选择草稿、只读状态和证据边界；GitHub commit statuses 为空，不能称为 CI 通过。PR 保持草稿，原生交互、手机体验和用户视觉确认未完成，未合入或发布。此前 main 预览码不包含此 PR。
+
+### 用户确认后的四项补充（2026-10-24）
+
+按用户“按照你的建议改一下”：晾衣杆长度恢复数字直接输入；床长、床宽和朝向使用已有平铺单选按钮，重选同一项可取消，朝向仍提供“其他”及说明输入。复用清单里的现有选项和单位，保留房源自定义尺寸选项、原值、备注、问题标记和影像。只移除这四项轮盘策略，其余 9 项继续使用轮盘。
+
+本轮先合入主线 `e14ada673f71539b5b1c3422d554e030ae128565`，唯一冲突是生成的 simple-topics.json；从合并后的 source-tree.json 与 simple-checklist.json 重新生成，保留主线室内环境/产权问句调整及本 PR 免租期“无”。新增 5 项回归在调整前失败；本轮 20 文件 283 项通过，官方 wcc 20 / wcsc 22 通过。新增覆盖平铺选中/清空/重载、自定义床尺寸和 1.2/1.8 米等精确输入，保留上轮的字段/免租期/模板测试；因主线真实整合增加 simple-environment、onboarding-wait-position、xiaoda，并加入现有 layout-other 覆盖同类选项说明。原日志位于 apps/wechat/artifacts/input-fit-v2/。
