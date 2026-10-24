@@ -6,8 +6,7 @@
   <view class="modes">
    <view class="mode {{mode==='simple'?'selected':''}}" data-mode="simple" bindtap="selectMode">
     <view class="mode-header">
-    <button id="mode-simple" class="mode-choice" data-mode="simple" catchtap="selectMode" aria-role="radio" aria-checked="{{mode==='simple'}}" aria-label="{{mode==='simple'?'已选择精简模式':'选择精简模式'}}" disabled="{{busy}}"><view class="mode-radio {{mode==='simple'?'checked':''}}"/><text>精简模式</text></button>
-    <view class="mode-description">整体判断，补充备注</view>
+    <button id="mode-simple" class="mode-choice" data-mode="simple" catchtap="selectMode" aria-role="radio" aria-checked="{{mode==='simple'}}" aria-label="{{mode==='simple'?'已选择精简模式':'选择精简模式'}}" disabled="{{busy}}"><view class="mode-radio {{mode==='simple'?'checked':''}}"/><view class="mode-label"><text>精简模式</text><text class="mode-description">整体判断，补充备注</text></view></button>
     </view>
     <view class="example">
      <view class="simple-record">
@@ -19,8 +18,7 @@
    </view>
    <view class="mode {{mode==='detailed'?'selected':''}}" data-mode="detailed" bindtap="selectMode">
     <view class="mode-header">
-    <button id="mode-detailed" class="mode-choice" data-mode="detailed" catchtap="selectMode" aria-role="radio" aria-checked="{{mode==='detailed'}}" aria-label="{{mode==='detailed'?'已选择详细模式':'选择详细模式'}}" disabled="{{busy}}"><view class="mode-radio {{mode==='detailed'?'checked':''}}"/><text>详细模式</text></button>
-    <view class="mode-description">展开细节，逐项记录</view>
+    <button id="mode-detailed" class="mode-choice" data-mode="detailed" catchtap="selectMode" aria-role="radio" aria-checked="{{mode==='detailed'}}" aria-label="{{mode==='detailed'?'已选择详细模式':'选择详细模式'}}" disabled="{{busy}}"><view class="mode-radio {{mode==='detailed'?'checked':''}}"/><view class="mode-label"><text>详细模式</text><text class="mode-description">展开细节，逐项记录</text></view></button>
     </view>
     <view class="example">
      <view class="example-title detailed-title">生活配套</view>
@@ -28,7 +26,6 @@
     </view>
    </view>
   </view>
-  <view class="selection-hint">点击卡片选择记录方式</view>
   <view class="bottom"><button class="back guide-secondary" bindtap="back">返回调整</button><button class="primary guide-primary grow" hover-class="guide-pressed" bindtap="finish" loading="{{busy}}" disabled="{{busy}}">选好啦</button></view>
  </block>
 </view>
