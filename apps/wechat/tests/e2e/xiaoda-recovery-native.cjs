@@ -31,7 +31,10 @@ async function setFault(value){await evaluate(function(value){const root=getApp(
    h.answers={recovery_0_0:{value:'是',note:'保留 A 备注'},recovery_1_0:{value:'是'}};
    if(legacy){h.answers.recovery_1_1={value:'是'};h.xiaoda.seenCompleted=['B'];h.xiaoda.prompt={kind:'next',target:'A',phase:'现场',id:'old-prompt',text:'「B」记录好了，继续填写「A」吧！'};}
    state.houses=[h];Object.assign(state.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done'});
-   await route('/pages/settings/index');console.log('SETUP settings ready');await evaluate(function(state){getApp().service.store.change(s=>Object.assign(s,state),true);return true;},state);console.log('SETUP fixture saved');
+   await route('/pages/settings/index');console.log('SETUP settings ready');
+   // Clone the SDK fixture through the app's own store, matching other native
+   // fixtures; do not retain cross-context array proxies in rendered state.
+   await evaluate(function(state){const store=getApp().service.store;store.change(s=>Object.assign(s,state),true);store.change(()=>{},true);return true;},state);console.log('SETUP fixture saved');
    await route('/pages/home/index');await route('/pages/detail/index?id='+h.id,true);await until(s=>s.ready,'ready');
    await evaluate(function(){const p=getCurrentPages().slice(-1)[0],view={phase:'现场',query:'',filters:[]};p.folds[JSON.stringify(view)]={A:true,B:true};p.setData(view);p.refresh();return true;});return h;
   }
