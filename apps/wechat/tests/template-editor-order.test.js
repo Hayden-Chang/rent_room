@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 // Model documented observer path matching, without assuming how the component
-// derives its visible rows. Actual parent binding/rendering is checked in DevTools.
+// derives its visible rows. Actual parent binding/rendering still needs DevTools verification.
 function editor(){
  let spec;
  vm.runInNewContext(fs.readFileSync('dist/components/template-editor/index.js','utf8'),{Component:value=>spec=value});
