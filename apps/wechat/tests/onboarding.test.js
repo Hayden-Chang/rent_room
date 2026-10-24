@@ -4,12 +4,12 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {houseTopics} from '../src/lib/model.js';
 afterEach(()=>vi.useRealTimers());
-function harness({disabled=false,legacy=false}={}){
+function harness({disabled=false,legacy=false,mode='detailed'}={}){
  vi.useFakeTimers();const disk=new Map(),selectors=[];let app,page,fail=false;
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync(p,v){if(fail)throw Error('full');disk.set(p,v);},copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),setNavigationBarTitle(){},navigateBack:vi.fn(),navigateTo:vi.fn(),showToast:vi.fn(),getWindowInfo:()=>({windowWidth:390,windowHeight:720}),pageScrollTo:vi.fn(o=>o.complete?.())};
  const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,Date,setTimeout,clearTimeout});
  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
- app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.enabled=!disabled;if(legacy){s.xiaoda.legacy=true;s.xiaoda.tutorialStep=0;}});
+ app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.enabled=!disabled;s.settings.selectedTemplate=mode;if(legacy){s.xiaoda.legacy=true;s.xiaoda.tutorialStep=0;}});
  const id=app.service.store.add('第一套');
  function open(){vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p,cb){Object.assign(this.data,p);cb?.();};page.selectAllComponents=()=>[];
   page.createSelectorQuery=()=>{let anchors=false;const q={select:selector=>{selectors.push(selector);return q;},selectAll:()=>{anchors=true;return q;},fields:()=>q,selectViewport:()=>q,boundingClientRect:()=>q,scrollOffset:()=>q,exec:cb=>cb(anchors?[{scrollTop:0},[]]:[{left:20,top:50,width:350,height:60,bottom:110},{height:250},{scrollTop:0}])};return q;};page.onLoad({id,new:'1'});page.onReady();return page;}
@@ -77,6 +77,25 @@ it('anchors a hidden cross-phase target to its phase without switching until acc
  expect(h.wx.pageScrollTo).not.toHaveBeenCalled();expect(p.data.fillStage).toBe('ready');
  p.acceptFilling();expect(p.data.phase).toBe('询问签约');expect(p.data.sections[0].title).toBe('费用与付款');expect(p.data.sections[0].expanded).toBe(true);
  expect(p.data.fillAnchor.kind).toBe('phase');vi.advanceTimersByTime(440);expect(p.data.fillPrompt).toBeNull();
+});
+it.each(['fees','other houses'])('shows the phase choice after only electrical/network/privacy and accepts %s',choice=>{
+ const h=harness({mode:'simple'});h.app.service.store.change(s=>s.xiaoda.tutorialStep=0);
+ h.app.service.store.edit(h.id,house=>house.xiaoda.intro='done');
+ const p=h.open();p.phase({currentTarget:{dataset:{value:'现场'}}});
+ for(const id of ['simple_50','simple_51','simple_52','simple_53'])p.choose({detail:{id,value:'是'}});
+ vi.advanceTimersByTime(1500);
+ expect(p.data.fillPrompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'电路网络与隐私'});
+ expect(p.data.fillStage).toBe('ready');expect(p.data.phase).toBe('现场');
+ expect(p.data.fillAnchor).toEqual({kind:'phase',id:'phase-area'});
+ const answers=JSON.stringify(h.app.service.store.house(h.id).answers);
+ if(choice==='fees'){
+  p.acceptFilling();vi.advanceTimersByTime(440);
+  expect(p.data.phase).toBe('询问签约');expect(p.data.sections[0]).toMatchObject({title:'费用与付款',expanded:true});
+ }else{
+  p.otherHouses();expect(p.data.fillPrompt.kind).toBe('return');
+  p.acceptFilling();expect(h.wx.navigateBack).toHaveBeenCalledOnce();
+ }
+ expect(JSON.stringify(h.app.service.store.house(h.id).answers)).toBe(answers);
 });
 it('retains the introduction after a failed save and resumes it after leaving without acceptance',()=>{
  const h=harness(),p=intro(h);h.fail(true);p.acceptFilling();expect(p.data.fillPrompt.kind).toBe('intro');expect(h.app.service.store.house(h.id).xiaoda.intro).toBe('pending');

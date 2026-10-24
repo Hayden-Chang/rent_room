@@ -1,6 +1,6 @@
 import {describe,it,expect,vi,afterEach} from 'vitest';
 import {createStore} from '../src/lib/store.js';
-import {emptyState,freshHouse,houseTopics} from '../src/lib/model.js';
+import {emptyState,freshHouse,houseTopics,activeEntries,rules,answer} from '../src/lib/model.js';
 import {progress,completionPrompt} from '../src/lib/xiaoda-flow.js';
 import {xiaodaEnabled,localDay} from '../src/lib/xiaoda-state.js';
 import {templateConfig,templateCategories,assertTemplate,moveItem} from '../src/lib/templates.js';
@@ -73,10 +73,35 @@ describe('completion recommendations',()=>{
   expect(completionPrompt(s.get(),'费用与付款')).toMatchObject({target:'A'});
   s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({target:'房源基本信息'});
  });
- it('continues to a later phase without claiming earlier onsite gaps are complete',()=>{
+ it('offers the phase choice at the forward boundary despite earlier onsite gaps',()=>{
   const s=scenario(['A','B','费用与付款']);s.answer(0,0);s.answer(1,0);s.answer(1,1);
-  expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'费用与付款'});
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款'});
   expect(s.get().xiaoda.prompt.text).not.toContain('现场记录好啦');
+  expect(s.get().xiaoda.prompt.text).toContain('也可以先看看其他房子');
+ });
+ it.each(['simple','detailed'])('offers fees or other houses after directly completing electrical/network/privacy in %s mode',mode=>{
+  const state=emptyState(),h=freshHouse('直接检查',{selectedTemplate:mode});
+  state.houses=[h];Object.assign(state.xiaoda,{setup:'done',tutorialStep:0});
+  const store=createStore(io(state)),category='电路网络与隐私';
+  for(let n=0;n<40;n++) {
+   const current=store.house(h.id),entry=activeEntries(current).find(e=>e.topic.category===category&&!rules.fieldRecorded(e.field,answer(current,e.field)));
+   if(!entry)break;
+   const {field}=entry;
+   if(field.groupId)store.group(h.id,field.groupId,'presence','没有');
+   else store.answer(h.id,field.id,'value',field.multiple?[field.options[0]]:field.options?.[0]||'已检查');
+  }
+  const saved=store.house(h.id),rows=progress(saved);
+  expect(rows.find(r=>r.category===category).complete).toBe(true);
+  expect(rows.filter(r=>r.phase==='现场'&&r.category!==category).every(r=>r.done===0)).toBe(true);
+  expect(saved.xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',phase:'询问签约',completed:category});
+  expect(saved.xiaoda.prompt.text).toBe('接下来要记录费用和合同吗？也可以先看看其他房子。');
+ });
+ it('keeps forward onsite work ahead of the phase choice and skips finished contract categories',()=>{
+  const s=scenario(['A','B','C','费用与付款','身份与合同']);
+  s.store.edit(s.h.id,h=>h.templateTopics.at(-1).phase='询问与签约');
+  s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'C'});
+  s.answer(3,0);s.answer(3,1);s.answer(2,0);s.answer(2,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'身份与合同'});
  });
  it('does not replay dismissed guidance for reopening, unchanged answers, notes or media',()=>{
   const s=scenario(['A','B']);s.answer(0,0);s.answer(0,1);s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);
