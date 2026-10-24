@@ -43,12 +43,12 @@ describe('xiaoda lifecycle and templates',()=>{
 });
 describe('completion recommendations',()=>{
  it('does not complete from notes, media or problem flags',()=>{const s=scenario(['A']);s.store.answer(s.h.id,'custom0_0','note','note');s.store.answer(s.h.id,'custom0_1','issueFlag',true);s.store.edit(s.h.id,h=>h.media.push({id:'m',type:'image',path:'/x',fieldId:'custom0_0'}));expect(progress(s.get())[0].done).toBe(0);expect(s.get().xiaoda.prompt).toBeUndefined();});
- it('continues forward from B to C and D, then from edited B past completed C to partial D',()=>{
+ it('continues forward from B to C and D without restarting guidance when completed B is edited',()=>{
   const s=scenario(['A','B','C','D']);s.answer(0,0);s.answer(1,0);s.answer(1,1);
   expect(s.get().xiaoda.prompt).toMatchObject({target:'C',completed:'B'});
   s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt.target).toBe('D');
   s.answer(3,0);s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);
-  s.answer(1,1,'否');expect(s.get().xiaoda.prompt).toMatchObject({target:'D',completed:'B',text:'「B」记录好了，继续填写「D」吧！'});
+  s.answer(1,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();
   expect(progress(s.get()).map(r=>r.complete)).toEqual([false,true,true,false]);
   expect(createStore(s.adapter).house(s.h.id).answers).toEqual(s.get().answers);
  });
@@ -56,10 +56,10 @@ describe('completion recommendations',()=>{
   const s=scenario(['A','B','C','D']);s.answer(3,0);s.answer(1,0);s.answer(1,1);
   expect(s.get().xiaoda.prompt.target).toBe('C');
  });
- it('guides forward when a previously completed category is cleared and completed again',()=>{
+ it('does not guide again when a previously completed category is cleared and completed again',()=>{
   const s=scenario(['A','B','C','D']);for(const i of [1,2]){s.answer(i,0);s.answer(i,1);}
   s.answer(3,0);s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);s.answer(1,1,'');s.answer(1,1);
-  expect(s.get().xiaoda.prompt).toMatchObject({target:'D',completed:'B'});
+  expect(s.get().xiaoda.prompt).toBeUndefined();
   expect(createStore(s.adapter).house(s.h.id).xiaoda.seenCompleted).toEqual(['B','C']);
  });
  it('stops at the end without claiming the house is complete or returning to earlier gaps',()=>{
@@ -71,15 +71,15 @@ describe('completion recommendations',()=>{
   const s=scenario(['房源基本信息','A','费用与付款']);s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',text:'这套房子先记到这里，再看看其他房子吧。'});
   s.store.edit(s.h.id,h=>h.checklistOrder=['费用与付款','A','房源基本信息']);
   expect(completionPrompt(s.get(),'费用与付款')).toMatchObject({kind:'return'});
-  s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({target:'房源基本信息'});
+  s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',completed:'A'});
  });
  it('ends only the final contract category in saved order without claiming earlier gaps are complete',()=>{
   const s=scenario(['A','费用与付款','身份与合同']);s.store.edit(s.h.id,h=>h.templateTopics.at(-1).phase='询问与签约');
   s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'身份与合同'});
   s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',completed:'身份与合同',text:'这套房子先记到这里，再看看其他房子吧。'});
   s.store.edit(s.h.id,h=>h.checklistOrder=['A','身份与合同','费用与付款']);
-  s.answer(2,1,'否');expect(s.get().xiaoda.prompt).toBeNull();
-  s.answer(1,1,'否');expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',completed:'费用与付款'});
+  s.answer(2,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();expect(completionPrompt(s.get(),'身份与合同')).toBeNull();
+  s.answer(1,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();expect(completionPrompt(s.get(),'费用与付款')).toMatchObject({kind:'return'});
   expect(progress(s.get()).find(r=>r.category==='A').complete).toBe(false);
  });
  it('offers the phase choice at the forward boundary despite earlier onsite gaps',()=>{
@@ -101,7 +101,7 @@ describe('completion recommendations',()=>{
   s.answer(2,0);s.answer(2,1);
   expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'隔音与噪音'});
   s.store.edit(s.h.id,h=>h.checklistOrder=['隔音与噪音','电路网络与隐私','周边与小区','费用与付款']);
-  s.answer(2,1,'否');expect(s.get().xiaoda.prompt.kind).toBe('next');
+  s.answer(2,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();
   s.answer(1,0);s.answer(1,1);
   expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'周边与小区'});
  });

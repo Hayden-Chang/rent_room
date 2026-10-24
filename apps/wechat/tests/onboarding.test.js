@@ -132,6 +132,30 @@ it('keeps the final contract exit visible when postponing cannot be saved',()=>{
  h.fail(true);h.p.waitFilling();expect(h.p.data.fillPrompt?.kind).toBe('return');expect(h.wx.navigateBack).not.toHaveBeenCalled();
  h.fail(false);h.p.waitFilling();expect(h.p.data.fillPrompt).toBeNull();expect(h.app.service.store.house(h.id).answers.finish_2.value).toBe('是');
 });
+it('does not advance the final contract guide until the answer is saved successfully',()=>{
+ const h=finalContractFixture();h.fail(true);h.p.choose({detail:{id:'finish_2',value:'是'}});vi.advanceTimersByTime(1500);
+ expect(h.p.data.fillPrompt).toBeNull();expect(h.app.service.store.house(h.id).answers.finish_2.value).toBe('是');
+ h.fail(false);h.app.service.store.save();h.p.refresh();vi.advanceTimersByTime(1500);
+ expect(h.p.data.fillPrompt).toMatchObject({kind:'return',completed:'身份与合同'});
+});
+it('pauses a pending completion during a save error and resumes it after recovery',()=>{
+ const h=finalContractFixture();h.p.choose({detail:{id:'finish_2',value:'是'}});
+ h.fail(true);h.app.service.store.save();vi.advanceTimersByTime(1500);expect(h.p.data.fillPrompt).toBeNull();
+ h.fail(false);h.app.service.store.save();h.p.refresh();vi.advanceTimersByTime(1500);
+ expect(h.p.data.fillPrompt).toMatchObject({kind:'return',completed:'身份与合同'});
+});
+it('does not navigate on a visible completion while saving is failing',()=>{
+ const h=finalContractFixture();h.p.choose({detail:{id:'finish_2',value:'是'}});vi.advanceTimersByTime(1500);
+ h.fail(true);h.app.service.store.save();h.p.acceptFilling();expect(h.wx.navigateBack).not.toHaveBeenCalled();
+ h.fail(false);h.app.service.store.save();h.p.acceptFilling();expect(h.wx.navigateBack).toHaveBeenCalledOnce();
+});
+it('resumes new earlier completions after postponing the final contract exit and reopening',()=>{
+ const h=finalContractFixture();h.p.choose({detail:{id:'finish_2',value:'是'}});vi.advanceTimersByTime(1500);h.p.waitFilling();h.p.onUnload();
+ const p=h.open();p.choose({detail:{id:'finish_0',value:'是'}});vi.advanceTimersByTime(1500);
+ expect(p.data.fillPrompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'A'});
+ p.waitFilling();p.choose({detail:{id:'finish_2',value:'否'}});vi.advanceTimersByTime(1500);expect(p.data.fillPrompt).toBeNull();
+ p.choose({detail:{id:'finish_2',value:'否'}});p.choose({detail:{id:'finish_2',value:'是'}});vi.advanceTimersByTime(1500);expect(p.data.fillPrompt).toBeNull();
+});
 it('retains the introduction after a failed save and resumes it after leaving without acceptance',()=>{
  const h=harness(),p=intro(h);h.fail(true);p.acceptFilling();expect(p.data.fillPrompt.kind).toBe('intro');expect(h.app.service.store.house(h.id).xiaoda.intro).toBe('pending');
  h.fail(false);p.onUnload();const resumed=h.open();expect(resumed.data.fillPrompt.kind).toBe('intro');expect(resumed.data.fillAnchor.kind).toBe('category');

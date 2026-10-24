@@ -93,15 +93,14 @@ it('does not return to B after the user continues editing while the wait measure
  h.choose('test_a_0','否');h.flush();await settle();expect(h.scrolls.slice(count)).toHaveLength(0);expect(h.house.answers.test_a_0.value).toBe('否');
 });
 
-it('uses the edited B as the completion source even after C completed earlier',async()=>{
+it('does not restart completed B after C was completed and cleared',async()=>{
  const h=harness();h.choose('test_b_1');await showGuide();h.page.waitFilling();await settle();
  h.choose('test_c_0');h.choose('test_c_1');h.choose('test_c_1');
  h.choose('test_b_1','否');await showGuide();
- expect(h.page.fillCompleted).toBe('B');expect(h.page.data.fillPrompt).toMatchObject({target:'C',completed:'B'});
+ expect(h.page.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeUndefined();
 });
 
-it('cancels a repeated completion if the edited B becomes incomplete before the guide arrives',async()=>{
- const h=harness();h.choose('test_b_1');await showGuide();h.page.waitFilling();await settle();
- h.choose('test_b_1','否');expect(h.page.fillCompleted).toBe('B');h.choose('test_b_1','否');
+it('cancels the first completion if B becomes incomplete before the guide arrives',async()=>{
+ const h=harness();h.choose('test_b_1','否');expect(h.page.fillCompleted).toBe('B');h.choose('test_b_1','否');
  await showGuide();expect(h.page.data.fillPrompt).toBeNull();expect(h.house.answers.test_b_1.value).toBe('');
 });

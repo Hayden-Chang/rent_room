@@ -65,8 +65,10 @@ export const coachMethods={
  },
  syncFilling(){
   if(this.fillAccepting||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
+  if(service().store.status().error)return;
   const state=service().store.get(),h=service().store.house(this.data.id),prompt=h?.xiaoda?.prompt;
   if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.queueFilling(prompt);}
+  else if(this.fillPending)this.scheduleFilling();
   else if(this.data.fillPrompt)this.showFilling(this.data.fillPrompt);
  },
  cancelFillingTransition(){clearTimeout(this.fillTimer);this.fillTimer=null;this.fillRun=(this.fillRun||0)+1;this.fillPending=null;this.fillMeasuring=null;this.fillAccepting=false;},
@@ -74,6 +76,7 @@ export const coachMethods={
  fillingReturnCurrent(saved,run){return this.fillRun===run&&!this.unloaded&&!this.coachHidden&&!this.data.coach&&this.data.tab==='清单'&&this.data.id===saved.houseId&&this.fillingView()===saved.view&&getApp().service===saved.platform;},
  fillingCurrent(run,platform,id,prompt){
   if(run!==this.fillRun||this.unloaded||this.coachHidden||getApp().service!==platform||this.data.id!==id||this.data.tab!=='清单'||this.data.coach||this.fillEditing||this.data.wheelField||this.data.sheet)return false;
+  if(platform.store.status().error)return false;
   const h=platform.store.house(id);if(!h||h.archived||!xiaodaEnabled(platform.store.get(),h)||h.xiaoda?.prompt?.id!==prompt.id)return false;
   const rows=progress(h);if(this.fillCompleted&&!rows.some(r=>r.category===this.fillCompleted&&r.complete))return false;
   return prompt.kind==='return'?(rows.every(r=>r.complete)||completionPrompt(h,this.fillCompleted)?.kind==='return'):rows.some(r=>r.category===prompt.target&&!r.complete);
@@ -149,6 +152,7 @@ export const coachMethods={
   const run=this.fillRun;this.fillReturn=null;this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null,fillStage:'ready',fillHeight:null},()=>done?.(run));
  },
  acceptFilling(){const prompt=this.data.fillPrompt;if(!prompt||this.fillAccepting||this.xiaodaService!==getApp().service)return;
+  if(service().store.status().error){notify(service().store.status().error);return;}
   try{
    if(prompt.kind==='return'){service().store.change(s=>s.xiaoda.returnGuide=true,true);this.clearFilling();wx.navigateBack();return;}
    const rows=progress(service().store.house(this.data.id)),target=rows.find(r=>r.category===prompt.target&&!r.complete);if(!target){this.clearFilling();return;}
