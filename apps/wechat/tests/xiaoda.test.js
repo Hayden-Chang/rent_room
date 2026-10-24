@@ -15,6 +15,26 @@ function scenario(categories=['房源基本信息','A','B','费用与付款']){
 }
 afterEach(()=>vi.useRealTimers());
 describe('xiaoda lifecycle and templates',()=>{
+ it.each([false,true])('ignores saved guidance pinning and preserves the original template order after reload (legacy=%s)',legacy=>{
+  const config=templateConfig();config.order=moveItem(config.order,3,0);
+  const h=freshHouse('原顺序',{templates:{detailed:config}});
+  if(legacy)delete h.checklistOrder;
+  const expected=[...new Set(h.templateTopics.map(t=>t.category))],snapshot=JSON.stringify(h.templateTopics);
+  h.displayCategoryOrder=[expected[2],...expected.filter(c=>c!==expected[2])];
+  h.answers.f1_6={value:'2800',note:'保留填写内容'};
+  const state=emptyState();state.houses=[h];const adapter=io(state),before=adapter.read();
+  const store=createStore(adapter),restored=store.house(h.id);
+  expect([...new Set(houseTopics(restored).map(t=>t.category))]).toEqual(expected);
+  expect(JSON.stringify(restored.templateTopics)).toBe(snapshot);
+  expect(restored.answers).toEqual(h.answers);expect(adapter.read()).toBe(before);
+  store.edit(h.id,house=>house.summary='正常继续记录',true);
+  expect([...new Set(houseTopics(createStore(adapter).house(h.id)).map(t=>t.category))]).toEqual(expected);
+ });
+ it('ignores obsolete guidance pinning in legacy houses without a template snapshot',()=>{
+  const h=freshHouse('旧房源'),expected=[...new Set(houseTopics(h).map(t=>t.category))];
+  delete h.templateTopics;delete h.checklistOrder;h.displayCategoryOrder=[...expected].reverse();
+  expect([...new Set(houseTopics(h).map(t=>t.category))]).toEqual(expected);
+ });
  it('persists a new guest setup and resumes without any login',()=>{const adapter=io(),s=createStore(adapter);expect(s.get().xiaoda.setup).toBe('sort');s.change(s=>s.xiaoda.setup='mode',true);expect(createStore(adapter).get().xiaoda.setup).toBe('mode');});
  it('does not restart onboarding or feedback for an existing empty save',()=>{const old=emptyState();delete old.xiaoda;old.settings.onboarding=false;const s=createStore(io(old));expect(s.get().xiaoda).toMatchObject({setup:'done',tutorialStep:0,feedback:'done',enabled:false,legacy:true});});
  it('applies category order and exclusions only to subsequently created houses',()=>{const s=createStore(io(),{getPacks:()=>1}),old=s.add('旧'),before=JSON.stringify(s.house(old));const config=templateConfig();config.order=moveItem(config.order,2,0);config.disabled=['房源基本信息'];s.change(s=>s.settings.templates={detailed:config},true);const id=s.add('新');expect(houseTopics(s.house(id))[0].category).toBe(config.order[0]);expect(houseTopics(s.house(id)).some(t=>t.category==='房源基本信息')).toBe(false);expect(JSON.stringify(s.house(old))).toBe(before);});

@@ -38,7 +38,7 @@ function relocateParkingCost(ts) {
  else result[target]={...result[target],fields:[...result[target].fields,field]};
  return result;
 }
-// Apply current group controls to saved templates without rewriting their answers or snapshots.
+// Apply current group controls while keeping snapshot order, including saves with obsolete guidance pinning.
 export const houseTopics = h => {
  let electricitySeen=false;
  return relocateParkingCost([...(h.templateTopics||topics),...(h.extras||[])]).map(t=>{
@@ -71,7 +71,7 @@ export const houseTopics = h => {
     title:t.title==='灯具与开关'?lightGroup.title:t.title,
     path:t.path.map(p=>p.id===lightGroup.id?{...p,title:lightGroup.title}:p)};
   return t;
- }).filter(t=>t.fields.length).sort((a,b)=>h.displayCategoryOrder?(h.displayCategoryOrder.indexOf(a.category)-h.displayCategoryOrder.indexOf(b.category)):0);
+ }).filter(t=>t.fields.length);
 };
 const normalTitle = title => title.endsWith('正常')?title:title+'正常';
 const groupResultTitle = g => g.id==='topic_13'?'回家路线安全':normalTitle(g.title);
