@@ -1,6 +1,6 @@
 import {describe,it,expect,vi,afterEach} from 'vitest';
 import {createStore} from '../src/lib/store.js';
-import {emptyState,freshHouse,houseTopics} from '../src/lib/model.js';
+import {emptyState,freshHouse,houseTopics,activeEntries,rules,answer} from '../src/lib/model.js';
 import {progress,completionPrompt} from '../src/lib/xiaoda-flow.js';
 import {xiaodaEnabled,localDay} from '../src/lib/xiaoda-state.js';
 import {templateConfig,templateCategories,assertTemplate,moveItem} from '../src/lib/templates.js';
@@ -52,11 +52,106 @@ describe('completion recommendations',()=>{
   expect(s.get().xiaoda.prompt).toBeUndefined();expect(createStore(s.adapter).house(s.h.id).xiaoda.seenCompleted).toContain('A');
  });
  it('does not complete from notes, media or problem flags',()=>{const s=scenario(['A']);s.store.answer(s.h.id,'custom0_0','note','note');s.store.answer(s.h.id,'custom0_1','issueFlag',true);s.store.edit(s.h.id,h=>h.media.push({id:'m',type:'image',path:'/x',fieldId:'custom0_0'}));expect(progress(s.get())[0].done).toBe(0);expect(s.get().xiaoda.prompt).toBeUndefined();});
- it('prefers a recently edited partial category and persists seen completions',()=>{const s=scenario(['A','B','C']);s.answer(0,0);s.answer(1,0);s.answer(0,1);expect(s.get().xiaoda.prompt).toMatchObject({target:'B',text:'「A」记录好了，继续填写「B」吧！'});s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);s.answer(0,1,'');s.answer(0,1);expect(s.get().xiaoda.prompt).toBeUndefined();expect(createStore(s.adapter).house(s.h.id).xiaoda.seenCompleted).toContain('A');});
+ it('continues forward from B to C and D without restarting guidance when completed B is edited',()=>{
+  const s=scenario(['A','B','C','D']);s.answer(0,0);s.answer(1,0);s.answer(1,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({target:'C',completed:'B'});
+  s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt.target).toBe('D');
+  s.answer(3,0);s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);
+  s.answer(1,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();
+  expect(progress(s.get()).map(r=>r.complete)).toEqual([false,true,true,false]);
+  expect(createStore(s.adapter).house(s.h.id).answers).toEqual(s.get().answers);
+ });
+ it('uses the next pending position instead of the most recently touched category',()=>{
+  const s=scenario(['A','B','C','D']);s.answer(3,0);s.answer(1,0);s.answer(1,1);
+  expect(s.get().xiaoda.prompt.target).toBe('C');
+ });
+ it('does not guide again when a previously completed category is cleared and completed again',()=>{
+  const s=scenario(['A','B','C','D']);for(const i of [1,2]){s.answer(i,0);s.answer(i,1);}
+  s.answer(3,0);s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);s.answer(1,1,'');s.answer(1,1);
+  expect(s.get().xiaoda.prompt).toBeUndefined();
+  expect(createStore(s.adapter).house(s.h.id).xiaoda.seenCompleted).toEqual(['B','C']);
+ });
+ it('stops at the end without claiming the house is complete or returning to earlier gaps',()=>{
+  const s=scenario(['A','B','C']);s.answer(0,0);s.answer(1,0);s.answer(1,1);s.answer(2,0);s.answer(2,1);
+  expect(s.get().xiaoda.prompt).toBeNull();expect(completionPrompt(s.get(),'C')).toBeNull();
+  expect(progress(s.get())[0].complete).toBe(false);
+ });
+ it('ends the final contract item without going backwards and respects onsite saved order',()=>{
+  const s=scenario(['房源基本信息','A','费用与付款']);s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',text:'这套房子先记到这里，再看看其他房子吧。'});
+  s.store.edit(s.h.id,h=>h.checklistOrder=['费用与付款','A','房源基本信息']);
+  expect(completionPrompt(s.get(),'费用与付款')).toMatchObject({kind:'return'});
+  s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',completed:'A'});
+ });
+ it('ends only the final contract category in saved order without claiming earlier gaps are complete',()=>{
+  const s=scenario(['A','费用与付款','身份与合同']);s.store.edit(s.h.id,h=>h.templateTopics.at(-1).phase='询问与签约');
+  s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'身份与合同'});
+  s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',completed:'身份与合同',text:'这套房子先记到这里，再看看其他房子吧。'});
+  s.store.edit(s.h.id,h=>{delete h.xiaoda.prompt;h.checklistOrder=['A','身份与合同','费用与付款'];});
+  s.answer(2,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();expect(completionPrompt(s.get(),'身份与合同')).toBeNull();
+  s.answer(1,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();expect(completionPrompt(s.get(),'费用与付款')).toMatchObject({kind:'return'});
+  expect(progress(s.get()).find(r=>r.category==='A').complete).toBe(false);
+ });
+ it('offers the phase choice at the forward boundary despite earlier onsite gaps',()=>{
+  const s=scenario(['A','B','费用与付款']);s.answer(0,0);s.answer(1,0);s.answer(1,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款'});
+  expect(s.get().xiaoda.prompt.text).not.toContain('现场记录好啦');
+  expect(s.get().xiaoda.prompt.text).toContain('也可以先看看其他房子');
+ });
+ it('does not show the phase choice for an earlier item when the last onsite item was already completed',()=>{
+  const s=scenario(['A','B','C','费用与付款']);s.answer(2,0);s.answer(2,1);
+  expect(s.get().xiaoda.prompt.kind).toBe('phase');s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);
+  s.answer(1,0);s.answer(1,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'费用与付款',completed:'B'});
+ });
+ it('uses the final onsite position in the saved order even when the category names change',()=>{
+  const s=scenario(['电路网络与隐私','周边与小区','隔音与噪音','费用与付款']);
+  s.answer(0,0);s.answer(0,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'周边与小区'});
+  s.answer(2,0);s.answer(2,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'隔音与噪音'});
+  s.store.edit(s.h.id,h=>{delete h.xiaoda.prompt;h.checklistOrder=['隔音与噪音','电路网络与隐私','周边与小区','费用与付款'];});
+  s.answer(2,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();
+  s.answer(1,0);s.answer(1,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'周边与小区'});
+ });
+ it('does not show the phase choice before the last onsite position in an interleaved custom order',()=>{
+  const s=scenario(['A','费用与付款','B']);s.answer(0,0);s.answer(0,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'费用与付款'});
+ });
+ it.each(['simple','detailed'])('offers fees or other houses after directly completing electrical/network/privacy in %s mode',mode=>{
+  const state=emptyState(),h=freshHouse('直接检查',{selectedTemplate:mode});
+  state.houses=[h];Object.assign(state.xiaoda,{setup:'done',tutorialStep:0});
+  const store=createStore(io(state)),category='电路网络与隐私';
+  for(let n=0;n<40;n++) {
+   const current=store.house(h.id),entry=activeEntries(current).find(e=>e.topic.category===category&&!rules.fieldRecorded(e.field,answer(current,e.field)));
+   if(!entry)break;
+   const {field}=entry;
+   if(field.groupId)store.group(h.id,field.groupId,'presence','没有');
+   else store.answer(h.id,field.id,'value',field.multiple?[field.options[0]]:field.options?.[0]||'已检查');
+  }
+  const saved=store.house(h.id),rows=progress(saved);
+  expect(rows.find(r=>r.category===category).complete).toBe(true);
+  expect(rows.filter(r=>r.phase==='现场'&&r.category!==category).every(r=>r.done===0)).toBe(true);
+  expect(saved.xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',phase:'询问签约',completed:category});
+  expect(saved.xiaoda.prompt.text).toBe('接下来要记录费用和合同吗？也可以先看看其他房子。');
+ });
+ it('keeps forward onsite work ahead of the phase choice and skips finished contract categories',()=>{
+  const s=scenario(['A','B','C','费用与付款','身份与合同']);
+  s.store.edit(s.h.id,h=>h.templateTopics.at(-1).phase='询问与签约');
+  s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'C'});
+  s.answer(3,0);s.answer(3,1);s.answer(2,0);s.answer(2,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'身份与合同'});
+ });
+ it('does not replay dismissed guidance for reopening, unchanged answers, notes or media',()=>{
+  const s=scenario(['A','B']);s.answer(0,0);s.answer(0,1);s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);
+  s.answer(0,1);s.store.answer(s.h.id,'custom0_0','note','补充备注');s.store.answer(s.h.id,'custom0_0','issueFlag',true);
+  s.store.edit(s.h.id,h=>h.media.push({id:'m',type:'image',path:'/x',fieldId:'custom0_0'}));
+  expect(s.get().xiaoda.prompt).toBeUndefined();expect(createStore(s.adapter).house(s.h.id).xiaoda.prompt).toBeUndefined();
+ });
  it('does not recommend payment during onsite work and uses actual remaining phases',()=>{const s=scenario();s.answer(0,0);s.answer(0,1);expect(s.get().xiaoda.prompt).toMatchObject({target:'A',phase:'现场'});for(const i of [1,2]){s.answer(i,0);s.answer(i,1);}expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款'});s.answer(3,0);s.answer(3,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',text:'这套房子记录好啦！再添加一套房源，对比看看吧。'});});
  it('skips absent phases and gives whole-house completion priority',()=>{const s=scenario(['房源基本信息','费用与付款']);s.answer(0,0);s.answer(0,1);expect(s.get().xiaoda.prompt.text).toContain('要去记录费用和合同');s.answer(1,0,'不涉及');s.answer(1,1,'不涉及');expect(completionPrompt(s.get(),'费用与付款').kind).toBe('return');});
  it('tracks completions while disabled without replaying them on enable or reopen',()=>{const s=scenario(['A','B']);s.store.change(s=>s.xiaoda.enabled=false);s.answer(0,0);s.answer(0,1);expect(s.get().xiaoda.prompt).toBeUndefined();s.store.change(s=>s.xiaoda.enabled=true);expect(createStore(s.adapter).house(s.h.id).xiaoda.prompt).toBeUndefined();});
- it('retains a dismissed recommendation until a different category first completes',()=>{const s=scenario(['A','B','C']);s.answer(1,0);s.answer(0,0);s.answer(0,1);s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);s.store.edit(s.h.id,h=>h.displayCategoryOrder=['C','B','A']);expect(s.get().xiaoda.prompt).toBeUndefined();s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt.target).toBe('B');});
+ it('ignores obsolete display pinning and never wraps after the last category',()=>{const s=scenario(['A','B','C']);s.answer(1,0);s.answer(0,0);s.answer(0,1);s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);s.store.edit(s.h.id,h=>h.displayCategoryOrder=['C','B','A']);expect(s.get().xiaoda.prompt).toBeUndefined();s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toBeNull();});
 });
 describe('static skins and typewriting',()=>{
  it('reveals Unicode characters over time, pauses in background, and cancels replaced speech',()=>{vi.useFakeTimers();const write=vi.fn(),done=vi.fn(),writer=createTypewriter({write,done});writer.start('小搭🍪');expect(write).toHaveBeenLastCalledWith('');vi.advanceTimersByTime(45);expect(write).toHaveBeenLastCalledWith('小');writer.pause();vi.advanceTimersByTime(1000);expect(done).not.toHaveBeenCalled();writer.resume();vi.advanceTimersByTime(90);expect(write).toHaveBeenLastCalledWith('小搭🍪');expect(done).toHaveBeenCalledTimes(1);writer.start('旧文案');writer.start('新');vi.advanceTimersByTime(500);expect(write).toHaveBeenLastCalledWith('新');expect(done).toHaveBeenCalledTimes(2);writer.start('退出');writer.stop();vi.advanceTimersByTime(500);expect(done).toHaveBeenCalledTimes(2);});

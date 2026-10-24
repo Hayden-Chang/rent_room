@@ -1,5 +1,5 @@
 import {formView,houseTopics} from './model.js';
-import {progress} from './xiaoda-flow.js';
+import {progress,completionPrompt} from './xiaoda-flow.js';
 import {xiaodaEnabled,localDay} from './xiaoda-state.js';
 import {service,notify} from './ui.js';
 
@@ -64,8 +64,18 @@ export const coachMethods={
   if(target)this.showFilling({kind:'intro',target:target.category,phase:target.phase,id:'intro-'+h.id,text:target.category==='房源基本信息'?'写一下房子的基本信息吧。':`先看看「${target.category}」吧。`});
  },
  syncFilling(){
-  if(this.fillAccepting||this.fillingEntering()||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
+  if(this.fillAccepting||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
   const state=service().store.get(),h=service().store.house(this.data.id),prompt=h?.xiaoda?.prompt;
+  if(!h||h.archived)return;
+  // A failed dismissal save can leave the old card visible after an answer edit
+  // cancels/replaces its stored prompt. Reconcile before pausing on save errors.
+  if(!this.fillingEntering()&&this.data.fillPrompt?.completed&&this.data.fillPrompt.completed!==prompt?.completed){
+   this.cancelFillingTransition();this.fillReturn=null;this.fillLocated=null;
+   this.setData({fillPrompt:null,fillAnchor:null,fillStage:'ready',fillHeight:null});
+  }
+  if(this.fillingEntering()||service().store.status().error)return;
+  // Old saved completions used backward recommendations; never replay them.
+  if(prompt&&!prompt.completed){try{service().store.edit(h.id,h=>delete h.xiaoda.prompt,true);}catch(error){notify(error);}return;}
   if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.queueFilling(prompt);}
   else if(this.data.fillPrompt)this.showFilling(this.data.fillPrompt);
   this.scheduleFilling();
@@ -78,12 +88,13 @@ export const coachMethods={
   if(run!==this.fillRun||this.unloaded||this.coachHidden||getApp().service!==platform||this.data.id!==id||this.data.tab!=='清单'||this.data.coach)return false;
   const h=platform.store.house(id);if(!h||h.archived||!xiaodaEnabled(platform.store.get(),h))return false;
   if(entering)return this.data.fillPrompt?.id===prompt.id;
+  if(platform.store.status().error)return false;
   if(this.fillEditing||this.data.wheelField||this.data.sheet||h.xiaoda?.prompt?.id!==prompt.id)return false;
   const rows=progress(h);if(this.fillCompleted&&!rows.some(r=>r.category===this.fillCompleted&&r.complete))return false;
-  return prompt.kind==='return'?rows.every(r=>r.complete):rows.some(r=>r.category===prompt.target&&!r.complete);
+  return prompt.kind==='return'?(rows.every(r=>r.complete)||completionPrompt(h,this.fillCompleted)?.kind==='return'):rows.some(r=>r.category===prompt.target&&!r.complete);
  },
  queueFilling(prompt){
-  this.cancelFillingTransition();this.fillReturn=null;this.fillCompleted=service().store.house(this.data.id)?.xiaoda?.seenCompleted?.at(-1);this.fillPending={prompt,platform:service(),id:this.data.id};this.scheduleFilling();
+  this.cancelFillingTransition();this.fillReturn=null;this.fillCompleted=prompt.completed||service().store.house(this.data.id)?.xiaoda?.seenCompleted?.at(-1);this.fillPending={prompt,platform:service(),id:this.data.id};this.scheduleFilling();
  },
  scheduleFilling(){
   if(!this.fillPending||this.fillTimer||this.fillEditing||this.data.wheelField||this.data.sheet||this.unloaded||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
@@ -154,6 +165,8 @@ export const coachMethods={
   const run=this.fillRun;this.fillReturn=null;this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null,fillStage:'ready',fillHeight:null},()=>done?.(run));
  },
  acceptFilling(){const prompt=this.data.fillPrompt;if(!prompt||this.fillAccepting||this.xiaodaService!==getApp().service)return;
+  if(service().store.status().error){notify(service().store.status().error);return;}
+  if(prompt.completed&&service().store.house(this.data.id)?.xiaoda?.prompt?.id!==prompt.id){this.syncFilling();return;}
   try{
    if(prompt.kind==='return'){service().store.change(s=>s.xiaoda.returnGuide=true,true);this.clearFilling();wx.navigateBack();return;}
    const rows=progress(service().store.house(this.data.id)),target=rows.find(r=>r.category===prompt.target&&!r.complete);if(!target){this.clearFilling();return;}

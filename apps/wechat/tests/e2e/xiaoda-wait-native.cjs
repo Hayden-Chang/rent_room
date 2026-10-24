@@ -9,7 +9,7 @@ const evaluate=(fn,...args)=>mini.evaluate('function(){return ('+fn.toString()+'
 async function until(read,predicate,timeout=60000){const end=Date.now()+timeout;do{const value=await read();if(predicate(value))return value;await sleep(200);}while(Date.now()<end);throw Error('Expected native interaction did not complete');}
 const state=async()=>JSON.parse(await evaluate(function(){const p=getCurrentPages().slice(-1)[0],h=getApp().service.store.house(p.data.id);return JSON.stringify({route:p.route,prompt:p.data.fillPrompt,phase:p.data.phase,query:p.data.query,filters:p.data.filters,folds:p.folds,answers:h?.answers,order:h?.displayCategoryOrder,storedPrompt:h?.xiaoda?.prompt});}));
 async function layout(){await evaluate(function(){const p=getCurrentPages().slice(-1)[0];getApp().__waitLayout=null;p.measureTab().then(v=>getApp().__waitLayout=JSON.stringify(v));return true;});return JSON.parse(await until(()=>evaluate(function(){return getApp().__waitLayout;}),Boolean));}
-async function route(url){await evaluate(function(url){getApp().__waitNavigation=false;wx.reLaunch({url,success(){getApp().__waitNavigation=true;}});return true;},url);await until(()=>evaluate(function(){return getApp().__waitNavigation;}),Boolean);await until(state,s=>s.route===url.split('?')[0].slice(1));}
+async function route(url){await evaluate(function(url){wx.reLaunch({url});return true;},url);await until(state,s=>s.route===url.split('?')[0].slice(1));}
 const field=position=>position.rows.find(r=>r.dataset?.scrollKey==='field-f-native_1_1');
 async function shot(name){await mini.screenshot({path:path.join(out,name+'.png')});const record={state:await state(),layout:await layout()};fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(record,null,2));return record;}
 (async()=>{
@@ -29,7 +29,7 @@ async function shot(name){await mini.screenshot({path:path.join(out,name+'.png')
   await evaluate(function(top){wx.pageScrollTo({scrollTop:top,duration:0});return true;},position.scrollTop+field(position).top-180);
   await sleep(500);const before=await shot('01-before-complete');console.log('READY: click 是 in B 最后一项; slot='+process.env.WECHAT_SLOT_ID+' artifacts='+out);
   await until(state,s=>s.answers?.native_1_1?.value==='是'&&s.prompt?.kind==='next',240000);
-  await sleep(2000);const suggested=await shot('02-recommend-A');assert.equal(suggested.state.prompt.target,categories[0]);assert.deepEqual(suggested.state.answers,{...before.state.answers,native_1_1:{value:'是'}});console.log('READY: click 再等等');
+  await sleep(2000);const suggested=await shot('02-recommend-C');assert.equal(suggested.state.prompt.target,categories[2]);assert.deepEqual(suggested.state.answers,{...before.state.answers,native_1_1:{value:'是'}});console.log('READY: click 再等等');
   await until(state,s=>!s.prompt&&!s.storedPrompt,240000);await until(layout,p=>field(p)&&Math.abs(field(p).top-field(before.layout).top)<=4);const after=await shot('03-after-wait');
   assert.ok(Math.abs(field(after.layout).top-field(before.layout).top)<=4,'B stays at its original screen position');
   assert.ok(field(after.layout).top>=0&&field(after.layout).bottom<await evaluate(function(){return wx.getWindowInfo().windowHeight;}),'B final field is visible');

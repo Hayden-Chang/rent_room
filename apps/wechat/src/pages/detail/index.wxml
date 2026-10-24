@@ -5,7 +5,7 @@
   <xiaoda wx:if="{{fillPrompt.kind!=='return'}}" text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" paused="{{fillStage!=='ready'}}" layout="compact" pose="think" closable binddismiss="closeXiaoda" target-pointer="{{fillAnchor.kind==='category'?'50%':fillPrompt.phase==='房源'?'calc(35.294% - 55.412px)':fillPrompt.phase==='现场'?'calc(58.824% - 33.176px)':'calc(85.294% - 9.412px)'}}">
    <view slot="actions" class="fill-actions"><button wx:if="{{fillPrompt.kind==='next'}}" class="guide-secondary" catchtap="waitFilling">再等等</button><button wx:if="{{fillPrompt.kind==='phase'}}" class="guide-secondary" catchtap="otherHouses">看看其他房子</button><button class="primary guide-primary fill-accept" hover-class="guide-pressed" catchtap="acceptFilling">去填写</button></view>
   </xiaoda>
-  <xiaoda wx:else text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" paused="{{fillStage!=='ready'}}" layout="compact" pose="{{stats.done===stats.total?'success':'bye'}}" closable binddismiss="closeXiaoda"><view slot="actions" class="fill-actions"><button class="primary guide-primary fill-accept" hover-class="guide-pressed" catchtap="acceptFilling">返回房源列表</button></view></xiaoda>
+  <xiaoda wx:else text="{{fillPrompt.text}}" message-id="{{fillPrompt.id}}" paused="{{fillStage!=='ready'}}" layout="compact" pose="{{stats.done===stats.total?'success':'bye'}}" closable binddismiss="closeXiaoda"><view slot="actions" class="fill-actions"><button class="guide-secondary" catchtap="waitFilling">先等等</button><button class="primary guide-primary fill-accept" hover-class="guide-pressed" catchtap="acceptFilling">返回房源列表</button></view></xiaoda>
  </view>
  </view>
 </template>
