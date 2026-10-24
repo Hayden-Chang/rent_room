@@ -107,7 +107,7 @@ it('a short input touch leaves native focus available and accepts the entered va
  dispatch(input,'focus',100,50,{detail:{}});
  expect(c.data.valueFocused).toBe(true);expect(c.data.actions).toBe(false);
  dispatch(input,'input',100,50,{detail:{value:'测试地址 101 室'}});
- expect(c.events).toEqual([{name:'answer',detail:{id:'floor',prop:'value',value:'测试地址 101 室'}}]);
+ expect(c.events).toEqual([{name:'inputfocus',detail:{id:'floor',input:'value'}},{name:'answer',detail:{id:'floor',prop:'value',value:'测试地址 101 室'}}]);
 });
 it('vertical movement on input stays available to page scrolling without opening actions',()=>{
  const {c,findTag,dispatch}=fixture(),input=findTag('input');

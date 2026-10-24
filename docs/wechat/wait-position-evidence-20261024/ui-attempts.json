@@ -1,0 +1,56 @@
+{
+  "interactionValidated": false,
+  "deviceValidated": false,
+  "attempts": [
+    {
+      "runId": "860a2953b01445eebcddc0d049a777f3",
+      "sourceHead": "be53224e033f7222f4ea8f0aaf0185512218bb4d",
+      "sourceStatus": "M apps/wechat/src/lib/onboarding.js\n?? apps/wechat/tests/e2e/xiaoda-wait-native.cjs\n?? apps/wechat/tests/onboarding-wait-position.test.js",
+      "status": "failed",
+      "slot": "3",
+      "toolVersion": "2.01.2510290",
+      "error": "Callback failed with exit 1; see test.log",
+      "residentState": "idle"
+    },
+    {
+      "runId": "24a3dc87e90b41fca71904699016e7f0",
+      "sourceHead": "be53224e033f7222f4ea8f0aaf0185512218bb4d",
+      "sourceStatus": "M apps/wechat/src/lib/onboarding.js\n?? apps/wechat/tests/e2e/xiaoda-wait-native.cjs\n?? apps/wechat/tests/onboarding-wait-position.test.js\n?? docs/wechat/XIAODA_WAIT_POSITION.md",
+      "status": "failed",
+      "slot": "3",
+      "toolVersion": "2.01.2510290",
+      "error": "Callback failed with exit 1; see test.log",
+      "residentState": "idle"
+    },
+    {
+      "runId": "99db0bfc760d44d8897321e589aa84e4",
+      "sourceHead": "be53224e033f7222f4ea8f0aaf0185512218bb4d",
+      "sourceStatus": "M apps/wechat/src/lib/onboarding.js\n?? apps/wechat/tests/e2e/xiaoda-wait-native.cjs\n?? apps/wechat/tests/onboarding-wait-position.test.js\n?? docs/wechat/XIAODA_WAIT_POSITION.md",
+      "status": "failed",
+      "slot": "3",
+      "toolVersion": "2.01.2510290",
+      "error": "Callback failed with exit 1; see test.log",
+      "residentState": "idle"
+    },
+    {
+      "runId": "75621e884bd84947ba06b7363e921467",
+      "sourceHead": "a2a057e2e44e0b9b9cee3d01c14955431e99603a",
+      "sourceStatus": "",
+      "status": "failed",
+      "slot": null,
+      "toolVersion": "2.01.2510290",
+      "error": "No free slot; active/orphan instances were not stopped",
+      "residentState": null
+    },
+    {
+      "runId": "9f5c515418e048be869a85c8dff92787",
+      "sourceHead": "a2a057e2e44e0b9b9cee3d01c14955431e99603a",
+      "sourceStatus": "",
+      "status": "failed",
+      "slot": null,
+      "toolVersion": "2.01.2510290",
+      "error": "No free slot; active/orphan instances were not stopped",
+      "residentState": null
+    }
+  ]
+}

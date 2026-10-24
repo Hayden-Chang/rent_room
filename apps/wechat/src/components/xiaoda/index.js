@@ -2,14 +2,15 @@ import {poseSource} from '../../lib/xiaoda-skin.js';
 import {createTypewriter} from '../../lib/typewriter.js';
 import {speechParts} from '../../lib/speech-parts.js';
 Component({
-  properties:{text:String,highlights:{type:Array,value:[]},pose:{type:String,value:'idle'},closable:Boolean,messageId:String},
+  options:{multipleSlots:true},
+  properties:{text:String,layout:{type:String,value:'inline'},highlights:{type:Array,value:[]},pose:{type:String,value:'idle'},closable:Boolean,messageId:String,targetPointer:String,paused:Boolean},
   data:{shown:'',fullParts:[],shownParts:[],source:poseSource('idle'),finished:false},
-  observers:{'text,messageId,highlights'(){this.startText();},pose(value){this.setData({source:poseSource(value)});}},
+  observers:{'text,messageId,highlights'(){this.startText();},pose(value){this.setData({source:poseSource(value)});},paused(value){if(value)this.writer?.pause();else if(!this.pageHidden)this.writer?.resume();}},
   lifetimes:{attached(){this.startText();},detached(){this.writer?.stop();}},
-  pageLifetimes:{hide(){this.writer?.pause();},show(){this.writer?.resume();}},
+  pageLifetimes:{hide(){this.pageHidden=true;this.writer?.pause();},show(){this.pageHidden=false;if(!this.data.paused)this.writer?.resume();}},
   methods:{
-    startText(){this.writer?.stop();this.setData({finished:false,fullParts:speechParts(this.data.text,this.data.highlights)});this.writer=createTypewriter({write:shown=>this.setData({shown,shownParts:speechParts(this.data.text,this.data.highlights,Array.from(shown).length)}),done:()=>{this.setData({finished:true});this.triggerEvent('typed');}});this.writer.start(this.data.text);},
-    finish(){if(!this.data.finished)this.writer?.finish();},
+    startText(){this.writer?.stop();this.setData({finished:false,fullParts:speechParts(this.data.text,this.data.highlights)});this.writer=createTypewriter({write:shown=>this.setData({shown,shownParts:speechParts(this.data.text,this.data.highlights,Array.from(shown).length)}),done:()=>{this.setData({finished:true});this.triggerEvent('typed');}});this.writer.start(this.data.text);if(this.data.paused||this.pageHidden)this.writer.pause();},
+    finish(){if(!this.data.finished&&!this.data.paused)this.writer?.finish();},
     close(){this.triggerEvent('dismiss');}
   }
 });

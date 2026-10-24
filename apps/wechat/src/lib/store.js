@@ -3,20 +3,20 @@ import {updateGuidance} from './xiaoda-flow.js';
 import {emptyState,clone,validateState,freshHouse,updateAnswer,updateGroup,mergeElectricity,migrateTopFloor} from './model.js';
 import {capacityInfo,assertCapacity,activeHouseCount} from './capacity.js';
 
-export function createStore(adapter,{getPacks=()=>0}={}) {
+export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1}={}) {
   let state=emptyState(),blocked=false,error='',revision=0;const listeners=new Set();
   const migrate=h=>mergeElectricity(migrateTopFloor(h));
   try {const raw=adapter.read();if(raw){state=migrateXiaoda(validateState(JSON.parse(raw)));state.houses.forEach(migrate);state.version=2;state.settings={...emptyState().settings,...state.settings};}}
   catch(e){blocked=true;error='已有记录读取失败，未覆盖原文件。请前往设置尝试恢复。';}
   function emit(){for(const f of listeners)f({error,blocked,revision});}
   function save(options){if(blocked){emit();return false;}try{adapter.write(JSON.stringify(state),options);error='';emit();return true;}catch(e){error='保存失败，输入仍保留在本次会话。请重试或立即导出备份。';emit();return false;}}
-  function change(fn,mustSave=false){if(blocked)throw Error(error);const prior=state,draft=clone(state);fn(draft);updateGuidance(state,draft);const additional=activeHouseCount(draft.houses)-activeHouseCount(state.houses);if(additional>0)assertCapacity(state.houses,getPacks(),additional);draft.updatedAt=new Date().toISOString();state=draft;revision++;if(!save()&&mustSave){state=prior;emit();throw Error('保存失败，操作未生效，请稍后重试');}return state;}
+  function change(fn,mustSave=false){if(blocked)throw Error(error);const prior=state,draft=clone(state);fn(draft);updateGuidance(state,draft);const additional=activeHouseCount(draft.houses)-activeHouseCount(state.houses);if(additional>0)assertCapacity(state.houses,getPacks(),additional,getFreeLimit());draft.updatedAt=new Date().toISOString();state=draft;revision++;if(!save()&&mustSave){state=prior;emit();throw Error('保存失败，操作未生效，请稍后重试');}return state;}
   function edit(id,fn,mustSave=false){return change(s=>{const h=s.houses.find(h=>h.id===id);if(!h)throw Error('房源不存在');if(h.archived)throw Error('归档房源只读，请先还原');fn(h);},mustSave);}
   return {
     get:()=>state,status:()=>({error,blocked,revision}),subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},save,change,edit,
     house:id=>state.houses.find(h=>h.id===id),
-    capacity:()=>capacityInfo(state.houses,getPacks()),
-    checkCapacity(additional=1){if(blocked)throw Error(error);return assertCapacity(state.houses,getPacks(),additional);},
+    capacity:()=>capacityInfo(state.houses,getPacks(),getFreeLimit()),refreshCapacity:emit,
+    checkCapacity(additional=1){if(blocked)throw Error(error);return assertCapacity(state.houses,getPacks(),additional,getFreeLimit());},
     add(name){let id;change(s=>{const h=freshHouse(name,{templates:s.settings.templates,selectedTemplate:s.settings.selectedTemplate});id=h.id;s.houses.push(h);delete s.xiaoda.intent;s.xiaoda.returnGuide=false;if(!s.xiaoda.firstHouseId&&!s.xiaoda.legacy){s.xiaoda.firstHouseId=id;}},true);return id;},
     answer(id,field,prop,value){return edit(id,h=>updateAnswer(h,field,prop,value));},
     group(id,group,operation,value){return edit(id,h=>updateGroup(h,group,operation,value));},

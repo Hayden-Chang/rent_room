@@ -76,9 +76,10 @@ Component({
   skip(){if(Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal()||this.data.readonly)return;this.triggerEvent('group',{id:this.data.field.foldId,op:'skip'});},
   noop(){},
   emit(prop,value){if(!this.data.readonly)this.triggerEvent('answer',{id:this.data.field.id,prop,value});},
-  handleInputFocus(e){if(activeRow)activeRow.closeSwipe();this.setData({[e.currentTarget.dataset.input+'Focused']:true});},
-  handleInputBlur(e){const key=e.currentTarget.dataset.input;this.setData({[key+'Focused']:false,[key+'Filled']:hasContent(e.detail.value)});},
+  handleInputFocus(e){if(activeRow)activeRow.closeSwipe();const input=e.currentTarget.dataset.input;this.setData({[input+'Focused']:true});this.triggerEvent('inputfocus',{id:this.data.field.id,input});},
+  handleInputBlur(e){const input=e.currentTarget.dataset.input;this.setData({[input+'Focused']:false,[input+'Filled']:hasContent(e.detail.value)});this.triggerEvent('inputblur',{id:this.data.field.id,input});},
   input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
+  toggleNone(){const f=this.data.field;if(this.data.readonly||!(f.cost||f.allowNone)||Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal())return;this.emit(f.cost?'noCost':'none',!f.noneSelected);},
   choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly){if(this.data.field.heading)this.triggerEvent('group',{id:this.data.field.foldId,op:'value',value:e.currentTarget.dataset.value});else this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});}},
   trayAction(e){
    if(this.data.readonly||!this.data.actions||Date.now()<(this.suppressTapUntil||0))return;

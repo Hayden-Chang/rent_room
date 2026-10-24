@@ -7,14 +7,14 @@ import {applyPlace} from '../../lib/places.js';
 import {coachSteps,coachMethods} from '../../lib/onboarding.js';
 import {stats,formView,houseTopics,rules,fieldView,checklistTargets,issueEntries,MAP_ID,costGroups,addCostField} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,notify,confirm} from '../../lib/ui.js';
-Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phaseLabels:{全部:'全部',房源:'基本情况',现场:'现场检查',询问签约:'费用与合同'},phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,noteFocus:false,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false,fillPrompt:null,fillAnchor:null},
+Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaType:'all',visibleMedia:[],mediaFilters:[{value:'all',label:'全部'},{value:'image',label:'照片'},{value:'video',label:'视频'}],tab:'清单',tabs:['清单','影像','问题','总结'],phases:['全部','房源','现场','询问签约'],phaseLabels:{全部:'全部',房源:'基本情况',现场:'现场检查',询问签约:'费用与合同'},phase:'全部',query:'',filters:[],filterChoices:['未记录','已记录','有问题','有备注','有影像'],showFilters:false,sections:[],issueRows:[],stats:{},saveError:'',restoringTab:false,sheet:'',noteKeyboardHeight:0,noteFocus:false,note:'',noteId:'',noteTitle:'',mediaNoteId:'',coach:0,coachSteps,coachReady:false,coachMissing:false,coachField:null,coachSwiped:false,coachError:'',hideCoach:false,fillPrompt:null,fillAnchor:null,fillStage:'ready',fillHeight:null,fillMinHeight:null},
   onLoad(options){this.folds={};this.tabPositions={};this.requestedTab='清单';this.switchingTab=false;this.unloaded=false;this.setData({id:options.id||'',coach:0});watch(this);this.refresh();this.initXiaoda();},
   onReady(){if(this.data.coach)this.coachPrepare();else{this.startFilling();this.locateFilling();}},onResize(){this.coachScrollAdjusted=false;this.coachLayout();},onShow(){
     this.speedOpening=false;this.commuteOpening=false;this.coachHidden=false;this.commuteRestoreRun=(this.commuteRestoreRun||0)+1;
     const saved=this.commuteReturn;
     if(saved&&saved.platform===service()&&saved.houseId===this.data.id&&service().store.house(this.data.id))return attempt(()=>this.restoreCommute(saved,this.commuteRestoreRun));
     if(this.data.id)this.refresh();if(this.data.coach)this.coachLayout();else if(this.accountPageReady)this.startFilling();
-  },onUnload(){this.leaveXiaoda();this.clearCoachTimer();this.unloaded=true;this.commuteReturn=null;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.noteFocusRun=(this.noteFocusRun||0)+1;this.clearCoachTimer();this.waitFilling();this.dismissSwipe();this.setData({noteKeyboardHeight:0,noteFocus:false,...(this.commuteReturn?{restoringTab:true}:{})});},onPageScroll(){if(this.data.coach>=3)return;for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
+  },onUnload(){this.leaveXiaoda();this.clearCoachTimer();this.unloaded=true;this.commuteReturn=null;this.tabPositions={};unwatch(this);},onHide(){this.coachHidden=true;this.fillEditing=null;this.noteFocusRun=(this.noteFocusRun||0)+1;this.clearCoachTimer();this.waitFilling();this.dismissSwipe();this.setData({noteKeyboardHeight:0,noteFocus:false,...(this.commuteReturn?{restoringTab:true}:{})});},onPageScroll(e){this.fillingScroll(e);if(this.data.coach>=3)return;for(const row of this.selectAllComponents?.('.field-row')||[])row.closeOnScroll();},
   dismissSwipe(){let dismissed=false;for(const row of this.selectAllComponents?.('.field-row')||[]){dismissed=!!(row.data.actions||row.data.offset)||dismissed;row.closeSwipe();}return dismissed;},
   checklistData(h,view){
     const key=JSON.stringify(view),folds=this.folds[key]||{};
@@ -25,7 +25,7 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     this.inputFilling();
     const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}
     const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters,...patch};
-    this.setData({...patch,...this.checklistData(h,view)});
+    this.setData({...patch,fillMinHeight:null,...this.checklistData(h,view)});
   },
   refresh(patch={},done){const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
     this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:mediaWithIssues(h).filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:issueEntries(h).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]).map(i=>({...i,media:h.media.filter(m=>m.issueId===i.id),mediaCount:h.media.filter(m=>m.issueId===i.id).length})),saveError:service().store.status().error},done);
@@ -34,7 +34,7 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
   retry(){service().store.save();},
   fold(e){if(this.dismissSwipe())return;this.inputFilling();const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});const folds=this.folds[key]||={};const {id,expanded}=e.detail?.id?e.detail:e.currentTarget.dataset;folds[id]=!expanded;this.refresh();},
   phase(e){if(this.dismissSwipe())return;const phase=e.currentTarget.dataset.value;if(phase===this.data.phase)return;this.updateChecklist({phase});},search(e){const query=e.detail.value;if(query===this.data.query)return;this.updateChecklist({query});},
-  toggleFilters(){if(this.dismissSwipe())return;this.setData({showFilters:!this.data.showFilters},()=>{if(this.data.coach===2)this.coachLayout();});},filter(e){if(this.dismissSwipe())return;const v=e.currentTarget.dataset.value;if(v==='全部'&&!this.data.filters.length)return;this.updateChecklist({filters:v==='全部'?[]:this.data.filters.includes(v)?this.data.filters.filter(x=>x!==v):[...this.data.filters,v]});},
+  toggleFilters(){if(this.dismissSwipe())return;this.inputFilling();this.setData({showFilters:!this.data.showFilters},()=>{if(this.data.coach===2)this.coachLayout();});},filter(e){if(this.dismissSwipe())return;const v=e.currentTarget.dataset.value;if(v==='全部'&&!this.data.filters.length)return;this.updateChecklist({filters:v==='全部'?[]:this.data.filters.includes(v)?this.data.filters.filter(x=>x!==v):[...this.data.filters,v]});},
   measureTab(){
     return new Promise(resolve=>{
       const query=this.createSelectorQuery();
@@ -81,7 +81,7 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
       if(!this.unloaded&&this.data.restoringTab)this.setData({restoringTab:false});
     }
   },
-  answer(e){this.inputFilling();attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);const h=service().store.house(this.data.id);this.setData({stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''});this.syncFilling();});},
+  answer(e){this.inputFilling(e);attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);if(['noCost','none'].includes(e.detail.prop)){this.refresh();return;}const h=service().store.house(this.data.id);this.setData({stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''});this.syncFilling();});},
   choose(e){this.inputFilling();attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
   group(e){if(this.dismissSwipe())return;this.inputFilling();const {id,op,value}=e.detail?.id?e.detail:e.currentTarget.dataset;attempt(()=>{service().store.group(this.data.id,id,op,value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[id]=true;this.refresh();});},
   action(e){this.inputFilling();return attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查节点不存在');if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!issueEntries(h).some(e=>e.field.id===id));this.refresh();}
@@ -176,6 +176,6 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     }finally{this.addingCost=false;}});
   },
   export(){wx.navigateTo({url:'/pages/import/index?mode=export&id='+encodeURIComponent(this.data.id)});},
-  top(){this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
+  top(){this.inputFilling();this.dismissSwipe();wx.pageScrollTo({scrollTop:0,duration:200});},
   ...coachMethods,
 })));
