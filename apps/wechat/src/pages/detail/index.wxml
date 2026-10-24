@@ -10,7 +10,8 @@
  </view>
 </template>
 <view hidden="{{!accountReady}}">
-<view wx:if="{{house}}" bindtap="dismissSwipe" bindtouchstart="fillingTouch">
+<view wx:if="{{house}}" bindtap="dismissSwipe">
+ <view wx:if="{{fillPrompt && (fillStage==='preparing' || fillStage==='moving' || fillStage==='entering')}}" class="fill-transition-guard" catchtouchstart="noop" catchtouchmove="noop" catchtouchend="noop" catchtap="noop"/>
  <view wx:if="{{house.archived}}" class="readonly">归档房源 · 只读查看，在归档列表中可还原</view>
  <view class="page detail {{restoringTab?'tab-restoring':''}} {{fillStage==='leaving'?'fill-shifting':''}}" style="{{tab==='清单' && fillMinHeight!==null?'min-height:'+fillMinHeight+'px;':''}}">
   <view wx:if="{{saveError}}" class="error" bindtap="retry">{{saveError}} 点击重试</view>
