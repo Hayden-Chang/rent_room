@@ -490,7 +490,8 @@
                 "IMG_6295.PNG",
                 "IMG_6316.PNG",
                 "IMG_6323.PNG"
-              ]
+              ],
+              "allowNone": true
             },
             "children": []
           },

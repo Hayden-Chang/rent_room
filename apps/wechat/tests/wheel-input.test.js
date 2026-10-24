@@ -5,12 +5,12 @@ import {fields,freshHouse,updateAnswer,stats,fieldView} from '../src/lib/model.j
 import {createStore} from '../src/lib/store.js';
 import {fieldRecorded} from '../src/lib/source-model.js';
 
-it('assigns precisely the agreed 17 fields, with money, unit prices, speed and dynamic costs remaining manual',()=>{
- expect(Object.keys(config)).toHaveLength(17);
+it('assigns precisely the remaining 9 fields, with money, unit prices, speed and dynamic costs remaining manual',()=>{
+ expect(Object.keys(config)).toHaveLength(9);
  for(const f of fields.filter(f=>f.type==='n'&&!config[f.id]))expect(wheelConfig(f)).toBeNull();
  for(const id of ['f1_6','f88_0','f11_1','617bd84f-3208-42ec-b2e4-5bb95d5c754c','d244dc92-351e-4f3c-8738-45295fec9ff9','cost_custom'])expect(wheelConfig(id)).toBeNull();
  expect(Object.keys(config).every(id=>fields.some(f=>f.id===id))).toBe(true);
- for(const id of ['f1_5','f44_1','f44_0'])expect(config[id].values).toEqual(fields.find(f=>f.id===id).options);
+ for(const id of ['f1_5','f41_3','f44_1','f44_0'])expect(wheelConfig(id)).toBeNull();
 });
 it('uses the approved numeric endpoints and steps without losing zero or the empty value',()=>{
  for(const [id,c] of Object.entries(config).filter(([,c])=>!c.values)){
@@ -46,19 +46,19 @@ it('retains a fractional historical payment month until an integer is confirmed,
  expect(store.house(id).answers.f88_2).toEqual({value:'',note:'保留备注',issueFlag:true});
 });
 it('retains out-of-range and former other answers, and does not snap them on opening',()=>{
- for(const [id,value] of [['f1_3','220'],['f1_3','45.5'],['f112_5','12 个月押金'],['f112_2','其他']]){
+ for(const [id,value] of [['f105_0','75'],['f105_0','45.5'],['f112_5','12 个月押金'],['f112_2','其他']]){
   const {items,index}=wheelSelection(id,value);expect(items[index].value).toBe(value);expect(items[index].legacy).toBe(true);
  }
- expect(wheelSelection('f1_3','').index).toBe(0);
+ expect(wheelSelection('f105_0','').index).toBe(0);
 });
 it('opens at the existing value without a historical prefix and orders numeric legacy values naturally',()=>{
- const area=wheelSelection('f1_3','220');
- expect(area.items[area.index].label).toBe('220 ㎡');
+ const area=wheelSelection('f105_0','75');
+ expect(area.items[area.index].label).toBe('75 天');
  expect(area.index).toBe(area.items.length-1);
- const fractional=wheelSelection('f1_3','45.5');
+ const fractional=wheelSelection('f105_0','45.5');
  expect(fractional.items[fractional.index-1].value).toBe('45');
  expect(fractional.items[fractional.index+1].value).toBe('46');
- expect(wheelSelection('f1_3','45').items[46].value).toBe('45');
+ expect(wheelSelection('f105_0','45').items[46].value).toBe('45');
 });
 it('scrolls months separately from the fixed deposit suffix without changing stored answers',()=>{
  for(const id of ['f112_5','f113_2']){
@@ -90,7 +90,7 @@ it('saves basement -1, rejects other negative numeric fields and counts zero as 
  updateAnswer(h,'f1_3','value','0');expect(fieldRecorded(fields.find(f=>f.id==='f1_3'),h.answers.f1_3)).toBe(true);
  updateAnswer(h,'f112_2','value','21 天');expect(fieldRecorded(fields.find(f=>f.id==='f112_2'),h.answers.f112_2)).toBe(true);
  updateAnswer(h,'f112_2','value','');expect(fieldRecorded(fields.find(f=>f.id==='f112_2'),h.answers.f112_2)).toBe(false);
- expect(fieldView(h,fields.find(f=>f.id==='f1_5')).wheel).toBe(true);
+ expect(fieldView(h,fields.find(f=>f.id==='f5_3')).wheel).toBe(true);
  expect(fieldView(h,fields.find(f=>f.id==='f1_6')).wheel).toBe(false);
  expect(stats(h).done).toBeGreaterThan(0);
 });

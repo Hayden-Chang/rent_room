@@ -10,7 +10,7 @@ function fixture(){
  const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'floor',inline:true,value:'是'},readonly:false},events:[],notifications:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){(name==='swipeopen'?this.notifications:this.events).push({name,detail});}};
  const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
  function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},text:node[tag].filter(n=>'#text' in n).map(n=>n['#text']).join(''),parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
- const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass)&&(klass!=='choice'||!n.attrs.class.includes(' skip ')));
+ const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass)&&(klass!=='choice'||n.attrs['data-value']==='{{item.value}}'));
  function dispatch(target,type,x=100,y=50,extra={}){
   const caught=[],path=[...target.parents,target];
   const resolve=value=>value?.startsWith('{{')?vm.runInNewContext(value.slice(2,-2),c.data):value;
