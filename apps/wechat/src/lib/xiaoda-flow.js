@@ -16,7 +16,7 @@ export function completionPrompt(h,completed) {
   const target=rows.slice(index+1).find(r=>!r.complete);
   if(!target)return null;
   const onsite=rows.filter(r=>r.phase==='现场');
-  if(source.phase==='现场'&&target.phase==='询问签约')return {kind:'phase',target:target.category,phase:target.phase,text:onsite.every(r=>r.complete)?'现场记录好啦，你要继续记录费用和合同吗？也可以先看看其他房子。':'接下来要记录费用和合同吗？也可以先看看其他房子。'};
+  if(source===onsite.at(-1)&&target.phase==='询问签约')return {kind:'phase',target:target.category,phase:target.phase,text:onsite.every(r=>r.complete)?'现场记录好啦，你要继续记录费用和合同吗？也可以先看看其他房子。':'接下来要记录费用和合同吗？也可以先看看其他房子。'};
   const text=completed==='房源基本信息'?(target.phase==='现场'?`房子的信息记录好啦！要去写一下房子的现场情况——「${target.category}」吗？`:`房子的信息记录好啦！要去记录费用和合同——「${target.category}」吗？`):`「${completed}」记录好了，${target.done?'继续填写':'去看看'}「${target.category}」吧！`;
   return {kind:'next',target:target.category,phase:target.phase,text};
 }

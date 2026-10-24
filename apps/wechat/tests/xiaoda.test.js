@@ -79,6 +79,27 @@ describe('completion recommendations',()=>{
   expect(s.get().xiaoda.prompt.text).not.toContain('现场记录好啦');
   expect(s.get().xiaoda.prompt.text).toContain('也可以先看看其他房子');
  });
+ it('does not show the phase choice for an earlier item when the last onsite item was already completed',()=>{
+  const s=scenario(['A','B','C','费用与付款']);s.answer(2,0);s.answer(2,1);
+  expect(s.get().xiaoda.prompt.kind).toBe('phase');s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);
+  s.answer(1,0);s.answer(1,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'费用与付款',completed:'B'});
+ });
+ it('uses the final onsite position in the saved order even when the category names change',()=>{
+  const s=scenario(['电路网络与隐私','周边与小区','隔音与噪音','费用与付款']);
+  s.answer(0,0);s.answer(0,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'周边与小区'});
+  s.answer(2,0);s.answer(2,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'隔音与噪音'});
+  s.store.edit(s.h.id,h=>h.checklistOrder=['隔音与噪音','电路网络与隐私','周边与小区','费用与付款']);
+  s.answer(2,1,'否');expect(s.get().xiaoda.prompt.kind).toBe('next');
+  s.answer(1,0);s.answer(1,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'周边与小区'});
+ });
+ it('does not show the phase choice before the last onsite position in an interleaved custom order',()=>{
+  const s=scenario(['A','费用与付款','B']);s.answer(0,0);s.answer(0,1);
+  expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'费用与付款'});
+ });
  it.each(['simple','detailed'])('offers fees or other houses after directly completing electrical/network/privacy in %s mode',mode=>{
   const state=emptyState(),h=freshHouse('直接检查',{selectedTemplate:mode});
   state.houses=[h];Object.assign(state.xiaoda,{setup:'done',tutorialStep:0});
