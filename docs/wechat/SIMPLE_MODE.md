@@ -76,6 +76,21 @@ WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 
 本地图集 artifacts/simple-mode-20261024/index.html 已恢复说明直接显示：使用本轮 3 张新截图，其余 10 张复用上述相同应用产物的原始截图。delivery-manifest.json 逐图记录来源和哈希，旧眼睛图集已标记废弃。截图为隔离夹具及控制器准备状态的真实渲染，实际点击和用户视觉确认仍待验收；保持草稿，未合并或发布。
 
+## 房东身份与产权合并（2026-10-24）
+
+按确认稿 sequence 20，精简模式将原四个房东子项替换为 `simple_62`，只显示“是 / 否”及原说明。已有 `simple_01` 至 `simple_61` 的 ID 和内容均保持不变；详细清单未修改。已有房源继续使用创建时的快照，不自动把原四项答案推断成新项答案。新项问题、备注和媒体统一挂在 `simple_62`。
+
+代码及测试提交：`afca4a66943dea4acd6e58dd9c32d6c51fe950f8`，基线 `591f135d3216a60efe53124069bdb14a8225787d`，[PR #78](https://github.com/Hayden-Chang/rent_room/pull/78)。后续只补充本段验证记录，应用源码、测试、数据及构建配置与该提交相同，复用其验证证据。
+
+- 修复前新增用例 `records landlord identity as one yes/no item without child fields` 失败：实际没有可直接填写的单个房东项。修复后通过。
+- `node node_modules/vitest/vitest.mjs run tests/simple-mode.test.js`：14 项通过。覆盖生成结果、是否选项、折叠边界、统一完成/问题计数、旧房源快照与记录、ZIP 及媒体关联。
+- `node node_modules/vitest/vitest.mjs run tests/first-meeting-runtime.test.js -t 'preselects simple and applies the first sorting draft only to the chosen template'`：1 项通过，验证构建后的首次精简模板创建路径。没有运行全量测试。
+- `WECHAT_TEST_DATA_ROOT=xunju-test-simple-landlord-20261024 node scripts/build.mjs`、`node scripts/check.mjs` 通过；wcc 20、wcsc 22，15 页、2,044,853 字节。Node 24.19.0，Vitest 5.0.3。
+- 原始日志保存在本任务 worktree 的 `apps/wechat/artifacts/landlord-choice/`：`before.log`、`final-unit.log`、`final-runtime.log`、`build.log`、`compile.log`、`review.json`。最终 diff 已由当前 agent 复查，除房东项之外的生成清单逐项完全相同；GitHub 未返回任何 status checks 或 check runs，不将其视为远程 CI 通过。
+- 最小 UI 映射为新增 `tests/e2e/landlord-choice-render.cjs`，预期检查精简空白项、已记录问题项和详细四子项的实际渲染。固定三槽池 run `d63744d18ba04d3da3168eb840db8a40` 排队 300 秒后返回 `No free slot; active/orphan instances were not stopped`，未执行回调、未取得截图；这是基础设施阻碍，不能宣称 UI 验收通过。冻结快照哈希 `01a1fa1ea4ed7f11d9036ff0f20f5e60ab1f89cccd791925ced0587d6c93a582`，源码状态干净。receipt 保存在 `/Volumes/mac2/codex-builds/wechat-instance-pool/runs/d63744d18ba04d3da3168eb840db8a40/receipt.json`。
+
+PR 保持草稿，实际渲染、原生交互和用户视觉确认仍待完成；未合并、未发布。
+
 
 ## 备注配色与完整左滑区域（2026-10-24）
 
