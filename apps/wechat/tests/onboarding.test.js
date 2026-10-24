@@ -121,7 +121,7 @@ it('keeps enough document height for a short last category so guide removal cann
  p.onPageScroll({scrollTop:0});expect(p.data.fillMinHeight).toBeNull();
 });
 it('ignores repeated acceptance and touch events during the same exit animation',()=>{
- const h=acceptanceFixture(),p=h.p;p.acceptFilling();vi.advanceTimersByTime(80);p.fillingTouch();p.acceptFilling();
+ const h=acceptanceFixture(),p=h.p;p.acceptFilling();vi.advanceTimersByTime(80);p.fillingTouch?.();p.acceptFilling();
  expect(p.data.fillHeight).toBe(240);vi.advanceTimersByTime(80);expect(p.data.fillHeight).toBe(0);
  vi.advanceTimersByTime(280);expect(p.data.fillPrompt).toBeNull();expect(h.wx.pageScrollTo).toHaveBeenCalledOnce();
 });
@@ -176,11 +176,46 @@ it('keeps speech paused through a distant smooth scroll and ignores stale callba
  scroll.complete();vi.advanceTimersByTime(699);expect(p.data.fillStage).toBe('moving');vi.advanceTimersByTime(1);expect(p.data.fillStage).toBe('entering');
  p.inputFilling();scroll.complete();vi.advanceTimersByTime(2000);expect(p.data.fillPrompt).toBeNull();
 });
-it.each(['phase','filter','touch','hide','unload'])('cancels a pending completion on %s before it can arrive late',action=>{
+it.each(['phase','filter','hide','unload'])('cancels a pending completion on %s before it can arrive late',action=>{
  const h=completionFixture(),p=h.p;p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});vi.advanceTimersByTime(200);
  if(action==='phase')p.phase({currentTarget:{dataset:{value:'现场'}}});
  if(action==='filter')p.toggleFilters();if(action==='touch')p.fillingTouch();if(action==='hide')p.onHide();if(action==='unload')p.onUnload();
  vi.advanceTimersByTime(3000);expect(p.data.fillPrompt).toBeNull();expect(h.wx.pageScrollTo).not.toHaveBeenCalled();expect(h.app.service.store.house(h.id).answers.f1_6.value).toBe('2800');
+});
+it('retains a completed item through ordinary touch before the recommendation appears',()=>{
+ const h=completionFixture(),p=h.p;guideGeometry(p);
+ p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});vi.advanceTimersByTime(200);p.fillingTouch?.();
+ vi.advanceTimersByTime(760);expect(p.data.fillPrompt?.target).toBe('通风与采光');expect(p.data.fillStage).toBe('ready');
+});
+it.each([500,740])('finishes the entrance after a touch at %s ms',at=>{
+ const h=completionFixture(),p=h.p;guideGeometry(p);
+ p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});vi.advanceTimersByTime(at);p.fillingTouch?.();
+ vi.advanceTimersByTime(960-at);expect(p.data.fillPrompt?.target).toBe('通风与采光');expect(p.data.fillStage).toBe('ready');
+});
+it('retains the completion while another input takes focus and shows it after blur',()=>{
+ const h=completionFixture(),p=h.p;
+ p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});vi.advanceTimersByTime(200);
+ p.fillingFocus({detail:{id:'f21_0',input:'note'}});p.answer({detail:{id:'f21_0',prop:'note',value:'下午再看'}});
+ vi.advanceTimersByTime(2000);expect(p.data.fillPrompt).toBeNull();
+ p.fillingBlur({detail:{id:'f21_0',input:'note'}});vi.advanceTimersByTime(1500);
+ expect(p.data.fillPrompt?.target).toBe('通风与采光');expect(h.app.service.store.house(h.id).answers.f21_0.note).toBe('下午再看');
+});
+it('shows the completion saved by a wheel after the wheel closes',()=>{
+ const h=completionFixture(),p=h.p;p.setData({wheelField:{id:'f1_6'}});
+ p.saveWheel({detail:{id:'f1_6',value:'2800'}});vi.advanceTimersByTime(1500);
+ expect(p.data.wheelField).toBeNull();expect(p.data.fillPrompt?.target).toBe('通风与采光');expect(p.data.fillStage).toBe('ready');
+});
+it('resumes a completion first discovered while a sheet was open',()=>{
+ const h=completionFixture(),p=h.p;p.setData({sheet:'note'});
+ p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});vi.advanceTimersByTime(1500);expect(p.data.fillPrompt).toBeNull();
+ p.close();vi.advanceTimersByTime(1500);expect(p.data.fillPrompt?.target).toBe('通风与采光');
+});
+it('finishes the current entrance before showing a newer completion',()=>{
+ const h=completionFixture(),p=h.p;guideGeometry(p);p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});vi.advanceTimersByTime(500);
+ const first=p.data.fillPrompt.id;
+ h.app.service.store.edit(h.id,house=>house.xiaoda.prompt={...house.xiaoda.prompt,id:'newer'});p.refresh();
+ expect(p.data.fillPrompt.id).toBe(first);vi.advanceTimersByTime(460);expect(p.data.fillStage).toBe('ready');expect(p.data.fillPrompt.id).toBe(first);
+ vi.advanceTimersByTime(1500);expect(p.data.fillPrompt.id).toBe('newer');expect(p.data.fillStage).toBe('ready');
 });
 it('does not show a completion that was undone while typing, and ignores an old blur from another field',()=>{
  const h=completionFixture(),p=h.p;p.fillingFocus({detail:{id:'f1_6',input:'value'}});

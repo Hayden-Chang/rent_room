@@ -64,17 +64,21 @@ export const coachMethods={
   if(target)this.showFilling({kind:'intro',target:target.category,phase:target.phase,id:'intro-'+h.id,text:target.category==='房源基本信息'?'写一下房子的基本信息吧。':`先看看「${target.category}」吧。`});
  },
  syncFilling(){
-  if(this.fillAccepting||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
+  if(this.fillAccepting||this.fillingEntering()||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
   const state=service().store.get(),h=service().store.house(this.data.id),prompt=h?.xiaoda?.prompt;
   if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.queueFilling(prompt);}
   else if(this.data.fillPrompt)this.showFilling(this.data.fillPrompt);
+  this.scheduleFilling();
  },
+ fillingEntering(){return !!this.data.fillPrompt&&['preparing','moving','entering'].includes(this.data.fillStage);},
  cancelFillingTransition(){clearTimeout(this.fillTimer);this.fillTimer=null;this.fillRun=(this.fillRun||0)+1;this.fillPending=null;this.fillMeasuring=null;this.fillAccepting=false;},
  fillingView(){return JSON.stringify([this.data.tab,this.data.phase,this.data.query,this.data.filters]);},
  fillingReturnCurrent(saved,run){return this.fillRun===run&&!this.unloaded&&!this.coachHidden&&!this.data.coach&&this.data.tab==='清单'&&this.data.id===saved.houseId&&this.fillingView()===saved.view&&getApp().service===saved.platform;},
- fillingCurrent(run,platform,id,prompt){
-  if(run!==this.fillRun||this.unloaded||this.coachHidden||getApp().service!==platform||this.data.id!==id||this.data.tab!=='清单'||this.data.coach||this.fillEditing||this.data.wheelField||this.data.sheet)return false;
-  const h=platform.store.house(id);if(!h||h.archived||!xiaodaEnabled(platform.store.get(),h)||h.xiaoda?.prompt?.id!==prompt.id)return false;
+ fillingCurrent(run,platform,id,prompt,entering=false){
+  if(run!==this.fillRun||this.unloaded||this.coachHidden||getApp().service!==platform||this.data.id!==id||this.data.tab!=='清单'||this.data.coach)return false;
+  const h=platform.store.house(id);if(!h||h.archived||!xiaodaEnabled(platform.store.get(),h))return false;
+  if(entering)return this.data.fillPrompt?.id===prompt.id;
+  if(this.fillEditing||this.data.wheelField||this.data.sheet||h.xiaoda?.prompt?.id!==prompt.id)return false;
   const rows=progress(h);if(this.fillCompleted&&!rows.some(r=>r.category===this.fillCompleted&&r.complete))return false;
   return prompt.kind==='return'?rows.every(r=>r.complete):rows.some(r=>r.category===prompt.target&&!r.complete);
  },
@@ -82,14 +86,13 @@ export const coachMethods={
   this.cancelFillingTransition();this.fillReturn=null;this.fillCompleted=service().store.house(this.data.id)?.xiaoda?.seenCompleted?.at(-1);this.fillPending={prompt,platform:service(),id:this.data.id};this.scheduleFilling();
  },
  scheduleFilling(){
-  if(!this.fillPending||this.fillTimer||this.fillEditing||this.data.wheelField||this.data.sheet)return;
+  if(!this.fillPending||this.fillTimer||this.fillEditing||this.data.wheelField||this.data.sheet||this.unloaded||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
   const {prompt,platform,id}=this.fillPending,run=this.fillRun;
   // Let the recorded result settle; typing retains its prompt until blur.
   this.fillTimer=setTimeout(()=>{this.fillTimer=null;if(!this.fillingCurrent(run,platform,id,prompt))return;this.fillPending=null;this.showFilling(prompt,true);},500);
  },
- fillingFocus(e){this.inputFilling();this.fillEditing=e.detail.id+':'+e.detail.input;},
+ fillingFocus(e){this.inputFilling(e,true);this.fillEditing=e.detail.id+':'+e.detail.input;},
  fillingBlur(e){if(this.fillEditing!==e.detail.id+':'+e.detail.input)return;this.fillEditing=null;this.refresh();this.scheduleFilling();},
- fillingTouch(){if(!this.fillAccepting&&!this.fillEditing&&(this.fillPending||this.fillMeasuring||(this.data.fillPrompt&&this.data.fillStage!=='ready'&&this.data.fillStage)))this.waitFilling();},
  fillingScroll(e){
   if(this.fillAccepting||this.data.tab!=='清单'||this.data.fillMinHeight==null)return;
   const top=Math.max(0,e?.scrollTop||0),height=top+wx.getWindowInfo().windowHeight-(this.fillPageTop||0);
@@ -97,6 +100,7 @@ export const coachMethods={
   if(height<this.data.fillMinHeight)this.setData({fillMinHeight:top?Math.max(0,height):null});
  },
  showFilling(prompt,animate=false){
+  if(animate&&(this.fillEditing||this.data.wheelField||this.data.sheet)){this.fillPending={prompt,platform:service(),id:this.data.id};return;}
   const section=this.data.sections.find(s=>s.title===prompt.target);
   const anchor=prompt.kind==='return'?{kind:'return'}:section?{kind:'category',id:section.id}:{kind:'phase',id:'phase-area'};
   if(this.data.fillPrompt?.id===prompt.id&&this.data.fillAnchor?.kind===anchor.kind&&this.data.fillAnchor?.id===anchor.id)return;
@@ -113,8 +117,9 @@ export const coachMethods={
    });return;
   }
   if(!animate){this.setData({fillPrompt:prompt,fillAnchor:anchor,fillStage:'ready',fillHeight:null},()=>this.locateFilling());return;}
-  const run=this.fillRun,platform=service(),id=this.data.id,current=()=>this.fillingCurrent(run,platform,id,prompt);
-  const enter=()=>{if(!current())return;this.setData({fillStage:'entering'},()=>{if(current())this.fillTimer=setTimeout(()=>{this.fillTimer=null;if(current())this.setData({fillStage:'ready',fillHeight:null});},220);});};
+  const run=this.fillRun,platform=service(),id=this.data.id,current=()=>this.fillingCurrent(run,platform,id,prompt,true);
+  if(!this.fillingCurrent(run,platform,id,prompt))return;
+  const enter=()=>{if(!current())return;this.setData({fillStage:'entering'},()=>{if(current())this.fillTimer=setTimeout(()=>{this.fillTimer=null;if(current())this.setData({fillStage:'ready',fillHeight:null},()=>this.syncFilling());},220);});};
   const locate=()=>{
    if(!current())return;const q=this.createSelectorQuery();q.select('#filling-guide').boundingClientRect();q.selectViewport().scrollOffset();
    q.exec(([rect,viewport])=>{
@@ -182,9 +187,11 @@ export const coachMethods={
    });
   }catch(error){notify(error);}
  },
- inputFilling(e){
+ inputFilling(e,editing=false){
   if(this.data.coach)return;
   if(!e?.detail?.id)this.fillEditing=null;
+  // Result edits and focus changes must not consume an unseen completion.
+  if(editing&&(this.fillPending||this.fillMeasuring)){clearTimeout(this.fillTimer);this.fillTimer=null;return;}
   if(e?.detail?.id&&this.fillEditing?.startsWith(e.detail.id+':')&&this.fillPending)return;
   if(!this.data.fillPrompt&&!this.fillPending&&!this.fillMeasuring){this.fillRun=(this.fillRun||0)+1;return;}
   try{if(this.data.fillPrompt?.kind==='intro')service().store.edit(this.data.id,h=>h.xiaoda.intro='done',true);this.clearFilling();}catch(error){notify(error);}

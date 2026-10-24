@@ -1,5 +1,22 @@
 # 精简模式接入与验收（2026-10-24）
 
+## 室内环境分组合并（2026-10-24）
+
+按主线 Page sequence 17，将精简模式的「通风与采光」「隔音与噪音」「虫害鼠害」合并为「室内环境」。依次保留自然采光充足、空气流通正常、隔音与噪音正常、无虫害鼠害四项，分别记录是／否。61 个统一记录项、总计 99 个字段，以及字段 ID、说明、选项均保持不变；详细清单不变。
+
+新建精简房源和精简模板编辑器使用新分类。已有房源保留原模板快照、答案、问题标记、备注和影像。旧精简模板排序将三组映射到首次出现的位置并去重；任一旧组启用则保留新组，三组全部停用才停用新组。设置数据读取时归一化，不重写已有房源。
+
+业务代码提交 `da85231e95c325370a57e452967bfbe5722bc40f`；后续仅修正截图夹具并补充此记录，应用源码、数据和构建入口一致。
+
+- 定向单测：`node node_modules/vitest/vitest.mjs run tests/simple-environment.test.js tests/simple-mode.test.js tests/first-meeting-runtime.test.js tests/welcome-mode.test.js tests/template-fold.test.js`，5 文件 / 37 项通过。映射为生成分组与独立计数、排序停用兼容、旧快照重载、首次选择及模板保存；未运行全量测试。日志在 `apps/wechat/artifacts/simple-environment/final-unit.log`。
+- 普通预览构建与 `node scripts/check.mjs` 通过：15 页、2,048,299 字节，wcc 20 / wcsc 22 文件退出 0。确认地图 Key、服务地址已注入且未包含隔离测试目录。
+- 新渲染回调 `tests/e2e/simple-environment-render.cjs` 通过固定三槽池执行。最终 run `fbf5d42f6606411a8ce84256e65cd7e0` 通过，槽位 3 归还 idle；两张截图逐张核对，模板只有一个「室内环境」，展开后四项各有是／否按钮，进度为 0 / 4。采用隔离测试目录、应用 store 创建夹具和控制器展开，不代表真实触摸或手机验收。
+- 首轮 `f2ef4b55b6204258905b37985697ffe5` 的外部对象注入使视图数组失真；随后尝试跨运行时 JSON 解析的 run `bd4071cf2ecb486eabf4dc677559ae52` 报自动化协议异常。最终改为应用自身 store 创建房源，并验证数组类型与长度，业务代码未改。三轮原始证据均保留，失败不计为产品修复。
+- 最终截图、receipt 与夹具哈希在 `apps/wechat/artifacts/simple-environment/render-final/` 和 `delivery.json`。37 项单测对应业务提交；夹具修改不影响这些用例，最终回调文件哈希与实际执行版本相同。
+- 微信普通预览成功，机器人 2，CI run `9bed44ca15924ddb94ef7f97e2a3434b`，源提交 `da85231` 且工作区干净。上传快照每个文件及二维码 SHA-256 已回读核对，二维码已解码到微信域名。二维码为 `apps/wechat/artifacts/simple-environment/qrcode-da85231.jpg`。
+
+主 agent 已审查本次最终业务 diff、生成字段一致性及验证证据。远程 main 前进到 `d183ece`，增量仅改容量页标题与图标，与本次文件不重叠；不据此声明手机验收完成。草稿 PR 等待用户扫码及视觉确认，未合并或发布。扫码后需选择精简模板并新建房源，旧房源按原快照显示。
+
 需求：[小搭首次见面流程与文案](https://chatgpt.com/space/page_f978312f402881919e066ebe0d9bc4c1)，读取版本 sequence 16，更新时间 2026-10-23T14:51:53.422316Z。此任务仅接入精简模式；继承小搭分支 e46716f 的引导基础，不修改该任务的工作区或 PR。
 
 ## 行为与数据边界

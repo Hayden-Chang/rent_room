@@ -88,7 +88,9 @@ describe('mode snapshots and records',()=>{
   const io=memory(),store=createStore(io);store.change(s=>{s.settings.selectedTemplate='simple';s.xiaoda.setup='done';s.xiaoda.tutorialStep=0;});
   const id=store.add('精简'),h=store.house(id),noise=all(h).find(f=>f.label==='隔音与噪音正常');
   expect(coachTarget(h).field.id.startsWith('simple_')).toBe(true);
-  store.answer(id,noise.id,'value','是');expect(progress(store.house(id)).find(r=>r.category==='隔音与噪音')).toMatchObject({done:1,total:1,complete:true});expect(store.house(id).xiaoda.prompt.target).toBeTruthy();
+  store.answer(id,noise.id,'value','是');expect(progress(store.house(id)).find(r=>r.category==='室内环境')).toMatchObject({done:1,total:4,complete:false});
+  for(const t of houseTopics(h).filter(t=>t.category==='室内环境'))for(const f of t.fields)store.answer(id,f.id,'value','是');
+  expect(progress(store.house(id)).find(r=>r.category==='室内环境')).toMatchObject({done:4,total:4,complete:true});expect(store.house(id).xiaoda.prompt.target).toBeTruthy();
  });
  it('searches descriptions and includes compact records in comparisons without inventing detailed answers',()=>{
   const a=simple(),b=freshHouse('详细'),f=all(a).find(f=>f.label==='电梯使用正常');updateAnswer(a,f.id,'value','没有');

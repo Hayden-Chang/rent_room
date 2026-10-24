@@ -2,7 +2,7 @@
   "version": 1,
   "source": {
     "url": "https://chatgpt.com/space/page_f978312f402881919e066ebe0d9bc4c1",
-    "sequence": 16
+    "sequence": 17
   },
   "items": [
     {
@@ -119,7 +119,7 @@
     },
     {
       "id": "simple_11",
-      "category": "通风与采光",
+      "category": "室内环境",
       "label": "自然采光充足",
       "description": "白天关灯查看室内亮度和日照情况",
       "options": [
@@ -130,7 +130,7 @@
     },
     {
       "id": "simple_12",
-      "category": "通风与采光",
+      "category": "室内环境",
       "label": "空气流通正常",
       "description": "室内无异味，卧室、客厅、厨房、卫生间及晾晒位置通风正常",
       "options": [
@@ -141,7 +141,7 @@
     },
     {
       "id": "simple_13",
-      "category": "隔音与噪音",
+      "category": "室内环境",
       "label": "隔音与噪音正常",
       "description": "室内外噪音小，门窗、墙体隔音效果好",
       "options": [
@@ -149,6 +149,17 @@
         "否"
       ],
       "sourceBlock": "5ef64551-fe2a-4dd6-b071-614c8823d07f"
+    },
+    {
+      "id": "simple_49",
+      "category": "室内环境",
+      "label": "无虫害鼠害",
+      "description": "水槽下、冰箱后、柜内、踢脚线、下水口及阳台无虫鼠痕迹",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "bd2c3aee-5b1e-442b-80da-de20ca0effd2"
     },
     {
       "id": "simple_14",
@@ -559,17 +570,6 @@
         "否"
       ],
       "sourceBlock": "b9c1bf3c-0c04-40a2-b1f3-e96f0275a235"
-    },
-    {
-      "id": "simple_49",
-      "category": "虫害鼠害",
-      "label": "无虫害鼠害",
-      "description": "水槽下、冰箱后、柜内、踢脚线、下水口及阳台无虫鼠痕迹",
-      "options": [
-        "是",
-        "否"
-      ],
-      "sourceBlock": "bd2c3aee-5b1e-442b-80da-de20ca0effd2"
     },
     {
       "id": "simple_50",

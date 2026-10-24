@@ -42,6 +42,15 @@ describe('xiaoda lifecycle and templates',()=>{
  it('scopes closure to the house, local day or long term setting without erasing answers',()=>{const {store,get}=scenario();store.change(s=>s.xiaoda.closedDate=localDay(new Date(2026,9,23)));expect(xiaodaEnabled(store.get(),get(),new Date(2026,9,23,23))).toBe(false);expect(xiaodaEnabled(store.get(),get(),new Date(2026,9,24))).toBe(true);store.edit(get().id,h=>h.xiaoda.disabled=true);expect(xiaodaEnabled(store.get(),get(),new Date(2026,9,24))).toBe(false);store.change(s=>s.xiaoda.enabled=true);expect(xiaodaEnabled(store.get(),get(),new Date(2026,9,24))).toBe(false);});
 });
 describe('completion recommendations',()=>{
+ it.each(['none','noCost'])('recognizes %s as the final recorded result and persists completion only once',prop=>{
+  const s=scenario(['A','B']);
+  s.store.edit(s.h.id,h=>h.templateTopics[0].fields[1]={id:'custom0_1',label:'最后一项',type:'t',...(prop==='none'?{allowNone:true}:{cost:{}})});
+  s.answer(0,0);s.store.answer(s.h.id,'custom0_1',prop,true);
+  expect(progress(s.get())[0].complete).toBe(true);expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'B'});
+  expect(s.get().xiaoda.seenCompleted).toContain('A');
+  s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);s.store.answer(s.h.id,'custom0_1',prop,false);s.store.answer(s.h.id,'custom0_1',prop,true);
+  expect(s.get().xiaoda.prompt).toBeUndefined();expect(createStore(s.adapter).house(s.h.id).xiaoda.seenCompleted).toContain('A');
+ });
  it('does not complete from notes, media or problem flags',()=>{const s=scenario(['A']);s.store.answer(s.h.id,'custom0_0','note','note');s.store.answer(s.h.id,'custom0_1','issueFlag',true);s.store.edit(s.h.id,h=>h.media.push({id:'m',type:'image',path:'/x',fieldId:'custom0_0'}));expect(progress(s.get())[0].done).toBe(0);expect(s.get().xiaoda.prompt).toBeUndefined();});
  it('prefers a recently edited partial category and persists seen completions',()=>{const s=scenario(['A','B','C']);s.answer(0,0);s.answer(1,0);s.answer(0,1);expect(s.get().xiaoda.prompt).toMatchObject({target:'B',text:'「A」记录好了，继续填写「B」吧！'});s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);s.answer(0,1,'');s.answer(0,1);expect(s.get().xiaoda.prompt).toBeUndefined();expect(createStore(s.adapter).house(s.h.id).xiaoda.seenCompleted).toContain('A');});
  it('does not recommend payment during onsite work and uses actual remaining phases',()=>{const s=scenario();s.answer(0,0);s.answer(0,1);expect(s.get().xiaoda.prompt).toMatchObject({target:'A',phase:'现场'});for(const i of [1,2]){s.answer(i,0);s.answer(i,1);}expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款'});s.answer(3,0);s.answer(3,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',text:'这套房子记录好啦！再添加一套房源，对比看看吧。'});});
