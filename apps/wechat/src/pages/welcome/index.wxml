@@ -3,7 +3,6 @@
  <view class="guide-eyebrow">和小搭一起，准备看房</view><view class="guide-title">{{step==='sort'?'定制你的看房清单':'选一种记录方式'}}</view>
  <block wx:if="{{step==='sort'}}"><xiaoda pose="greet" text="{{intro}}"/><view class="sorting-list"><template-editor config="{{config}}" bindchange="change"/></view><view wx:if="{{error}}" class="error">{{error}}</view><view class="bottom"><button class="primary guide-primary" hover-class="guide-pressed" bindtap="next">排好啦</button></view></block>
  <block wx:else>
-  <view class="comparison-caption">以生活配套为例，选择适合你的记录方式</view>
   <view class="modes">
    <view class="mode {{mode==='simple'?'selected':''}}" data-mode="simple" bindtap="selectMode">
     <view class="mode-header">
@@ -17,7 +16,6 @@
       <view class="example-note"><view class="note-label">备注</view><text>附近没有菜市场</text></view>
      </view>
     </view>
-    <view class="mode-summary">看完说明，记一个结果</view>
    </view>
    <view class="mode {{mode==='detailed'?'selected':''}}" data-mode="detailed" bindtap="selectMode">
     <view class="mode-header">
@@ -28,7 +26,6 @@
      <view class="example-title detailed-title">生活配套</view>
      <view class="example-row {{item.answer==='否'?'problem-row':''}}" wx:for="{{detailedExample}}" wx:key="label"><text class="example-row-label">{{item.label}}</text><text class="example-answer {{item.answer==='否'?'answer-no':''}}">{{item.answer}}</text></view>
     </view>
-    <view class="mode-summary">每个细节，都有记录</view>
    </view>
   </view>
   <view class="selection-hint">点击卡片选择记录方式</view>
