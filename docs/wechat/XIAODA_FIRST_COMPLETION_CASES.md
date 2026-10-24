@@ -75,3 +75,16 @@ node tests/e2e/xiaoda-filling-fixtures.mjs
 失败证据在 `apps/wechat/artifacts/forward-only/review-fixes/`：`red.log` 为 2 条旧提示、2 条失败中改写（部分/首次完成）、1 条失效夹具共 5 条预期失败；`direct-red.log` 确认旧卡仍会展开 C。开发中 `focused.log` 118 通过、1 条出场切换失败，`entrance-green.log` 保留首次修正后仍失败的记录；区分另一来源取消与同来源新提示过渡后，`recovery-green.log` 六条定向通过。旧版手写提示的 2 处界面测试改为真实填写生成新格式提示；未削弱原先的顺序、锚点和动画断言。
 
 影响映射：onboarding 的旧提示加载/失败恢复/出场/接受 → onboarding.test.js、onboarding-wait-position.test.js；完成历史与顺序 → xiaoda.test.js、xiaoda-once.test.js；原生换序前置与两步引导 → xiaoda-native-fixtures.test.js；实际界面选择 → xiaoda-last-onsite-native.cjs；旧提示与失败恢复按钮 → xiaoda-recovery-native.cjs。未选择全量单测或全量 UI。
+
+
+第二轮审查额外发现归档房源清理旧提示会触发只读错误。`78ccafb` 在同步入口跳过缺失/归档房源；`archived-red.log` 记录修前重复 toast，`archived-green.log` 的 2 个界面回归文件 **73/73** 通过，验证归档期间内存/磁盘不变、恢复后才清理，答案与历史保留。官方编译 `archived-check.log` 通过：15 页面、2,046,492 字节、wcc 20 / wcsc 22。业务源码此后未变化。
+
+补修的 5 文件定向集合共 121 项：此前 `5ec5244` 运行中 4 文件通过，但 onboarding 的 Node worker SIGSEGV（`final-focused.log`）；同候选单独复跑 onboarding **52/52** 通过（`final-onboarding.log`）。归档守卫后重跑两个受影响界面文件 73/73，另三个完成逻辑/夹具文件的 48 项结果复用，源码与依赖未变；不把初始异常运行记为一次完整通过，不运行全量套件。
+
+原生换序 `ecbba4b10ee442fba513ca3bfa8a7d30` passed：干净候选 `5ec5244`，快照 `fcd0e4776ab12efc8747244ae4c8a3e0b5e7f1125d72cf26522573d0fcdc255c`；电路网络四项完成为普通推荐到室内环境，实际最后现场项室内环境四项完成才显示阶段选择，点击进入费用，前面未填记录保留。随后唯一生产变更是归档入口守卫；此流程房源始终未归档且存在，执行路径等价，复用证据。
+
+原生恢复 `9222aad5dbbd479a88001da552ce0226` passed：干净候选 `5f8f078`，快照 `281447f5c08f5094a8f4eb29f11f3309b694f1def5d76a785e15f5009abdb316`。旧格式向前提示被丢弃，实际修改已完成 B 无提示，首次补完 A 引导 C；另一独立房源完成 B 后制造真实临时文件写入失败，实际改 A 保留答案/备注且旧卡取消，磁盘仍为失败前答案；移除故障后实际点击“点击重试”，磁盘与本次输入一致、旧卡不重放；首次补完 A 引导 C，点击“再等等”后重新进入核对答案与磁盘保留。SDK 仅用于准备/故障注入/观察/重开，目标填写及重试由 CUA 原生点击；不作为手机实测。
+
+恢复原生夹具调试失败保留：`534249b7` 初始化时房源尚未建立就读取 state.json；`91e4afd8`、`172cc528` 暴露开发者工具 evaluate 的 JSON.parse 代理原型错误，改为 Node 解析真实磁盘字符串；`8bc52c07` 旧存档部分通过，第二夹具保留 SDK 数组代理导致渲染异常并超时。与既有通过的原生夹具对比后补齐 store 自身克隆保存，得到上述完整成功。所有调整仅测试脚本；没有修改应用运行配置或削弱持久化断言。相关 receipt、截图、断言及失败日志在 review-fixes/native-*。
+
+独立 sub-agent 对旧提示、保存失败、归档保护及后续夹具逐次复审，最终无 findings。主 agent 检查最终业务差异及测试边界：相对主线仍仅原定四个业务文件，本轮补修生产代码只在 onboarding.js；输入/触摸/动画、intro 与阶段返回本地卡保留。git diff --check 通过。之后只补验证文档，构建与上述最终快照一致。草稿 PR 保留，等待扫码手机验收，未合并或发布。
