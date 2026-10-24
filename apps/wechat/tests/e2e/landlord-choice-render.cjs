@@ -21,7 +21,6 @@ async function capture(key){
  captures.push({key,...record});fs.writeFileSync(path.join(out,key+'.json'),JSON.stringify(record,null,2));console.log('captured '+key);
 }
 (async()=>{
- const {emptyState,freshHouse}=await import('../../src/lib/model.js');
  mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  try{
   assert.ok((await evaluate(function(){return getApp().service.root;})).includes('/xunju-test-simple-landlord-'));
@@ -29,17 +28,21 @@ async function capture(key){
   await evaluate(function(){getApp().service.store.change(function(s){s.xiaoda.setup='done';},true);return true;});
   for(const mode of ['simple','detailed']){
    await route('/pages/settings/index','switchTab');
-   const state=emptyState(),h=freshHouse(mode==='simple'?'精简模式 · 房东身份与产权':'详细模式 · 房东身份与产权',{selectedTemplate:mode});
-   h.id='landlord-choice-'+mode;h.xiaoda.intro='done';state.houses=[h];
-   Object.assign(state.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done',enabled:false});state.settings.selectedTemplate=mode;
-   // Parse fixtures in AppService so the automation bridge cannot turn arrays into objects.
-   await evaluate(function(json){const state=JSON.parse(json);getApp().service.store.change(function(s){Object.assign(s,state);},true);return true;},JSON.stringify(state));
+   // Create through the app so nested arrays never cross the automation bridge.
+   const h={id:await evaluate(function(mode){
+    const store=getApp().service.store;
+    store.change(function(s){s.settings.selectedTemplate=mode;s.xiaoda.setup='done';s.xiaoda.tutorialStep=0;s.xiaoda.feedback='done';s.xiaoda.enabled=false;},true);
+    const id=store.add(mode==='simple'?'精简模式 · 房东身份与产权':'详细模式 · 房东身份与产权');
+    store.change(function(s){s.xiaoda.firstHouseId=id;s.houses.find(function(h){return h.id===id;}).xiaoda.intro='done';},true);
+    return id;
+   },mode)};
    await route('/pages/detail/index?id='+h.id,'navigateTo');
    await evaluate(function(mode){const p=getCurrentPages().slice(-1)[0],key=JSON.stringify({phase:'全部',query:'',filters:[]});p.folds[key]={'身份与合同':true,topic_98:mode==='detailed'};p.refresh({},function(){const s=p.data.sections.find(function(s){return s.title==='身份与合同';});wx.pageScrollTo({selector:'#'+s.id,duration:0});});return true;},mode);
    await waitFor(()=>evaluate(function(){const p=getCurrentPages().slice(-1)[0];return p.data.sections.some(function(s){return s.title==='身份与合同'&&s.expanded;});}),'contract section');
    // Persist the exact component snapshot for assertion diagnostics.
    const fields=JSON.parse(await evaluate(function(){return JSON.stringify(getCurrentPages().slice(-1)[0].selectAllComponents('.field-row').map(function(c){return c.data.field;}));}));
    fs.writeFileSync(path.join(out,mode+'-fields.json'),JSON.stringify(fields,null,2));
+   await capture(mode==='simple'?'01-simple-landlord':'03-detailed-landlord');
    if(mode==='simple'){
     const owner=fields.filter(f=>f.label==='房东身份与产权');assert.equal(owner.length,1);
     assert.equal(owner[0].id,'simple_62');assert.equal(owner[0].heading,'');assert.equal(owner[0].expanded,undefined);
@@ -47,7 +50,6 @@ async function capture(key){
     assert.deepEqual(owner[0].options.map(o=>o.value),['是','否']);
     assert.equal(owner[0].description,'核对房东身份证和房产证，确认房子归谁、合同跟谁签。');
     assert.ok(!fields.some(f=>/^f98_/.test(f.id)));
-    await capture('01-simple-landlord');
     // Prepare a saved result to inspect the selected option, note and problem layout.
     await evaluate(function(id){const s=getApp().service.store;s.answer(id,'simple_62','value','否');s.answer(id,'simple_62','note','请房东补充产权材料后再确认。');s.answer(id,'simple_62','issueFlag',true);getCurrentPages().slice(-1)[0].refresh();return true;},h.id);
     await waitFor(()=>evaluate(function(){const p=getCurrentPages().slice(-1)[0];return p.data.stats.done===1&&p.data.stats.issues===1;}),'one completed item and one problem');
@@ -56,8 +58,9 @@ async function capture(key){
     assert.deepEqual(saved,{value:'否',note:'请房东补充产权材料后再确认。',issueFlag:true});
    }else{
     assert.deepEqual(fields.filter(f=>/^f98_/.test(f.id)).map(f=>f.id),['f98_0','f98_1','f98_2','f98_3']);
-    assert.ok(!fields.some(f=>f.id==='simple_62'));await capture('03-detailed-landlord');
+    assert.ok(!fields.some(f=>f.id==='simple_62'));
    }
+   await evaluate(function(id){getApp().service.store.archive(id,true);return true;},h.id);
   }
   fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify({captures,fixtureState:true,nativeInteractionValidated:false},null,2));
  }finally{mini.disconnect();}
