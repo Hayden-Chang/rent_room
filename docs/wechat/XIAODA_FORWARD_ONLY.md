@@ -43,3 +43,21 @@
 基础设施记录：首次 run `d9467fe6f480421db5ddd5db967846f8` 仅排队超时，没有执行点击；后续正常获得槽位。CUA 坐标点击出现 `noWindowsAvailable`，使用同一已租用窗口的原生可访问性按钮成功操作，没有替换为 handler 调用。
 
 主 agent 已在 PR 创建后独立检查远程最终 diff、9 个文件范围、失败/通过日志和上述原生证据，未发现需要返工的问题。核对时 main 仍为 `591f135d3216a60efe53124069bdb14a8225787d`，GitHub 可合并，未返回 workflow runs 或 commit statuses；不将空列表称为 CI 通过。PR #76 保持草稿，UI 效果等待用户确认，未合并、未发布。
+
+## 位置回归及最终证据等价
+
+旧脚本的 run `f8d2ff245e3e446a8e72aad847b045df` 在首个设置页的导航成功回调等待中超时，尚未填写。将脚本准备阶段改为等待实际路由（提交 `0f6f35b`），保留所有后续业务与位置断言。单独重跑 `xiaoda-wait-native.cjs` 的 run `87c12b2313ed4bdbaca2b34b6ab28f54` 通过：原生点击 B 的最后答案后推荐 C，点击“再等等”后 B 最后一项的 top 从 180px 恢复为 180px，阶段/筛选/折叠/答案不变，重开仍保留答案且不重播提示。receipt 为 passed，槽位归还 idle；本地附件位于 `apps/wechat/artifacts/forward-only/wait-native/`。
+
+`7da997d → 0f6f35b` 仅改 `tests/e2e/xiaoda-wait-native.cjs` 的导航等待一行，生产源码、三个已验证单测文件、主流程 E2E、构建脚本与依赖无差异。两个提交的 `apps/wechat/src` tree 都为 `456f7c161d4ff132953d5064a36478f327cf26ea`。因此复用 74 项单测、官方编译和主流程实际点击证据；新导航准备逻辑由该位置回归的成功重跑验证。之后仅补充本记录，未改变代码、测试或构建输入。两个测试构建仅使用各自可丢弃的数据根名称，不修改业务配置。
+
+命令（工作目录 `apps/wechat`，Node 使用本机 24.19.0）：
+
+```sh
+node node_modules/vitest/vitest.mjs run tests/xiaoda.test.js -t 'completion recommendations'
+node node_modules/vitest/vitest.mjs run tests/xiaoda.test.js tests/onboarding.test.js tests/onboarding-wait-position.test.js
+WECHAT_TEST_DATA_ROOT=xunju-test-xiaoda-forward-20261024 npm run build
+npm run check
+node tests/e2e/xiaoda-filling-fixtures.mjs
+```
+
+两个原生测试均通过固定 pool.py 入口以 `WECHAT_POOL_UI_REVIEW=1`、明确任务 dist 和脚本绝对路径执行；完整 command、版本、提交和快照见对应 receipt。只选择这两条 UI 路径，未运行完整既有 UI 套件。
