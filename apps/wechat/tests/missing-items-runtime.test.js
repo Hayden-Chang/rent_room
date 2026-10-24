@@ -49,22 +49,26 @@ it.each([['f54_0','缺少的家具','衣柜'],['f54_1','缺少的家电','冰箱
  };
  page.onLoad({id:house});page.search({detail:{value:label}});if(tab==='问题')page.refresh({tab});patches.length=0;
  vm.runInContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),context);
- const sections=page.data.sections,issueRows=page.data.issueRows;
+ const bindings=fs.readFileSync('dist/pages/detail/index.wxml','utf8').match(/<field-row[^>]*bindanswer="answer"[^>]*>/)[0];
  const row=()=>tab==='问题'?page.data.issueRows.find(r=>r.id===id):page.data.sections.flatMap(s=>s.rows).find(r=>r.id===id);
- const component={...spec.methods,data:{...JSON.parse(JSON.stringify(spec.data)),field:row(),readonly:false},setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){expect(name).toBe('answer');page.answer({detail});this.data.field=row();}};
+ const component={...spec.methods,data:{...JSON.parse(JSON.stringify(spec.data)),field:row(),readonly:false},setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){const handler=bindings.match(new RegExp('bind'+name+'="([^"]+)"'))?.[1];expect(handler).toBeTruthy();page[handler]({detail});if(row())this.data.field=row();}};
  // Evaluate the real native input's binding after input and blur. This covers
  // Page/Component synchronization, not physical-device keyboard rendering.
  const input=fs.readFileSync('dist/components/field-row/index.wxml','utf8').match(/<view wx:elif="\{\{field.cost\|\|field.allowNone\}\}"[^>]*><input[^>]+>/)[0];
  const bound=()=>vm.runInNewContext(input.match(/value="\{\{([^}]+)\}\}"/)[1],component.data);
  const send=(event,value)=>component[input.match(new RegExp('bind'+event+'="([^"]+)"'))[1]]({detail:{value},currentTarget:{dataset:{input:'value'}}});
- for(const value of [text,text+'、书桌','',text]){
-  send('focus',bound());send('input',value);
+ for(const value of [text,text+'、书桌',text,'']){
+  const sections=page.data.sections,issueRows=page.data.issueRows;patches.length=0;
+  send('focus',bound());expect(page.fillEditing).toBe(id+':value');send('input',value);
   expect(row().value).toBe(value);expect(bound()).toBe(value);expect(row().problem).toBe(!!value);
-  send('blur',value);expect(bound()).toBe(value);
+  expect(page.data.sections).toBe(sections);expect(page.data.issueRows).toBe(issueRows);
+  expect(patches.every(p=>!Object.hasOwn(p,'sections')&&!Object.hasOwn(p,'issueRows'))).toBe(true);
+  send('blur',value);expect(page.fillEditing).toBe(null);
+  if(tab==='问题'&&!value)expect(row()).toBeUndefined();else expect(bound()).toBe(value);
   expect(JSON.parse(disk.get(app.service.root+'/state.json')).houses.find(h=>h.id===house).answers[id].value).toBe(value);
+  page.onHide();page.onShow();
+  if(tab==='问题'&&!value)expect(row()).toBeUndefined();else expect(row().value).toBe(value);
+  if(row())component.data.field=row();
  }
- expect(page.data.sections).toBe(sections);expect(page.data.issueRows).toBe(issueRows);
- expect(patches.every(p=>!Object.hasOwn(p,'sections')&&!Object.hasOwn(p,'issueRows'))).toBe(true);
- page.onHide();page.onShow();expect(row().value).toBe(text);page.onUnload();
- app.onLaunch();localPageFixture(app,wx);expect(app.service.store.house(house).answers[id].value).toBe(text);
+ page.onUnload();app.onLaunch();localPageFixture(app,wx);expect(app.service.store.house(house).answers[id].value).toBe('');
 });
