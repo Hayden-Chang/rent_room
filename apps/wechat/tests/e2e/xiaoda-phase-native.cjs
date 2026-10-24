@@ -5,9 +5,9 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 const out=process.env.WECHAT_ARTIFACT_DIR;
 if(!out||!process.env.WECHAT_WS_ENDPOINT)throw Error('Use shared pool');
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));let mini;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));let mini,houseId;
 const evaluate=(fn,...args)=>mini.evaluate('function(){return ('+fn.toString()+').apply(null,arguments);}',...args);
-const read=async()=>JSON.parse(await evaluate(function(){const p=getCurrentPages().slice(-1)[0],h=getApp().service.store.house('phase-review');return JSON.stringify({route:p.route,ready:p.accountPageReady,phase:p.data.phase,prompt:p.data.fillPrompt,stage:p.data.fillStage,sections:p.data.sections?.map(s=>({title:s.title,expanded:s.expanded})),answers:h?.answers,storedPrompt:h?.xiaoda?.prompt});}));
+const read=async()=>JSON.parse(await evaluate(function(id){const p=getCurrentPages().slice(-1)[0],h=getApp().service.store.house(id);return JSON.stringify({route:p.route,ready:p.accountPageReady,phase:p.data.phase,prompt:p.data.fillPrompt,stage:p.data.fillStage,sections:p.data.sections?.map(s=>({title:s.title,expanded:s.expanded})),answers:h?.answers,storedPrompt:h?.xiaoda?.prompt});},houseId));
 async function until(predicate,label){const end=Date.now()+180000;do{const s=await read();if(predicate(s))return s;await sleep(200);}while(Date.now()<end);throw Error('Timed out: '+label);}
 async function capture(name){await sleep(1800);const s=await read();await mini.screenshot({path:path.join(out,name+'.png')});fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(s,null,2));return s;}
 async function route(url,navigate=false){await evaluate(function(url,navigate){if(navigate)wx.navigateTo({url});else wx.reLaunch({url});return true;},url,navigate);await until(s=>s.route===url.split('?')[0].slice(1),'navigation');}
@@ -18,7 +18,8 @@ async function route(url,navigate=false){await evaluate(function(url,navigate){i
   const {emptyState,freshHouse}=await import('../../src/lib/model.js');
   for(const choice of ['fees','other']){
    const fixture=emptyState(),h=freshHouse('直接检查电路网络与隐私',{selectedTemplate:'simple'});
-   h.id='phase-review';h.xiaoda.intro='done';fixture.houses=[h];
+   // Separate houses: clearing a previously completed house must preserve its history.
+   houseId=h.id='phase-review-'+path.basename(out)+'-'+choice;h.xiaoda.intro='done';fixture.houses=[h];
    Object.assign(fixture.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done'});
    await route('/pages/settings/index');
    await evaluate(function(fixture){const store=getApp().service.store;store.change(s=>Object.assign(s,fixture),true);store.change(()=>{},true);return true;},fixture);

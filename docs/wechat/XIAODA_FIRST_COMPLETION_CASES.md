@@ -33,3 +33,31 @@
 - `tests/e2e/xiaoda-forward-native.cjs`：实际先完成末尾 D、等待、补 A→B→C、B 连续修改/清空重填不提示、C 首次完成使整套完成、返回和重开。
 - `tests/e2e/xiaoda-finish-wait-native.cjs`：完整精简模板，合同首次完成与等待、改写合同不重播、最后现场项在合同全部完成后返回、位置/答案/重开保存。
 - 既有最后现场换序及阶段二选一 UI 证据仅在源码和测试场景等价时复用；最终执行结果追加在本文，不以夹具构造或编译代替点击。
+
+## 本轮执行记录
+
+业务及整合候选为 `8c8a0707db85ec3e3a762fa37e5c8008ffc6b059`，工作树干净；已整合最新主线 `8a42f01b975d484a50a40a5d64c5a0b3b798b614`。主线新增的普通触摸保护、滚轮/备注关闭后继续出场及出场动画修复保留；与第 19 条冲突的“修改另一大项还保留旧推荐”按本次明确规则改为取消旧推荐。`none/noCost` 结果识别与主线实现合并，未重复另建状态。完成历史沿用现有 `seenCompleted` 字段。
+
+失败证据：基线 `3b16cf0` 上新增首次完成回归 8 项按预期失败（修改/清空重填、旧记录缺历史、费用已完成后的最后现场项、关闭恢复后的重复引导、保存失败）；无/无费用另 2 项失败，之后与主线同类修复整合。开发中首次连续文本输入提示被提前清除的 1 项失败，修为同一次未显示的提示保持原 id 至失焦；精确复跑通过。整合时两条排序测试补齐“先收起旧提示”的前置条件，一条空提示状态从精确 undefined 改为判定无提示；保留原失败日志，不作为产品缺陷计数。一次 build 在错误工作目录执行、未读到 data/source-tree.json，改回 apps/wechat 后重新构建；不计产品失败。
+
+最终定向验证：4 个受影响 Vitest 文件 **113/113** 通过；build、官方 wcc 20 WXML / wcsc 22 WXSS 通过，15 页面、2,045,905 字节；原渲染夹具构造与断言通过。日志在 `apps/wechat/artifacts/forward-only/first-completion/`，未运行全量单测或全量 UI 套件。保存失败的测试保留本次会话输入，实际页面 `retry` 成功后 refresh 才继续原首次提示；失败中不导航。
+
+原生点击均使用固定三槽池、开发者工具 Stable 2.01.2510290 和基础库 3.17.3。夹具准备与读回通过 SDK，填写/等待/接受由 CUA 原生按钮点击，不直接调用目标 handler，不作为物理手机验收。两条核心 run 均为上述干净候选，构建快照 `67fca469dab5cd25ec73da34f99af9f22b4b9a28a175e280c54eb8b37cfec3f8`：
+
+- `4c5b0794c88241198bea6ac6605c5890` passed：先完成末尾 D→等待→首次 A→B→C；B 连续两项修改无提示，清空/补齐无提示；首次 C 填补最后遗漏后全屋完成，返回与重开答案及完成历史保留。
+- `bdb19036d5344f34a60318e7924b8d82` passed：完整当前精简模板，最后合同项首次完成→先等等，字段 top 500px→500px；改写合同无提示；费用合同全完成后首次填完最后现场项出现中性返回提示；实际返回后重开记录、备注保留。
+
+截图与 receipt 分别归档于 `native-forward/`、`native-finish/`。原生滚动工具曾报 noWindowsAvailable，使用原生回到顶部、类别与答案按钮完成操作；未通过程序调用目标 handler 替代。历史 UI 证据不冒充本轮运行，模板换序边界本轮在逻辑层覆盖。
+
+可复跑命令（工作目录 apps/wechat，使用 Node 24.19.0）：
+
+```sh
+WECHAT_API_URL=https://api.keeline.xyz/api/rent-room WECHAT_TEST_DATA_ROOT=xunju-test-xiaoda-forward-preview-20261024 node scripts/build.mjs
+node node_modules/vitest/vitest.mjs run tests/xiaoda-once.test.js tests/xiaoda.test.js tests/onboarding.test.js tests/onboarding-wait-position.test.js
+node scripts/check.mjs
+node tests/e2e/xiaoda-filling-fixtures.mjs
+```
+
+原生入口为固定 pool.py，设置 WECHAT_POOL_UI_REVIEW=1、--project 指向本任务 dist、回调为对应绝对路径；精确命令保存在各 run receipt。测试目录与用户数据隔离，预览继续沿用本任务既有预览数据根，不重置用户扫码填写记录。
+
+阶段二选一补测：`cf602c5468b3404fa9a519feff0c3867` 第一选择通过，第二轮未及时完成原生操作而超时；保留失败，不计完整通过。复跑 `0e5cff39f4e947448b92a5b4e5d91bf1` 第二轮答完 4/4 仍未提示；只读检查证实两个用例复用了同一房源 id，清空夹具时按本次规则保留了首次完成历史。修正 `xiaoda-phase-native.cjs` 为每次 run 的两个选择各用独立房源 id，未改业务源码。后续执行结果单独记录。
