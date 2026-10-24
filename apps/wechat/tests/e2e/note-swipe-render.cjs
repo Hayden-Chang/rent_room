@@ -20,7 +20,7 @@ async function call(action,...args){return evaluate(function(action,args){getCur
   await evaluate(function(){getApp().service.store.change(function(s){s.xiaoda.setup='done';},true);return true;});
   for(const mode of ['simple','detailed']){
    const state=emptyState(),h=freshHouse(mode==='simple'?'精简模式 · 备注配色':'详细模式 · 备注配色',{selectedTemplate:mode});
-   h.id='note-swipe-'+mode;h.xiaoda.intro='done';state.houses=[h];Object.assign(state.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done',enabled:false});state.settings.selectedTemplate=mode;
+   h.id='note-swipe-'+mode;h.xiaoda.intro='done';if(mode==='detailed'){h.groups||={};h.groups.topic_55={presence:'是',expanded:true};}state.houses=[h];Object.assign(state.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done',enabled:false});state.settings.selectedTemplate=mode;
    const fields=houseTopics(h).filter(t=>t.category==='家电').flatMap(t=>t.fields),normal=fields[0],problem=fields[1];
    h.answers[normal.id]={value:'是',note:'遥控器已试过，开关响应正常。'};
    h.answers[problem.id]={value:'否',note:'制冷较慢，入住前请房东检修。',issueFlag:true};
@@ -29,6 +29,7 @@ async function call(action,...args){return evaluate(function(action,args){getCur
    await capture(mode+'-notes',mode+' notes: ordinary and problem rows');
    const rendered=await evaluate(function(ids){const p=getCurrentPages().slice(-1)[0];return p.selectAllComponents('.field-row').filter(function(c){return ids.indexOf(c.data.field.id)>=0;}).map(function(c){return {id:c.data.field.id,note:c.data.field.note,problem:c.data.field.problem};});},[normal.id,problem.id]);
    assert.equal(rendered.length,2);assert.ok(rendered.every(f=>f.note));assert.ok(rendered.find(f=>f.id===problem.id).problem);
+   assert.equal(await evaluate(function(){return getCurrentPages().slice(-1)[0].data.stats.issues;}),1);
    // Render the open action layout. This is not physical swipe evidence.
    await evaluate(function(id){const c=getCurrentPages().slice(-1)[0].selectAllComponents('.field-row').find(function(c){return c.data.field.id===id;});c.reveal();return true;},problem.id);
    await capture(mode+'-actions',mode+' problem row with open action tray');
