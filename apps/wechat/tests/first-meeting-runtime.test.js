@@ -37,3 +37,18 @@ it('uses the same three-way draft dialog for native back and rearms the next bac
  page.guardLeft();expect(page.data).toMatchObject({leaveOpen:true,backGuard:true});page.stay();page.guardLeft();expect(page.data.leaveOpen).toBe(true);expect(r.backs).toBe(0);
  page.save();page.guardLeft();expect(r.backs).toBe(1);expect(r.app.service.store.get().settings.templates.detailed).toEqual(config);
 });
+
+it('defers the second-house invitation without changing records and keeps the add flow available',()=>{
+ const r=runtime();r.app.service.store.change(s=>s.xiaoda.setup='done');const id=r.app.service.store.add('第一套');r.app.service.store.answer(id,'f1_6','value','2800');
+ r.app.service.store.change(s=>{s.xiaoda.feedback='done';s.xiaoda.returnGuide=true;});
+ const before=JSON.stringify(r.app.service.store.get().houses);const page=r.load('home');expect(page.data.homeMessage).toContain('第二套');
+ page.waitSecondHouse();expect(page.data.homeMessage).toBe('');expect(r.app.service.store.get().xiaoda.returnGuide).toBe(false);
+ expect(r.load('home').data.homeMessage).toBe('');expect(JSON.stringify(r.app.service.store.get().houses)).toBe(before);
+ r.load('home').add();expect(r.m.routes.at(-1)).toBe('/pages/capacity/index?intent=1');expect(r.app.service.store.get().xiaoda.intent.kind).toBe('create');
+});
+it('retains the second-house invitation if deferring it cannot be saved',()=>{
+ const r=runtime();r.app.service.store.change(s=>s.xiaoda.setup='done');r.app.service.store.add('第一套');
+ r.app.service.store.change(s=>{s.xiaoda.feedback='done';s.xiaoda.returnGuide=true;});const page=r.load('home');r.m.failDisk(true);
+ page.waitSecondHouse();expect(page.data.homeMessage).toContain('第二套');expect(r.app.service.store.get().xiaoda.returnGuide).toBe(true);
+ r.m.failDisk(false);page.waitSecondHouse();expect(r.load('home').data.homeMessage).toBe('');
+});

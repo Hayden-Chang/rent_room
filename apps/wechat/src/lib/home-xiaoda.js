@@ -27,6 +27,7 @@ export const homeXiaodaMethods={
   }catch(error){if(platform===getApp().service&&!this.accountUnloaded)this.setData({feedbackError:error.message});}finally{if(platform===getApp().service&&!this.accountUnloaded)this.setData({feedbackBusy:false});}
  },
  skipFeedback(){if(this.data.feedbackBusy)return;try{service().store.change(s=>s.xiaoda.feedback='done',true);this.setData({feedbackOpen:false});this.showHomeXiaoda();}catch(error){notify(error);}},
+ waitSecondHouse(){if(this.data.feedbackOpen||this.data.homeThank)return;try{service().store.change(s=>s.xiaoda.returnGuide=false,true);this.showHomeXiaoda();}catch(error){notify(error);}},
  homeTyped(){if(this.data.homeThank){clearTimeout(this.homeTimer);this.homeTimer=setTimeout(()=>{if(this.visible&&!this.accountUnloaded){this.setData({homeThank:false});this.showHomeXiaoda();}},1200);}},
  noop(){}
 };
