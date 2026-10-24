@@ -99,3 +99,12 @@ WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 构建与官方编译通过，隔离测试包 2,050,068 字节，wcc 20 / wcsc 21 退出 0。最小影响映射为上述布局回归、官方编译和两种模式实际渲染；JS、WXML、模型、数据、原 5 文件 / 84 项组件事件用例相对 83925cd 无差异，事件与数据保护沿用此前通过证据，未重复运行无关单测。
 
 干净源码 `b47e7fe` 的测试池 run `d1072ea6fd3a4e619ca49acefbeba9f5` 通过，4 张实际截图已核对，快照哈希 `57e93d47927d3832b7744ba17a3f2a01a594589e729be93c12e4129484f1102d`，槽位 3 归还 idle。图集 `artifacts/simple-mode-20261024/problem-alignment/index.html`，来源记录同目录 `delivery.json`。仍保持草稿，未合并或发布。
+
+
+## 备注改为暖橙色（2026-10-24）
+
+按用户确认，将两种模式共用的 `.note` 从蓝色改为暖橙色 `#B56516`，覆盖前述配色决定。仅改变颜色，名称、自带说明、字号、字重、位置、问题底色及手势逻辑不变；不添加备注标签。源码提交 `2c5f66c6cadc4088c645cd7f5d3c69e5b2546461` 相对 `a3535bb` 只有这一处颜色值替换，沿用未受影响的逻辑和布局验证，不新增镜像式样式测试、不重跑无关套件。
+
+重新运行隔离构建与官方 wcc/wcsc 编译：15 页、2,050,068 字节，20 个 WXML / 21 个 WXSS 均退出 0；命令为 `WECHAT_TEST_DATA_ROOT=xunju-test-simple-note-swipe node scripts/build.mjs`、`node scripts/check.mjs`，日志在 `apps/wechat/artifacts/note-warm-orange/`。
+
+现有 `tests/e2e/note-swipe-render.cjs` 在干净 `2c5f66c` 上运行通过：run `7562049373be48edb87766f4785ecc31`，快照哈希 `2d0fa2f0988356650a949de842adf7bd97badf2155ef04b8f3e0438c68c04069`，槽位 3 归还 idle。逐张查看两种模式普通项/问题项及展开操作栏的 4 张实际截图，备注均为暖橙色，问题计数及答案保留断言通过。图集 `artifacts/simple-mode-20261024/note-warm-orange/index.html`，来源与图片哈希见同目录 `delivery.json`。使用隔离夹具及控制器准备状态，不能代替真机手势验证；等待视觉验收，保持草稿。此前二维码对应旧版 `a3535bb`，本轮未重新生成二维码。
