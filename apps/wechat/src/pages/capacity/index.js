@@ -12,9 +12,13 @@ Page(withAppShare(protectedPage({
    if(this.data.intent&&!result.pending&&this.data.remaining)this.resume();
   }catch(error){if(!this.accountUnloaded&&platform===getApp().service)this.setData({error:error.message});}},
  async loginForCapacity(){this.setData({busy:true,error:''});try{
-   if(await getApp().auth.login())wx.reLaunch({url:'/pages/capacity/index'+(this.hasIntent?'?intent=1':'')});
-   else this.setData({error:getApp().auth.snapshot().error});
-  }finally{if(!this.accountUnloaded)this.setData({busy:false});}},
+   if(await getApp().auth.login()){
+    const platform=service(),url='/pages/capacity/index'+(this.hasIntent?'?intent=1':'');
+    // Clear the previous account's pages, then retain home for the native back button.
+    await platform.api('reLaunch',{url:'/pages/home/index'});
+    await platform.api('navigateTo',{url});
+   }else this.setData({error:getApp().auth.snapshot().error});
+  }catch(error){notify(error);}finally{if(!this.accountUnloaded)this.setData({busy:false});}},
  async purchase(){if(this.data.busy)return;if(!getApp().auth.isAuthenticated())return this.loginForCapacity();const platform=service();this.setData({busy:true,error:''});
   try{await platform.billing.purchase();if(this.accountUnloaded||platform!==getApp().service)return;this.refresh();this.setData({thanking:true});}
   catch(error){if(!/cancel/i.test(error.errMsg||error.message||''))this.setData({error:/确认|退款|未开放|版本|不支持|登录/.test(error.message||'')?error.message:'支付未完成，请重试。'});}
