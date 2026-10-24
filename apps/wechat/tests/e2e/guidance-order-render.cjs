@@ -28,7 +28,8 @@ async function route(url){
  const {templateConfig}=await import('../../src/lib/templates.js');
  mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  try{
-  assert.ok((await evaluate(function(){return getApp().service.root;})).endsWith('/xunju-test-guide-order-20261024'));
+  const root=await evaluate(function(){return getApp().service.root;});
+  assert.match(root,/\/xunju-test-guide-order-20261024(?:\/guests\/h[a-z0-9]+)?$/);
   for(const scenario of [
    {key:'01-first-sort',first:['隔音与噪音','通风与采光'],disabled:[],target:'隔音与噪音'},
    {key:'02-settings-sort',first:['家电','卫生间'],disabled:[],target:'家电'},
