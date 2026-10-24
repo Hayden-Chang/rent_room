@@ -1,7 +1,7 @@
 <view wx:if="{{accountReady}}" class="page welcome">
  <view class="welcome-progress"><view class="steps"><view class="filled"/><view class="{{step==='mode'?'filled':''}}"/></view><text>{{step==='sort'?'1':'2'}} / 2</text></view>
  <view class="guide-eyebrow">和小搭一起，准备看房</view><view class="guide-title">{{step==='sort'?'定制你的看房清单':'选一种记录方式'}}</view>
- <block wx:if="{{step==='sort'}}"><xiaoda pose="greet" text="{{intro}}"/><view class="sorting-list"><template-editor config="{{config}}" bindchange="change"/></view><view wx:if="{{error}}" class="error">{{error}}</view><view class="bottom"><button class="primary guide-primary" hover-class="guide-pressed" bindtap="next">排好啦</button></view></block>
+ <block wx:if="{{step==='sort'}}"><xiaoda pose="greet" text="{{intro}}"/><view class="sorting-list"><template-editor id="template-editor" config="{{config}}" bindchange="change"/></view><view wx:if="{{error}}" class="error">{{error}}</view><view class="bottom"><button class="primary guide-primary" hover-class="guide-pressed" bindtap="next">排好啦</button></view></block>
  <block wx:else><xiaoda pose="think" text="你喜欢哪种记录方式呀？"/>
   <view class="modes"><view class="mode selected"><view class="mode-heading"><view><view class="subtitle">详细模式</view><view class="mode-description">逐项检查，分别记录。</view></view><view class="mode-selected"><view class="guide-check"/><text>已选择</text></view></view><view class="example"><view class="example-title">门窗</view><view class="example-items"><view wx:for="{{example}}" wx:key="*this">{{item}}</view></view></view></view>
    <view class="mode unavailable" aria-disabled="true"><view class="mode-heading"><view class="subtitle">精简模式</view><text class="tag">待完善</text></view><view class="mode-description">完整内容准备中，暂不可选</view></view></view>
