@@ -15,7 +15,7 @@ Component({
   start(e){
    this.suppressTapUntil=0;this.dismissedTouch=!!(activeRow&&activeRow!==this);
    if(this.dismissedTouch)activeRow.closeSwipe();
-   if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
+   if(this.data.readonly||this.data.field.map||e.touches.length!==1){this.gesture=null;return;}
    const p=e.touches[0],dataset=e.currentTarget?.dataset||{};
    this.gesture={x:p.clientX,y:p.clientY,base:this.data.offset,axis:'',dx:0,startedAt:Date.now(),samples:[{x:p.clientX,at:touchTime(e)}],trayAction:this.data.actions&&dataset.tray?dataset.action:null};
   },
@@ -67,6 +67,7 @@ Component({
   },
   bodyStart(){this.suppressTapUntil=0;this.dismissedTouch=!!activeRow;if(activeRow)activeRow.closeSwipe();},
   consumeDismissal(){const dismissed=this.dismissedTouch||this.data.actions||Date.now()<(this.suppressTapUntil||0);this.dismissedTouch=false;if(dismissed)this.closeSwipe();return dismissed;},
+  tapBody(){if(Date.now()<(this.suppressTapUntil||0))return;this.closeSwipe();},
   tapHead(){
    if(Date.now()<(this.suppressTapUntil||0))return;
    if(this.data.field.heading){if(this.consumeDismissal())return;this.triggerEvent('fold',{id:this.data.field.foldId,expanded:!!this.data.field.expanded});}

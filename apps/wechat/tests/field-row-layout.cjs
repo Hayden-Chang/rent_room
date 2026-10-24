@@ -34,14 +34,14 @@ const variants=[
  {name:'presence',inline:true,heading:'group',label:'电梯正常',options:['是','否','没有'],expanded:true},
  {name:'skippable',inline:true,heading:'group',label:'停车充电正常',skippable:true,options:['是','否'],expanded:false},
  {name:'map',map:true,inline:false,label:'地图（和地址联动）'},
- {name:'binary',inline:true,label:'非顶楼',options:['是','否']},
+ {name:'binary',inline:true,label:'非顶楼',description:'楼上没有其他住户，留意屋顶是否隔热。',options:['是','否']},
  {name:'ternary',inline:true,label:'电梯正常',options:['是','否','没有']},
  {name:'speed',inline:true,label:'实测网速',type:'n',value:88},
  {name:'number',inline:true,label:'面积（㎡）',type:'n',value:36},
  {name:'text',inline:true,label:'地址补充',type:'t',value:'A座'},
  {name:'long',inline:true,label:'窗户开合和密封正常',options:['是','否','没有']},
  {name:'stacked',inline:false,label:'户型',options:['大单间','一室一厅','两室一厅','三室一厅']},
- {name:'issue',inline:true,label:'非顶楼',problem:true,options:['是','否']}
+ {name:'issue',inline:true,label:'非顶楼',description:'楼上没有其他住户，留意屋顶是否隔热。',problem:true,options:['是','否']}
 ].map(f=>({id:f.name,map:false,media:[],note:'保留的备注',type:'s',...f,options:(f.options||[]).map(v=>({value:v,selected:v==='是'}))}));
 (async()=>{
  fs.mkdirSync(out,{recursive:true});const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_EXECUTABLE_PATH?{executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH}:{})});const results=[],failures=[];
@@ -52,18 +52,25 @@ const variants=[
     const html=`<style>body{margin:16px;font-family:Arial}button{border:0;box-sizing:border-box}span{display:inline}img{object-fit:contain}${fs.readFileSync(base+'/index.wxss','utf8')}*{transition:none!important}</style>`+variants.map(f=>`<section data-case="${f.name}">${render(tree,state(f,opened))}</section>`).join('');
     const file=path.join(out,`${width}-${opened?'open':'closed'}.html`);fs.writeFileSync(file,html);await page.goto('file://'+file);
     for(const f of variants){const row=page.locator(`[data-case="${f.name}"]`);assert.equal(await row.locator('.choice').count(),f.options.length+(f.skippable?1:0));assert.equal(await row.locator('input').count(),f.options.length||f.heading||f.map?0:1);}
-    const boxes=await page.locator('section').evaluateAll(rows=>rows.map(row=>{const rect=s=>{const node=row.querySelector(s);if(!node)return null;const r=node.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};return {name:row.dataset.case,field:rect('.field'),label:rect('.label'),tray:rect('.swipe-tray'),shell:rect('.swipe-shell'),picker:!!row.querySelector('address-picker'),speed:row.querySelector('.speed-entry')?{entry:rect('.speed-entry'),input:rect('.speed-entry .input'),trigger:rect('.speed-trigger')}:null,buttons:[...row.querySelectorAll('.swipe-action')].map(b=>b.getBoundingClientRect().width)};}));
+    const boxes=await page.locator('section').evaluateAll(rows=>rows.map(row=>{const rect=s=>{const node=row.querySelector(s);if(!node)return null;const r=node.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};return {name:row.dataset.case,field:rect('.field'),label:rect('.label'),description:rect('.description'),note:rect('.note'),choices:rect('.answer-options'),tray:rect('.swipe-tray'),shell:rect('.swipe-shell'),picker:!!row.querySelector('address-picker'),speed:row.querySelector('.speed-entry')?{entry:rect('.speed-entry'),input:rect('.speed-entry .input'),trigger:rect('.speed-trigger')}:null,buttons:[...row.querySelectorAll('.swipe-action')].map(b=>b.getBoundingClientRect().width)};}));
     await page.screenshot({path:path.join(out,`${width}-${opened?'open':'closed'}.png`),fullPage:true});
     for(const b of boxes){try{
      if(b.name==='map'){assert.equal(b.label,null);assert.equal(b.shell,null);assert.equal(b.tray,null);assert.equal(b.picker,true);continue;}
      assert(b.label.left>=b.field.left-1,`${b.name}: label clipped off the left edge`);
      if(b.speed){assert(b.speed.input.width>=40,'speed input remains usable');assert(b.speed.trigger.right<=b.shell.right+1,'speed button fits the row');assert(b.speed.entry.left>=b.label.right,'speed controls do not overlap title');}
-     if(opened){const inset=b.name==='issue'?8:0;assert(Math.abs(b.tray.right-(b.field.right-inset))<1,`${b.name}: actions are not at the full row trailing edge`);assert(b.label.right<=b.tray.left+1,`${b.name}: actions overlap the label`);assert.deepEqual(b.buttons,[44,44,44]);assert(b.tray.left>=b.shell.left&&b.tray.right<=b.shell.right+1&&b.tray.top>=b.shell.top&&b.tray.bottom<=b.shell.bottom+1,`${b.name}: action targets must stay inside their gesture container`);}
+     if(opened){assert(Math.abs(b.tray.right-b.field.right)<1,`${b.name}: actions are not at the full row trailing edge`);assert(b.label.right<=b.tray.left+1,`${b.name}: actions overlap the label`);assert.deepEqual(b.buttons,[44,44,44]);assert(b.tray.left>=b.shell.left&&b.tray.right<=b.shell.right+1&&b.tray.top>=b.shell.top&&b.tray.bottom<=b.shell.bottom+1,`${b.name}: action targets must stay inside their gesture container`);}
     }catch(e){failures.push({width,opened,message:e.message});}}
+    // Marking the same item as a problem must change styling, never indentation or wrapping.
+    const normal=boxes.find(b=>b.name==='binary'),problem=boxes.find(b=>b.name==='issue');
+    for(const key of ['label','description','note','choices','shell','tray']){
+     try{for(const [edge,origin] of [['left','left'],['right','left'],['top','top'],['bottom','top']]){
+      assert(Math.abs((normal[key][edge]-normal.field[origin])-(problem[key][edge]-problem.field[origin]))<1,`problem ${key} ${edge}: marking must preserve position`);
+     }}catch(e){failures.push({width,opened,message:e.message});}
+    }
     results.push({width,opened,boxes});
    }
   }
   for(const width of [320,390,430]){const closed=results.find(r=>r.width===width&&!r.opened),opened=results.find(r=>r.width===width&&r.opened);for(let i=0;i<variants.length;i++)assert.equal(opened.boxes[i].field.height,closed.boxes[i].field.height,'opening must not expand the row');}
  }finally{await browser.close();}
- fs.writeFileSync(path.join(out,'geometry.json'),JSON.stringify({results,failures},null,2));assert.deepEqual(failures,[]);console.log('78 component layout states passed: title visibility, trailing alignment, 44px targets, stable row height.');
+ fs.writeFileSync(path.join(out,'geometry.json'),JSON.stringify({results,failures},null,2));assert.deepEqual(failures,[]);console.log('78 component layout states passed: title visibility, trailing alignment, 44px targets, stable row height, unchanged positions when marking problems.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

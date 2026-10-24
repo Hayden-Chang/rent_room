@@ -17,7 +17,7 @@ export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1}={}) {
     house:id=>state.houses.find(h=>h.id===id),
     capacity:()=>capacityInfo(state.houses,getPacks(),getFreeLimit()),refreshCapacity:emit,
     checkCapacity(additional=1){if(blocked)throw Error(error);return assertCapacity(state.houses,getPacks(),additional,getFreeLimit());},
-    add(name){let id;change(s=>{const h=freshHouse(name,{templates:s.settings.templates});id=h.id;s.houses.push(h);delete s.xiaoda.intent;s.xiaoda.returnGuide=false;if(!s.xiaoda.firstHouseId&&!s.xiaoda.legacy){s.xiaoda.firstHouseId=id;}},true);return id;},
+    add(name){let id;change(s=>{const h=freshHouse(name,{templates:s.settings.templates,selectedTemplate:s.settings.selectedTemplate});id=h.id;s.houses.push(h);delete s.xiaoda.intent;s.xiaoda.returnGuide=false;if(!s.xiaoda.firstHouseId&&!s.xiaoda.legacy){s.xiaoda.firstHouseId=id;}},true);return id;},
     answer(id,field,prop,value){return edit(id,h=>updateAnswer(h,field,prop,value));},
     group(id,group,operation,value){return edit(id,h=>updateGroup(h,group,operation,value));},
     archive(id,value){return change(s=>{const h=s.houses.find(h=>h.id===id);if(!h)throw Error('房源不存在');h.archived=value;},true);},

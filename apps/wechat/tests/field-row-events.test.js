@@ -7,7 +7,7 @@ import {XMLParser} from 'fast-xml-parser';
 // checks component event wiring; native hit testing still needs phone acceptance.
 function fixture(){
  let spec,now=1000;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date:{now:()=>now}});
- const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'floor',inline:true,value:'是'},readonly:false},events:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){this.events.push({name,detail});}};
+ const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'floor',inline:true,value:'是'},readonly:false},events:[],notifications:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){(name==='swipeopen'?this.notifications:this.events).push({name,detail});}};
  const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
  function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
  const find=klass=>nodes.find(n=>(n.attrs.class||'').split(' ').includes(klass)&&(klass!=='choice'||!n.attrs.class.includes(' skip ')));
@@ -39,7 +39,7 @@ it('swiping from an answer option opens the row without selecting that option',(
 it('the title opens actions through the same full-row gesture path',()=>{
  const {c,find,dispatch}=fixture(),title=find('label');
  dispatch(title,'touchstart',220);dispatch(title,'touchmove',100);dispatch(title,'touchend',100);dispatch(title,'tap');
- expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
+ expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);expect(c.notifications).toEqual([{name:'swipeopen',detail:{id:'floor'}}]);
 });
 it.each(['flag','note-action','media-action'])('an exposed %s button routes its tap once, without the field dismissing first',klass=>{
  const {c,find,dispatch}=fixture(),choice=find('choice'),button=find(klass);
@@ -107,7 +107,7 @@ it('a short input touch leaves native focus available and accepts the entered va
  dispatch(input,'focus',100,50,{detail:{}});
  expect(c.data.valueFocused).toBe(true);expect(c.data.actions).toBe(false);
  dispatch(input,'input',100,50,{detail:{value:'测试地址 101 室'}});
- expect(c.events).toEqual([{name:'answer',detail:{id:'floor',prop:'value',value:'测试地址 101 室'}}]);
+ expect(c.events).toEqual([{name:'inputfocus',detail:{id:'floor',input:'value'}},{name:'answer',detail:{id:'floor',prop:'value',value:'测试地址 101 室'}}]);
 });
 it('vertical movement on input stays available to page scrolling without opening actions',()=>{
  const {c,findTag,dispatch}=fixture(),input=findTag('input');
@@ -116,12 +116,12 @@ it('vertical movement on input stays available to page scrolling without opening
  dispatch(input,'touchend',95,150);
  expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
 });
-it('attachment touch dismisses the row and remains outside the swipe recognizer',()=>{
- const {c,find,dispatch}=fixture();c.reveal();
- dispatch(find('note'),'touchstart',250);
- expect(c.data.actions).toBe(false);expect(c.gesture).toBeFalsy();
- dispatch(find('note'),'touchmove',140);dispatch(find('note'),'touchend',140);
+it('a note tap dismisses an open tray, then a fresh tap opens the note editor',()=>{
+ const {c,find,dispatch}=fixture();c.reveal();const note=find('note');
+ dispatch(note,'touchstart');dispatch(note,'touchend');dispatch(note,'tap');
  expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
+ dispatch(note,'touchstart');dispatch(note,'touchend');dispatch(note,'tap');
+ expect(c.events).toEqual([{name:'action',detail:{id:'floor',action:'note'}}]);
 });
 
 it.each(['label','choice','input'])('a short deliberate swipe from %s opens the menu without selecting an answer',klass=>{
@@ -162,4 +162,33 @@ it('map dragging dismisses open actions while remaining outside the recognizer',
  const {c,findTag,dispatch}=fixture();c.data.field.map=true;c.reveal();
  const map=findTag('address-picker');dispatch(map,'touchstart',250);dispatch(map,'touchmove',150);dispatch(map,'touchend',150);
  expect(c.data.actions).toBe(false);expect(c.gesture).toBeFalsy();expect(c.events).toEqual([]);
+});
+
+// All painted parts of one item share the same gesture boundary, including padding.
+it.each(['field','description','note','other','thumb','thumbnail'])('whole item area: left swipe from %s opens actions without editing content',klass=>{
+ const {c,find,dispatch}=fixture();
+ c.data.field={...c.data.field,problem:true,description:'说明',note:'保留备注',otherText:'其他内容',media:[{id:'photo'}]};
+ const before=structuredClone(c.data.field),target=find(klass);
+ expect(dispatch(target,'touchstart',250)).toEqual([]);
+ dispatch(target,'touchmove',205,52);dispatch(target,'touchend',205,52);dispatch(target,'tap',205,52);
+ expect(c.data.actions).toBe(true);expect(c.data.offset).toBe(-132);
+ expect(c.events).toEqual([]);expect(c.data.field).toEqual(before);
+ expect(c.notifications).toEqual([{name:'swipeopen',detail:{id:'floor'}}]);
+});
+it.each(['description','note','thumb'])('whole item area: vertical scroll from %s remains unconsumed',klass=>{
+ const {c,find,dispatch}=fixture(),target=find(klass);
+ dispatch(target,'touchstart',250,50);
+ expect(dispatch(target,'touchmove',245,110)).toEqual([]);
+ dispatch(target,'touchend',245,110);
+ expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
+});
+it('whole item area: readonly notes cannot expose actions',()=>{
+ const {c,find,dispatch}=fixture();c.data.readonly=true;
+ const target=find('note');dispatch(target,'touchstart',250);dispatch(target,'touchmove',150);dispatch(target,'touchend',150);
+ expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
+});
+it('whole item area: a description tap closes actions without folding the group',()=>{
+ const {c,find,dispatch}=fixture();c.data.field.heading='group';c.data.field.foldId='parent';c.reveal();
+ const target=find('description');dispatch(target,'touchstart');dispatch(target,'touchend');dispatch(target,'tap');
+ expect(c.data.actions).toBe(false);expect(c.events).toEqual([]);
 });

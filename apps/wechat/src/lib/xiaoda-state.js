@@ -15,6 +15,7 @@ const strings=v=>Array.isArray(v)&&v.every(x=>typeof x==='string');
 export function validateXiaoda(state) {
  const x=state.xiaoda;
  if(x!==undefined&&(!object(x)||x.version!==1||!['sort','mode','done'].includes(x.setup)||![0,1,2,3,4].includes(x.tutorialStep)||typeof x.firstHouseId!=='string'||!['unasked','pending','invited','done'].includes(x.feedback)||typeof x.enabled!=='boolean'))throw Error('小搭引导进度无效');
+ if(x?.draftMode!==undefined&&!['simple','detailed'].includes(x.draftMode))throw Error('填写模式无效');
  if(x?.intent&&(!object(x.intent)||!['create','restore'].includes(x.intent.kind)||typeof x.intent.houseId!=='string'))throw Error('待继续的房源操作无效');
  for(const h of state.houses){
   if(['checklistOrder','displayCategoryOrder'].some(k=>h[k]!==undefined&&!strings(h[k])))throw Error('房源排序无效');
