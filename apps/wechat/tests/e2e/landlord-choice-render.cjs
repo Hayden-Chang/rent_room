@@ -48,7 +48,7 @@ async function capture(key){
     assert.ok(!fields.some(f=>/^f98_/.test(f.id)));
     await capture('01-simple-landlord');
     // Prepare a saved result to inspect the selected option, note and problem layout.
-    await evaluate(function(id){const s=getApp().service.store;s.answer(id,'simple_62','value','否');s.answer(id,'simple_62','note','请房东补充产权材料后再确认。');s.answer(id,'simple_62','issueFlag',true);return true;},h.id);
+    await evaluate(function(id){const s=getApp().service.store;s.answer(id,'simple_62','value','否');s.answer(id,'simple_62','note','请房东补充产权材料后再确认。');s.answer(id,'simple_62','issueFlag',true);getCurrentPages().slice(-1)[0].refresh();return true;},h.id);
     await waitFor(()=>evaluate(function(){const p=getCurrentPages().slice(-1)[0];return p.data.stats.done===1&&p.data.stats.issues===1;}),'one completed item and one problem');
     await capture('02-simple-landlord-recorded');
     const saved=await evaluate(function(id){return getApp().service.store.house(id).answers.simple_62;},h.id);
