@@ -133,6 +133,19 @@ it.each([false,true])('cancels a visible completion when another category change
  expect(JSON.stringify(h.house.answers)).toBe(answers);
 });
 
+it('leaves archived legacy prompts read-only and discards them only after restoration',async()=>{
+ const h=harness();h.app.service.store.answer(h.id,'test_b_1','value','是');
+ h.app.service.store.edit(h.id,house=>{delete house.xiaoda.prompt.completed;house.xiaoda.prompt.target='A';});
+ h.app.service.store.archive(h.id,true);h.wx.showToast.mockClear();
+ const before=JSON.stringify(h.house),disk=JSON.stringify([...h.disk]);
+ h.open();h.page.refresh();await showGuide();
+ expect(h.wx.showToast).not.toHaveBeenCalled();expect(h.page.data.fillPrompt).toBeNull();
+ expect(JSON.stringify(h.house)).toBe(before);expect(JSON.stringify([...h.disk])).toBe(disk);
+ h.app.service.store.archive(h.id,false);h.page.refresh();await showGuide();
+ expect(h.house.xiaoda.prompt).toBeUndefined();expect(h.page.data.fillPrompt).toBeNull();
+ expect(h.house.answers).toEqual(JSON.parse(before).answers);expect(h.house.xiaoda.seenCompleted).toEqual(JSON.parse(before).xiaoda.seenCompleted);
+});
+
 it('keeps a legacy saved prompt hidden when its removal cannot be saved and retries safely',async()=>{
  const h=harness();h.app.service.store.answer(h.id,'test_b_1','value','是');
  h.app.service.store.edit(h.id,house=>{delete house.xiaoda.prompt.completed;house.xiaoda.prompt.target='A';});

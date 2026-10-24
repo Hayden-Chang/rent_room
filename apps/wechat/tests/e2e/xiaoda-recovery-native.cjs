@@ -6,7 +6,7 @@ const out=process.env.WECHAT_ARTIFACT_DIR;
 if(!out||!process.env.WECHAT_WS_ENDPOINT)throw Error('Use shared pool');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));let mini,houseId,fault=false;
 const evaluate=(fn,...args)=>mini.evaluate('function(){return ('+fn.toString()+').apply(null,arguments);}',...args);
-const read=async()=>JSON.parse(await evaluate(function(id){const p=getCurrentPages().slice(-1)[0],service=getApp().service,h=service.store.house(id),saved=JSON.parse(wx.getFileSystemManager().readFileSync(service.root+'/state.json','utf8')).houses.find(h=>h.id===id);return JSON.stringify({route:p.route,ready:p.accountPageReady,prompt:p.data.fillPrompt,stage:p.data.fillStage,error:p.data.saveError,answers:h?.answers,savedAnswers:saved?.answers,history:h?.xiaoda.seenCompleted,stored:h?.xiaoda.prompt});},houseId));
+const read=async()=>JSON.parse(await evaluate(function(id){const p=getCurrentPages().slice(-1)[0],service=getApp().service,h=service.store.house(id),saved=h&&JSON.parse(wx.getFileSystemManager().readFileSync(service.root+'/state.json','utf8')).houses.find(h=>h.id===id);return JSON.stringify({route:p.route,ready:p.accountPageReady,prompt:p.data.fillPrompt,stage:p.data.fillStage,error:p.data.saveError,answers:h?.answers,savedAnswers:saved?.answers,history:h?.xiaoda.seenCompleted,stored:h?.xiaoda.prompt});},houseId));
 async function until(predicate,label){const end=Date.now()+180000;do{const s=await read();if(predicate(s))return s;await sleep(200);}while(Date.now()<end);throw Error('Timed out: '+label);}
 async function capture(name){await sleep(1500);const s=await read();await mini.screenshot({path:path.join(out,name+'.png')});fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(s,null,2));return s;}
 async function route(url,navigate=false){await evaluate(function(url,navigate){if(navigate)wx.navigateTo({url});else wx.reLaunch({url});return true;},url,navigate);await until(s=>s.route===url.split('?')[0].slice(1),'navigation');}
@@ -34,7 +34,7 @@ async function setFault(value){await evaluate(function(value){const root=getApp(
   await setFault(true);console.log('NATIVE_READY recovery: A 检查 1 → 否 (write failure active)');
   await until(s=>s.answers.recovery_0_0?.value==='否'&&!!s.error,'unsaved edit');
   const failed=await capture('05-failed-edit');assert.equal(failed.prompt,null);assert.ok(!failed.stored);assert.equal(failed.savedAnswers.recovery_0_0.value,'是');assert.equal(failed.answers.recovery_0_0.note,'保留 A 备注');
-  await setFault(false);console.log('NATIVE_READY recovery: click 重试保存');await until(s=>!s.error&&s.savedAnswers.recovery_0_0.value==='否','native retry saved');
+  await setFault(false);console.log('NATIVE_READY recovery: click 点击重试');await until(s=>!s.error&&s.savedAnswers.recovery_0_0.value==='否','native retry saved');
   const retried=await capture('06-retried-quiet');assert.equal(retried.prompt,null);assert.ok(!retried.stored);assert.deepEqual(retried.savedAnswers,retried.answers);assert.deepEqual(retried.history,['B']);
   console.log('NATIVE_READY recovery: A 检查 2 → 是');await until(s=>s.prompt?.completed==='A'&&s.prompt?.target==='C'&&s.stage==='ready','first A after recovery');const completed=await capture('07-recovery-new-first');
   console.log('NATIVE_READY recovery: click 再等等');await until(s=>!s.prompt&&!s.stored,'wait');

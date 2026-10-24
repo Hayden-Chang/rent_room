@@ -66,6 +66,7 @@ export const coachMethods={
  syncFilling(){
   if(this.fillAccepting||this.coachHidden||this.data.coach||this.data.tab!=='清单')return;
   const state=service().store.get(),h=service().store.house(this.data.id),prompt=h?.xiaoda?.prompt;
+  if(!h||h.archived)return;
   // A failed dismissal save can leave the old card visible after an answer edit
   // cancels/replaces its stored prompt. Reconcile before pausing on save errors.
   if(!this.fillingEntering()&&this.data.fillPrompt?.completed&&this.data.fillPrompt.completed!==prompt?.completed){
