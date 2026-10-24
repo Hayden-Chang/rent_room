@@ -4,9 +4,9 @@ import vm from 'node:vm';
 import {speechParts} from '../src/lib/speech-parts.js';
 const textOf=parts=>parts.map(part=>part.text).join('');
 afterEach(()=>vi.useRealTimers());
-function component(text,highlights=[]){
+function component(text,highlights=[],paused=false){
  let spec;vm.runInNewContext(fs.readFileSync('dist/components/xiaoda/index.js','utf8'),{Component:value=>{spec=value;},setTimeout,clearTimeout});
- const instance={...spec.methods,data:{...structuredClone(spec.data),text,highlights},setData(update){Object.assign(this.data,update);},triggerEvent:vi.fn()};
+ const instance={...spec.methods,data:{...structuredClone(spec.data),text,highlights,paused},setData(update){Object.assign(this.data,update);},triggerEvent:vi.fn()};
  spec.lifetimes.attached.call(instance);return {instance,spec};
 }
 it('emphasizes a partially typed keyword without revealing its remaining characters',()=>{
@@ -15,6 +15,13 @@ it('emphasizes a partially typed keyword without revealing its remaining charact
  expect(textOf(parts)).toBe('看房前—了解房屋基');
  expect(parts.filter(part=>part.emphasis).map(part=>part.text)).toEqual(['基']);
  expect(textOf(speechParts(full,highlights))).toBe(full);
+});
+it('reserves speech height but reveals no text until the entrance finishes, including hide and show',()=>{
+ vi.useFakeTimers();const {instance:c,spec}=component('记录好啦，看看下一项。',[],true);
+ expect(textOf(c.data.fullParts)).toBe(c.data.text);vi.advanceTimersByTime(2000);expect(c.data.shown).toBe('');
+ spec.pageLifetimes.hide.call(c);spec.pageLifetimes.show.call(c);c.finish();vi.advanceTimersByTime(2000);expect(c.data.shown).toBe('');
+ c.data.paused=false;spec.observers.paused.call(c,false);vi.advanceTimersByTime(45);expect(c.data.shown).toBe('记');
+ spec.lifetimes.detached.call(c);vi.advanceTimersByTime(1000);expect(c.data.shown).toBe('记');
 });
 it('keeps Unicode characters and plain text intact, including missing highlights and empty speech',()=>{
  expect(textOf(speechParts('🟡基本情况！',['基本情况'],2))).toBe('🟡基');

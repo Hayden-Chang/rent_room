@@ -96,4 +96,4 @@ npm run package
 
 构建使用压缩后的独立 IIFE 入口；模板排序页面仅携带标题，避免重复打入完整清单导致主包超过2MB。不要把测试页面/测试数据打入正式包。
 
-服务端依赖 [model_server PR #95](https://github.com/Hayden-Chang/model_server/pull/95)。登录/权益/订单请求携带 `X-Rent-Room-Capacity-Version: 1`；先部署兼容后端再发布新小程序，旧客户端保留旧响应口径。反馈接口未部署时保留输入并显示失败，不显示感谢成功。
+服务端依赖 [model_server PR #95](https://github.com/Hayden-Chang/model_server/pull/95)。新版公开目录、登录、权益和订单请求携带 `X-Rent-Room-Capacity-Version: 2`；免费套数由服务端配置，缓存及新旧兼容见 [容量规则](CAPACITY.md)。先部署兼容后端再发布新小程序，旧客户端与 v1 预览版保留原响应口径。反馈接口未部署时保留输入并显示失败，不显示感谢成功。

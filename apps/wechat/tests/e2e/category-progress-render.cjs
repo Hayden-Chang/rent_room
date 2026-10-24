@@ -16,8 +16,8 @@ const timer=setTimeout(()=>{fs.writeFileSync(path.join(out,'timeout.json'),JSON.
    if(!rows.length){if(++tries>50)return reject(Error('Category rows missing'));setTimeout(poll,100);return;}
    Promise.all(rows.map(c=>new Promise(done=>{
     const q=c.createSelectorQuery();
-    for(const selector of ['.heading-progress','.heading-progress-fill','.heading-count','.label'])q.select(selector).fields({rect:true,size:true,computedStyle:['background-color']});
-    q.exec(rects=>done({label:c.data.field.label,stats:c.data.field.stats,track:rects[0],fill:rects[1],count:rects[2],title:rects[3]}));
+    for(const selector of ['.heading-progress','.heading-progress-fill','.heading-count','.label','.issue-count','.heading-count-done','.heading-count-total'])q.select(selector).fields({rect:true,size:true,computedStyle:['background-color']});
+    q.exec(rects=>done({label:c.data.field.label,stats:c.data.field.stats,track:rects[0],fill:rects[1],count:rects[2],title:rects[3],issues:rects[4],done:rects[5],total:rects[6]}));
    }))).then(values=>{if(values.every(v=>v.track?.width&&v.count?.width))resolve(values);else if(++tries>50)reject(Error('Progress not rendered'));else setTimeout(poll,100);});
   }poll();
  })));
@@ -32,7 +32,7 @@ const timer=setTimeout(()=>{fs.writeFileSync(path.join(out,'timeout.json'),JSON.
  try{
   const id=await step('prepare full checklist fixture',()=>mini.evaluate(()=>{
    const service=getApp().service;if(!service.root.includes('/xunju-test-category-progress/'))throw Error('Disposable root required');
-   service.store.change(state=>{state.settings.onboarding=false;});
+   service.store.change(state=>{state.settings.onboarding=false;state.xiaoda.setup='done';state.xiaoda.tutorialStep=0;state.xiaoda.enabled=false;});
    const id=service.store.add('进度条效果');
    service.store.answer(id,'f1_2','value','一室一厅');service.store.answer(id,'f1_3','value','56');service.store.answer(id,'f1_6','value','2800');service.store.answer(id,'f1_balcony','value','否');
    return id;
@@ -57,7 +57,35 @@ const timer=setTimeout(()=>{fs.writeFileSync(path.join(out,'timeout.json'),JSON.
   await step('prepare incomplete-again fixture',()=>mini.evaluate(id=>getApp().service.store.answer(id,'progress-2-1','value',''),id));
   await mini.reLaunch(route);const incomplete=await geometry();check(incomplete);assert.equal(incomplete[2].stats.done,1);
   report.incompleteAgain=incomplete[2];await shot('category-progress-incomplete-again');
-  report.steps.push('clearing an answer returns completed progress to purple');report.passed=true;
+  report.steps.push('clearing an answer returns completed progress to purple');
+  await step('prepare digit alignment fixtures',()=>mini.evaluate(id=>{
+   getApp().service.store.edit(id,h=>{
+    const categories=[...new Set(h.templateTopics.map(t=>t.category))];
+    h.answers={};
+    h.templateTopics=categories.map((category,i)=>({id:'aligned-topic-'+i,category,title:category,phase:'现场看房',path:[{id:'aligned-root-'+i,title:category}],fields:Array.from({length:i<2?8:12},(_,j)=>{
+     const id='aligned-'+i+'-'+j;
+     if(j<(i<2?3:11))h.answers[id]={value:'是',issueFlag:i%2===1};
+     return {id,label:'检查项'+j,type:'y',fact:true,options:['是','否']};
+    })}));
+   });
+  },id));
+  await mini.reLaunch(route);report.alignment=await geometry();
+  await shot('category-progress-aligned-digits');check(report.alignment);
+  assert.deepEqual(report.alignment.map(r=>[r.stats.done,r.stats.total,r.stats.issues]),[[3,8,0],[3,8,3],[11,12,0],[11,12,11]]);
+  for(const row of report.alignment){
+   assert(Math.abs(row.track.left-report.alignment[0].track.left)<1,row.label+' progress aligns regardless of digits or issue count');
+   assert(Math.abs(row.track.width-report.alignment[0].track.width)<1,row.label+' track width stays fixed');
+   assert(Math.abs(row.count.width-report.alignment[0].count.width)<1,row.label+' fraction width stays fixed');
+   assert(row.done&&row.total,row.label+' both numbers have reserved space');
+   assert(Math.abs(row.done.width-row.total.width)<1,row.label+' numerator and denominator reserve equal width');
+   assert(Math.abs(row.done.width-report.alignment[0].done.width)<1,row.label+' single and double digits reserve equal width');
+   if(row.stats.issues){assert(row.issues,row.label+' issue count renders');assert(row.title.right<=row.issues.left,row.label+' title does not overlap issues');assert(row.issues.right<=row.track.left,row.label+' issues are left of progress');}
+   else assert(!row.issues,row.label+' zero issues stay hidden');
+  }
+  await mini.reLaunch(route);const alignedAgain=await geometry();
+  assert.deepEqual(alignedAgain.map(r=>r.stats),report.alignment.map(r=>r.stats));
+  assert.deepEqual(alignedAgain.map(r=>r.track.left),report.alignment.map(r=>r.track.left));
+  report.steps.push('single and double digit counts align with zero, single and double digit issue counts; reload preserves counts and alignment');report.passed=true;
  }catch(error){report.error=error.stack;throw error;}
  finally{fs.writeFileSync(path.join(out,'assertions.json'),JSON.stringify(report,null,2));mini.disconnect();clearTimeout(timer);}
 })().then(()=>process.exit(0)).catch(error=>{console.error(error.stack);process.exit(1);});

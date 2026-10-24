@@ -25,7 +25,10 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     const version=epoch;
     wx[name]({...args,success:value=>active&&version===epoch?resolve(value):reject(Error('登录状态已变化，请重新操作')),fail:reject});
   });
-  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,
+  const policyRoot=dataRoot(wx),policyPath=policyRoot+'/capacity-policy.json';let rawStore;
+  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,onChange:()=>rawStore?.refreshCapacity(),
+    readPolicy:()=>exists(policyPath)?fs.readFileSync(policyPath,'utf8'):null,
+    writePolicy:text=>{try{fs.mkdirSync(policyRoot,true);}catch{}const tmp=policyPath+'.pending';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,policyPath);},
     read:()=>exists(root+'/purchases.json')?fs.readFileSync(root+'/purchases.json','utf8'):null,
     write:text=>{const tmp=root+'/purchases.pending.json';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,root+'/purchases.json');},
     platform:()=>{const p=wx.getDeviceInfo?.().platform;return p==='ios'?'ios':p==='android'?'android':'unknown';},
@@ -38,7 +41,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
       return true;
     }
   });
-  const rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs}),store={};
+  rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit});const store={};
   for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
   const profile={};
   for(const [name,fn] of Object.entries(createAccountProfile(fs,root)))profile[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
