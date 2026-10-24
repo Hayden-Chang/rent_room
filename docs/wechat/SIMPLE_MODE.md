@@ -88,3 +88,14 @@ WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 - `WECHAT_TEST_DATA_ROOT=xunju-test-simple-note-swipe node scripts/build.mjs` 和 `node scripts/check.mjs` 通过，15 页、2,050,085 字节，wcc 20 / wcsc 21 均退出 0。日志：`note-swipe-build.log`、`note-swipe-compile.log`。
 - 新增 `tests/e2e/note-swipe-render.cjs`；最终 run `03163b2ea5fb4e14beaed723bc2b03e9` 在干净 `8f24dee` 上通过，精简/详细模式的普通备注、问题备注和展开操作区共 4 张实际截图。快照 SHA-256 `ebf9d3cd3443bf8dda52f7bbe619169a6720cd00f213c9b180382e41c31e4cd9`。第 3 槽按租约归还 idle。第一轮 `8a66fcf40b844ef49730fbc96244de07` 保留；其详细模式夹具未先确认空调存在，已补齐后重新截取，不属于产品计数修改。
 - 图集：`artifacts/simple-mode-20261024/note-swipe/index.html`，来源及哈希：同目录 `delivery.json`。截图及操作区展开由隔离状态/控制器准备，WXML 事件回归验证组件逻辑，不代替原生触摸命中和手机体验。仍保持草稿，等待手机手势与视觉确认；未合并或发布。
+
+
+## 问题标记不改变缩进（2026-10-24）
+
+源码提交 `b47e7fe280322217ef1ffe930d5f9404f8c39878` 仅移除 `.bad` 额外的 `padding:12px 8px`，沿用普通字段本身的间距。精简和详细模式的名称、说明、蓝色备注与按钮保持原位置；底色、问题文字颜色和圆角继续保留。
+
+增强已有 `tests/field-row-layout.cjs`，以相同内容的普通/问题项对照标题、说明、备注、选项、手势容器和操作栏的四边坐标。修复前 39 项坐标断言失败，测得名称右移 8px、按钮右沿左移 8px；修复后 320/390/430px × 展开/收起的 78 个组件布局状态全部通过，两项偏移均为 0。命令：在 apps/wechat 设置 `NODE_PATH` 为 bundled runtime node_modules，`PLAYWRIGHT_EXECUTABLE_PATH` 为本机 Chrome，以 `LAYOUT_OUTPUT=artifacts/problem-alignment/after node tests/field-row-layout.cjs` 运行。日志及 geometry.json 位于 `apps/wechat/artifacts/problem-alignment/{before,after}`；浏览器组件适配层仅证明布局，不等同于微信原生手势验收。
+
+构建与官方编译通过，隔离测试包 2,050,068 字节，wcc 20 / wcsc 21 退出 0。最小影响映射为上述布局回归、官方编译和两种模式实际渲染；JS、WXML、模型、数据、原 5 文件 / 84 项组件事件用例相对 83925cd 无差异，事件与数据保护沿用此前通过证据，未重复运行无关单测。
+
+干净源码 `b47e7fe` 的测试池 run `d1072ea6fd3a4e619ca49acefbeba9f5` 通过，4 张实际截图已核对，快照哈希 `57e93d47927d3832b7744ba17a3f2a01a594589e729be93c12e4129484f1102d`，槽位 3 归还 idle。图集 `artifacts/simple-mode-20261024/problem-alignment/index.html`，来源记录同目录 `delivery.json`。仍保持草稿，未合并或发布。
