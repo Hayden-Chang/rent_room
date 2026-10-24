@@ -1,4 +1,4 @@
-// Real component touch events in a leased DevTools instance; no handler calls.
+// Component touch checks in a leased DevTools instance; --render-only is a scripted rendering fixture.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 const out=process.env.WECHAT_ARTIFACT_DIR;
