@@ -7,7 +7,7 @@ import {localPageFixture} from './helpers/account-fixture.js';
 it.each([['f54_0','缺少的家具','衣柜'],['f54_1','缺少的家电','冰箱']])('%s updates the rendered issue flag on typing and clearing without replacing the input rows',(id,label,text)=>{
  const {wx}=mockWx();let app,page;const patches=[];
  const context=vm.createContext({wx,App(value){app=value;},Page(value){page=value;},getApp:()=>app,console,setTimeout,clearTimeout});
- vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
+ vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.legacy=true;});
  const house=app.service.store.add('即时异常颜色');
  vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);
  page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(patch){
@@ -37,7 +37,7 @@ it.each([['f54_0','缺少的家具','衣柜'],['f54_1','缺少的家电','冰箱
 it.each([['f54_0','缺少的家具','衣柜'],['f54_1','缺少的家电','冰箱']].flatMap(values=>['清单','问题'].map(tab=>[...values,tab])))('%s (%s / %s) retains bound input text on blur, edits, clearing and reload in %s',(id,label,text,tab)=>{
  const {wx,disk}=mockWx();let app,page,spec;const patches=[];
  const context=vm.createContext({wx,App(value){app=value;},Page(value){page=value;},Component(value){spec=value;},getApp:()=>app,console,setTimeout,clearTimeout});
- vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
+ vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.legacy=true;});
  const house=app.service.store.add('失焦保留输入');
  if(tab==='问题')app.service.store.answer(house,id,'value','前次内容');
  vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);
