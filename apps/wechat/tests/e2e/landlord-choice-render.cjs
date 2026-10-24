@@ -32,7 +32,8 @@ async function capture(key){
    const state=emptyState(),h=freshHouse(mode==='simple'?'精简模式 · 房东身份与产权':'详细模式 · 房东身份与产权',{selectedTemplate:mode});
    h.id='landlord-choice-'+mode;h.xiaoda.intro='done';state.houses=[h];
    Object.assign(state.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done',enabled:false});state.settings.selectedTemplate=mode;
-   await evaluate(function(state){getApp().service.store.change(function(s){Object.assign(s,state);},true);return true;},state);
+   // Parse fixtures in AppService so the automation bridge cannot turn arrays into objects.
+   await evaluate(function(json){const state=JSON.parse(json);getApp().service.store.change(function(s){Object.assign(s,state);},true);return true;},JSON.stringify(state));
    await route('/pages/detail/index?id='+h.id,'navigateTo');
    await evaluate(function(mode){const p=getCurrentPages().slice(-1)[0],key=JSON.stringify({phase:'全部',query:'',filters:[]});p.folds[key]={'身份与合同':true,topic_98:mode==='detailed'};p.refresh({},function(){const s=p.data.sections.find(function(s){return s.title==='身份与合同';});wx.pageScrollTo({selector:'#'+s.id,duration:0});});return true;},mode);
    await waitFor(()=>evaluate(function(){const p=getCurrentPages().slice(-1)[0];return p.data.sections.some(function(s){return s.title==='身份与合同'&&s.expanded;});}),'contract section');
@@ -42,8 +43,8 @@ async function capture(key){
    if(mode==='simple'){
     const owner=fields.filter(f=>f.label==='房东身份与产权');assert.equal(owner.length,1);
     assert.equal(owner[0].id,'simple_62');assert.equal(owner[0].heading,'');assert.equal(owner[0].expanded,undefined);
-    // DevTools exposes nested component arrays as objects with numeric keys.
-    assert.deepEqual(Object.values(owner[0].options).map(o=>o.value),['是','否']);
+    assert.ok(Array.isArray(owner[0].options),'Rendered options must remain an array');
+    assert.deepEqual(owner[0].options.map(o=>o.value),['是','否']);
     assert.equal(owner[0].description,'核对房东身份证和房产证，确认房子归谁、合同跟谁签。');
     assert.ok(!fields.some(f=>/^f98_/.test(f.id)));
     await capture('01-simple-landlord');
