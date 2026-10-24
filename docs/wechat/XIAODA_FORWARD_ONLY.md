@@ -25,3 +25,21 @@
 已执行：上述三个 Vitest 文件共 74 项通过。`npm run build` 通过；`npm run check` 的官方 wcc 20 个 WXML、wcsc 22 个 WXSS 全部通过。没有执行全量单测或全量 UI 套件。
 
 本地日志：任务 worktree 的 `apps/wechat/artifacts/forward-only/{red,logic-green,focused,build,check}.log`。真实 UI 的结果单独记录，不以 VM 或编译替代。
+
+## 当前提交的实际点击证据
+
+生产与测试提交：`7da997dbfcb8ec2be771ff74a128a1696657d990`，工作区干净。开发者工具 Stable 2.01.2510290、基础库 3.17.3，使用三槽池的可丢弃测试工程。不是物理手机验证。
+
+`xiaoda-forward-native.cjs` 的 run `ef137a11aebb4113a3c603bf7a52fd6d` 通过，receipt 状态 `passed`、槽位归还 `idle`。实际通过 CUA 的原生可访问性按钮执行填写和接受/取消，未直接调用被测 handler：
+
+- A 1/2，B 完成 → 提示 C。
+- 接受 C、完成 C → 提示 D。
+- 接受 D、仅填第一项，再将 B 最后一项改为“否” → 跳过已完成 C，提示 D，完成来源确认为 B。
+- 选择“再等等”，完成 D → 没有提示返回未完成 A，也没有错误宣称全屋完成。
+- 重新进入详情，答案和 A 的备注保留，没有重播提示。
+
+截图及状态：`apps/wechat/artifacts/forward-only/native/`，重点为 `02-B-to-C.png`、`04-B-skips-C-to-D.png`、`05-no-backtracking.png`、`assertions.json` 与 `receipt.json`。构建快照 hash：`ac88e146a14d28c3b60c523416f28e9cc5dd4838af0c14b2e11b55d83ce1b463`。
+
+基础设施记录：首次 run `d9467fe6f480421db5ddd5db967846f8` 仅排队超时，没有执行点击；后续正常获得槽位。CUA 坐标点击出现 `noWindowsAvailable`，使用同一已租用窗口的原生可访问性按钮成功操作，没有替换为 handler 调用。
+
+主 agent 已在 PR 创建后独立检查远程最终 diff、9 个文件范围、失败/通过日志和上述原生证据，未发现需要返工的问题。核对时 main 仍为 `591f135d3216a60efe53124069bdb14a8225787d`，GitHub 可合并，未返回 workflow runs 或 commit statuses；不将空列表称为 CI 通过。PR #76 保持草稿，UI 效果等待用户确认，未合并、未发布。
