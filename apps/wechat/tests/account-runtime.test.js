@@ -15,9 +15,9 @@ function harness(m=accountWx()){
 const loginMaskVisible=()=>fs.readFileSync('dist/pages/home/index.wxml','utf8').includes('login-mask');
 it('creates a local free store without requesting identity before an explicit login',async()=>{
   const h=harness(),p=h.page('home');h.app.onShow();p.onLoad();p.onShow();
-  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.m.calls).toEqual([]);expect(p.data.accountReady).toBe(true);
+  expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.m.calls.every(c=>c.url?.endsWith('/catalog'))).toBe(true);expect(p.data.accountReady).toBe(true);
   await h.app.auth.login();expect(h.app.auth.isAuthenticated()).toBe(true);expect(p.data.accountReady).toBe(true);expect(p.data.houses).toEqual([]);expect(h.m.routes.filter(url=>url!=='/pages/welcome/index')).toEqual([]);
-  expect(h.m.calls.find(c=>c.url)).toEqual({url:'https://login.example.com/api/rent-room/session',method:'POST',data:{code:'test-one-time-code'}});
+  expect(h.m.calls.find(c=>c.url?.endsWith('/session'))).toEqual({url:'https://login.example.com/api/rent-room/session',method:'POST',data:{code:'test-one-time-code'}});
 });
 
 

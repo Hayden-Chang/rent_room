@@ -5,7 +5,7 @@ import {continueHouseAction} from '../../lib/house-intent.js';
 Page(withAppShare(protectedPage({
  data:{used:0,limit:1,over:0,busy:false,error:'',configured:false,authenticated:false,thanking:false,intent:null},
  onLoad(options){this.hasIntent=options.intent==='1';},
- onShow(){this.refresh();if(this.data.thanking)this.paidTyped();else if(!this.data.busy&&this.data.authenticated&&this.data.configured)this.refreshEntitlements();},
+ onShow(){this.refresh();if(this.data.thanking)this.paidTyped();else if(!this.data.busy&&this.data.configured)this.refreshEntitlements();},
  onHide(){clearTimeout(this.thankTimer);},onUnload(){clearTimeout(this.thankTimer);},
  refresh(){this.setData({...service().store.capacity(),authenticated:getApp().auth.isAuthenticated(),configured:service().billing.snapshot().configured,intent:this.hasIntent?service().store.get().xiaoda.intent:null});},
  async refreshEntitlements(){const platform=service();try{const result=await platform.billing.refresh();if(this.accountUnloaded||platform!==getApp().service)return;this.setData({error:''});this.refresh();
