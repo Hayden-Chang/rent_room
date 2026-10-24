@@ -75,3 +75,16 @@ WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 从渲染回调选择家电、合同分组和问题备注三个受影响状态。局部回调为 apps/wechat/artifacts/simple-mode/description-visible-render.cjs，run b9b9a2ee3ac342af9ebd805a3cefa1fb 在干净 e267e6d 上通过，3 张截图逐张核对；第 3 槽归还 idle。快照 SHA-256 为 a35046a7e3fd6ba93246df4812464fa1b3f814a7d0e4a69eb2bd0c373451dfe5，与原 13 张流程截图的产物哈希相同。
 
 本地图集 artifacts/simple-mode-20261024/index.html 已恢复说明直接显示：使用本轮 3 张新截图，其余 10 张复用上述相同应用产物的原始截图。delivery-manifest.json 逐图记录来源和哈希，旧眼睛图集已标记废弃。截图为隔离夹具及控制器准备状态的真实渲染，实际点击和用户视觉确认仍待验收；保持草稿，未合并或发布。
+
+
+## 备注配色与完整左滑区域（2026-10-24）
+
+精简及详细模式共用的 field-row 将用户备注颜色改为 `#3B6CA8`，不改变名称、自带说明、字号、位置和字重，不新增标签或底色。手势监听移到整个 `.field`，范围与问题项红色背景一致：名称、选项、说明、备注、其他输入、影像及内边距都可作为左滑起点。操作栏仍保留原有位置和尺寸。地图拖动保持原边界；普通点击、纵向滚动、只读保护及滑动结束防误触继续有效。
+
+应用代码提交 `8ca12da5e30575d961ec60e497e25296cb664420`；渲染夹具提交 `8f24dee59d96cda4f61b08b7f8806cdbd66c1c1f`。两者间仅为详细模式夹具补齐“已有空调”的前置状态与问题计数断言，应用源码、数据、构建脚本和以下组件用例完全一致，84 项单测与编译证据可复用。
+
+- 修复前对原产物运行 `node node_modules/vitest/vitest.mjs run tests/field-row-events.test.js -t 'whole item area'`，11 项中 6 项按预期失败：从留白、说明、备注、其他输入、缩略图及图片开始滑动无法打开操作栏；其余纵向、只读和普通点击边界通过。日志：`apps/wechat/artifacts/simple-mode/whole-area-before.log`。
+- 修复后先构建，运行 `node node_modules/vitest/vitest.mjs run tests/field-row-events.test.js tests/field-row-swipe.test.js tests/field-row-swipe-scope.test.js tests/field-row-inline-actions.test.js tests/field-row-placeholder.test.js`，5 文件 / 84 项通过。映射：实际 WXML 事件路径、手势方向和防误触、整体边界、操作按钮与保存、原生输入焦点。更新原“附件不可滑”的旧用例为“第一次点击收起，下一次点击编辑”。日志：`note-swipe-unit.log`，前缀同上。
+- `WECHAT_TEST_DATA_ROOT=xunju-test-simple-note-swipe node scripts/build.mjs` 和 `node scripts/check.mjs` 通过，15 页、2,050,085 字节，wcc 20 / wcsc 21 均退出 0。日志：`note-swipe-build.log`、`note-swipe-compile.log`。
+- 新增 `tests/e2e/note-swipe-render.cjs`；最终 run `03163b2ea5fb4e14beaed723bc2b03e9` 在干净 `8f24dee` 上通过，精简/详细模式的普通备注、问题备注和展开操作区共 4 张实际截图。快照 SHA-256 `ebf9d3cd3443bf8dda52f7bbe619169a6720cd00f213c9b180382e41c31e4cd9`。第 3 槽按租约归还 idle。第一轮 `8a66fcf40b844ef49730fbc96244de07` 保留；其详细模式夹具未先确认空调存在，已补齐后重新截取，不属于产品计数修改。
+- 图集：`artifacts/simple-mode-20261024/note-swipe/index.html`，来源及哈希：同目录 `delivery.json`。截图及操作区展开由隔离状态/控制器准备，WXML 事件回归验证组件逻辑，不代替原生触摸命中和手机体验。仍保持草稿，等待手机手势与视觉确认；未合并或发布。
