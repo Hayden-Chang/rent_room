@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const path = require('node:path');
 const source = fs.readFileSync(path.join(__dirname, 'background.cjs'), 'utf8');
 
-function harness(enabled) {
+function harness(enabled, review) {
   const calls = [];
   const makeWindow = () => ({focus() { calls.push('focus'); },
     requestAttention() { calls.push('attention'); }, show() { calls.push('show'); },
@@ -16,7 +16,7 @@ function harness(enabled) {
       open(url, opts, callback) { calls.push({url, opts}); callback(makeWindow()); }}};
   };
   const nw = api(), nodeNw = api();
-  vm.runInNewContext(source, {nw, global: {nw: nodeNw}, process: {env: {WECHAT_POOL_BACKGROUND: enabled}}});
+  vm.runInNewContext(source, {nw, global: {nw: nodeNw}, process: {env: {WECHAT_POOL_BACKGROUND: enabled, WECHAT_POOL_UI_REVIEW: review}}});
   return {nw, nodeNw, calls};
 }
 
@@ -44,6 +44,17 @@ test('the policy is inactive outside an explicitly configured pool process', () 
   const {nw, calls} = harness(undefined);
   nw.Window.get().focus(); nw.Window.get().requestAttention();
   assert.deepEqual(calls, ['focus', 'attention']);
+});
+
+test('explicit UI review leaves native show, focus and restore available in both contexts', () => {
+  const {nw, nodeNw, calls} = harness('1', '1');
+  for (const context of [nw, nodeNw]) {
+    context.Window.get().show(); context.Window.get().focus(); context.Window.get().restore();
+  }
+  assert.deepEqual(calls, ['show', 'focus', 'restore', 'show', 'focus', 'restore']);
+  const quiet = harness('1', 'true');
+  quiet.nw.Window.get().show(); quiet.nw.Window.get().focus();
+  assert.deepEqual(quiet.calls, []);
 });
 
 test('enumerated windows cannot reactivate the app through fresh window handles', () => {
