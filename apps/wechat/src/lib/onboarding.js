@@ -60,7 +60,7 @@ export const coachMethods={
   const state=service().store.get(),h=service().store.house(this.data.id);
   if(!h||h.xiaoda?.intro!=='pending')return;
   if(!xiaodaEnabled(state,h)){service().store.edit(h.id,h=>h.xiaoda.intro='done',true);return;}
-  const rows=progress(h),target=rows.find(r=>r.category==='房源基本信息'&&!r.complete)||rows.find(r=>!r.complete);
+  const target=progress(h).find(r=>!r.complete);
   if(target)this.showFilling({kind:'intro',target:target.category,phase:target.phase,id:'intro-'+h.id,text:target.category==='房源基本信息'?'写一下房子的基本信息吧。':`先看看「${target.category}」吧。`});
  },
  syncFilling(){
