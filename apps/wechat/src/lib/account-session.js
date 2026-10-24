@@ -1,6 +1,7 @@
 import {accountStorage,dataRoot,validAccountId} from './account-storage.js';
 import {createPlatform} from './platform.js';
 import {guestStorage,claimGuestRecords} from './guest-storage.js';
+import {CAPACITY_VERSION,validateEntitlement} from './capacity-policy.js';
 
 export function createAccountSession(wx) {
   const fs=wx.getFileSystemManager(),base=dataRoot(wx),rememberPath=base+'/login.json';
@@ -23,15 +24,16 @@ export function createAccountSession(wx) {
           const login=await new Promise((resolve,reject)=>wx.login({timeout:8000,success:resolve,fail:()=>reject(Error('微信登录失败，请重试'))}));
           if(expired)throw Error('登录已过期，请重试');
           if(!login.code)throw Error('未取得微信登录凭证，请重试');
-          return new Promise((resolve,reject)=>{request=wx.request({url:url+'/session',method:'POST',data:{code:login.code},header:{'content-type':'application/json','x-rent-room-capacity-version':'1'},timeout:10000,success:resolve,fail:()=>reject(Error('连接登录服务失败，请检查网络后重试'))});});
+          return new Promise((resolve,reject)=>{request=wx.request({url:url+'/session',method:'POST',data:{code:login.code},header:{'content-type':'application/json','x-rent-room-capacity-version':CAPACITY_VERSION},timeout:10000,success:resolve,fail:()=>reject(Error('连接登录服务失败，请检查网络后重试'))});});
         })(),
         new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(Error('登录超时，请检查网络后重试'));request?.abort?.();},15000);})
       ]);
       if(response.statusCode===403)throw Error('微信暂不允许当前账号登录，请稍后重试');
       if(response.statusCode!==200)throw Error(response.statusCode===401?'微信登录凭证已过期，请重试':'登录服务暂不可用，请稍后重试');
       const data=response.data;
-      if(!validAccountId(data?.account)||typeof data.token!=='string'||data.token.length<32||data.token.length>256||!Number.isSafeInteger(data.packs)||data.packs<0||!Number.isSafeInteger(1+10*data.packs)||data.limit!==1+10*data.packs)throw Error('账号校验失败，请重试');
-      return {profile:{id:data.account,label:'微信用户',number:data.account.slice(0,12).toUpperCase()},credentials:{account:data.account,token:data.token,packs:data.packs}};
+      if(!validAccountId(data?.account)||typeof data.token!=='string'||data.token.length<32||data.token.length>256)throw Error('账号校验失败，请重试');
+      validateEntitlement(data,{requireLimit:true});
+      return {profile:{id:data.account,label:'微信用户',number:data.account.slice(0,12).toUpperCase()},credentials:{account:data.account,token:data.token,packs:data.packs,capacity:data.capacity}};
     }finally{clearTimeout(timer);}
   }
   function login(){
@@ -71,6 +73,7 @@ export function createAccountSession(wx) {
   }
   return {
     snapshot,login,get ready(){return pending||Promise.resolve(state==='authenticated');},
+    async refreshCapacity(){if(pending)await pending;if(state!=='checking')return active.billing.refreshRules().catch(()=>{});},
     get service(){return state==='checking'?null:active;},
     get scope(){return state==='checking'?null:account?.id||active?.root;},
     isAuthenticated:()=>state==='authenticated',
