@@ -5,7 +5,10 @@ const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/
 const out=process.env.WECHAT_ARTIFACT_DIR;
 if(!out||!process.env.WECHAT_WS_ENDPOINT)throw Error('Use shared pool');
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));let mini,houseId,fault=false;
-const evaluate=(fn,...args)=>mini.evaluate('function(){return ('+fn.toString()+').apply(null,arguments);}',...args);
+const evaluate=async(fn,...args)=>{
+ const result=await mini.evaluate('function(){try{return {value:('+fn.toString()+').apply(null,arguments)};}catch(error){return {failure:String(error),stack:error.stack};}}',...args);
+ if(result.failure)throw Error(result.failure+'\n'+result.stack+'\nOperation: '+fn.toString());return result.value;
+};
 const read=async()=>JSON.parse(await evaluate(function(id){const p=getCurrentPages().slice(-1)[0],service=getApp().service,h=service.store.house(id),saved=h&&JSON.parse(wx.getFileSystemManager().readFileSync(service.root+'/state.json','utf8')).houses.find(h=>h.id===id);return JSON.stringify({route:p.route,ready:p.accountPageReady,prompt:p.data.fillPrompt,stage:p.data.fillStage,error:p.data.saveError,answers:h?.answers,savedAnswers:saved?.answers,history:h?.xiaoda.seenCompleted,stored:h?.xiaoda.prompt});},houseId));
 async function until(predicate,label){const end=Date.now()+180000;do{const s=await read();if(predicate(s))return s;await sleep(200);}while(Date.now()<end);throw Error('Timed out: '+label);}
 async function capture(name){await sleep(1500);const s=await read();await mini.screenshot({path:path.join(out,name+'.png')});fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(s,null,2));return s;}
@@ -17,12 +20,13 @@ async function setFault(value){await evaluate(function(value){const root=getApp(
   assert.match(await evaluate(function(){return getApp().service.root;}),/\/xunju-test-xiaoda-forward-/);
   const {emptyState,freshHouse}=await import('../../src/lib/model.js');
   async function setup(legacy){
+   console.log('SETUP '+(legacy?'legacy':'save recovery'));
    const state=emptyState(),h=freshHouse(legacy?'旧提示兼容验收':'保存失败恢复验收');houseId=h.id='recovery-'+path.basename(out)+(legacy?'-old':'-save');
    h.xiaoda.intro='done';h.checklistOrder=['A','B','C'];h.templateTopics=h.checklistOrder.map((category,i)=>({id:'recovery-topic-'+i,title:category,category,phase:'现场看房',path:[],fields:[0,1].map(n=>({id:`recovery_${i}_${n}`,label:`${category} 检查 ${n+1}`,type:'s',options:['是','否'],fact:true}))}));
    h.answers={recovery_0_0:{value:'是',note:'保留 A 备注'},recovery_1_0:{value:'是'}};
    if(legacy){h.answers.recovery_1_1={value:'是'};h.xiaoda.seenCompleted=['B'];h.xiaoda.prompt={kind:'next',target:'A',phase:'现场',id:'old-prompt',text:'「B」记录好了，继续填写「A」吧！'};}
    state.houses=[h];Object.assign(state.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done'});
-   await route('/pages/settings/index');await evaluate(function(state){getApp().service.store.change(s=>Object.assign(s,state),true);return true;},state);
+   await route('/pages/settings/index');console.log('SETUP settings ready');await evaluate(function(state){getApp().service.store.change(s=>Object.assign(s,state),true);return true;},state);console.log('SETUP fixture saved');
    await route('/pages/home/index');await route('/pages/detail/index?id='+h.id,true);await until(s=>s.ready,'ready');
    await evaluate(function(){const p=getCurrentPages().slice(-1)[0],view={phase:'现场',query:'',filters:[]};p.folds[JSON.stringify(view)]={A:true,B:true};p.setData(view);p.refresh();return true;});return h;
   }
