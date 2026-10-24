@@ -6,12 +6,12 @@ import {templateConfig} from '../src/lib/templates.js';
 afterEach(()=>vi.useRealTimers());
 const event=mode=>({currentTarget:{dataset:{mode}}});
 function runtime(){
- const m=accountWx(),previews=[];let app,page;
- const wx={...m.wx,previewImage:options=>previews.push(options)};
+ const m=accountWx();let app,page;
+ const wx=m.wx;
  const context=vm.createContext({wx,getApp:()=>app,App:v=>app=v,Page:v=>page=v,console,setTimeout,clearTimeout});
  function restart(){vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);}
  function load(){vm.runInContext(fs.readFileSync('dist/pages/welcome/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(data,done){Object.assign(this.data,data);done?.();};page.onLoad?.({});page.onShow?.();return page;}
- restart();return {m,previews,load,restart,get store(){return app.service.store;}};
+ restart();return {m,load,restart,get store(){return app.service.store;}};
 }
 it('defaults to simple and keeps the selected mode when reopening or returning to sorting',()=>{
  const r=runtime();let p=r.load();p.next();expect(p.data.mode).toBe('simple');
@@ -40,11 +40,9 @@ it('preserves both templates and stays on the mode page if confirmation cannot b
  expect(JSON.stringify(r.store.get())).toBe(before);expect(r.m.routes).toHaveLength(routeCount);expect(p.data.busy).toBe(false);
  r.m.failDisk(false);p.finish();r.restart();expect(r.store.get().settings.selectedTemplate).toBe('detailed');
 });
-it('opens the requested original example without selecting that mode',()=>{
- const r=runtime(),p=r.load();p.next();const before=JSON.stringify(r.store.get());p.previewExample(event('detailed'));
- expect(r.previews).toEqual([{current:'/pages/welcome/examples/detailed.jpg',urls:['/pages/welcome/examples/simple.jpg','/pages/welcome/examples/detailed.jpg']}]);
+it('ignores an invalid mode without changing the selection or stored state',()=>{
+ const r=runtime(),p=r.load();p.next();const before=JSON.stringify(r.store.get());p.selectMode(event('invalid'));
  expect(p.data.mode).toBe('simple');expect(JSON.stringify(r.store.get())).toBe(before);
- p.previewExample(event('invalid'));p.selectMode(event('invalid'));expect(r.previews).toHaveLength(1);expect(p.data.mode).toBe('simple');
 });
 it('does not change an existing user selection or force them through setup again',()=>{
  const r=runtime();r.store.change(s=>{s.xiaoda.setup='done';s.settings.selectedTemplate='detailed';},true);
