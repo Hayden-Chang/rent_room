@@ -89,7 +89,11 @@ WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/n
 - 原始日志保存在本任务 worktree 的 `apps/wechat/artifacts/landlord-choice/`：`before.log`、`final-unit.log`、`final-runtime.log`、`build.log`、`compile.log`、`review.json`。最终 diff 已由当前 agent 复查，除房东项之外的生成清单逐项完全相同；GitHub 未返回任何 status checks 或 check runs，不将其视为远程 CI 通过。
 - 最小 UI 映射为新增 `tests/e2e/landlord-choice-render.cjs`，预期检查精简空白项、已记录问题项和详细四子项的实际渲染。固定三槽池 run `d63744d18ba04d3da3168eb840db8a40` 排队 300 秒后返回 `No free slot; active/orphan instances were not stopped`，未执行回调、未取得截图；这是基础设施阻碍，不能宣称 UI 验收通过。冻结快照哈希 `01a1fa1ea4ed7f11d9036ff0f20f5e60ab1f89cccd791925ced0587d6c93a582`，源码状态干净。receipt 保存在 `/Volumes/mac2/codex-builds/wechat-instance-pool/runs/d63744d18ba04d3da3168eb840db8a40/receipt.json`。
 
-PR 保持草稿，实际渲染、原生交互和用户视觉确认仍待完成；未合并、未发布。
+后续验收：用户对 `eb5814638ea3102aff603921965f82317726ffc2` 手机预览明确确认“没问题，合入吧”。业务源码、清单、构建配置与该预览保持一致；后续仅修复渲染夹具并补充记录。
+
+- 渲染脚本改用应用自身 `store.add` 创建隔离房源，避免自动化桥将嵌套数组变成数字键对象；记录夹具写入后显式刷新页面。原数组类型、精确“是 / 否”、无子项、完成/问题计数、保存内容及详细模式四项断言均保留。之前失败和错误夹具截图保留，不作为产品通过证据。
+- 干净提交 `42c35bfe4591572d5d723b2ab59c6abfd4c6ba2b` 的固定三槽池 run `7a6b8f9f727b49f6954de2b499b95d7c` 通过，得到精简空白项、已记录问题项和详细四子项三张实际截图；第 3 槽已归还 idle。快照哈希 `8be985c5c8d264823cd4b6661df27c9f620530c091fd185b8964b63f4e9119bb`，证据在本任务 worktree 的 `artifacts/landlord-choice-phone-20261024/render/`。脚本为夹具渲染验证，不冒充原生点击测试。
+- 主 agent 与独立 sub-agent 审查无待处理问题。与已通过单测的 `afca4a6` 相比，单测及相关业务代码未变，复用 14+1 项结果；手机预览版到 `42c35bf` 只改渲染脚本，用户验收仍适用。后续文档记录不影响执行；按用户授权合入，不包含正式发布。
 
 
 ## 备注配色与完整左滑区域（2026-10-24）
