@@ -7,23 +7,41 @@ export {topics, rules};
 export const clone = value => JSON.parse(JSON.stringify(value));
 export const uid = () => 'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,10);
 export const fields = topics.flatMap(t=>t.fields);
+const textNoneIds=new Set(fields.filter(f=>f.allowNone).map(f=>f.id));
 const topFloorField=fields.find(f=>f.id==='f1_top');
 export const categories = [...new Set(topics.map(t=>t.category))];
 export const MAP_ID = fields.find(f=>f.label==='地图（和地址联动）').id;
 export const emptyState = () => ({version:2,houses:[],settings:{template:'完整',hiddenFields:[],workplace:'',onboarding:true},updatedAt:''});
 const installationGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_83');
 const corridorGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_14');
+const lightGroup=topics.flatMap(t=>t.path||[]).find(p=>p.id==='topic_80');
 const currentLabels=Object.fromEntries(fields.filter(f=>['21255282-3663-4abe-b7de-d91eeb3825ed','3c70cda2-7c6c-4fa6-b2db-b647af24ba72','f26_0','f26_1','f26_2','01768237-54d1-4a3f-8446-1da21d292dab'].includes(f.id)).map(f=>[f.id,f.label]));
 export const electricityField=fields.find(f=>f.id==='617bd84f-3208-42ec-b2e4-5bb95d5c754c');
 const duplicateElectricityId='b670b816-5107-4acf-96e0-cc28b84df4cc';
 export const elevatorId='6aeda8ec-d6a0-4863-a7cb-2f78db887fb9';
 const elevatorCondition={fieldId:elevatorId,value:'是'};
 export const costGroups={'019886c9-e108-45b4-a0c5-c20d594379e5':'周期费用','538ea220-cf80-418e-a492-8cc3792654be':'一次性费用'};
+const costLabels=Object.fromEntries(topics.filter(t=>t.path?.some(p=>costGroups[p.id])).flatMap(t=>t.fields.map(f=>[f.id,f.label])));
+const costOrder=Object.fromEntries(topics.filter(t=>t.path?.some(p=>costGroups[p.id]==='周期费用')).flatMap(t=>t.fields).map((f,i)=>[f.id,i]));
+const costName=label=>label.replace(/（元(?:\/[^）]+)?）$/,'').trim();
 export const customCostGroup=id=>Object.keys(costGroups).find(group=>new RegExp(`^cost_${group}_[a-zA-Z0-9]+$`).test(id));
+const parkingCostTopic=topics.find(t=>t.fields.some(f=>f.id==='f11_1'));
+function relocateParkingCost(ts) {
+ const groupId=parkingCostTopic.path.at(-1).id;
+ const source=ts.find(t=>t.fields.some(f=>f.id==='f11_1')&&!t.path?.some(p=>p.id===groupId));
+ if(!source)return ts;
+ const field=source.fields.find(f=>f.id==='f11_1');
+ const result=ts.map(t=>t.path?.some(p=>p.id===groupId)?t:{...t,fields:t.fields.filter(f=>f.id!=='f11_1')});
+ if(result.some(t=>t.fields.some(f=>f.id==='f11_1')))return result;
+ const target=result.findIndex(t=>t.path?.some(p=>p.id===groupId));
+ if(target<0)result.push({...parkingCostTopic,fields:[field]});
+ else result[target]={...result[target],fields:[...result[target].fields,field]};
+ return result;
+}
 // Apply current group controls to saved templates without rewriting their answers or snapshots.
 export const houseTopics = h => {
  let electricitySeen=false;
- const saved=[...(h.templateTopics||topics),...(h.extras||[])],ratio=saved.flatMap(t=>t.fields).find(f=>f.id==='f16_0');
+ const saved=relocateParkingCost([...(h.templateTopics||topics),...(h.extras||[])]),ratio=saved.flatMap(t=>t.fields).find(f=>f.id==='f16_0');
  const basic=saved.findIndex(t=>t.fields.some(f=>f.id===elevatorId));
  return saved.map((t,index)=>{
   if(ratio&&basic>=0){
@@ -32,11 +50,16 @@ export const houseTopics = h => {
     t={...t,fields:list};
   }
   if(t.path?.some(p=>p.id==='topic_16'))t={...t,path:t.path.map(p=>p.id==='topic_16'?{...p,visibleWhen:elevatorCondition}:p)};
+  if(t.category==='费用与付款'||t.path?.some(p=>p.id==='category_11'))t={...t,phase:'询问与签约'};
   if(t.fields.some(f=>[electricityField.id,duplicateElectricityId].includes(f.id)))t={...t,fields:t.fields.flatMap(f=>{
     if(![electricityField.id,duplicateElectricityId].includes(f.id))return [f];
     if(electricitySeen)return [];electricitySeen=true;return [{...f,...electricityField}];
   })};
+  if(t.fields.some(f=>costLabels[f.id]||customCostGroup(f.id)||f.id==='f96_1'))t={...t,fields:t.fields.filter(f=>f.id!=='f96_1').map(f=>costLabels[f.id]?{...f,label:costLabels[f.id],cost:true}:customCostGroup(f.id)?{...f,cost:true}:f)};
+  if(t.path?.some(p=>costGroups[p.id]==='周期费用'))t={...t,fields:[...t.fields].sort((a,b)=>(costOrder[a.id]??Infinity)-(costOrder[b.id]??Infinity))};
+  if(t.fields.some(f=>textNoneIds.has(f.id)))t={...t,fields:t.fields.map(f=>textNoneIds.has(f.id)?{...f,allowNone:true}:f)};
   const normalGroups=['90bf172a-1c92-41e3-9369-c64f5935e7d9','topic_10','topic_11'];
+  if(t.fields.some(f=>f.id==='f1_2'&&!f.options?.includes('其他')))t={...t,fields:t.fields.map(f=>f.id==='f1_2'?{...f,options:[...(f.options||[]),'其他']}:f)};
   if(t.fields.some(f=>f.id==='f1_balcony'))t={...t,fields:t.fields.map(f=>f.id==='f1_balcony'?{...f,fact:false,badValue:'否'}:f)};
   if(t.fields.some(f=>f.id==='f16_0'))t={...t,fields:t.fields.map(f=>f.id==='f16_0'?{...f,type:'s',options:rules.choiceOptions(f)}:f)};
   if(t.fields.some(f=>f.id==='f101_0'))t={...t,fields:t.fields.map(f=>{
@@ -58,10 +81,14 @@ export const houseTopics = h => {
   if(t.path?.some(p=>p.id===corridorGroup.id))t={...t,
     title:t.title==='楼道卫生'?corridorGroup.title:t.title,
     path:t.path.map(p=>p.id===corridorGroup.id?{...p,title:corridorGroup.title}:p)};
+  if(t.path?.some(p=>p.id===lightGroup.id))t={...t,
+    title:t.title==='灯具与开关'?lightGroup.title:t.title,
+    path:t.path.map(p=>p.id===lightGroup.id?{...p,title:lightGroup.title}:p)};
   return t;
  }).filter(t=>t.fields.length);
 };
 const normalTitle = title => title.endsWith('正常')?title:title+'正常';
+const groupResultTitle = g => g.id==='topic_13'?'回家路线安全':normalTitle(g.title);
 const resultLabel = (value,absenceLabel='没有') => ({'正常':'是','有问题':'否','没有':absenceLabel}[value]||value);
 export function freshHouse(name,settings={}) {
   const hidden=new Set(settings.template==='自定义'?settings.hiddenFields||[]:[]);
@@ -98,9 +125,9 @@ export function addCostField(h,groupId,label,fieldId='cost_'+groupId+'_'+uid()) 
   label=String(label||'').trim();if(!label||label.length>50)throw Error('费用名称需为 1 至 50 字');
   const ts=houseTopics(h),groupTopics=ts.filter(t=>t.path?.some(p=>p.id===groupId));
   if(!groupTopics.length)throw Error('费用分组不存在');
-  if(groupTopics.some(t=>t.fields.some(f=>f.label===label)))throw Error('该分组已有同名费用');
+  if(groupTopics.some(t=>t.fields.some(f=>costName(f.label)===costName(label))))throw Error('该分组已有同名费用');
   if(ts.some(t=>t.fields.some(f=>f.id===fieldId)))throw Error('费用编号重复');
-  const base=groupTopics[0],at=base.path.findIndex(p=>p.id===groupId),field={id:fieldId,label,type:'n'};
+  const base=groupTopics[0],at=base.path.findIndex(p=>p.id===groupId),field={id:fieldId,label,type:'n',cost:true};
   (h.extras||=[]).push({id:'topic_'+fieldId,title:costGroups[groupId],category:base.category,phase:base.phase,path:clone(base.path.slice(0,at+1)),fields:[field]});
   return field;
 }
@@ -140,7 +167,7 @@ export function activeEntries(h,options) {
     else if(g.permissionFieldId)f={...g.fields.find(f=>f.id===g.permissionFieldId),groupRole:'permission'};
     else if(g.presence)f={id:'presence_'+g.id,label:'有'+g.title,type:'y',fact:true,groupRole:'presence'};
     if(f)list.push({topic:t,field:{...f,groupId:g.id}});
-    if(!rules.groupSkipped(g,h)&&(!g.presence||rules.groupAnswer(h,g.id).presence==='是')&&rules.groupAnswer(h,g.id).normal==='否'&&!rules.groupFields(g,h).some(f=>problem(f,h.answers[f.id])))list.push({topic:t,field:{id:'normal_'+g.id,label:g.title+'正常',type:'y',badValue:'否',groupId:g.id,groupRole:'normal'}});
+    if(!rules.groupSkipped(g,h)&&(!g.presence||rules.groupAnswer(h,g.id).presence==='是')&&rules.groupAnswer(h,g.id).normal==='否'&&!rules.groupFields(g,h).some(f=>problem(f,h.answers[f.id])))list.push({topic:t,field:{id:'normal_'+g.id,label:groupResultTitle(g),type:'y',badValue:'否',groupId:g.id,groupRole:'normal'}});
   }
   return list;
 }
@@ -188,7 +215,7 @@ export function matches(h,t,f,view={}) {
 }
 export function fieldView(h,f) {
   const a=answer(h,f);
-  return {...f,wheel:!!wheelConfig(f),wheelDisplay:wheelDisplay(f,rules.fieldValue(f,a)),heading:f.annotation||'',label:rules.isInspectionResult(f)?normalTitle(f.label):f.label,kind:'field',key:'f-'+f.id,value:rules.fieldValue(f,a),display:rules.fieldDisplayValue(f,a),note:a.note||'',photoRef:a.photo||'',otherText:a.otherText||'',other:rules.otherChoiceSelected(f,a),options:rules.choiceOptions(f).map(v=>({value:v,label:rules.isInspectionResult(f)?resultLabel(v):v,selected:rules.choiceSelected(f,a,v)})),problem:problem(f,a),media:(h.media||[]).filter(m=>m.fieldId===f.id),thumbnails:(h.media||[]).filter(m=>m.fieldId===f.id).slice(0,3),map:f.id===MAP_ID,inline:f.id!==MAP_ID&&(!!wheelConfig(f)||!rules.choiceOptions(f).length||rules.compactChoices(f)||['y','c','a'].includes(f.type))};
+  return {...f,wheel:!!wheelConfig(f),wheelDisplay:wheelDisplay(f,rules.fieldValue(f,a)),heading:f.annotation||'',label:rules.isInspectionResult(f)?normalTitle(f.label):f.label,kind:'field',key:'f-'+f.id,noCost:!!f.cost&&a.noCost===true,noneSelected:rules.noneSelected(f,a),value:rules.noneSelected(f,a)?'':rules.fieldValue(f,a),display:rules.fieldDisplayValue(f,a),note:a.note||'',photoRef:a.photo||'',otherText:a.otherText||'',other:rules.otherChoiceSelected(f,a),options:rules.choiceOptions(f).map(v=>({value:v,label:rules.isInspectionResult(f)?resultLabel(v):v,selected:rules.choiceSelected(f,a,v)})),problem:problem(f,a),media:(h.media||[]).filter(m=>m.fieldId===f.id),thumbnails:(h.media||[]).filter(m=>m.fieldId===f.id).slice(0,3),map:f.id===MAP_ID,inline:f.id!==MAP_ID&&(!!wheelConfig(f)||!rules.choiceOptions(f).length||rules.compactChoices(f)||['y','c','a'].includes(f.type))};
 }
 export function formView(h,view={},folds={}) {
   const ts=houseTopics(h),groups=rules.inspectionGroups(ts),filtered=!!view.query||(view.filters||[]).length>0;
@@ -216,7 +243,7 @@ export function formView(h,view={},folds={}) {
       if(filtered&&!entries.some(e=>(e.topic.path||[]).some(p=>p.id===n.g.id)))return;
       let options=[],selected='',skipped=false;
       if(g){skipped=rules.groupSkipped(g,h);selected=g.permissionFieldId?rules.groupPermission(g,h):g.presence?rules.groupResult(g,h):rules.groupStatus(g,h);options=g.permissionFieldId?['允许','不允许']:g.presence?(g.id==='topic_53'?['正常','有问题']:['正常','有问题','没有']):g.aggregate?['是','否']:[];}
-      const title=(g?.aggregate||g?.presence)&&!g.permissionFieldId?normalTitle(n.g.title):n.g.title;
+      const title=(g?.aggregate||g?.presence)&&!g.permissionFieldId?groupResultTitle(n.g):n.g.title;
       const choices=options.map(value=>({value,label:g?.presence?resultLabel(value,g.absenceLabel):value,selected:value===selected}));
       const swipe={...fieldView(h,nodeById.get('node:group:'+n.g.id)),label:title,expanded,skippable:!!g?.skippable,skipped,options:skipped?[]:choices};
       rows.push({kind:'group',key:'g-'+n.g.id,id:n.g.id,title,depth,expanded,skippable:!!g?.skippable,skipped,options:choices,swipe});
@@ -236,10 +263,14 @@ export function updateAnswer(h,id,prop,value) {
   if(h.archived)throw Error('归档房源只读，请先还原');
   const f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查项不存在');
   if(f.annotation&&!['note','issueFlag'].includes(prop))throw Error('父级节点只保存备注与问题标记');
-  if(!['value','note','otherText','issueFlag'].includes(prop))throw Error('不支持的修改');
+  if(!['value','note','otherText','issueFlag','noCost','none'].includes(prop))throw Error('不支持的修改');
+  if(prop==='noCost'&&(!f.cost||typeof value!=='boolean'))throw Error('无费用选项无效');
+  if(prop==='none'&&(!f.allowNone||typeof value!=='boolean'))throw Error('无选项无效');
   if(prop==='value'&&f.type==='n'&&value!==''&&(!Number.isFinite(Number(value))||Number(value)<0&&!(id==='fc76beec-52e3-4fe9-a937-dec254d4cc4f'&&Number(value)===-1)))throw Error('请填写非负数字');
   const previous=h.answers[id]||{};
   h.answers[id]={...previous,[prop]:value};
+  if(prop==='value'&&f.cost)h.answers[id].noCost=false;
+  if(prop==='value'&&f.allowNone)h.answers[id].none=false;
   if(id===topFloorField.id&&prop==='value'&&previous.value!==value)delete h.answers[id].issueFlag;
   if(prop==='value'){
     rules.syncGroupField(h,houseTopics(h),id);
@@ -292,7 +323,7 @@ export function validateState(state) {
     if(h.groups&&(typeof h.groups!=='object'||Array.isArray(h.groups)))throw Error('分组数据无效');
     if(Object.values(h.groups||{}).some(g=>!g||typeof g!=='object'||Array.isArray(g)))throw Error('分组状态无效');
     if(['address','summary','decision'].some(k=>h[k]!==undefined&&typeof h[k]!=='string'))throw Error('房源文字数据无效');
-    for(const a of Object.values(h.answers))if(!a||typeof a!=='object'||Array.isArray(a)||a.value!==undefined&&!(typeof a.value==='string'||typeof a.value==='number'||Array.isArray(a.value)&&a.value.every(v=>typeof v==='string')))throw Error('检查结果无效');
+    for(const a of Object.values(h.answers))if(a?.none!==undefined&&typeof a.none!=='boolean'||a?.noCost!==undefined&&typeof a.noCost!=='boolean'||!a||typeof a!=='object'||Array.isArray(a)||a.value!==undefined&&!(typeof a.value==='string'||typeof a.value==='number'||Array.isArray(a.value)&&a.value.every(v=>typeof v==='string')))throw Error('检查结果无效');
   }
   return state;
 }

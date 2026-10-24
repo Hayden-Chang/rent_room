@@ -25,6 +25,12 @@ it.each([['f54_0','缺少的家具','衣柜'],['f54_1','缺少的家电','冰箱
   expect(app.service.store.house(house).answers[id].value).toBe(value);
   expect(page.data.sections).toBe(sections);expect(patches.every(p=>!Object.hasOwn(p,'sections'))).toBe(true);
  }
+ page.answer({detail:{id,prop:'value',value:text}});
+ page.answer({detail:{id,prop:'none',value:true}});
+ expect(row()).toMatchObject({noneSelected:true,value:'',problem:false});
+ expect(app.service.store.house(house).answers[id].value).toBe(text);
+ page.answer({detail:{id,prop:'none',value:false}});
+ expect(row()).toMatchObject({noneSelected:false,value:text,problem:true});
  page.onUnload();
 });
 
@@ -48,7 +54,7 @@ it.each([['f54_0','缺少的家具','衣柜'],['f54_1','缺少的家电','冰箱
  const component={...spec.methods,data:{...JSON.parse(JSON.stringify(spec.data)),field:row(),readonly:false},setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){expect(name).toBe('answer');page.answer({detail});this.data.field=row();}};
  // Evaluate the real native input's binding after input and blur. This covers
  // Page/Component synchronization, not physical-device keyboard rendering.
- const input=fs.readFileSync('dist/components/field-row/index.wxml','utf8').match(/<input wx:elif="\{\{!field.heading&&!field.map\}\}"[^>]+>/)[0];
+ const input=fs.readFileSync('dist/components/field-row/index.wxml','utf8').match(/<view wx:elif="\{\{field.cost\|\|field.allowNone\}\}"[^>]*><input[^>]+>/)[0];
  const bound=()=>vm.runInNewContext(input.match(/value="\{\{([^}]+)\}\}"/)[1],component.data);
  const send=(event,value)=>component[input.match(new RegExp('bind'+event+'="([^"]+)"'))[1]]({detail:{value},currentTarget:{dataset:{input:'value'}}});
  for(const value of [text,text+'、书桌','',text]){

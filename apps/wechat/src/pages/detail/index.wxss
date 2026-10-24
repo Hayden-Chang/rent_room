@@ -63,3 +63,5 @@
 .note-sheet textarea{height:160px;min-height:48px;flex:1 1 160px}
 .note-sheet .subtitle{margin-bottom:12px}
 .note-sheet .row{margin-top:12px}
+
+.progress-meta{justify-content:flex-end}

@@ -81,7 +81,7 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     }
   },
   answer(e){attempt(()=>{
-    const {id,prop,value}=e.detail;service().store.answer(this.data.id,id,prop,value);const h=service().store.house(this.data.id);
+    const {id,prop,value}=e.detail;service().store.answer(this.data.id,id,prop,value);if(['noCost','none'].includes(prop)){this.refresh();return;}const h=service().store.house(this.data.id);
     const patch={stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''};
     // Keep the controlled value current when updating issue styling. Replacing
     // whole rows interrupts input; leaving their bound value stale clears on blur.
