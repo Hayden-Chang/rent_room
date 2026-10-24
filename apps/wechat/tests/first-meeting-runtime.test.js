@@ -14,7 +14,7 @@ function runtime(){
 it('persists first sorting and resumes at mode selection; detailed template affects only future houses',()=>{
  const r=runtime(),welcome=r.load('welcome'),config=templateConfig();config.order.reverse();config.disabled=[config.order[0]];
  welcome.change({detail:config});welcome.next();expect(r.load('welcome').data).toMatchObject({step:'mode',config});
- r.load('welcome').finish();expect(r.app.service.store.get().xiaoda.setup).toBe('done');expect(r.app.service.store.get().settings.selectedTemplate).toBe('detailed');
+ const modePage=r.load('welcome');modePage.selectMode({currentTarget:{dataset:{mode:'detailed'}}});modePage.finish();expect(r.app.service.store.get().xiaoda.setup).toBe('done');expect(r.app.service.store.get().settings.selectedTemplate).toBe('detailed');
  const id=r.app.service.store.add('第一套'),snapshot=r.app.service.store.house(id).templateTopics;
  const edit=r.load('template-edit');edit.change({detail:templateConfig()});edit.save();expect(r.app.service.store.house(id).templateTopics).toEqual(snapshot);
 });
