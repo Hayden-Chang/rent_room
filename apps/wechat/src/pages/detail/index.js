@@ -80,7 +80,22 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
       if(!this.unloaded&&this.data.restoringTab)this.setData({restoringTab:false});
     }
   },
-  answer(e){attempt(()=>{service().store.answer(this.data.id,e.detail.id,e.detail.prop,e.detail.value);if(['noCost','none'].includes(e.detail.prop)){this.refresh();return;}const h=service().store.house(this.data.id);this.setData({stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''});});},
+  answer(e){attempt(()=>{
+    const {id,prop,value}=e.detail;service().store.answer(this.data.id,id,prop,value);if(['noCost','none'].includes(prop)){this.refresh();return;}const h=service().store.house(this.data.id);
+    const patch={stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''};
+    // Keep the controlled value current when updating issue styling. Replacing
+    // whole rows interrupts input; leaving their bound value stale clears on blur.
+    const patchRow=(row,path)=>{
+      if(row.id!==id)return;
+      const next=fieldView(h,row);patch[path+'.problem']=next.problem;
+      if(['value','otherText','note'].includes(prop))patch[path+'.'+prop]=next[prop];
+    };
+    this.data.sections.forEach((section,s)=>section.rows.forEach((row,r)=>{
+      patchRow(row,`sections[${s}].rows[${r}]`);
+    }));
+    this.data.issueRows.forEach((row,r)=>patchRow(row,`issueRows[${r}]`));
+    this.setData(patch);
+  });},
   choose(e){attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
   group(e){if(this.dismissSwipe())return;const {id,op,value}=e.detail?.id?e.detail:e.currentTarget.dataset;attempt(()=>{service().store.group(this.data.id,id,op,value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[id]=true;this.refresh();});},
   action(e){return attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查节点不存在');if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!issueEntries(h).some(e=>e.field.id===id));this.refresh();}

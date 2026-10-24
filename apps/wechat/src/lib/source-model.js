@@ -89,6 +89,7 @@ const automaticProblemChoices = {
 };
 export function isProblem(f, a = {}) {
   if(f.allowNone&&noneSelected(f,a))return false;
+  if(['f54_0','f54_1'].includes(f.id))return fieldValue(f,a).trim()!=='';
   if(hasOwn(automaticProblemChoices,f.id))return fieldValue(f,a)===automaticProblemChoices[f.id];
   if(isInspectionResult(f))return a.value==='有问题';
   if(f.role==='inspection-check')return a.value==='否';

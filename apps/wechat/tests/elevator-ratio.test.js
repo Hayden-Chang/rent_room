@@ -1,10 +1,10 @@
 import {it,expect} from 'vitest';
-import {freshHouse,topics,houseTopics,formView,updateAnswer,stats,issueEntries,prepareImport,rules} from '../src/lib/model.js';
+import {freshHouse,topics,houseTopics,formView,updateAnswer,stats,issueEntries,prepareImport,rules,elevatorId} from '../src/lib/model.js';
 import {createStore} from '../src/lib/store.js';
 
 const id='f16_0',options=['≤ 1:3（优质）','1:4（高峰等待）','≥ 1:5（拥挤）'];
 const oldOptions=['<1:3（优质）','1:4（高峰等待）','>1:5（拥挤）'];
-const house=()=>{const h=freshHouse('电梯住户比');h.groups.topic_16={presence:'是'};return h;};
+const house=()=>{const h=freshHouse('电梯住户比');updateAnswer(h,elevatorId,'value','是');return h;};
 const row=h=>formView(h,{query:'电梯住户比'}).flatMap(s=>s.rows).find(r=>r.id===id);
 const legacy=h=>{for(const t of h.templateTopics)for(const f of t.fields)if(f.id===id)f.options=[...oldOptions];return h;};
 
