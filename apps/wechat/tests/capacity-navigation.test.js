@@ -59,7 +59,7 @@ it('retains the native back destination when login continues an archived-room re
 });
 
 it('leaves failed login on the existing page without losing the pending name or records',async()=>{
- const r=runtime();r.app.service.store.change(s=>s.xiaoda.intent={kind:'create',name:'保留名字'});const before=r.app.service.store.get();
+ const r=runtime();r.app.service.store.change(s=>s.xiaoda.intent={kind:'create',houseId:'',name:'保留名字'});const before=r.app.service.store.get();
  r.m.respond(()=>Promise.reject(Error('offline')));const page=r.page('capacity',{intent:'1'});await page.loginForCapacity();
  expect(r.stack).toEqual(['/pages/home/index','/pages/capacity/index?intent=1']);expect(r.events).toEqual([]);
  expect(page.data.busy).toBe(false);expect(page.data.error).toContain('连接');expect(r.app.service.store.get()).toEqual(before);
