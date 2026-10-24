@@ -11,8 +11,21 @@ const simple=()=>freshHouse('精简',{selectedTemplate:'simple'});
 const all=h=>houseTopics(h).flatMap(t=>t.fields);
 function memory(){let disk;return {read:()=>disk,write:v=>disk=v};}
 describe('confirmed simple checklist',()=>{
+ it('records landlord identity as one yes/no item without child fields',()=>{
+  const h=simple(),rows=formView(h,{}, {'身份与合同':true}).flatMap(s=>s.rows);
+  const owner=rows.filter(r=>r.label==='房东身份与产权');
+  expect(owner).toHaveLength(1);
+  expect(owner[0]).toMatchObject({id:'simple_62',kind:'field',heading:'',description:'核对房东身份证和房产证，确认房子归谁、合同跟谁签。'});
+  expect(owner[0].expanded).toBeUndefined();
+  expect(owner[0].options.map(o=>o.value)).toEqual(['是','否']);
+  expect(all(h).some(f=>/^f98_/.test(f.id))).toBe(false);
+  const contract=houseTopics(h).filter(t=>t.category==='身份与合同');
+  expect(contract[0].fields.map(f=>f.id)).toEqual(['simple_62']);
+  expect(contract.every(t=>t.path.every(p=>p.id!=='topic_98'))).toBe(true);
+  expect(all(freshHouse('详细')).filter(f=>/^f98_/.test(f.id)).map(f=>f.id)).toEqual(['f98_0','f98_1','f98_2','f98_3']);
+ });
  it('uses every approved title, description and exact option set as a non-expandable result',()=>{
-  const h=simple();expect(h.checklistMode).toBe('simple');expect(spec.items).toHaveLength(61);
+  const h=simple();expect(h.checklistMode).toBe('simple');expect(spec.items).toHaveLength(62);
   for(const item of spec.items){const f=all(h).find(f=>f.id===item.id);expect(f).toMatchObject({label:item.label,options:item.options});expect(f.description||'').toBe(item.description);const row=formView(h,{},Object.fromEntries(h.checklistOrder.map(c=>[c,true]))).flatMap(s=>s.rows).find(r=>r.id===item.id);
    if(item.id!=='simple_59'){expect(row?.kind).toBe('field');expect(row.heading).toBe('');expect(row.expanded).toBeUndefined();}
   }
@@ -23,9 +36,8 @@ describe('confirmed simple checklist',()=>{
   for(const category of ['房源基本信息','费用与付款'])expect(h.templateTopics.filter(t=>t.category===category)).toEqual(topics.filter(t=>t.category===category));
   const group=Object.keys(costGroups)[0];addCostField(h,group,'每周园艺服务费');expect(all(h).some(f=>f.label==='每周园艺服务费')).toBe(true);
  });
- it('keeps landlord fields and exactly two checkout fields, removing the retired contract branches',()=>{
-  const h=simple(),ts=houseTopics(h),owner=ts.find(t=>t.title==='房东身份与产权'),checkout=ts.find(t=>t.title==='退房');
-  expect(owner.fields.map(f=>f.id)).toEqual(['f98_0','f98_1','f98_2','f98_3']);
+ it('keeps exactly two checkout fields, removing the retired contract branches',()=>{
+  const h=simple(),ts=houseTopics(h),checkout=ts.find(t=>t.title==='退房');
   expect(checkout.fields.map(f=>f.label)).toEqual(['押金退还时间','退房保洁费用和要求已确认']);
   expect(checkout.fields[0].options).toEqual(['当天','3 天','7 天','10 天','30 天','其他']);
   expect(ts.find(t=>t.fields.some(f=>f.label==='入住前房东重新做卫生')).path).toHaveLength(1);
@@ -37,6 +49,23 @@ describe('confirmed simple checklist',()=>{
  });
 });
 describe('mode snapshots and records',()=>{
+ it('preserves existing simple landlord records while new houses use the merged item',()=>{
+  const old=simple(),owner=structuredClone(topics.find(t=>t.path.some(p=>p.id==='topic_98')));
+  old.templateTopics=old.templateTopics.filter(t=>!t.fields.some(f=>f.id==='simple_62'||/^f98_/.test(f.id)));
+  old.templateTopics.splice(old.templateTopics.findIndex(t=>t.category==='身份与合同'),0,owner);
+  old.answers.f98_0={value:'是',note:'证件已核对',issueFlag:true};
+  old.answers.f98_3={value:'房东'};
+  old.media=[{id:'owner-photo',type:'image',fieldId:'f98_0',path:'/owner.png'}];
+  const io=memory(),store=createStore(io,{getPacks:()=>1});
+  store.change(s=>{s.houses=[old];s.settings.selectedTemplate='simple';},true);
+  const loaded=createStore(io,{getPacks:()=>1}),saved=loaded.house(old.id);
+  expect(saved.templateTopics).toEqual(old.templateTopics);
+  expect(saved.answers).toEqual(old.answers);expect(saved.media).toEqual(old.media);
+  expect(prepareImport({...emptyState(),houses:[saved]})[0].answers).toEqual(old.answers);
+  const fresh=loaded.house(loaded.add('新精简'));
+  expect(all(fresh).filter(f=>f.id==='simple_62')).toHaveLength(1);
+  expect(all(fresh).some(f=>/^f98_/.test(f.id))).toBe(false);
+ });
  it('uses independent template order/exclusions only for new houses and reloads both modes',()=>{
   const io=memory(),store=createStore(io,{getPacks:()=>1}),old=store.add('旧');
   store.answer(old,'f1_6','value','2800');const before=JSON.stringify(store.house(old));
@@ -46,8 +75,8 @@ describe('mode snapshots and records',()=>{
   const loaded=createStore(io);expect(loaded.get().settings.selectedTemplate).toBe('simple');expect(loaded.house(id).templateTopics).toEqual(store.house(id).templateTopics);
   expect(prepareImport({...emptyState(),houses:[store.house(old),store.house(id)]}).map(h=>h.templateTopics)).toEqual([store.house(old).templateTopics,store.house(id).templateTopics]);
  });
- it('counts a merged result once; notes and media do not complete it or create duplicate issues',()=>{
-  const h=simple(),id='simple_13',before=stats(h).done;
+ it.each(['simple_13','simple_62'])('counts %s once; notes and media do not complete it or create duplicate issues',id=>{
+  const h=simple(),before=stats(h).done;
   updateAnswer(h,id,'note','隔壁说话听得清');h.media.push({id:'m',type:'image',path:'/photo',fieldId:id});
   expect(stats(h).done).toBe(before);expect(stats(h).issues).toBe(0);
   updateAnswer(h,id,'value','否');updateAnswer(h,id,'issueFlag',true);updateAnswer(h,id,'note','晚上再确认');
@@ -66,8 +95,8 @@ describe('mode snapshots and records',()=>{
   expect(formView(a,{query:'维保记录'}).flatMap(s=>s.rows).some(r=>r.id===f.id)).toBe(true);
   expect(comparison([a,b]).find(r=>r.id===f.id).values).toEqual(['没有','不涉及']);
  });
- it('round-trips merged answers, flags, notes and associated media through ZIP',async()=>{
-  const h=simple(),id='simple_13';h.answers[id]={value:'否',note:'晚上复查',issueFlag:true};h.media=[{id:'photo',type:'image',fieldId:id,path:'/noise.png'}];
+ it.each(['simple_13','simple_62'])('round-trips %s answers, flags, notes and associated media through ZIP',async id=>{
+  const h=simple();h.answers[id]={value:'否',note:'晚上复查',issueFlag:true};h.media=[{id:'photo',type:'image',fieldId:id,path:'/noise.png'}];
   const bytes=new Uint8Array([137,80,78,71,1,2,3]),backup=await readBackup(makeBackup({...emptyState(),houses:[h]},()=>bytes));
   const restored=backup.houses[0];expect(restored.checklistMode).toBe('simple');expect(restored.templateTopics).toEqual(h.templateTopics);expect(restored.answers).toEqual(h.answers);expect(restored.media[0].fieldId).toBe(id);expect(backup.files[restored.media[0].path]).toEqual(bytes);expect(stats(restored).issues).toBe(1);
  });

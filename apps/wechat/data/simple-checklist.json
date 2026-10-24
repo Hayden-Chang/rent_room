@@ -617,6 +617,19 @@
       "sourceBlock": "eb5657fc-2b22-459d-a6db-7473779ff706"
     },
     {
+      "id": "simple_62",
+      "category": "身份与合同",
+      "label": "房东身份与产权",
+      "description": "核对房东身份证和房产证，确认房子归谁、合同跟谁签。",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceUrl": "https://chatgpt.com/space/page_e28419ff18308191abc9495f7f112288",
+      "sourceSequence": 20,
+      "sourceBlock": "11e197f8-45aa-4c9a-b7ab-05ce5bcc4a5c"
+    },
+    {
       "id": "simple_54",
       "category": "身份与合同",
       "label": "维修责任已确认",
