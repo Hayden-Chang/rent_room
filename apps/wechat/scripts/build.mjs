@@ -22,7 +22,9 @@ await fs.mkdir('dist',{recursive:true});
 if(privateConfig)await fs.writeFile('dist/project.private.config.json',privateConfig);
 async function walk(dir){const out=[];for(const e of await fs.readdir(dir,{withFileTypes:true})){const p=path.join(dir,e.name);out.push(...(e.isDirectory()?await walk(p):[p]));}return out;}
 const files=await walk('src');
-for(const file of files.filter(f=>!f.endsWith('.js'))){const dest=file.replace(/^src/,'dist');await fs.mkdir(path.dirname(dest),{recursive:true});await fs.copyFile(file,dest);}
+// These source JSON files are embedded by esbuild in each importing JS bundle.
+const bundledData=new Set(['src/lib/topics.json','src/lib/simple-topics.json']);
+for(const file of files.filter(f=>!f.endsWith('.js')&&!bundledData.has(f))){const dest=file.replace(/^src/,'dist');await fs.mkdir(path.dirname(dest),{recursive:true});await fs.copyFile(file,dest);}
 const entries=files.filter(f=>f==='src/app.js'||/\/pages\/.*\/index.js$|\/components\/.*\/index.js$/.test(f));
 await build({entryPoints:entries,outdir:'dist',outbase:'src',bundle:true,format:'iife',platform:'browser',target:'es2018',minify:true,define:{__TEST_DATA_ROOT__:JSON.stringify(testRoot||'xunju'),__TIANDITU_KEY__:JSON.stringify(mapKey),__WECHAT_API_URL__:JSON.stringify(serviceUrl)}});
 // app owns the singleton store; page bundles must use getApp().service.
