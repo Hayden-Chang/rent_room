@@ -25,6 +25,26 @@ it('uses the approved numeric endpoints and steps without losing zero or the emp
  expect(wheelChanged('f112_5','3个月押金','3 个月押金')).toBe(false);
  expect(wheelChanged('f116_1','当天','0 天')).toBe(false);
 });
+it('offers every whole payment month from zero through twelve plus the empty value',()=>{
+ const items=wheelItems('f88_2');
+ expect(items.map(item=>item.value)).toEqual(['',...Array.from({length:13},(_,month)=>String(month))]);
+ expect(items[2].label).toBe('1 个月');
+ expect(wheelItems('f88_1').some(item=>item.value==='0.5')).toBe(true);
+});
+it('retains a fractional historical payment month until an integer is confirmed, including after reload',()=>{
+ let disk='';const adapter={read:()=>disk,write:value=>{disk=value;}};let store=createStore(adapter);
+ const id=store.add('付款月数验收');
+ store.edit(id,h=>{h.answers.f88_2={value:'1.5',note:'保留备注',issueFlag:true};});
+ const {items,index}=wheelSelection('f88_2',store.house(id).answers.f88_2.value);
+ expect(items[index]).toMatchObject({value:'1.5',label:'1.5 个月',legacy:true});
+ expect(items[index-1].value).toBe('1');expect(items[index+1].value).toBe('2');
+ store=createStore(adapter);
+ expect(store.house(id).answers.f88_2).toEqual({value:'1.5',note:'保留备注',issueFlag:true});
+ store.answer(id,'f88_2','value','2');store=createStore(adapter);
+ expect(store.house(id).answers.f88_2).toEqual({value:'2',note:'保留备注',issueFlag:true});
+ store.answer(id,'f88_2','value','');store=createStore(adapter);
+ expect(store.house(id).answers.f88_2).toEqual({value:'',note:'保留备注',issueFlag:true});
+});
 it('retains out-of-range and former other answers, and does not snap them on opening',()=>{
  for(const [id,value] of [['f1_3','220'],['f1_3','45.5'],['f112_5','12 个月押金'],['f112_2','其他']]){
   const {items,index}=wheelSelection(id,value);expect(items[index].value).toBe(value);expect(items[index].legacy).toBe(true);
