@@ -9,7 +9,12 @@ const evaluate=async(fn,...args)=>{
  const result=await mini.evaluate('function(){try{return {value:('+fn.toString()+').apply(null,arguments)};}catch(error){return {failure:String(error),stack:error.stack};}}',...args);
  if(result.failure)throw Error(result.failure+'\n'+result.stack+'\nOperation: '+fn.toString());return result.value;
 };
-const read=async()=>JSON.parse(await evaluate(function(id){const p=getCurrentPages().slice(-1)[0],service=getApp().service,h=service.store.house(id),saved=h&&JSON.parse(wx.getFileSystemManager().readFileSync(service.root+'/state.json','utf8')).houses.find(h=>h.id===id);return JSON.stringify({route:p.route,ready:p.accountPageReady,prompt:p.data.fillPrompt,stage:p.data.fillStage,error:p.data.saveError,answers:h?.answers,savedAnswers:saved?.answers,history:h?.xiaoda.seenCompleted,stored:h?.xiaoda.prompt});},houseId));
+// Parse the filesystem result in Node: DevTools' injected JSON.parse proxy can
+// fail its instanceof check in SDK evaluate even when readFileSync succeeds.
+const read=async()=>{
+ const s=JSON.parse(await evaluate(function(id){const p=getCurrentPages().slice(-1)[0],service=getApp().service,h=service.store.house(id);return JSON.stringify({route:p.route,ready:p.accountPageReady,prompt:p.data.fillPrompt,stage:p.data.fillStage,error:p.data.saveError,answers:h?.answers,savedRaw:h&&wx.getFileSystemManager().readFileSync(service.root+'/state.json','utf8'),history:h?.xiaoda.seenCompleted,stored:h?.xiaoda.prompt});},houseId));
+ s.savedAnswers=s.savedRaw?JSON.parse(s.savedRaw).houses.find(h=>h.id===houseId)?.answers:undefined;delete s.savedRaw;return s;
+};
 async function until(predicate,label){const end=Date.now()+180000;do{const s=await read();if(predicate(s))return s;await sleep(200);}while(Date.now()<end);throw Error('Timed out: '+label);}
 async function capture(name){await sleep(1500);const s=await read();await mini.screenshot({path:path.join(out,name+'.png')});fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(s,null,2));return s;}
 async function route(url,navigate=false){await evaluate(function(url,navigate){if(navigate)wx.navigateTo({url});else wx.reLaunch({url});return true;},url,navigate);await until(s=>s.route===url.split('?')[0].slice(1),'navigation');}
