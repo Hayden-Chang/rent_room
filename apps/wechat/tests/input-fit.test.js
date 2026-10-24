@@ -34,7 +34,7 @@ it('keeps the negative floor prefix local until a complete valid value is typed'
  let spec;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date});
  const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:floor,type:'n',value:'12'}},events:[],setData(v){Object.assign(this.data,v);},triggerEvent(name,detail){this.events.push({name,detail});}};
  c.input({detail:{value:'-'}});expect(c.events).toEqual([]);c.input({detail:{value:'-1'}});expect(c.events).toEqual([{name:'answer',detail:{id:floor,prop:'value',value:'-1'}}]);
- expect(fieldView(freshHouse('楼层'),{id:floor,type:'n'}).inputType).toBe('text');
+ expect(fieldView(freshHouse('楼层'),{id:floor,type:'n'}).inputType).toBe('number');
 });
 it('uses a native radio group for the two template modes while isolating editor navigation',()=>{
  const markup=fs.readFileSync('dist/pages/templates/index.wxml','utf8');
