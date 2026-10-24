@@ -69,7 +69,9 @@ export const coachMethods={
   if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.queueFilling(prompt);}
   else if(this.data.fillPrompt)this.showFilling(this.data.fillPrompt);
  },
- cancelFillingTransition(){clearTimeout(this.fillTimer);this.fillTimer=null;this.fillRun=(this.fillRun||0)+1;this.fillPending=null;this.fillAccepting=false;},
+ cancelFillingTransition(){clearTimeout(this.fillTimer);this.fillTimer=null;this.fillRun=(this.fillRun||0)+1;this.fillPending=null;this.fillMeasuring=null;this.fillAccepting=false;},
+ fillingView(){return JSON.stringify([this.data.tab,this.data.phase,this.data.query,this.data.filters]);},
+ fillingReturnCurrent(saved,run){return this.fillRun===run&&!this.unloaded&&!this.coachHidden&&!this.data.coach&&this.data.tab==='清单'&&this.data.id===saved.houseId&&this.fillingView()===saved.view&&getApp().service===saved.platform;},
  fillingCurrent(run,platform,id,prompt){
   if(run!==this.fillRun||this.unloaded||this.coachHidden||getApp().service!==platform||this.data.id!==id||this.data.tab!=='清单'||this.data.coach||this.fillEditing||this.data.wheelField||this.data.sheet)return false;
   const h=platform.store.house(id);if(!h||h.archived||!xiaodaEnabled(platform.store.get(),h)||h.xiaoda?.prompt?.id!==prompt.id)return false;
@@ -77,7 +79,7 @@ export const coachMethods={
   return prompt.kind==='return'?rows.every(r=>r.complete):rows.some(r=>r.category===prompt.target&&!r.complete);
  },
  queueFilling(prompt){
-  this.cancelFillingTransition();this.fillCompleted=service().store.house(this.data.id)?.xiaoda?.seenCompleted?.at(-1);this.fillPending={prompt,platform:service(),id:this.data.id};this.scheduleFilling();
+  this.cancelFillingTransition();this.fillReturn=null;this.fillCompleted=service().store.house(this.data.id)?.xiaoda?.seenCompleted?.at(-1);this.fillPending={prompt,platform:service(),id:this.data.id};this.scheduleFilling();
  },
  scheduleFilling(){
   if(!this.fillPending||this.fillTimer||this.fillEditing||this.data.wheelField||this.data.sheet)return;
@@ -87,7 +89,7 @@ export const coachMethods={
  },
  fillingFocus(e){this.inputFilling();this.fillEditing=e.detail.id+':'+e.detail.input;},
  fillingBlur(e){if(this.fillEditing!==e.detail.id+':'+e.detail.input)return;this.fillEditing=null;this.refresh();this.scheduleFilling();},
- fillingTouch(){if(!this.fillAccepting&&!this.fillEditing&&(this.fillPending||(this.data.fillPrompt&&this.data.fillStage!=='ready'&&this.data.fillStage)))this.waitFilling();},
+ fillingTouch(){if(!this.fillAccepting&&!this.fillEditing&&(this.fillPending||this.fillMeasuring||(this.data.fillPrompt&&this.data.fillStage!=='ready'&&this.data.fillStage)))this.waitFilling();},
  fillingScroll(e){
   if(this.fillAccepting||this.data.tab!=='清单'||this.data.fillMinHeight==null)return;
   const top=Math.max(0,e?.scrollTop||0),height=top+wx.getWindowInfo().windowHeight-(this.fillPageTop||0);
@@ -98,6 +100,18 @@ export const coachMethods={
   const section=this.data.sections.find(s=>s.title===prompt.target);
   const anchor=prompt.kind==='return'?{kind:'return'}:section?{kind:'category',id:section.id}:{kind:'phase',id:'phase-area'};
   if(this.data.fillPrompt?.id===prompt.id&&this.data.fillAnchor?.kind===anchor.kind&&this.data.fillAnchor?.id===anchor.id)return;
+  if(prompt.kind==='next'&&this.fillReturn?.id!==prompt.id){
+   if(this.fillMeasuring?.id===prompt.id)return;
+   const run=this.fillRun,saved={id:prompt.id,houseId:this.data.id,platform:service(),view:this.fillingView()};this.fillMeasuring=saved;
+   // Save the completed field's viewport position before the entrance changes layout.
+   const q=this.createSelectorQuery();q.selectViewport().scrollOffset();q.selectAll('.scroll-anchor').fields({dataset:true,rect:true});
+   q.exec(([viewport,layout])=>{
+    if(this.fillMeasuring!==saved||!this.fillingReturnCurrent(saved,run))return;
+    const rows=(layout||[]).filter(r=>r.dataset?.scrollKey&&r.bottom>r.top);
+    this.fillReturn={...saved,scrollTop:viewport?.scrollTop||0,anchors:[...rows.filter(r=>r.bottom>0),...rows.filter(r=>r.bottom<=0).reverse()].map(r=>({key:r.dataset.scrollKey,top:r.top}))};
+    this.fillMeasuring=null;this.showFilling(prompt,animate);
+   });return;
+  }
   if(!animate){this.setData({fillPrompt:prompt,fillAnchor:anchor,fillStage:'ready',fillHeight:null},()=>this.locateFilling());return;}
   const run=this.fillRun,platform=service(),id=this.data.id,current=()=>this.fillingCurrent(run,platform,id,prompt);
   const enter=()=>{if(!current())return;this.setData({fillStage:'entering'},()=>{if(current())this.fillTimer=setTimeout(()=>{this.fillTimer=null;if(current())this.setData({fillStage:'ready',fillHeight:null});},220);});};
@@ -127,19 +141,19 @@ export const coachMethods={
   const key=prompt.id+':'+anchor.id;if(this.fillLocated===key)return;this.fillLocated=key;
   wx.pageScrollTo({selector:'#filling-guide',duration:250});
  },
- clearFilling(){
+ clearFilling(done){
   this.cancelFillingTransition();this.clearCoachTimer();if(this.xiaodaService!==getApp().service)return;
   const h=service().store.house(this.data.id);
   try{if(h?.xiaoda?.prompt)service().store.edit(h.id,h=>delete h.xiaoda.prompt,true);}
   catch(error){if(this.data.fillPrompt)this.setData({fillStage:'ready',fillHeight:null});throw error;}
-  this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null,fillStage:'ready',fillHeight:null});
+  const run=this.fillRun;this.fillReturn=null;this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null,fillStage:'ready',fillHeight:null},()=>done?.(run));
  },
  acceptFilling(){const prompt=this.data.fillPrompt;if(!prompt||this.fillAccepting||this.xiaodaService!==getApp().service)return;
   try{
    if(prompt.kind==='return'){service().store.change(s=>s.xiaoda.returnGuide=true,true);this.clearFilling();wx.navigateBack();return;}
    const rows=progress(service().store.house(this.data.id)),target=rows.find(r=>r.category===prompt.target&&!r.complete);if(!target){this.clearFilling();return;}
    service().store.edit(this.data.id,h=>{if(prompt.kind==='intro')h.xiaoda.intro='done';delete h.xiaoda.prompt;},true);
-   this.cancelFillingTransition();this.fillAccepting=true;
+   this.cancelFillingTransition();this.fillReturn=null;this.fillAccepting=true;
    const run=this.fillRun,platform=service(),id=this.data.id,current=()=>this.fillAccepting&&run===this.fillRun&&!this.unloaded&&!this.coachHidden&&getApp().service===platform&&this.data.id===id&&this.data.tab==='清单'&&this.data.fillPrompt?.id===prompt.id;
    const visible=this.data.sections.some(s=>s.title===target.category),view=visible?{phase:this.data.phase,query:this.data.query,filters:this.data.filters}:{phase:target.phase,query:'',filters:[]},key=JSON.stringify(view);
    const q=this.createSelectorQuery();q.select('#filling-guide').boundingClientRect();q.select('.detail').boundingClientRect();q.selectViewport().scrollOffset();
@@ -172,15 +186,26 @@ export const coachMethods={
   if(this.data.coach)return;
   if(!e?.detail?.id)this.fillEditing=null;
   if(e?.detail?.id&&this.fillEditing?.startsWith(e.detail.id+':')&&this.fillPending)return;
-  if(!this.data.fillPrompt&&!this.fillPending)return;
+  if(!this.data.fillPrompt&&!this.fillPending&&!this.fillMeasuring){this.fillRun=(this.fillRun||0)+1;return;}
   try{if(this.data.fillPrompt?.kind==='intro')service().store.edit(this.data.id,h=>h.xiaoda.intro='done',true);this.clearFilling();}catch(error){notify(error);}
  },
- waitFilling(){try{this.clearFilling();}catch(error){notify(error);}},
+ waitFilling(){try{
+  const saved=this.fillReturn;
+  this.clearFilling(async run=>{
+   if(!saved||!this.fillingReturnCurrent(saved,run))return;
+   try{
+    const layout=await this.measureTab();if(!this.fillingReturnCurrent(saved,run))return;
+    let scrollTop=saved.scrollTop;const rows=new Map(layout.rows.map(r=>[r.dataset?.scrollKey,r]));
+    for(const anchor of saved.anchors){const row=rows.get(anchor.key);if(row&&row.bottom>row.top){scrollTop=layout.scrollTop+row.top-anchor.top;break;}}
+    wx.pageScrollTo({scrollTop:Math.max(0,scrollTop),duration:0});
+   }catch(error){if(this.fillingReturnCurrent(saved,run))notify(error);}
+  });
+ }catch(error){notify(error);}},
  otherHouses(){try{this.clearFilling();this.showFilling({kind:'return',text:'那就先看看其他房子吧～',id:'return-'+Date.now()});}catch(error){notify(error);}},
  async closeXiaoda(){this.cancelFillingTransition();this.clearCoachTimer();try{const res=await service().api('showActionSheet',{itemList:['当前房源关闭','今天关闭','永久关闭']});
    service().store.change(s=>{const h=s.houses.find(h=>h.id===this.data.id);h.xiaoda||={};h.xiaoda.intro='done';delete h.xiaoda.prompt;
     if(res.tapIndex===0)h.xiaoda.disabled=true;if(res.tapIndex===1)s.xiaoda.closedDate=localDay();if(res.tapIndex===2)s.xiaoda.enabled=false;},true);
-   this.fillLocated=null;this.setData({fillPrompt:null,fillAnchor:null});if(res.tapIndex===2)notify('小搭已关闭，可以在设置中重新开启。');
+   this.clearFilling();if(res.tapIndex===2)notify('小搭已关闭，可以在设置中重新开启。');
   }catch(error){notify(error);}},
  leaveXiaoda(){this.cancelFillingTransition();this.fillEditing=null;this.clearCoachTimer();const platform=this.xiaodaService;if(platform!==getApp().service)return;
   const h=platform.store.house(this.data.id);if(!h||h.archived)return;

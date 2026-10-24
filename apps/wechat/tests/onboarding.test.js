@@ -12,7 +12,7 @@ function harness({disabled=false,legacy=false}={}){
  app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.enabled=!disabled;if(legacy){s.xiaoda.legacy=true;s.xiaoda.tutorialStep=0;}});
  const id=app.service.store.add('第一套');
  function open(){vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p,cb){Object.assign(this.data,p);cb?.();};page.selectAllComponents=()=>[];
-  page.createSelectorQuery=()=>{const q={select:selector=>{selectors.push(selector);return q;},selectViewport:()=>q,boundingClientRect:()=>q,scrollOffset:()=>q,exec:cb=>cb([{left:20,top:50,width:350,height:60,bottom:110},{height:250},{scrollTop:0}])};return q;};page.onLoad({id,new:'1'});page.onReady();return page;}
+  page.createSelectorQuery=()=>{let anchors=false;const q={select:selector=>{selectors.push(selector);return q;},selectAll:()=>{anchors=true;return q;},fields:()=>q,selectViewport:()=>q,boundingClientRect:()=>q,scrollOffset:()=>q,exec:cb=>cb(anchors?[{scrollTop:0},[]]:[{left:20,top:50,width:350,height:60,bottom:110},{height:250},{scrollTop:0}])};return q;};page.onLoad({id,new:'1'});page.onReady();return page;}
  return {app,id,open,wx,fail:v=>{fail=v;},disk,selectors};
 }
 function reachSwipe(page){page.coachNext();expect(page.data.coach).toBe(2);expect(page.data.showFilters).toBe(true);page.coachNext();expect(page.data.coach).toBe(3);}
@@ -159,7 +159,7 @@ it('keeps saving a final text field without moving the page until input ends',()
 });
 
 function guideGeometry(p,top=50){
- p.createSelectorQuery=()=>{let selector;const q={select:s=>{selector=s;return q;},selectViewport:()=>q,boundingClientRect:()=>q,scrollOffset:()=>q,exec:cb=>cb(selector==='#filling-content'?[{height:240}]:[{top,bottom:top+240,height:240},{scrollTop:100}])};return q;};
+ p.createSelectorQuery=()=>{let selector,anchors=false;const q={select:s=>{selector=s;return q;},selectAll:()=>{anchors=true;return q;},fields:()=>q,selectViewport:()=>q,boundingClientRect:()=>q,scrollOffset:()=>q,exec:cb=>cb(anchors?[{scrollTop:100},[]]:selector==='#filling-content'?[{height:240}]:[{top,bottom:top+240,height:240},{scrollTop:100}])};return q;};
 }
 it('expands a visible recommendation and fades it in before speech without unnecessary scrolling or repeated refresh',()=>{
  const h=completionFixture(),p=h.p;guideGeometry(p);p.answer({detail:{id:'f1_6',prop:'value',value:'2800'}});
