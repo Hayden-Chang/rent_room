@@ -24,7 +24,7 @@ async function route(url,navigate=false){await evaluate(function(url,navigate){i
    const pending=activeEntries(h).find(e=>e.topic.phase==='询问与签约'&&e.field.id!=='simple_61'&&!rules.fieldRecorded(e.field,answer(h,e.field)));
    if(!pending)break;assert.ok(!pending.field.groupId,'contract uses field answers');const f=pending.field;updateAnswer(h,f.id,'value',rules.choiceOptions(f)[0]||(f.type==='n'?'1':f.type==='d'?'2026-11-01':'已核对'));
   }
-  h.answers.f98_0.note='保留核对备注';fixture.houses=[h];
+  const noteField=activeEntries(h).find(e=>e.topic.category==='身份与合同'&&e.field.id!=='simple_61').field.id;h.answers[noteField].note='保留核对备注';fixture.houses=[h];
   Object.assign(fixture.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done'});
   const contract=progress(h).find(r=>r.category==='身份与合同');assert.equal(contract.total-contract.done,1);
   await route('/pages/settings/index');
@@ -47,7 +47,7 @@ async function route(url,navigate=false){await evaluate(function(url,navigate){i
   await until(read,s=>['simple_50','simple_51','simple_52','simple_53'].every(id=>s.answers[id]?.value==='是')&&s.prompt?.kind==='return'&&s.stage==='ready','last onsite with contracts done');
   const onsite=await capture('05-onsite-return');assert.equal(onsite.prompt.completed,'电路网络与隐私');assert.equal(onsite.prompt.text,'这套房子先记到这里，再看看其他房子吧。');
   console.log('NATIVE_READY: 返回房源列表');
-  await until(read,s=>s.route==='pages/home/index','accept return');const returned=await capture('06-returned');assert.equal(returned.answers.simple_61.value,'否');assert.equal(returned.answers.f98_0.note,h.answers.f98_0.note);
+  await until(read,s=>s.route==='pages/home/index','accept return');const returned=await capture('06-returned');assert.equal(returned.answers.simple_61.value,'否');assert.equal(returned.answers[noteField].note,h.answers[noteField].note);
   await route('/pages/detail/index?id='+h.id,true);await until(read,s=>s.ready,'reopen ready');await sleep(1000);const reopened=await capture('07-reopened');assert.equal(reopened.prompt,null);assert.deepEqual(reopened.answers,returned.answers);
   fs.writeFileSync(path.join(out,'assertions.json'),JSON.stringify({passed:true,nativeClicks:true,fullSimpleTemplate:true,waitPreservedPosition:true,beforeTop:field(beforeLayout).top,afterTop:field(waitedLayout).top,waitDidNotNavigate:true,completedEditQuiet:true,lastOnsiteWithContractsDone:true,returnNavigated:true,reopenPreserved:true,directTargetHandlerCalls:false,deviceValidated:false},null,2));
  }catch(error){await capture('failure').catch(()=>{});throw error;}finally{mini.disconnect();}

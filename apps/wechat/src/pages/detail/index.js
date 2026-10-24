@@ -31,8 +31,8 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:mediaWithIssues(h).filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:issueEntries(h).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]).map(i=>({...i,media:h.media.filter(m=>m.issueId===i.id),mediaCount:h.media.filter(m=>m.issueId===i.id).length})),saveError:service().store.status().error},done);
     wx.setNavigationBarTitle({title:h.name});this.syncFilling();
   },
-  retry(){service().store.save();},
-  fold(e){if(this.dismissSwipe())return;this.inputFilling();const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});const folds=this.folds[key]||={};const {id,expanded}=e.detail?.id?e.detail:e.currentTarget.dataset;folds[id]=!expanded;this.refresh();},
+  retry(){if(service().store.save())this.refresh();},
+  fold(e){if(this.dismissSwipe())return;this.inputFilling(e,true);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});const folds=this.folds[key]||={};const {id,expanded}=e.detail?.id?e.detail:e.currentTarget.dataset;folds[id]=!expanded;this.refresh();},
   phase(e){if(this.dismissSwipe())return;const phase=e.currentTarget.dataset.value;if(phase===this.data.phase)return;this.updateChecklist({phase});},search(e){const query=e.detail.value;if(query===this.data.query)return;this.updateChecklist({query});},
   toggleFilters(){if(this.dismissSwipe())return;this.inputFilling();this.setData({showFilters:!this.data.showFilters},()=>{if(this.data.coach===2)this.coachLayout();});},filter(e){if(this.dismissSwipe())return;const v=e.currentTarget.dataset.value;if(v==='全部'&&!this.data.filters.length)return;this.updateChecklist({filters:v==='全部'?[]:this.data.filters.includes(v)?this.data.filters.filter(x=>x!==v):[...this.data.filters,v]});},
   measureTab(){
@@ -81,7 +81,7 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
       if(!this.unloaded&&this.data.restoringTab)this.setData({restoringTab:false});
     }
   },
-  answer(e){this.inputFilling(e);attempt(()=>{
+  answer(e){this.inputFilling(e,true);attempt(()=>{
     const {id,prop,value}=e.detail;service().store.answer(this.data.id,id,prop,value);if(['noCost','none'].includes(prop)){this.refresh();return;}const h=service().store.house(this.data.id);
     const patch={stats:stats(h),'house.address':h.address,'house.location':h.location||null,'house.locationAddress':h.locationAddress||''};
     // Keep the controlled value current when updating issue styling. Replacing
@@ -97,9 +97,9 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     this.data.issueRows.forEach((row,r)=>patchRow(row,`issueRows[${r}]`));
     this.setData(patch);this.syncFilling();
   });},
-  choose(e){this.inputFilling();attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
-  group(e){if(this.dismissSwipe())return;this.inputFilling();const {id,op,value}=e.detail?.id?e.detail:e.currentTarget.dataset;attempt(()=>{service().store.group(this.data.id,id,op,value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[id]=true;this.refresh();});},
-  action(e){this.inputFilling();return attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查节点不存在');if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!issueEntries(h).some(e=>e.field.id===id));this.refresh();}
+  choose(e){this.inputFilling(undefined,true);attempt(()=>{const h=service().store.house(this.data.id),f=houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===e.detail.id);service().store.answer(h.id,f.id,'value',rules.toggleChoiceValue(f,h.answers[f.id],e.detail.value));this.refresh();});},
+  group(e){if(this.dismissSwipe())return;this.inputFilling(undefined,true);const {id,op,value}=e.detail?.id?e.detail:e.currentTarget.dataset;attempt(()=>{service().store.group(this.data.id,id,op,value);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});(this.folds[key]||={})[id]=true;this.refresh();});},
+  action(e){this.inputFilling(undefined,true);return attempt(async()=>{const {id,action}=e.detail,h=service().store.house(this.data.id),f=checklistTargets(h).find(f=>f.id===id);if(!f)throw Error('检查节点不存在');if(action==='flag'){service().store.answer(h.id,id,'issueFlag',!issueEntries(h).some(e=>e.field.id===id));this.refresh();}
     if(action==='wheel'&&!h.archived){wx.hideKeyboard();this.dismissSwipe();this.setData({wheelField:{...f,value:rules.fieldValue(f,h.answers[id])}});}
     if(action==='note')this.openNote({sheet:'note',noteId:id,noteTitle:f.label,note:h.answers[id]?.note||''});
     if(action==='media'){await service().chooseMedia(h.id,id);this.refresh();}
@@ -143,9 +143,9 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
       }
     }
   },
-  closeWheel(){this.setData({wheelField:null});},
+  closeWheel(){this.setData({wheelField:null},this.fillPending?()=>this.scheduleFilling():undefined);},
   saveWheel(e){attempt(()=>{service().store.answer(this.data.id,e.detail.id,'value',e.detail.value);if(service().store.status().error)throw Error(service().store.status().error);this.closeWheel();this.refresh();});},
-  note(e){this.setData({note:e.detail.value});},saveNote(){attempt(()=>{service().store.answer(this.data.id,this.data.noteId,'note',this.data.note);this.close();this.refresh();});},close(){this.noteFocusRun=(this.noteFocusRun||0)+1;this.setData({sheet:'',noteKeyboardHeight:0,noteFocus:false});wx.hideKeyboard?.();},noop(){},
+  note(e){this.setData({note:e.detail.value});},saveNote(){attempt(()=>{service().store.answer(this.data.id,this.data.noteId,'note',this.data.note);this.close();this.refresh();});},close(){this.noteFocusRun=(this.noteFocusRun||0)+1;this.setData({sheet:'',noteKeyboardHeight:0,noteFocus:false},this.fillPending?()=>this.scheduleFilling():undefined);wx.hideKeyboard?.();},noop(){},
   openNote(patch){
     const run=this.noteFocusRun=(this.noteFocusRun||0)+1;
     // Mount the fixed native textarea before requesting its keyboard.

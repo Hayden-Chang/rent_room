@@ -47,3 +47,36 @@ PR 创建后的主 agent 复查已核对范围、共享策略、草稿/清空语
 合入前主线前进到 `b079ee6`，包含楼道标题、顶楼及选项异常判定。`402ef4710f33dcf2cbc39329cc0889d99105cf2c` 合并最新主线；共享模型的真实冲突同时保留楼层 -1 例外与顶楼答案改变时重置自身异常覆盖，其他字段的备注及标记仍保留。主 agent 复查最终差异仅为本次轮盘范围，未覆盖已合入规则。
 
 旧测试结果因真实冲突失效，未直接套用。重新构建正常用户预览配置后，原 7 文件加 `top-floor`、`automatic-choice-issues`、`elevator-ratio`、`balcony-issue` 共 **11 文件、106 项通过**；覆盖轮盘保存/空值、顶楼迁移/覆盖、旧电梯选项和自动问题并存。使用 Node 24.19.0、单 worker 及显式 20 秒测试上限，日志在 `apps/wechat/artifacts/wheel-merge-20261022/tests.log`。官方 wcc/wcsc 各 15 文件、12 页面通过，构建 2035288 字节。后续仅补此 Markdown 记录，执行输入与该验证提交等价。
+
+
+## 2026-10-24 手机反馈调整
+
+楼层、面积、公交地铁通行时间和开车通勤时间改为直接输入，通勤查询入口保留。面积允许原有小数，旧值、备注及影像保持；楼层用可输入负号的键盘，单独的负号只作为未提交输入，完整 -1 仍按原规则保存。其余轮盘策略保持，剩余 13 项。
+
+免租期在轮盘右侧增加“无”。“无”独立于空白和 0 天；选择后计为已记录，隐藏原天数并禁止打开轮盘，取消“无”恢复先前天数。新旧房源、精简/详细模板均适用。
+
+设置中的模板二选一使用微信原生 radio/radio-group，替换字符方框；选中仅修改草稿，点“确定”才保存。点单选区域不会进入编辑页，点原文字/箭头仍打开对应模板。
+
+定向验证覆盖 input-fit、wheel-input、wheel-dialog、missing-config-none、cost-none、field-row-events、field-row-placeholder、field-row-swipe、field-row-inline-actions、model、simple-mode、welcome-mode、template-fold、commute-page、first-meeting-runtime、onboarding。本轮真实输入、免租期切换和模板单选回调为 `tests/e2e/input-fit-native.cjs`；隔离测试数据不使用手机原记录。证据位于本任务 `apps/wechat/artifacts/input-fit/`。
+
+
+### 本轮验证与交付边界
+
+业务与单测提交为 `566c0518f1b30827eb40c6f7b80f6cd8fec251a9`；最终脚本候选为 `a829f43de4f95449bee5e1f67c88e12a2186dd11`。主线仍为 `a496bac63f1f35f25d841add6481ad4e808ef7df`。两次提交间只有独立 E2E 记录器变化，业务源码、生成清单、单测、依赖及构建配置均相同，因此复用 16 文件 229 项通过和官方 wcc 20 / wcsc 22 编译结果。本节后续仅补文档。复现测试集为上段列出的 `tests/<名称>.test.js`，使用 Node 24 的 `node node_modules/vitest/vitest.mjs run` 运行；日志、编译回执及 SHA/场景映射位于忽略目录 `apps/wechat/artifacts/input-fit/`。
+
+风险映射：四个数值输入和旧值 → input-fit/model/commute-page；轮盘剩余策略 → wheel-input/wheel-dialog；免租期空值、无与数据保护 → input-fit/missing-config-none/cost-none/simple-mode；共享行绑定与手势 → field-row-*；模板选择草稿与保存 → input-fit/welcome-mode/template-fold，配合 first-meeting-runtime/onboarding。新增 9 项先在旧实现失败；第一轮旧 choice 定位命中新加的“无”，已按原选项 data-value 修正定位，所有原断言仍执行，失败日志保留。
+
+真实渲染：共享池 run `65ec4661a3ac485f9a9ef33b3798ac7f` 在干净候选上通过，冻结摘要 `71aa915161f289770f8d3ee77a9f4c560e91eec5840bdce52ac73a554c4480ce`。工具 Stable 2.01.2510290、基础库 3.17.3、iPhone 12/13 (Pro) 模拟器。`tests/e2e/input-fit-render.cjs` 使用隔离数据 `xunju-test-input-fit-20261024`，提供四个输入、免租期普通/无、模板两种选中状态共 8 张截图；值和草稿状态由夹具准备，**只证明真实渲染，不证明点击、保存或手机键盘**。
+
+原生尝试 `745b54aa7cac41caae04addbfd82e70c` 因 SDK 执行环境中的 JSON.parse 代理错误失败，改为 Node 侧解析。`c35142edcdfe43fb8c07efc7ec96ef51` 等待首个原生输入超时，CUA 输入未到达目标且返回 noWindowsAvailable；未把 handler 回放当作通过。渲染 run `67493f5159cb4f8a9b97ffc70443f9b4` 的免租期选中图过早；随后 `07a25b748c7e4b95ac9e0246df76710c` 页面等待失败。核对微信[导航回调](https://github.com/wechat-miniprogram/api-typings/blob/master/types/wx/lib.wx.api.d.ts)和[页面生命周期](https://github.com/wechat-miniprogram/api-typings/blob/master/types/wx/lib.wx.page.d.ts)后，等待成功回调、目标房源 ID、accountReady 与现有 onReady 标记，再取得上述有效图。原失败记录全部保留；最终图不使用早帧。
+
+主 agent 已复查 PR #73 的业务范围、生成源、旧记录兼容、选择草稿、只读状态和证据边界；GitHub commit statuses 为空，不能称为 CI 通过。PR 保持草稿，原生交互、手机体验和用户视觉确认未完成，未合入或发布。此前 main 预览码不包含此 PR。
+
+### 用户确认后的四项补充（2026-10-24）
+
+按用户“按照你的建议改一下”：晾衣杆长度恢复数字直接输入；床长、床宽和朝向使用已有平铺单选按钮，重选同一项可取消，朝向仍提供“其他”及说明输入。复用清单里的现有选项和单位，保留房源自定义尺寸选项、原值、备注、问题标记和影像。只移除这四项轮盘策略，其余 9 项继续使用轮盘。
+
+本轮先合入主线 `e14ada673f71539b5b1c3422d554e030ae128565`，唯一冲突是生成的 simple-topics.json；从合并后的 source-tree.json 与 simple-checklist.json 重新生成，保留主线室内环境/产权问句调整及本 PR 免租期“无”。新增 5 项回归在调整前失败；本轮 20 文件 283 项通过，官方 wcc 20 / wcsc 22 通过。新增覆盖平铺选中/清空/重载、自定义床尺寸和 1.2/1.8 米等精确输入，保留上轮的字段/免租期/模板测试；因主线真实整合增加 simple-environment、onboarding-wait-position、xiaoda，并加入现有 layout-other 覆盖同类选项说明。原日志位于 apps/wechat/artifacts/input-fit-v2/。
+
+
+当前业务候选 `f0a0ba3738b1e4010eb3dfbb9440480e6ab8dd12`、干净工作树的渲染 run `3e007997c8004e0da3bdfb3dd43342e3` 通过，冻结摘要 `91aa3ca5b88d5568574a89573c8fd4c0f917857586ef5a2abdd4428d6aefaa7c`。生成 13 张图，其中新增晾衣杆、朝向、床宽、床长、朝向其他 5 张已逐张核对，无遮挡或选项截断。工具 Stable 2.01.2510290 / 基础库 3.17.3 / iPhone 12/13 (Pro) 模拟器，结束后槽 3 回到 idle；本轮只验证夹具状态的实际渲染，没有重新声称原生输入、保存交互或真机已通过。完整命令、原始日志、截图哈希和回执在 `apps/wechat/artifacts/input-fit-v2/campaign.json`。主 agent 在更新 PR 后复核最终差异及生成清单仅新增免租期 allowNone，主线新规则保留；远程 statuses 为空。保持草稿，待本轮视觉与手机验收；后续只有本文档追加，不影响已测输入。

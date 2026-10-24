@@ -42,6 +42,15 @@ describe('xiaoda lifecycle and templates',()=>{
  it('scopes closure to the house, local day or long term setting without erasing answers',()=>{const {store,get}=scenario();store.change(s=>s.xiaoda.closedDate=localDay(new Date(2026,9,23)));expect(xiaodaEnabled(store.get(),get(),new Date(2026,9,23,23))).toBe(false);expect(xiaodaEnabled(store.get(),get(),new Date(2026,9,24))).toBe(true);store.edit(get().id,h=>h.xiaoda.disabled=true);expect(xiaodaEnabled(store.get(),get(),new Date(2026,9,24))).toBe(false);store.change(s=>s.xiaoda.enabled=true);expect(xiaodaEnabled(store.get(),get(),new Date(2026,9,24))).toBe(false);});
 });
 describe('completion recommendations',()=>{
+ it.each(['none','noCost'])('recognizes %s as the final recorded result and persists completion only once',prop=>{
+  const s=scenario(['A','B']);
+  s.store.edit(s.h.id,h=>h.templateTopics[0].fields[1]={id:'custom0_1',label:'最后一项',type:'t',...(prop==='none'?{allowNone:true}:{cost:{}})});
+  s.answer(0,0);s.store.answer(s.h.id,'custom0_1',prop,true);
+  expect(progress(s.get())[0].complete).toBe(true);expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'B'});
+  expect(s.get().xiaoda.seenCompleted).toContain('A');
+  s.store.edit(s.h.id,h=>delete h.xiaoda.prompt);s.store.answer(s.h.id,'custom0_1',prop,false);s.store.answer(s.h.id,'custom0_1',prop,true);
+  expect(s.get().xiaoda.prompt).toBeUndefined();expect(createStore(s.adapter).house(s.h.id).xiaoda.seenCompleted).toContain('A');
+ });
  it('does not complete from notes, media or problem flags',()=>{const s=scenario(['A']);s.store.answer(s.h.id,'custom0_0','note','note');s.store.answer(s.h.id,'custom0_1','issueFlag',true);s.store.edit(s.h.id,h=>h.media.push({id:'m',type:'image',path:'/x',fieldId:'custom0_0'}));expect(progress(s.get())[0].done).toBe(0);expect(s.get().xiaoda.prompt).toBeUndefined();});
  it('continues forward from B to C and D without restarting guidance when completed B is edited',()=>{
   const s=scenario(['A','B','C','D']);s.answer(0,0);s.answer(1,0);s.answer(1,1);
@@ -77,7 +86,7 @@ describe('completion recommendations',()=>{
   const s=scenario(['A','费用与付款','身份与合同']);s.store.edit(s.h.id,h=>h.templateTopics.at(-1).phase='询问与签约');
   s.answer(1,0);s.answer(1,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'身份与合同'});
   s.answer(2,0);s.answer(2,1);expect(s.get().xiaoda.prompt).toMatchObject({kind:'return',completed:'身份与合同',text:'这套房子先记到这里，再看看其他房子吧。'});
-  s.store.edit(s.h.id,h=>h.checklistOrder=['A','身份与合同','费用与付款']);
+  s.store.edit(s.h.id,h=>{delete h.xiaoda.prompt;h.checklistOrder=['A','身份与合同','费用与付款'];});
   s.answer(2,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();expect(completionPrompt(s.get(),'身份与合同')).toBeNull();
   s.answer(1,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();expect(completionPrompt(s.get(),'费用与付款')).toMatchObject({kind:'return'});
   expect(progress(s.get()).find(r=>r.category==='A').complete).toBe(false);
@@ -100,7 +109,7 @@ describe('completion recommendations',()=>{
   expect(s.get().xiaoda.prompt).toMatchObject({kind:'next',target:'周边与小区'});
   s.answer(2,0);s.answer(2,1);
   expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'隔音与噪音'});
-  s.store.edit(s.h.id,h=>h.checklistOrder=['隔音与噪音','电路网络与隐私','周边与小区','费用与付款']);
+  s.store.edit(s.h.id,h=>{delete h.xiaoda.prompt;h.checklistOrder=['隔音与噪音','电路网络与隐私','周边与小区','费用与付款'];});
   s.answer(2,1,'否');expect(s.get().xiaoda.prompt).toBeUndefined();
   s.answer(1,0);s.answer(1,1);
   expect(s.get().xiaoda.prompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'周边与小区'});

@@ -72,9 +72,9 @@ it('can display an already saved recommendation when opening the detail page',as
  p.refresh();await settle();expect(p.data.fillPrompt.target).toBe('C');
 });
 
-it('does not resurrect a measured recommendation after the user continues editing',async()=>{
+it('cancels a measured recommendation when the user changes another category',async()=>{
  const h=harness();h.defer();h.choose('test_b_1');await vi.advanceTimersByTimeAsync(500);h.choose('test_a_0','否');h.flush();await settle();
- expect(h.page.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeUndefined();expect(h.scrolls).toHaveLength(0);
+ await showGuide();expect(h.page.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeUndefined();expect(h.house.answers.test_a_0.value).toBe('否');
 });
 
 it.each(['hide','unload','tab','phase','account'])('does not apply a late return scroll after %s',async reason=>{
@@ -97,7 +97,7 @@ it('does not restart completed B after C was completed and cleared',async()=>{
  const h=harness();h.choose('test_b_1');await showGuide();h.page.waitFilling();await settle();
  h.choose('test_c_0');h.choose('test_c_1');h.choose('test_c_1');
  h.choose('test_b_1','否');await showGuide();
- expect(h.page.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeUndefined();
+ expect(h.page.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeFalsy();
 });
 
 it('cancels the first completion if B becomes incomplete before the guide arrives',async()=>{

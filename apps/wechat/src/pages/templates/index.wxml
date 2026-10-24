@@ -1,8 +1,8 @@
 <view class="nav" style="padding-top:{{top}}px"><button bindtap="back" aria-label="返回">‹</button><text>模板</text></view>
 <view wx:if="{{accountReady}}" class="page templates">
- <view class="card"><view wx:for="{{modes}}" wx:key="id" class="menu template-row" data-mode="{{item.id}}" bindtap="open">
-  <text class="grow">{{item.label}}</text><button class="template-choice" data-mode="{{item.id}}" catchtap="choose" aria-label="{{selected===item.id?'已选择':'选择'}}{{item.label}}">{{selected===item.id?'☑':'☐'}}</button><text class="template-arrow">›</text>
- </view></view>
+ <radio-group class="card template-options" bindchange="choose"><view wx:for="{{modes}}" wx:key="id" class="menu template-row" data-mode="{{item.id}}" bindtap="open">
+  <text class="grow">{{item.label}}</text><label class="template-choice" catchtap="noop"><radio value="{{item.id}}" checked="{{selected===item.id}}" color="#4d56df" aria-label="{{item.label}}"/></label><text class="template-arrow">›</text>
+ </view></radio-group>
  <button class="primary confirm" bindtap="confirm">确定</button>
 </view>
 <view wx:if="{{leaveOpen}}" class="mask"><view class="sheet"><view class="subtitle">要更换模板吗？</view><button class="primary" bindtap="confirm">更换并退出</button><button bindtap="discard">不更换并退出</button><button bindtap="stay">继续选择</button></view></view>

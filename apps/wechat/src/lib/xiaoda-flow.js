@@ -29,7 +29,7 @@ export function updateGuidance(previous,next) {
     // Only actual result edits count as activity. Notes/media never complete an item.
     const changed=after.filter(row=>{
       const ts=houseTopics(h).filter(t=>t.category===row.category);
-      return ts.some(t=>t.fields.some(f=>JSON.stringify(['value','otherText','none','noCost'].map(k=>h.answers[f.id]?.[k]))!==JSON.stringify(['value','otherText','none','noCost'].map(k=>old.answers[f.id]?.[k])))||(t.path||[]).some(g=>JSON.stringify(h.groups?.[g.id])!==JSON.stringify(old.groups?.[g.id])));
+      return ts.some(t=>t.fields.some(f=>JSON.stringify([h.answers[f.id]?.value,h.answers[f.id]?.otherText,h.answers[f.id]?.none,h.answers[f.id]?.noCost])!==JSON.stringify([old.answers[f.id]?.value,old.answers[f.id]?.otherText,old.answers[f.id]?.none,old.answers[f.id]?.noCost]))||(t.path||[]).some(g=>JSON.stringify(h.groups?.[g.id])!==JSON.stringify(old.groups?.[g.id])));
     });
     if(!changed.length)continue;
     h.xiaoda||={};h.xiaoda.touched||={};
