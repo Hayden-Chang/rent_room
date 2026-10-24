@@ -1,7 +1,6 @@
 import {houseTopics,activeEntries,rules,answer} from './model.js';
 import {xiaodaEnabled} from './xiaoda-state.js';
 
-const phases=['房源','现场','询问签约'];
 export function progress(h) {
   const topics=houseTopics(h),entries=activeEntries(h),order=[...new Set([...(h.checklistOrder||[]),...topics.map(t=>t.category)])];
   return order.filter(category=>topics.some(t=>t.category===category)).map(category=>{
@@ -9,19 +8,15 @@ export function progress(h) {
     return {category,...count,phase:category==='房源基本信息'?'房源':t.phase==='现场看房'?'现场':'询问签约',complete:count.total>0&&count.done===count.total};
   }).filter(row=>row.total>0);
 }
-export function recommend(rows,h,phase) {
-  const pending=rows.filter(r=>r.phase===phase&&!r.complete);
-  return [...pending].filter(r=>h.xiaoda?.touched?.[r.category]).sort((a,b)=>h.xiaoda.touched[b.category]-h.xiaoda.touched[a.category])[0]||pending[0];
-}
 export function completionPrompt(h,completed) {
-  const rows=progress(h),source=rows.find(r=>r.category===completed);
+  const rows=progress(h),index=rows.findIndex(r=>r.category===completed),source=rows[index];
   if(!source)return null;
   if(rows.every(r=>r.complete))return {kind:'return',text:'这套房子记录好啦！再添加一套房源，对比看看吧。'};
-  const onsite=rows.filter(r=>r.phase==='现场'),contract=recommend(rows,h,'询问签约');
-  const own=recommend(rows,h,source.phase);
-  if(!own&&source.phase==='现场'&&onsite.length&&onsite.every(r=>r.complete)&&contract)return {kind:'phase',target:contract.category,phase:contract.phase,text:'现场记录好啦，你要继续记录费用和合同吗？也可以先看看其他房子。'};
-  const target=own||phases.map(p=>recommend(rows,h,p)).find(Boolean);
+  // Completion guidance follows the saved checklist order and never wraps to earlier gaps.
+  const target=rows.slice(index+1).find(r=>!r.complete);
   if(!target)return null;
+  const onsite=rows.filter(r=>r.phase==='现场');
+  if(source.phase==='现场'&&onsite.every(r=>r.complete)&&target.phase==='询问签约')return {kind:'phase',target:target.category,phase:target.phase,text:'现场记录好啦，你要继续记录费用和合同吗？也可以先看看其他房子。'};
   const text=completed==='房源基本信息'?(target.phase==='现场'?`房子的信息记录好啦！要去写一下房子的现场情况——「${target.category}」吗？`:`房子的信息记录好啦！要去记录费用和合同——「${target.category}」吗？`):`「${completed}」记录好了，${target.done?'继续填写':'去看看'}「${target.category}」吧！`;
   return {kind:'next',target:target.category,phase:target.phase,text};
 }
@@ -40,11 +35,11 @@ export function updateGuidance(previous,next) {
     h.xiaoda.touched||={};h.xiaoda.seenCompleted||=[];
     const clock=(h.xiaoda.activity||0)+1;h.xiaoda.activity=clock;
     for(const row of changed)h.xiaoda.touched[row.category]=clock;
-    const completed=after.filter(r=>r.complete&&!before.find(p=>p.category===r.category)?.complete&&!h.xiaoda.seenCompleted.includes(r.category));
-    for(const row of completed)h.xiaoda.seenCompleted.push(row.category);
+    const completed=changed.filter(r=>r.complete);
+    for(const row of completed)if(!h.xiaoda.seenCompleted.includes(row.category))h.xiaoda.seenCompleted.push(row.category);
     if(completed.length&&xiaodaEnabled(next,h)&&!next.xiaoda.tutorialStep) {
       const prompt=completionPrompt(h,completed.at(-1).category);
-      h.xiaoda.prompt=prompt?{...prompt,id:`${h.id}:${clock}`}:null;
+      h.xiaoda.prompt=prompt?{...prompt,completed:completed.at(-1).category,id:`${h.id}:${clock}`}:null;
     }
   }
 }

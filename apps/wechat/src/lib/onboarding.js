@@ -79,7 +79,7 @@ export const coachMethods={
   return prompt.kind==='return'?rows.every(r=>r.complete):rows.some(r=>r.category===prompt.target&&!r.complete);
  },
  queueFilling(prompt){
-  this.cancelFillingTransition();this.fillReturn=null;this.fillCompleted=service().store.house(this.data.id)?.xiaoda?.seenCompleted?.at(-1);this.fillPending={prompt,platform:service(),id:this.data.id};this.scheduleFilling();
+  this.cancelFillingTransition();this.fillReturn=null;this.fillCompleted=prompt.completed||service().store.house(this.data.id)?.xiaoda?.seenCompleted?.at(-1);this.fillPending={prompt,platform:service(),id:this.data.id};this.scheduleFilling();
  },
  scheduleFilling(){
   if(!this.fillPending||this.fillTimer||this.fillEditing||this.data.wheelField||this.data.sheet)return;

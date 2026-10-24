@@ -29,7 +29,7 @@ async function shot(name){await mini.screenshot({path:path.join(out,name+'.png')
   await evaluate(function(top){wx.pageScrollTo({scrollTop:top,duration:0});return true;},position.scrollTop+field(position).top-180);
   await sleep(500);const before=await shot('01-before-complete');console.log('READY: click 是 in B 最后一项; slot='+process.env.WECHAT_SLOT_ID+' artifacts='+out);
   await until(state,s=>s.answers?.native_1_1?.value==='是'&&s.prompt?.kind==='next',240000);
-  await sleep(2000);const suggested=await shot('02-recommend-A');assert.equal(suggested.state.prompt.target,categories[0]);assert.deepEqual(suggested.state.answers,{...before.state.answers,native_1_1:{value:'是'}});console.log('READY: click 再等等');
+  await sleep(2000);const suggested=await shot('02-recommend-C');assert.equal(suggested.state.prompt.target,categories[2]);assert.deepEqual(suggested.state.answers,{...before.state.answers,native_1_1:{value:'是'}});console.log('READY: click 再等等');
   await until(state,s=>!s.prompt&&!s.storedPrompt,240000);await until(layout,p=>field(p)&&Math.abs(field(p).top-field(before.layout).top)<=4);const after=await shot('03-after-wait');
   assert.ok(Math.abs(field(after.layout).top-field(before.layout).top)<=4,'B stays at its original screen position');
   assert.ok(field(after.layout).top>=0&&field(after.layout).bottom<await evaluate(function(){return wx.getWindowInfo().windowHeight;}),'B final field is visible');

@@ -28,6 +28,7 @@ function clear(s){s.store.edit(s.id,h=>delete h.xiaoda.prompt);}
 const cases=[];
 function save(key,title,s,{kind,target,phase,steps=[],intro=false,description=''}={}){
  const state=clone(s.store.get()),prompt=s.get().xiaoda.prompt;
+ if(kind===null)assert.equal(prompt,null,key);
  if(kind){assert.equal(prompt?.kind,kind,key);if(target)assert.equal(prompt.target,target,key);}
  if(intro)state.houses.find(h=>h.id===s.id).xiaoda.intro='pending';
  cases.push({key,title,description,state,id:s.id,phase,expected:kind?{kind,target}:intro?{kind:'intro'}:{kind:null},steps});
@@ -37,15 +38,15 @@ s=fixture('no-basic',[light,noise,cost]);save('03-no-basic','已停用基本信�
 s=fixture('basic-to-onsite');fill(s,basic);save('05-basic-to-onsite','基本信息完成：推荐现场检查',s,{kind:'next',target:'周边与小区'});
 s=fixture('basic-to-contract',[basic,cost,contract]);fill(s,basic);save('06-basic-to-contract','没有现场大项：直接推荐费用与合同',s,{kind:'next',target:cost});
 s=fixture('onsite-new',[basic,light,noise,walls,cost,contract]);fill(s,basic);fill(s,light);save('07-onsite-new','现场大项完成：下一项尚未填写',s,{kind:'next',target:noise,phase:'现场'});
-s=fixture('onsite-partial',[basic,light,noise,walls,cost,contract]);fill(s,basic);partial(s,noise);fill(s,light);save('08-onsite-partial','现场大项完成：优先续写最近填写过的项',s,{kind:'next',target:noise,phase:'现场',steps:[{key:'09-partial-expanded',title:'接受推荐：保留已填内容并展开下一项',action:'acceptFilling'}]});
+s=fixture('onsite-partial',[basic,light,noise,walls,cost,contract]);fill(s,basic);partial(s,noise);fill(s,light);save('08-onsite-partial','现场大项完成：继续填写顺序中的下一项',s,{kind:'next',target:noise,phase:'现场',steps:[{key:'09-partial-expanded',title:'接受推荐：保留已填内容并展开下一项',action:'acceptFilling'}]});
 s=fixture('onsite-complete',[basic,light,noise,cost,contract]);finish(s,[basic,light,noise]);save('10-onsite-complete','现场全部完成：继续填写或看看其他房子',s,{kind:'phase',target:cost,phase:'现场',steps:[{key:'11-contract-expanded',title:'继续填写：切换并展开费用与付款',action:'acceptFilling'}]});
 s=fixture('contract-new',[basic,light,cost,contract]);finish(s,[basic,light,cost]);save('12-contract-new','费用完成：推荐尚未填写的合同',s,{kind:'next',target:contract,phase:'询问签约'});
 s=fixture('contract-partial',[basic,light,cost,contract]);finish(s,[basic,light]);partial(s,contract);fill(s,cost);save('13-contract-partial','费用完成：继续已填写一部分的合同',s,{kind:'next',target:contract,phase:'询问签约'});
-s=fixture('cross-onsite',[basic,light,noise,cost,contract]);finish(s,[basic,cost,contract]);save('14-cross-onsite','先写完费用与合同：回到未完成现场',s,{kind:'next',target:light,phase:'询问签约'});
-s=fixture('cross-basic',[basic,light,cost,contract]);finish(s,[light,cost,contract]);save('15-cross-basic','跨阶段填写：只剩基本信息',s,{kind:'next',target:basic,phase:'询问签约'});
+s=fixture('cross-onsite',[basic,light,noise,cost,contract]);finish(s,[basic,cost,contract]);save('14-cross-onsite','先写完费用与合同：不返回前面的现场项',s,{kind:null,phase:'询问签约'});
+s=fixture('cross-basic',[basic,light,cost,contract]);finish(s,[light,cost,contract]);save('15-cross-basic','跨阶段填写：不返回前面的基本信息',s,{kind:null,phase:'询问签约'});
 s=fixture('whole-complete',[basic,light,cost,contract]);finish(s,[basic,light,cost,contract]);s.store.change(st=>st.xiaoda.feedback='unasked');save('16-whole-complete','整套完成：引导返回房源列表',s,{kind:'return',phase:'询问签约',steps:[{key:'17-return-feedback',title:'首次返回：先展示可选反馈',action:'acceptFilling',home:true},{key:'18-second-invite',title:'结束反馈：高亮入口添加第二套',action:'skipFeedback',home:true},{key:'19-second-capacity',title:'新增第二套：额度不足衔接小饼干',action:'add',capacity:true}]});
 s=fixture('other-houses',[basic,light,cost,contract]);finish(s,[basic,light]);save('20-other-choice','现场完成后选择先看其他房子',s,{kind:'phase',phase:'现场',steps:[{key:'21-other-return',title:'看看其他房子：引导返回',action:'otherHouses'},{key:'22-other-invite',title:'返回列表：引导添加第二套',action:'acceptFilling',home:true}]});
-s=fixture('wait',[basic,light,noise,walls,cost]);fill(s,basic);partial(s,noise);fill(s,light);save('23-wait-before','再等等前：推荐续写未完成项',s,{kind:'next',target:noise,phase:'现场',steps:[{key:'24-wait-hidden',title:'再等等：提示消失并保留填写进度',action:'waitFilling'},{key:'25-reopen-hidden',title:'重新进入：不重复旧完成提示',action:'reopen'},{key:'26-new-completion',title:'另一个大项首次完成：重新推荐待续写项',action:'completeCategory',category:walls,expected:{kind:'next',target:noise}}]});
+s=fixture('wait',[basic,light,noise,walls,cost]);fill(s,basic);partial(s,noise);fill(s,light);save('23-wait-before','再等等前：推荐续写未完成项',s,{kind:'next',target:noise,phase:'现场',steps:[{key:'24-wait-hidden',title:'再等等：提示消失并保留填写进度',action:'waitFilling'},{key:'25-reopen-hidden',title:'重新进入：不重复旧完成提示',action:'reopen'},{key:'26-new-completion',title:'后面大项完成：继续引导到费用',action:'completeCategory',category:walls,expected:{kind:'next',target:cost}}]});
 s=fixture('notes-only',[light,noise]);s.store.answer(s.id,'f21_0','note','下午再确认采光');s.store.answer(s.id,'f21_0','issueFlag',true);save('27-notes-only','仅备注和问题标记：不触发完成引导',s,{phase:'现场',description:'没有填写结果，备注与问题标记不计完成。'});
 s=fixture('disabled',[basic,light,cost]);s.store.change(st=>st.xiaoda.enabled=false);fill(s,basic);save('28-disabled','关闭小搭：完成大项后不弹填写提示',s);
 s=fixture('second');s.store.archive(s.id,true);const second=s.store.add('第二套 · 清风雅苑');s.id=second;s.get=()=>s.store.house(second);save('29-second-intro','第二套房源：直接引导填写基本信息',s,{intro:true,description:'首套归档释放免费额度；第二套不重走阶段、筛选、左滑教学。'});
