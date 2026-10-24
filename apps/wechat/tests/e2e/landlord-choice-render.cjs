@@ -17,7 +17,7 @@ async function route(url,method){
 }
 async function capture(key){
  await sleep(1000);await mini.screenshot({path:path.join(out,key+'.png')});
- const record=await evaluate(function(){const p=getCurrentPages().slice(-1)[0];return {route:p.route,sections:p.data.sections,stats:p.data.stats};});
+ const record=JSON.parse(await evaluate(function(){const p=getCurrentPages().slice(-1)[0];return JSON.stringify({route:p.route,sections:p.data.sections,stats:p.data.stats});}));
  captures.push({key,...record});fs.writeFileSync(path.join(out,key+'.json'),JSON.stringify(record,null,2));console.log('captured '+key);
 }
 (async()=>{
@@ -36,7 +36,8 @@ async function capture(key){
    await route('/pages/detail/index?id='+h.id,'navigateTo');
    await evaluate(function(mode){const p=getCurrentPages().slice(-1)[0],key=JSON.stringify({phase:'全部',query:'',filters:[]});p.folds[key]={'身份与合同':true,topic_98:mode==='detailed'};p.refresh({},function(){const s=p.data.sections.find(function(s){return s.title==='身份与合同';});wx.pageScrollTo({selector:'#'+s.id,duration:0});});return true;},mode);
    await waitFor(()=>evaluate(function(){const p=getCurrentPages().slice(-1)[0];return p.data.sections.some(function(s){return s.title==='身份与合同'&&s.expanded;});}),'contract section');
-   const fields=await evaluate(function(){return getCurrentPages().slice(-1)[0].selectAllComponents('.field-row').map(function(c){return c.data.field;});});
+   // Preserve nested arrays across the DevTools evaluation transport.
+   const fields=JSON.parse(await evaluate(function(){return JSON.stringify(getCurrentPages().slice(-1)[0].selectAllComponents('.field-row').map(function(c){return c.data.field;}));}));
    if(mode==='simple'){
     const owner=fields.filter(f=>f.label==='房东身份与产权');assert.equal(owner.length,1);
     assert.equal(owner[0].id,'simple_62');assert.equal(owner[0].heading,'');assert.equal(owner[0].expanded,undefined);
