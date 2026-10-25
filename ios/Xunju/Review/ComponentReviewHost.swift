@@ -9,6 +9,7 @@ enum ReviewSurface: String {
     case issueMedia = "issue-media"
     case issueCards = "issue-cards", fieldMedia = "field-media", capacity
     case topFloor = "top-floor"
+    case inspectionSetup = "inspection-setup"
 
     var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent, .measurements].contains(self) }
 
@@ -32,7 +33,9 @@ struct ComponentReviewHost: View {
     @State private var event = ""
 
     var body: some View {
-        if surface == .topFloor {
+        if surface == .inspectionSetup {
+            InspectionSetupReviewHost()
+        } else if surface == .topFloor {
             TopFloorReviewHost()
         } else if surface == .corridor {
             CorridorTitleReviewHost()
@@ -54,7 +57,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .inspectionSetup: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -108,6 +111,7 @@ struct ComponentReviewHost: View {
         case .fieldMedia: "关联影像与自动问题"
         case .capacity: "房源容量"
         case .topFloor: "顶楼"
+        case .inspectionSetup: "首次设置"
         }
     }
 
