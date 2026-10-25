@@ -60,36 +60,14 @@ final class ComponentReviewTests: XCTestCase {
         XCTAssertEqual(app.staticTexts["review.event"].label, "已触发纱窗备注")
     }
 
-    func testLoginEntriesAndPhoneFailureKeepsInput() {
+    func testAppleOnlyLoginComponent() {
         let app = launch("account")
-        let phone = app.buttons["login.phone"]
-        XCTAssertTrue(phone.waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["login.wechat"].exists)
-        XCTAssertTrue(app.buttons["login.apple"].exists)
-        capture("05-login-entries", app: app)
-        phone.tap()
-        let number = app.textFields["phone.number"]
-        XCTAssertTrue(number.waitForExistence(timeout: 3))
-        XCTAssertFalse(app.buttons["phone.request"].isEnabled)
-        XCTAssertFalse(app.buttons["phone.submit"].isEnabled)
-        capture("06-phone-empty", app: app)
-        number.tap()
-        number.typeText("13800138000")
-        app.textFields["phone.code"].tap()
-        app.textFields["phone.code"].typeText("012345")
-        XCTAssertTrue(app.buttons["phone.request"].isEnabled)
-        XCTAssertTrue(app.buttons["phone.submit"].isEnabled)
-        app.buttons["phone.request"].tap()
-        let error = app.staticTexts["phone.error"]
-        XCTAssertTrue(error.waitForExistence(timeout: 3))
-        XCTAssertEqual(error.label, "短信登录服务尚未接通，请稍后再试")
-        XCTAssertEqual(number.value as? String, "13800138000")
-        XCTAssertEqual(app.textFields["phone.code"].value as? String, "012345")
-        XCTAssertFalse(app.staticTexts["验证码已发送，请查收短信"].exists)
-        capture("07-phone-service-error", app: app)
-        app.buttons["phone.close"].tap()
-        XCTAssertTrue(phone.waitForExistence(timeout: 3))
-        app.buttons["login.wechat"].tap()
-        XCTAssertEqual(app.staticTexts["review.event"].label, "已触发微信登录入口")
+        XCTAssertTrue(app.buttons["login.apple"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["login.phone"].exists)
+        XCTAssertFalse(app.buttons["login.wechat"].exists)
+        XCTAssertTrue(app.staticTexts["未登录也可记录看房"].exists)
+        XCTAssertTrue(app.buttons["settings.capacity"].exists)
+        XCTAssertFalse(app.buttons["login.apple"].isEnabled, "A component preview cannot authenticate")
+        capture("apple-only-component", app: app)
     }
 }

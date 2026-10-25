@@ -152,16 +152,16 @@ import XCTest
         app.buttons["mp.compare.differences"].tap()
         XCTAssertFalse(app.staticTexts["电梯"].exists); capture("28-compare-differences", app)
     }
-    func testSettingsProfileAndThreeLoginEntrances() {
+    func testSettingsProfileAndAppleOnlyLogin() {
         let app = launch("settings")
         wait(app.textFields["mp.profile.nickname"]); capture("29-settings-profile", app)
         app.swipeUp(); wait(app.buttons["mp.profile.logout"]); capture("30-settings-footer", app)
         app.terminate()
         app.launchArguments = ["--component-review", "parity-settings", "--parity-state", "guest", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
-        app.launch(); wait(app.buttons["login.phone"])
-        XCTAssertTrue(app.buttons["login.wechat"].exists); XCTAssertTrue(app.buttons["login.apple"].exists); capture("31-settings-guest", app)
-        app.buttons["login.phone"].tap(); wait(app.textFields["phone.number"])
-        XCTAssertFalse(app.buttons["phone.submit"].isEnabled); capture("32-phone", app)
+        app.launch(); wait(app.buttons["login.apple"])
+        XCTAssertFalse(app.buttons["login.wechat"].exists)
+        XCTAssertFalse(app.buttons["login.phone"].exists)
+        capture("31-settings-apple-only", app)
     }
     func testTransferRequiresChoiceAndKeepsFixedFooter() {
         let app = launch("transfer")

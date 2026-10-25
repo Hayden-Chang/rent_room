@@ -36,20 +36,6 @@ final class ComponentLogicTests: XCTestCase {
         return count
     }
 
-    func testPhoneRequiresElevenMainlandDigits() {
-        XCTAssertTrue(PhoneLoginValidation.validPhone("13800138000"))
-        for value in ["", "1380013800", "138001380001", "12800138000", "+8613800138000", "1380013800a", "13800138000\n"] {
-            XCTAssertFalse(PhoneLoginValidation.validPhone(value), value)
-        }
-    }
-
-    func testCodeRequiresSixASCIIDigits() {
-        XCTAssertTrue(PhoneLoginValidation.validCode("012345"))
-        for value in ["", "12345", "1234567", "１２３４５６", "12345a", "123456\n"] {
-            XCTAssertFalse(PhoneLoginValidation.validCode(value), value)
-        }
-    }
-
     func testChoiceCanClearAndSwitchWithoutCouplingProblemFlag() {
         XCTAssertEqual(InspectionSelection.toggled(current: "正常", choice: "正常"), "")
         XCTAssertEqual(InspectionSelection.toggled(current: "正常", choice: "没有"), "没有")

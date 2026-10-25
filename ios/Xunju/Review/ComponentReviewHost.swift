@@ -29,7 +29,6 @@ struct ComponentReviewHost: View {
     @State private var windowScreen = ""
     @State private var windowSeal = "是"
     @State private var flagged = false
-    @State private var phoneVisible = false
     @State private var event = ""
 
     var body: some View {
@@ -77,16 +76,6 @@ struct ComponentReviewHost: View {
                                 .accessibilityIdentifier("review.toggleEmpty")
                         }
                     }
-                }
-                .sheet(isPresented: $phoneVisible) {
-                    NavigationStack {
-                        PhoneLoginForm(requestCode: { _ in throw unavailable }, submit: { _, _ in throw unavailable })
-                            .toolbar {
-                                ToolbarItem(placement: .topBarTrailing) {
-                                    Button("关闭") { phoneVisible = false }.accessibilityIdentifier("phone.close")
-                                }
-                            }
-                    }.presentationDetents([.large])
                 }
         }.tint(XJTheme.primary)
         }
@@ -146,7 +135,7 @@ struct ComponentReviewHost: View {
     }
 
     private var account: some View {
-        LoginEntryCard(wechat: { event = "已触发微信登录入口" }, phone: { phoneVisible = true }, appleRequest: { request in
+        LoginEntryCard(appleReady: false, appleRequest: { request in
             request.requestedScopes = [.email, .fullName]
         }, appleCompletion: { result in
             switch result {
@@ -156,9 +145,5 @@ struct ComponentReviewHost: View {
         })
     }
 
-    private var unavailable: NSError {
-        NSError(domain: "XunjuComponentReview", code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "短信登录服务尚未接通，请稍后再试"])
-    }
 }
 #endif

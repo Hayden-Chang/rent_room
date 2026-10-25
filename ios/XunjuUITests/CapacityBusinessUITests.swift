@@ -22,16 +22,14 @@ import XCTest
     private func capture(_ name: String, _ app: XCUIApplication) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
-    func testGuestCapacityOpensExistingLoginAndSMSFormWithoutRequestingCode() {
+    func testGuestCapacityOpensAppleOnlyLogin() {
         let app = launch(UUID().uuidString)
         XCTAssertEqual(app.buttons["capacity.purchase"].label, "登录后购买")
         waitTotal("0 / 1 套", app); app.buttons["capacity.purchase"].tap()
-        XCTAssertTrue(app.buttons["login.phone"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["login.wechat"].exists); XCTAssertTrue(app.buttons["login.apple"].exists)
-        app.buttons["login.phone"].tap()
-        XCTAssertTrue(app.textFields["phone.number"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["phone.request"].isEnabled)
-        capture("94-capacity-guest-phone-login", app)
+        XCTAssertTrue(app.buttons["login.apple"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["login.wechat"].exists)
+        XCTAssertFalse(app.buttons["login.phone"].exists)
+        capture("94-capacity-guest-apple-login", app)
     }
     func testPendingPurchaseDoesNotGrantAndRestoresOnceAcrossProcessRelaunch() {
         let id = UUID().uuidString, app = launch(id, mode: "pending")

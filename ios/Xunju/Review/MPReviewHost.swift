@@ -2,7 +2,7 @@
 import SwiftUI
 
 enum MPReviewRoute: String, CaseIterable {
-    case home, archive, detail, compare, settings, transfer, workplace, commute, capacity, editor, phone, guide, speed
+    case home, archive, detail, compare, settings, transfer, workplace, commute, capacity, editor, guide, speed
     static func parse(_ args: [String]) -> MPReviewRoute? {
         guard let index = args.firstIndex(of: "--component-review"), args.indices.contains(index + 1),
               args[index + 1].hasPrefix("parity-") else { return nil }
@@ -60,7 +60,6 @@ struct MPReviewHost: View {
         case .commute: "公共交通通勤"
         case .capacity: "房源容量"
         case .editor: "新建问题"
-        case .phone: "手机号登录"
         case .guide: "阳光小区"
         case .speed: "网速测试"
         }
@@ -100,7 +99,7 @@ struct MPReviewHost: View {
         case .settings:
             MPSettingsSurface(authenticated: state != "guest", nickname: $nickname, used: 2, archived: 2,
                 accountReady: state != "waiting", recoveryBlocked: state == "recovery", onboarding: $onboarding,
-                wechat: { toast = "微信登录服务暂不可用" }, phone: { route = .phone }, appleRequest: { _ in }, appleCompletion: { _ in },
+                appleRequest: { _ in }, appleCompletion: { _ in },
                 avatarAction: { toast = "请选择头像" }, nicknameCommit: {}, capacity: { route = .capacity },
                 openWorkplace: { route = .workplace }, archive: { route = .archive }, importFile: { route = .transfer },
                 export: { route = .transfer }, permissions: { toast = "前往系统设置管理权限" }, logout: { confirmation = "logout" },
@@ -122,8 +121,6 @@ struct MPReviewHost: View {
                 purchase: { if state == "guest" { route = .settings } else { activity = .purchasing } }, restore: { activity = .restoring })
         case .editor:
             MPIssueReviewHost(state: state, close: { route = .detail })
-        case .phone:
-            PhoneLoginForm(requestCode: { _ in throw MPReviewError.serviceUnavailable }, submit: { _, _ in throw MPReviewError.serviceUnavailable })
         case .guide: EmptyView()
         case .speed:
             ScrollView {

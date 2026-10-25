@@ -15,7 +15,7 @@ enum CapacityBusinessFixture {
         let storefront = CapacityFixtureStorefront(root: root, mode: mode)
         let workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), capacityAPI: CapacityAPI(transport: transport), storefront: storefront)
         let packs = mode == "refund" ? 1 : 0
-        try workspace.accept(LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "phone", expiresIn: 7200, packs: packs, limit: 2 + 10 * packs))
+        try workspace.accept(LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "apple", expiresIn: 7200, packs: packs, limit: 2 + 10 * packs))
         if mode == "refund", workspace.store.houses.isEmpty {
             for i in 1...3 { _ = try workspace.store.add("退款保留\(i)") }
         }

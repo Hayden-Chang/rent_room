@@ -7,7 +7,7 @@ import XCTest
         addTeardownBlock { try? FileManager.default.removeItem(at: url) }; return url
     }
     private func receipt(_ account: String = String(repeating: "a", count: 64)) -> LoginReceipt {
-        LoginReceipt(account: account, token: String(repeating: "t", count: 48), provider: "phone", expiresIn: 7200, packs: 0, limit: 2)
+        LoginReceipt(account: account, token: String(repeating: "t", count: 48), provider: "apple", expiresIn: 7200, packs: 0, limit: 2)
     }
     func testGuestWorkspaceRelaunchRetainsRealRecordsAndScopes() throws {
         let root = try root(), keychain = VolatileSessionStorage(), workspace = try AppWorkspace(root: root, keychain: keychain)
@@ -39,7 +39,7 @@ import XCTest
         let id = try workspace.store.add("登录前记录")
         try workspace.accept(receipt())
         XCTAssertEqual(workspace.store.houses.map(\.id), [id])
-        XCTAssertEqual(workspace.session?.provider, "phone")
+        XCTAssertEqual(workspace.session?.provider, "apple")
         let resumed = try AppWorkspace(root: root, keychain: keychain)
         XCTAssertEqual(resumed.store.houses.map(\.id), [id])
         try resumed.logout()

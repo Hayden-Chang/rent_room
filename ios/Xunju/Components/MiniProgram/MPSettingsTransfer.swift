@@ -17,12 +17,12 @@ struct MPSettingsSurface: View {
     var authenticated: Bool
     @Binding var nickname: String
     var avatar: UIImage? = nil
-    var status = "已通过微信登录"
+    var status = "已通过 Apple 登录"
     var used = 0, limit = 2, archived = 0
     var workplace = "", version = "0.1.0"
     var accountReady = true, recoveryBlocked = false
     @Binding var onboarding: Bool
-    let wechat: () -> Void, phone: () -> Void, appleRequest: (ASAuthorizationAppleIDRequest) -> Void
+    let appleRequest: (ASAuthorizationAppleIDRequest) -> Void
     let appleCompletion: (Result<ASAuthorization, Error>) -> Void
     var appleReady = false
     let avatarAction: () -> Void, nicknameCommit: () -> Void
@@ -42,7 +42,7 @@ struct MPSettingsSurface: View {
                 }
                 if !authenticated {
                     LoginEntryCard(used: used, limit: limit, appleReady: appleReady,
-                        wechat: wechat, phone: phone, appleRequest: appleRequest,
+                        appleRequest: appleRequest,
                         appleCompletion: appleCompletion, capacity: capacity)
                 } else { MPCard {
                     VStack(spacing: 0) {
@@ -55,7 +55,7 @@ struct MPSettingsSurface: View {
                                     }.frame(width: 54, height: 54).background(XJTheme.soft).clipShape(Circle())
                                 }.buttonStyle(.plain).accessibilityLabel("选择头像").accessibilityIdentifier("mp.profile.avatar")
                                 VStack(alignment: .leading, spacing: 2) {
-                                    TextField("微信昵称", text: $nickname).font(.system(size: 20, weight: .semibold)).frame(height: 30)
+                                    TextField("昵称", text: $nickname).font(.system(size: 20, weight: .semibold)).frame(height: 30)
                                         .focused($editing).onChange(of: nickname) { nickname = String(nickname.prefix(32)) }
                                         .onChange(of: editing) { if !editing { nicknameCommit() } }.accessibilityIdentifier("mp.profile.nickname")
                                     Text(status).font(.system(size: 13)).foregroundStyle(XJTheme.primary)

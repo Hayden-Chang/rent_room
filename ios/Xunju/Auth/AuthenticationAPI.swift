@@ -12,7 +12,6 @@ struct URLSessionAuthTransport: AuthTransport {
     }
 }
 
-struct PhoneChallenge: Decodable, Sendable { let challengeId: String; let expiresIn: Int; let retryAfter: Int }
 struct AppleChallenge: Decodable, Sendable { let challengeId: String; let nonce: String; let expiresIn: Int }
 struct LoginReceipt: Decodable, Sendable {
     let account: String
@@ -41,21 +40,6 @@ struct AuthenticationAPI: Sendable {
     var baseURL = URL(string: "https://api.keeline.xyz/api/rent-room")!
     var transport: any AuthTransport = URLSessionAuthTransport()
 
-    func requestPhoneCode(_ phone: String) async throws -> PhoneChallenge {
-        guard PhoneLoginValidation.validPhone(phone) else { throw CoreFailure(message: "请输入正确的手机号") }
-        let result: PhoneChallenge = try await post("auth/phone/code", body: ["phone": phone])
-        guard validChallenge(result.challengeId), (1...600).contains(result.expiresIn), (1...600).contains(result.retryAfter) else {
-            throw CoreFailure(message: "验证码请求返回无效，请重试")
-        }
-        return result
-    }
-    func phoneSession(phone: String, code: String, challenge: PhoneChallenge) async throws -> LoginReceipt {
-        guard PhoneLoginValidation.validPhone(phone), PhoneLoginValidation.validCode(code), validChallenge(challenge.challengeId) else {
-            throw CoreFailure(message: "请输入正确的手机号和6位验证码")
-        }
-        let result: LoginReceipt = try await post("auth/phone/session", body: ["phone": phone, "code": code, "challengeId": challenge.challengeId])
-        return try result.validated(provider: "phone")
-    }
     func requestAppleChallenge() async throws -> AppleChallenge {
         let result: AppleChallenge = try await post("auth/apple/challenge", body: [:])
         guard validChallenge(result.challengeId), (16...256).contains(result.nonce.count), (1...600).contains(result.expiresIn) else {
