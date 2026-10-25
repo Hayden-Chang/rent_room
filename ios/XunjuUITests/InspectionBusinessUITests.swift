@@ -74,6 +74,8 @@ import XCTest
         addAndLearn(app, simple: true); search("生活配套", app)
         let description = app.staticTexts["mp.field.description.simple_02"]; reveal(description, app)
         XCTAssertTrue(description.label.contains("菜市场"))
+        XCTAssertLessThanOrEqual(description.frame.maxX, app.frame.maxX - 20)
+        XCTAssertGreaterThan(description.frame.height, 20, "The 45-character description must wrap within the checklist")
         let no = app.buttons["mp.field.choice.simple_02.否"]; no.tap(); XCTAssertTrue(no.isSelected)
         let title = app.staticTexts["mp.field.title.simple_02"], left = title.frame.minX
         description.swipeLeft()
@@ -141,10 +143,6 @@ import XCTest
             let yes = app.buttons["mp.field.choice." + id + ".是"]; reveal(yes, app); yes.tap()
         }
         let lastYes = app.buttons["mp.field.choice.simple_49.是"]; reveal(lastYes, app)
-        let description = app.staticTexts["mp.field.description.simple_49"]
-        capture("business-description-wrap", app)
-        XCTAssertLessThanOrEqual(description.frame.maxX, app.frame.maxX - 20)
-        XCTAssertGreaterThan(description.frame.height, 20, "Long checklist descriptions must wrap without clipping")
         let label = app.staticTexts["mp.field.title.simple_49"], before = label.frame.minY
         lastYes.tap()
         let later = app.buttons["xiaoda.later"]; XCTAssertTrue(later.waitForExistence(timeout: 5))
