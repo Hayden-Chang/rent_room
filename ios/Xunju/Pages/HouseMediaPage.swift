@@ -116,7 +116,7 @@ struct MediaPickerSheet: View {
             var staged: [JSONValue] = [], accepted: Set<String> = []
             defer {
                 busy = false; photos = []
-                LocalMediaReferences.discard(staged.map { $0["path"].string }.filter { !accepted.contains($0) }, in: store)
+                LocalMediaReferences.discard(Set(staged.map { $0["path"].string }).subtracting(accepted), in: store)
             }
             do {
                 for item in items {
