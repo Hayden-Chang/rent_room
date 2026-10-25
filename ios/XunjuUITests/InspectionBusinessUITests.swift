@@ -141,6 +141,10 @@ import XCTest
             let yes = app.buttons["mp.field.choice." + id + ".是"]; reveal(yes, app); yes.tap()
         }
         let lastYes = app.buttons["mp.field.choice.simple_49.是"]; reveal(lastYes, app)
+        let description = app.staticTexts["mp.field.description.simple_49"]
+        capture("business-description-wrap", app)
+        XCTAssertLessThanOrEqual(description.frame.maxX, app.frame.maxX - 20)
+        XCTAssertGreaterThan(description.frame.height, 20, "Long checklist descriptions must wrap without clipping")
         let label = app.staticTexts["mp.field.title.simple_49"], before = label.frame.minY
         lastYes.tap()
         let later = app.buttons["xiaoda.later"]; XCTAssertTrue(later.waitForExistence(timeout: 5))
