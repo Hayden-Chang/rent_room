@@ -50,8 +50,7 @@ struct InspectionFieldRow: View {
             .navigationDestination(isPresented: $commute) { [workspace, houseID, fieldID = field.id] in
                 CommutePage(workspace: workspace, houseID: houseID, fieldID: fieldID)
             }
-            // Capture only destination inputs. Capturing the whole row also captures
-            // the checklist's dismiss environment through its edit callbacks.
+            // Keep destination closures limited to stable navigation inputs.
             .navigationDestination(isPresented: $speed) { [workspace, houseID, speedVisit] in
                 SpeedPage(workspace: workspace, houseID: houseID).id(speedVisit)
             }

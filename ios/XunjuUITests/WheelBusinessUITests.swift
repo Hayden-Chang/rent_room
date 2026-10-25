@@ -45,7 +45,11 @@ import XCTest
         XCTAssertTrue(input.waitForExistence(timeout: 3)); input.tap(); input.typeText("12")
         XCTAssertFalse(app.keyboards.buttons["."].exists)
         app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(input.value as? String, "12")
-        input.replacePromptText("0"); app.buttons["checklist.keyboard.done"].tap()
+        // Select the existing number before replacing it; a center tap on a
+        // right-aligned field can leave the caret before the first digit.
+        input.doubleTap(); input.typeText("0")
+        XCTAssertEqual(input.value as? String, "0")
+        app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(input.value as? String, "0")
         capture("app-form-manual-floor-zero", app)
         search("朝向", app); app.buttons["mp.field.choice.f1_5.其他"].tap()
         let other = app.textFields["mp.field.other.f1_5"]; XCTAssertTrue(other.isHittable)
