@@ -22,6 +22,12 @@ struct PlacePickerSurface: View {
     var permissionDenied = false
     var readonly = false
     var emptyText = "搜索地址或点击定位，选择房源位置"
+    // The owning address field can collapse this surface without moving it.
+    var address = ""
+    var attribution = "系统地图"
+    #if DEBUG
+    var reviewCameraChanged: ((Double) -> Void)?
+    #endif
     let search: () -> Void
     let locate: () -> Void
     let retry: () -> Void
@@ -29,19 +35,31 @@ struct PlacePickerSurface: View {
     let moved: (GeographicPoint) -> Void
     let choose: (PlaceChoice) -> Void
     @State private var position: MapCameraPosition = .automatic
+    @State private var camera: MapCamera?
+    @State private var hasMapPosition = false
+    @State private var collapsed = true
+    @State private var interacted = false
     @FocusState private var searchFocused: Bool
 
     var body: some View {
         VStack(spacing: 10) {
             if !readonly {
             HStack(spacing: 4) {
-                TextField("搜索地址，更快填写", text: $query)
+                TextField("搜索地址，更快填写", text: Binding(get: { query }, set: {
+                    guard query != $0 else { return }
+                    expandForSearch(); query = $0
+                }))
                     .font(.system(size: 14)).submitLabel(.search)
                     .focused($searchFocused).onSubmit { searchFocused = false; search() }
-                    .onChange(of: query) { if query.count > 200 { query = String(query.prefix(200)) } }
+                    .onChange(of: query) {
+                        if query.count > 200 { query = String(query.prefix(200)) }
+                        // PlaceSearch.start can seed a saved text-only address after appearance.
+                        if !interacted && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { collapsed = true }
+                    }
+                    .onChange(of: searchFocused) { if searchFocused && !readonly { expandForSearch() } }
                     .accessibilityLabel("搜索地址").accessibilityIdentifier("place.query")
                 if !query.isEmpty {
-                    Button { query = ""; search() } label: { Image(systemName: "xmark").font(.system(size: 14)).frame(width: 32, height: 42) }
+                    Button { expandForSearch(); query = ""; search() } label: { Image(systemName: "xmark").font(.system(size: 14)).frame(width: 32, height: 42) }
                         .accessibilityLabel("清空搜索").accessibilityIdentifier("place.clear")
                 }
             }.padding(.horizontal, 12).frame(minHeight: 44)
@@ -52,12 +70,33 @@ struct PlacePickerSurface: View {
                 results(nearby: false).frame(height: 230).clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
             }
+            if !readonly {
+                Button {
+                    interacted = true
+                    searchFocused = false
+                    if collapsed, let camera { position = .camera(camera) }
+                    collapsed.toggle()
+                } label: {
+                    HStack {
+                        Text(collapsed ? "展开地图" : "收起地图")
+                        Spacer()
+                        Image(systemName: collapsed ? "chevron.down" : "chevron.up")
+                    }.font(.system(size: 13)).padding(.horizontal, 12).frame(minHeight: 44)
+                        .background(XJTheme.background).clipShape(RoundedRectangle(cornerRadius: 8))
+                        .contentShape(Rectangle())
+                }.buttonStyle(.plain).foregroundStyle(XJTheme.primary).accessibilityIdentifier("place.mapToggle")
+            }
             ZStack(alignment: .topTrailing) {
-                if center != nil {
+                if center != nil || hasMapPosition {
                     Map(position: $position, interactionModes: readonly ? [.zoom] : [.pan, .zoom]) {}
                         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
                         .mapControlVisibility(.hidden)
                         .onMapCameraChange(frequency: .onEnd) { context in
+                            guard !collapsed || readonly else { return }
+                            camera = context.camera
+                            #if DEBUG
+                            reviewCameraChanged?(context.camera.distance)
+                            #endif
                             if !readonly { moved(GeographicPoint(latitude: context.region.center.latitude, longitude: context.region.center.longitude)) }
                         }.accessibilityIdentifier("place.map")
                     Text("●").font(.system(size: 22)).foregroundStyle(XJTheme.primary)
@@ -69,8 +108,11 @@ struct PlacePickerSurface: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
                 if !readonly {
-                Button("定位", action: locate).font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
+                Button(action: locate) {
+                    Text("定位").font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
+                        .contentShape(Rectangle())
+                }.buttonStyle(.plain)
                     .padding(12).accessibilityIdentifier("place.locate")
                 }
                 if !readonly && query.isEmpty && !places.isEmpty {
@@ -78,11 +120,14 @@ struct PlacePickerSurface: View {
                         .accessibilitySortPriority(1)
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
-            }.frame(height: 300).background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
+            }.frame(height: 300)
+                .frame(height: collapsed && !readonly ? 0 : 300, alignment: .top).clipped()
+                .allowsHitTesting(!collapsed || readonly).accessibilityHidden(collapsed && !readonly)
+                .background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             if busy && !readonly { Text("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
-            if center != nil || !places.isEmpty {
-                Text("地点信息来源：系统地图").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
+            if (!collapsed || readonly) && (center != nil || !places.isEmpty) {
+                Text("地点信息来源：\(attribution)").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if !message.isEmpty && !readonly {
@@ -94,11 +139,33 @@ struct PlacePickerSurface: View {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }.foregroundStyle(XJTheme.ink).tint(XJTheme.primary)
-            .onAppear { recenter() }.onChange(of: center) { recenter() }
+            .onAppear {
+                collapsed = !readonly && (center != nil || !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                recenter()
+            }.onChange(of: center) { recenter() }
+            .onChange(of: address) { if !readonly { collapsed = true } }
+    }
+
+    private func expandForSearch() {
+        interacted = true; collapsed = false
     }
 
     private func recenter() {
-        if let center { position = .region(MKCoordinateRegion(center: center.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.012, longitudeDelta: 0.012))) }
+        if let center {
+            // A manual address edit can clear stored coordinates before MapKit
+            // reports a camera. Keep the existing map and its position mounted.
+            hasMapPosition = true
+            if let camera {
+                let next = MapCamera(centerCoordinate: center.coordinate, distance: camera.distance, heading: camera.heading, pitch: camera.pitch)
+                self.camera = next; position = .camera(next)
+            } else {
+                position = .region(MKCoordinateRegion(center: center.coordinate, span: MKCoordinateSpan(latitudeDelta: 0.012, longitudeDelta: 0.012)))
+            }
+        }
+    }
+
+    private func use(_ place: PlaceChoice) {
+        searchFocused = false; choose(place); collapsed = true
     }
 
     private func results(nearby: Bool) -> some View {
@@ -107,7 +174,7 @@ struct PlacePickerSurface: View {
                 ForEach(places) { place in
                     if nearby {
                         resultRow(place) {
-                            Button { choose(place) } label: {
+                            Button { use(place) } label: {
                                 Text("使用")
                                 .font(.system(size: 13)).foregroundStyle(XJTheme.primary)
                                 .padding(.horizontal, 12).frame(minHeight: 32).background(XJTheme.soft)
@@ -115,7 +182,7 @@ struct PlacePickerSurface: View {
                             }.buttonStyle(.plain).accessibilityIdentifier("place.result.\(place.id)")
                         }
                     } else {
-                        Button { choose(place) } label: {
+                        Button { use(place) } label: {
                             resultRow(place) { Text("选择").font(.system(size: 13)).foregroundStyle(XJTheme.primary).frame(minHeight: 32) }
                                 .contentShape(Rectangle())
                         }.buttonStyle(.plain).accessibilityIdentifier("place.result.\(place.id)")

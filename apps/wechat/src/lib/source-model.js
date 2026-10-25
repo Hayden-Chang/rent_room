@@ -1,3 +1,5 @@
+import {wheelConfig} from './wheel-input.js';
+
 const hasOwn = (object, key) => Object.prototype.hasOwnProperty.call(object, key);
 const structuredClone = value => JSON.parse(JSON.stringify(value));
 export function choiceOptions(f) {
@@ -42,6 +44,7 @@ export function toggleChoiceValue(f,a,value) {
 }
 
 export function fieldRecorded(f,a={}) {
+  if(wheelConfig(f))return fieldValue(f,a).trim()!=='';
   const options=choiceOptions(f),values=choiceValues(f,a);
   return options.length?values.length>0&&values.every(v=>options.includes(v)):fieldValue(f,a).trim()!=='';
 }

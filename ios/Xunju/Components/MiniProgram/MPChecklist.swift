@@ -72,7 +72,7 @@ struct MPSwipeMotion {
 }
 
 struct MPFieldItem {
-    enum Kind { case category, group, choice, text, number, date }
+    enum Kind { case category, group, choice, text, number, date, wheel }
     let id: String, title: String
     var kind: Kind = .choice
     var options: [String] = []
@@ -90,12 +90,14 @@ struct MPFieldState {
 }
 
 struct MPFieldRow: View {
+    static let measurementWheelMinimumWidth: CGFloat = 100
     let item: MPFieldItem
     @Binding var state: MPFieldState
     var readonly = false
     var coordinator: MPSwipeCoordinator
     let note: () -> Void, capture: () -> Void
     var measurement: MeasurementAction? = nil
+    var wheel: (() -> Void)? = nil
     @FocusState private var focused: Bool
     @State private var datePicker = false
     private var height: CGFloat { item.kind == .category ? 56 : item.heading ? 48 : 44 }
@@ -130,7 +132,7 @@ struct MPFieldRow: View {
                 }.frame(minHeight: height)
             }.clipped().contentShape(Rectangle())
                 .modifier(MPFieldSwipe(id: item.id, readonly: readonly, coordinator: coordinator))
-                .simultaneousGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                .highPriorityGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                     if !readonly { withAnimation(.easeOut(duration: 0.18)) { coordinator.reveal(item.id) } }
                 })
             if !item.inline && !item.heading { answer.padding(.top, 6).allowsHitTesting(offset == 0) }
@@ -158,7 +160,25 @@ struct MPFieldRow: View {
             .sheet(isPresented: $datePicker) { DateInputSheet(value: $state.text).presentationDetents([.medium]) }
     }
     @ViewBuilder private var answer: some View {
-        if item.kind == .date {
+        if item.kind == .wheel, let spec = WheelFieldSpec.all[item.id] {
+            HStack(spacing: 8) {
+                Button { if !coordinator.consumeTap() { wheel?() } } label: {
+                    HStack(spacing: 8) {
+                        Text(spec.choices(preserving: state.text).first { spec.key($0.value) == spec.key(state.text) }?.label ?? state.text).lineLimit(1)
+                        Image(systemName: "chevron.down").font(.system(size: 10))
+                    }.font(.system(size: 13)).foregroundStyle(state.text.isEmpty ? XJTheme.muted : XJTheme.ink)
+                        .padding(.horizontal, 12).frame(minWidth: measurement == nil ? 96 : Self.measurementWheelMinimumWidth, minHeight: 44)
+                        .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
+                }.buttonStyle(.plain).disabled(readonly).accessibilityIdentifier("mp.field.wheel.\(item.id)")
+                    .accessibilityValue(state.text.isEmpty ? "未填写" : state.text)
+                if let measurement {
+                    Button("查询") { if !coordinator.consumeTap() { measurement.perform() } }
+                        .font(.system(size: 13)).padding(.horizontal, 10).frame(height: 44).foregroundStyle(XJTheme.primary)
+                        .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 8)).buttonStyle(.plain)
+                        .disabled(readonly).accessibilityIdentifier("measurement.\(item.id)")
+                }
+            }
+        } else if item.kind == .date {
             Button(state.text.isEmpty ? "选择日期" : state.text) { if !coordinator.consumeTap() { datePicker = true } }
                 .font(.system(size: 13)).padding(.horizontal, 12).frame(minHeight: 44)
                 .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))

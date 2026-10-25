@@ -111,14 +111,20 @@ import XCTest
     func testWrappedChoicesOtherAndDynamicCostFormats() {
         let app = launch()
         search("朝向", app)
-        let other = app.buttons["mp.field.choice.f1_5.其他"]
-        reveal(other, app); other.tap()
+        let direction = app.buttons["mp.field.wheel.f1_5"]
+        reveal(direction, app); direction.tap()
+        XCTAssertTrue(app.otherElements["wheel.dialog"].waitForExistence(timeout: 3))
+        let picker = app.pickerWheels.firstMatch; picker.adjust(toPickerWheelValue: "其他")
+        let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "其他"), object: picker)
+        XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 3), .completed)
+        app.buttons["wheel.confirm"].tap()
+        XCTAssertTrue(app.otherElements["wheel.dialog"].waitForNonExistence(timeout: 3))
         let detail = app.textFields["mp.field.other.f1_5"]
         reveal(detail, app); detail.tap(); detail.typeText("南北双面采光"); app.buttons["checklist.keyboard.done"].tap()
         XCTAssertEqual(detail.value as? String, "南北双面采光")
-        let east = app.buttons["mp.field.choice.f1_5.东"]
-        XCTAssertGreaterThan(other.frame.minY, east.frame.minY)
-        capture("wrapped-direction-other", app)
+        XCTAssertEqual(direction.value as? String, "其他")
+        XCTAssertGreaterThan(detail.frame.minY, direction.frame.maxY)
+        capture("wheel-direction-other", app)
         search("宽带", app)
         let absent = app.buttons["mp.field.choice.node:group:bb080b15-a843-4478-a4c6-5453ec0a2ac6.没有"]
         reveal(absent, app); absent.tap()

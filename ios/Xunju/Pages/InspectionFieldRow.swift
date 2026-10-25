@@ -8,6 +8,7 @@ struct InspectionFieldRow: View {
     var coordinator = MPSwipeCoordinator()
     var hideDivider = false
     var editNote: ((JSONValue) -> Void)? = nil
+    @Environment(\.wheelInput) private var wheelInput
     @State private var noteText = ""
     @State private var noteError = ""
     @State private var editingNote = false
@@ -29,7 +30,8 @@ struct InspectionFieldRow: View {
                     note: {
                         if let editNote { editNote(field) }
                         else { noteText = field["note"].string; noteError = ""; editingNote = true }
-                    }, capture: { picking = true }, measurement: measurement)
+                    }, capture: { picking = true }, measurement: measurement,
+                    wheel: { wheelInput?.open(houseID: houseID, field: field, store: workspace.store) })
             }
             FieldRelatedMedia(workspace: workspace, houseID: houseID, fieldID: field.id)
         }.fullScreenCover(isPresented: $editingNote) {

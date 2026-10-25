@@ -34,21 +34,41 @@ private struct PlaceReviewHost: View {
     @State private var event = ""
     @State private var center = UtilityFixtures.origin
     @State private var readonly = false
+    @State private var address = ""
+    @State private var viewport = ""
+    @State private var cameraDistance = ""
+    @State private var pickerMount = 0
+    @State private var queryWrites = 0
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 12) {
+                    TextField("手动填写地址", text: $address).textFieldStyle(.roundedBorder)
+                        .submitLabel(.done).accessibilityIdentifier("review.placeAddress")
                     XJCard {
-                        PlacePickerSurface(query: $query, center: center, places: UtilityFixtures.places, message: message, permissionDenied: denied, readonly: readonly,
+                        PlacePickerSurface(query: Binding(get: { query }, set: { query = $0; queryWrites += 1 }), center: center, places: UtilityFixtures.places, message: message, permissionDenied: denied, readonly: readonly,
+                                           address: address,
+                                           reviewCameraChanged: { cameraDistance = String(format: "%.0f", $0) },
                                            search: { message = "" }, locate: { denied = true; message = "定位权限未开启，请在设置中允许访问位置" },
-                                           retry: { message = "" }, settings: { event = "已触发打开系统设置" }, moved: { _ in }, choose: { place in
-                            center = place.point; event = "已选择：\(place.name)"; query = ""
-                        })
+                                           retry: { message = "" }, settings: { event = "已触发打开系统设置" }, moved: { point in
+                            viewport = String(format: "%.4f,%.4f", point.latitude, point.longitude)
+                        }, choose: { place in
+                            center = place.point; address = place.address; event = "已选择：\(place.name)"; query = ""
+                        }).id(pickerMount)
                     }
                     if !event.isEmpty { Text(event).font(.system(size: 13)).accessibilityIdentifier("review.placeEvent") }
+                    Text(viewport).font(.system(size: 10)).accessibilityIdentifier("review.placeViewport")
+                    Text(cameraDistance).font(.system(size: 10)).accessibilityIdentifier("review.placeCameraDistance")
+                    Text(String(pickerMount)).font(.system(size: 10)).accessibilityIdentifier("review.placeMount")
+                    Text(String(queryWrites)).font(.system(size: 10)).accessibilityIdentifier("review.placeQueryWrites")
                 }.padding(16)
             }.background(XJTheme.background).navigationTitle("地点组件").navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .topBarTrailing) { Button(readonly ? "可编辑" : "只读") { readonly.toggle() }.accessibilityIdentifier("review.placeReadonly") } }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("重新进入") { query = ""; pickerMount += 1 }.accessibilityIdentifier("review.placeReenter")
+                    }
+                    ToolbarItem(placement: .topBarTrailing) { Button(readonly ? "可编辑" : "只读") { readonly.toggle() }.accessibilityIdentifier("review.placeReadonly") }
+                }
         }.tint(XJTheme.primary)
     }
 }
