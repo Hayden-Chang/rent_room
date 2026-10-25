@@ -55,10 +55,9 @@ struct HomePage: View {
                 }
             }
             .navigationDestination(isPresented: Binding(get: { !path.isEmpty }, set: { if !$0 {
-                if let id = path.last { workspace.perform { try workspace.store.call("leaveInspection", ["id": .string(id)]) } }
-                path = []; newHouseID = nil; refreshGuide()
+                closeHouse()
             } })) {
-                if let id = path.last { HouseDetailPage(workspace: workspace, id: id, newHouse: newHouseID == id) }
+                if let id = path.last { HouseDetailPage(workspace: workspace, id: id, newHouse: newHouseID == id, returnToHouses: closeHouse) }
             }
             .sheet(isPresented: $adding, onDismiss: {
                 if capacityAfterName { capacityAfterName = false; capacity = true }
@@ -93,6 +92,10 @@ struct HomePage: View {
                 do { try await Task.sleep(for: .seconds(3)) } catch { return }
                 thankYou = false; refreshGuide()
             }
+    }
+    private func closeHouse() {
+        if let id = path.last { workspace.perform { try workspace.store.call("leaveInspection", ["id": .string(id)]) } }
+        path = []; newHouseID = nil; refreshGuide()
     }
     private func add() {
         workspace.perform {

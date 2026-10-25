@@ -4,6 +4,7 @@ struct HouseDetailPage: View {
     let workspace: AppWorkspace
     let id: String
     var newHouse = false
+    var returnToHouses: () -> Void = {}
     @State private var tab = "清单"
     @State private var showCoach = false
     @State private var appeared = false
@@ -15,7 +16,7 @@ struct HouseDetailPage: View {
                     .frame(maxWidth: .infinity).background(XJTheme.soft).accessibilityIdentifier("house.readonly")
             }
             ZStack {
-                MPRetainedPage(active: tab == "清单") { ChecklistPage(workspace: workspace, id: id, showCoach: $showCoach, isActive: tab == "清单") }
+                MPRetainedPage(active: tab == "清单") { ChecklistPage(workspace: workspace, id: id, showCoach: $showCoach, isActive: tab == "清单", returnToHouses: returnToHouses) }
                 Group { switch tab {
                 case "总结":
                     ScrollView {
@@ -55,6 +56,7 @@ struct ChecklistPage: View {
     let id: String
     @Binding var showCoach: Bool
     var isActive = true
+    var returnToHouses: () -> Void = {}
     @State private var phase = "全部"
     @State private var query = ""
     @State private var filters: Set<String> = []
@@ -79,7 +81,6 @@ struct ChecklistPage: View {
     @State private var visiblePrompt: JSONValue = .null
     @State private var returnOffset: CGFloat?
     @State private var scrollPosition = NativeScrollPosition()
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.wheelInput) private var wheelInput
     private var viewKey: String { phase + "|" + query + "|" + filters.sorted().joined(separator: ",") }
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
@@ -272,7 +273,7 @@ struct ChecklistPage: View {
         workspace.perform {
             let result = try workspace.store.call("guideAction", ["id": .string(id), "value": .string(action), "property": prompt["id"]])
             visiblePrompt = .null; returnOffset = nil
-            if result["back"].bool { dismiss(); return }
+            if result["back"].bool { returnToHouses(); return }
             if !result["target"].string.isEmpty {
                 phase = result["phase"].string; query = ""; filters = []
                 let target = result["target"].string
