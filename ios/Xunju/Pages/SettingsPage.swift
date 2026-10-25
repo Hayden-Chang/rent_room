@@ -136,3 +136,8 @@ struct SettingsPage: View {
             .font(.system(size: 14)).frame(minHeight: 52).contentShape(Rectangle())
     }
 }
+
+struct CloseSheetButton: View {
+    @Environment(\.dismiss) private var dismiss
+    var body: some View { Button("关闭") { dismiss() } }
+}
