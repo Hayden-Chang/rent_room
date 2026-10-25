@@ -1,5 +1,5 @@
 import {templateConfig, assertTemplate, selectedMode, modeLabels} from '../../apps/wechat/src/lib/templates.js';
-import {progress, completionPrompt} from '../../apps/wechat/src/lib/xiaoda-flow.js';
+import {progress} from '../../apps/wechat/src/lib/xiaoda-flow.js';
 import {xiaodaEnabled, localDay} from '../../apps/wechat/src/lib/xiaoda-state.js';
 import {coachSteps, coachTarget} from '../../apps/wechat/src/lib/onboarding.js';
 import {clone, uid} from '../../apps/wechat/src/lib/model.js';
@@ -80,6 +80,7 @@ export const inspectionActions = {
     store.change(state => { state.xiaoda.intent = {id:uid(),kind:value,houseId:id}; }, true);
     return store.capacity();
   },
+  cancelHouseAction(store) { return store.change(state => { delete state.xiaoda.intent; }, true); },
   finishHouseAction(store) {
     const intent = store.get().xiaoda.intent;
     if (!intent) return null;
@@ -107,13 +108,14 @@ export const inspectionActions = {
     const target = current?.target && progress(house).find(row => row.category === current.target && !row.complete);
     store.change(state => {
       const h = state.houses.find(h => h.id === id); h.xiaoda ||= {};
-      if (value !== 'other') { delete h.xiaoda.prompt; h.xiaoda.intro = 'done'; }
-      if (value === 'other' || value === 'accept' && current?.kind === 'return') state.xiaoda.returnGuide = true;
+      delete h.xiaoda.prompt; h.xiaoda.intro = 'done';
+      if (value === 'other' && current?.kind === 'phase') h.xiaoda.prompt = {...current,kind:'return',text:'那就先看看其他房子吧～',id:'return-'+uid(),target:undefined,phase:undefined};
+      if (value === 'accept' && current?.kind === 'return') state.xiaoda.returnGuide = true;
       if (value === 'house') h.xiaoda.disabled = true;
       if (value === 'day') state.xiaoda.closedDate = localDay();
       if (value === 'permanent') state.xiaoda.enabled = false;
     }, true);
-    if (value === 'other' || value === 'accept' && current?.kind === 'return') return {back:true};
+    if (value === 'accept' && current?.kind === 'return') return {back:true};
     return value === 'accept' && target ? {target:target.category,phase:target.phase} : null;
   },
   leaveInspection(store, {id}) {

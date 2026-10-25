@@ -13,14 +13,21 @@ import UIKit
         let label = try XCTUnwrap(catalog.first { $0.id == id })["label"].string
         return try XCTUnwrap(try store.form(house, query: label).flatMap { $0["rows"].array }.first { $0.id == id })
     }
-    func testCommuteWheelLabelHasSpaceForEveryMinuteOption() throws {
-        let spec = try XCTUnwrap(WheelFieldSpec.all["21255282-3663-4abe-b7de-d91eeb3825ed"])
-        let labelWidth = spec.choices.map { ($0.label as NSString).size(withAttributes: [.font: UIFont.systemFont(ofSize: 13)]).width }.max()!
-        let chevron = try XCTUnwrap(UIImage(systemName: "chevron.down", withConfiguration: UIImage.SymbolConfiguration(pointSize: 10)))
-        let required = ceil(labelWidth + chevron.size.width + 8 + 24)
-        XCTAssertGreaterThanOrEqual(MPFieldRow.measurementWheelMinimumWidth, required, "Minute labels, chevron, spacing and padding must fit without truncation")
+    func testRemovedWheelsUseManualNumbersOrNativeChoices() throws {
+        let store = try store(), id = try store.add("直接输入")
+        for key in ["f1_3", "fc76beec-52e3-4fe9-a937-dec254d4cc4f", "f41_3", "21255282-3663-4abe-b7de-d91eeb3825ed"] {
+            XCTAssertNil(WheelFieldSpec.all[key])
+            XCTAssertEqual(ChecklistPresentation.item(try field(key, house: id, store: store)).kind, .number)
+        }
+        for key in ["f1_5", "f44_0", "f44_1"] {
+            XCTAssertNil(WheelFieldSpec.all[key])
+            XCTAssertNotEqual(ChecklistPresentation.item(try field(key, house: id, store: store)).kind, .wheel)
+        }
+        XCTAssertTrue(ChecklistPresentation.item(try field("fc76beec-52e3-4fe9-a937-dec254d4cc4f", house: id, store: store)).numberPad)
+        try store.answer(id, field: "f1_3", value: .string("220.5"))
+        XCTAssertEqual(try NativeStore(directory: store.records.directory).house(id)["answers"]["f1_3"]["value"].string, "220.5")
     }
-    func testRealFormRoutesAllSeventeenWheelsAndKeepsMoneyManual() throws {
+    func testRealFormRoutesNineWheelsAndKeepsMoneyManual() throws {
         let store = try store(), id = try store.add("实际表单")
         try store.answer(id, field: "f112_0", value: .string("允许"))
         for key in WheelFieldSpec.all.keys {
@@ -34,12 +41,12 @@ import UIKit
     }
     func testConfirmedAnswersReloadKeepAnnotationsOtherAndEmptyZero() throws {
         let store = try store(), id = try store.add("保存验证"), presenter = WheelInputPresentation()
-        let floor = "fc76beec-52e3-4fe9-a937-dec254d4cc4f"
+        let floor = "f88_1"
         try store.answer(id, field: floor, property: "note", value: .string("保留备注"))
         try store.answer(id, field: floor, property: "issueFlag", value: .bool(true))
         presenter.open(houseID: id, field: try field(floor, house: id, store: store), store: store)
         XCTAssertEqual(store.house(id)["answers"][floor]["value"].string, "")
-        try presenter.save("-1", store: store)
+        try presenter.save("0.5", store: store)
         for value in ["0", ""] {
             presenter.open(houseID: id, field: try field(floor, house: id, store: store), store: store)
             try presenter.save(value, store: store)
@@ -49,8 +56,7 @@ import UIKit
             XCTAssertTrue(reopened.house(id)["answers"][floor]["issueFlag"].bool)
         }
         for value in ["其他", "南", "", "其他"] {
-            presenter.open(houseID: id, field: try field("f1_5", house: id, store: store), store: store)
-            try presenter.save(value, store: store)
+            try store.answer(id, field: "f1_5", value: .string(value))
             if value == "其他" { try store.answer(id, field: "f1_5", property: "otherText", value: .string("东偏南")) }
         }
         let reopened = try NativeStore(directory: store.records.directory)
@@ -62,11 +68,11 @@ import UIKit
     }
     func testCancelUntouchedLegacyAndReadonlyIdentityGuards() throws {
         let store = try store(), id = try store.add("边界"), presenter = WheelInputPresentation()
-        try store.answer(id, field: "f1_3", value: .string("220"))
-        let row = try field("f1_3", house: id, store: store), before = store.state
+        try store.answer(id, field: "f88_1", value: .string("20"))
+        let row = try field("f88_1", house: id, store: store), before = store.state
         presenter.open(houseID: id, field: row, store: store); presenter.target = nil
         XCTAssertEqual(store.state, before)
-        presenter.open(houseID: id, field: row, store: store); try presenter.save("220", store: store)
+        presenter.open(houseID: id, field: row, store: store); try presenter.save("20", store: store)
         XCTAssertEqual(store.state, before)
         presenter.open(houseID: id, field: row, store: store)
         XCTAssertThrowsError(try presenter.save("20", store: self.store()))

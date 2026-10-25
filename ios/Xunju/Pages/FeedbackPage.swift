@@ -22,6 +22,7 @@ struct FeedbackPage: View {
                                 Button(option) { binding(key).wrappedValue = option }
                                     .buttonStyle(FilterChip(selected: binding(key).wrappedValue == option))
                                     .accessibilityIdentifier("feedback.\(key).\(option)")
+                                    .accessibilityAddTraits(binding(key).wrappedValue == option ? .isSelected : [])
                             }
                         }
                     }
@@ -42,11 +43,13 @@ struct FeedbackPage: View {
                 let draft = workspace.store.state["xiaoda"]["feedbackDraft"]
                 let base = draft == .null ? JSONValue.object([:]) : draft
                 try workspace.store.call("feedbackDraft", ["value": base.setting(key, to: .string(String(value.prefix(2000))))])
+                if !workspace.store.status.error.isEmpty { throw CoreFailure(message: workspace.store.status.error) }
             } catch { self.error = error.localizedDescription }
         })
     }
     private func skip() {
-        if workspace.perform({ try workspace.store.call("feedbackFinish", ["value": .string("skip")]) }) { dismiss() }
+        do { try workspace.store.call("feedbackFinish", ["value": .string("skip")]); dismiss() }
+        catch { self.error = error.localizedDescription }
     }
     private func submit() {
         guard !busy else { return }

@@ -269,6 +269,7 @@ struct MPChecklistSurface<Content: View>: View {
     var coordinator: MPSwipeCoordinator
     var scrollTarget = ""
     var scrollAnchor: UnitPoint = .center
+    var scrollPosition: NativeScrollPosition? = nil
     var guidance: JSONValue = .null
     var guidanceAction: (String) -> Void = { _ in }
     let capture: () -> Void
@@ -278,7 +279,7 @@ struct MPChecklistSurface<Content: View>: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 0) {
-                    Color.clear.frame(height: 12).id("top")
+                    Color.clear.frame(height: 12).id("top").background { if let scrollPosition { NativeScrollProbe(position: scrollPosition) } }
                     MPCard {
                         VStack(spacing: 0) {
                             HStack { Text("总进度").font(.system(size: 17, weight: .semibold)); Spacer(); Text("\(done) / \(total)").font(.system(size: 14)) }

@@ -71,13 +71,13 @@ actor CapacityTestAPI: CapacityServicing {
         await api.configure(failVerification: true)
         await workspace.billing.load(); await workspace.billing.purchase()
         XCTAssertEqual(workspace.billing.activity, .pending); XCTAssertFalse(workspace.billing.error.isEmpty)
-        XCTAssertEqual(store.capacity.limit, 2); XCTAssertEqual(storefront.finished, [])
+        XCTAssertEqual(store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
         let expiry = try XCTUnwrap(workspace.session?.expiresAt)
         // Process death leaves the StoreKit transaction unfinished, ready to retry.
         let reopened = try AppWorkspace(root: workspace.scopes.root, keychain: keychain, capacityAPI: api, storefront: storefront)
         await api.configure()
         await reopened.billing.load(); await reopened.billing.restore(); await reopened.billing.restore()
-        XCTAssertEqual(reopened.store.capacity.limit, 12); XCTAssertEqual(storefront.finished, ["10001"])
+        XCTAssertEqual(reopened.store.capacity.limit, 11); XCTAssertEqual(storefront.finished, ["10001"])
         XCTAssertEqual(reopened.store.house(id)["answers"]["f1_6"]["value"].string, "0")
         XCTAssertEqual(reopened.session?.expiresAt, expiry)
         XCTAssertEqual(keychain.read()?.packs, 1)
@@ -86,17 +86,17 @@ actor CapacityTestAPI: CapacityServicing {
         let (workspace, api, storefront, _) = try fixture()
         await workspace.billing.load(); storefront.result = .cancelled
         await workspace.billing.purchase()
-        XCTAssertEqual(workspace.billing.activity, .idle); XCTAssertEqual(workspace.store.capacity.limit, 2)
+        XCTAssertEqual(workspace.billing.activity, .idle); XCTAssertEqual(workspace.store.capacity.limit, 1)
         storefront.result = .pending; await workspace.billing.purchase(); await workspace.billing.restore()
         XCTAssertEqual(workspace.billing.activity, .pending); XCTAssertEqual(storefront.finished, [])
         let purchases = storefront.purchases; await workspace.billing.purchase(); XCTAssertEqual(storefront.purchases, purchases)
         workspace.billing.start(); await storefront.receive?(storefront.transaction)
-        XCTAssertEqual(workspace.store.capacity.limit, 12); XCTAssertEqual(workspace.billing.activity, .idle)
+        XCTAssertEqual(workspace.store.capacity.limit, 11); XCTAssertEqual(workspace.billing.activity, .idle)
         await api.configure(unavailable: true); storefront.productFails = true
         await workspace.billing.restore(); XCTAssertTrue(workspace.billing.error.isEmpty)
         XCTAssertNil(workspace.billing.product)
         await workspace.billing.load(); XCTAssertNil(workspace.billing.product)
-        XCTAssertEqual(workspace.store.capacity.limit, 12)
+        XCTAssertEqual(workspace.store.capacity.limit, 11)
     }
     func testRefundAndOlderSnapshotsKeepAllHousesAndRejectInconsistentOrForeignBalances() async throws {
         let (workspace, api, _, _) = try fixture()
@@ -105,9 +105,9 @@ actor CapacityTestAPI: CapacityServicing {
         for index in 0..<3 { _ = try store.add("房源\(index)") }
         let old = try await api.restore(token: "test")
         await api.refund(); await workspace.billing.restore()
-        XCTAssertTrue(workspace.store === store); XCTAssertEqual(store.capacity.used, 3); XCTAssertEqual(store.capacity.limit, 2)
+        XCTAssertTrue(workspace.store === store); XCTAssertEqual(store.capacity.used, 3); XCTAssertEqual(store.capacity.limit, 1)
         XCTAssertThrowsError(try store.add("超额")); XCTAssertEqual(store.houses.count, 3)
-        try workspace.applyCapacity(old); XCTAssertEqual(store.capacity.limit, 2)
+        try workspace.applyCapacity(old); XCTAssertEqual(store.capacity.limit, 1)
         XCTAssertThrowsError(try workspace.applyCapacity(CapacityBalance(account: old.account, environment: "Sandbox", packs: 1, limit: 12, revision: 2)))
         XCTAssertThrowsError(try workspace.applyCapacity(CapacityBalance(account: String(repeating: "b", count: 64), environment: "Sandbox", packs: 1, limit: 12, revision: 3)))
         XCTAssertThrowsError(try store.call("setPacks", ["value": .number(-1)]))
@@ -125,7 +125,7 @@ actor CapacityTestAPI: CapacityServicing {
         let update = Task { joined.fulfill(); await storefront.receive?(storefront.transaction) }
         await fulfillment(of: [joined], timeout: 5)
         await api.resume(); await purchase.value; await update.value
-        XCTAssertEqual(workspace.store.capacity.limit, 12)
+        XCTAssertEqual(workspace.store.capacity.limit, 11)
         XCTAssertEqual(storefront.finished, ["10001"])
         let calls = await api.calls; XCTAssertEqual(calls, 1)
     }
@@ -148,10 +148,10 @@ actor CapacityTestAPI: CapacityServicing {
         let purchase = Task { await workspace.billing.purchase() }
         await fulfillment(of: [waiting], timeout: 5)
         sessions.fail = true; await api.resume(); await purchase.value
-        XCTAssertEqual(workspace.store.capacity.limit, 2); XCTAssertEqual(storefront.finished, [])
+        XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
         XCTAssertEqual(workspace.billing.activity, .pending)
         sessions.fail = false; await workspace.billing.restore()
-        XCTAssertEqual(workspace.store.capacity.limit, 12); XCTAssertEqual(storefront.finished, ["10001"])
+        XCTAssertEqual(workspace.store.capacity.limit, 11); XCTAssertEqual(storefront.finished, ["10001"])
     }
     func testFixtureRequiresExplicitUUIDAndKnownMode() {
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: []))
@@ -170,7 +170,7 @@ actor CapacityTestAPI: CapacityServicing {
         try workspace.logout()
         try workspace.accept(LoginReceipt(account: String(repeating: "b", count: 64), token: String(repeating: "u", count: 40), provider: "apple", expiresIn: 7200, packs: 0, limit: 2))
         await api.resume(); await purchase.value
-        XCTAssertEqual(workspace.store.capacity.limit, 2); XCTAssertEqual(storefront.finished, [])
+        XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
         XCTAssertEqual(workspace.billing.activity, .idle)
     }
 }

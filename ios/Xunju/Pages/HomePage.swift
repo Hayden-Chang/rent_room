@@ -69,7 +69,10 @@ struct HomePage: View {
                     try workspace.store.call("rename", ["id": .string(house.id), "value": .string(name)])
                 }
             }
-            .sheet(isPresented: $capacity, onDismiss: { if continueCreate { continueCreate = false; adding = true } }) {
+            .sheet(isPresented: $capacity, onDismiss: {
+                if continueCreate { continueCreate = false; adding = true }
+                else { workspace.perform { try workspace.store.call("cancelHouseAction") } }
+            }) {
                 NavigationStack { CapacityPage(workspace: workspace, continued: { result in continueCreate = result["kind"].string == "create" }) }
             }
             .sheet(isPresented: $feedback) {

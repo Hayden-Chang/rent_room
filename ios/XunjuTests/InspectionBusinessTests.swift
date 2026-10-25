@@ -102,6 +102,25 @@ import XCTest
         try store.answer(id, field: fields[0].id, value: .string("")); try store.answer(id, field: fields[0].id, value: .string("是"))
         XCTAssertEqual(try store.call("inspectionGuide", ["id": .string(id)])["prompt"], .null)
     }
+    func testOtherHousesShowsReturnGuideBeforeLeavingAndStaleActionsDoNotDismissIt() throws {
+        let store = try makeStore(); try store.call("setupFinish", ["value": .string("simple")])
+        let modes = try store.call("templates")["modes"].array
+        var config = InspectionTemplateDraft(try XCTUnwrap(modes.first { $0.id == "simple" })["config"])
+        config.disabled = Set(config.order.filter { !["室内环境", "费用与付款"].contains($0) })
+        try store.call("templateSave", ["value": .object(["mode": .string("simple"), "config": config.json])])
+        let id = try store.add("阶段切换"); try finishTutorial(store, id)
+        try store.call("guideAction", ["id": .string(id), "value": .string("accept")])
+        for field in ["simple_11", "simple_12", "simple_13", "simple_49"] { try store.answer(id, field: field, value: .string("是")) }
+        let phase = try store.call("inspectionGuide", ["id": .string(id)])["prompt"]
+        XCTAssertEqual(phase["kind"].string, "phase")
+        XCTAssertEqual(try store.call("guideAction", ["id": .string(id), "value": .string("other"), "property": phase["id"]]), .null)
+        let pending = try store.call("inspectionGuide", ["id": .string(id)])["prompt"]
+        XCTAssertEqual(pending["kind"].string, "return"); XCTAssertFalse(store.state["xiaoda"]["returnGuide"].bool)
+        try store.call("guideAction", ["id": .string(id), "value": .string("later"), "property": phase["id"]])
+        XCTAssertEqual(try store.call("inspectionGuide", ["id": .string(id)])["prompt"], pending)
+        XCTAssertTrue(try store.call("guideAction", ["id": .string(id), "value": .string("accept"), "property": pending["id"]])["back"].bool)
+        XCTAssertTrue(store.state["xiaoda"]["returnGuide"].bool)
+    }
     func testGuideCloseScopesAndFeedbackRequestAreDurable() throws {
         let store = try makeStore(); try store.call("setupFinish", ["value": .string("simple")])
         let id = try store.add("关闭范围"); try finishTutorial(store,id)

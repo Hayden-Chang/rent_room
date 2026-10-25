@@ -34,17 +34,17 @@ final class IdentityScopeTests: XCTestCase {
     @MainActor
     func testClaimPreservesOverCapacityRecordsWithoutGrantingCapacity() throws {
         let scopes = try scopes()
-        let account = try NativeStore(directory: scopes.accountDirectory(accountA))
+        let account = try NativeStore(directory: scopes.accountDirectory(accountA), freeLimit: 2)
         _ = try account.add("账号一")
         _ = try account.add("账号二")
         try account.call("settings", ["property": .string("workplace"), "value": .string("账号公司")])
-        let source = try NativeStore(directory: scopes.guestDirectory())
+        let source = try NativeStore(directory: scopes.guestDirectory(), freeLimit: 2)
         _ = try source.add("游客一")
         _ = try source.add("游客二")
         let merged = try scopes.claim(account: accountA, from: source)
         XCTAssertEqual(merged.houses.count, 4)
         XCTAssertEqual(merged.capacity.used, 4)
-        XCTAssertEqual(merged.capacity.limit, 2)
+        XCTAssertEqual(merged.capacity.limit, 1)
         XCTAssertThrowsError(try merged.add("禁止超额新增"))
         XCTAssertEqual(merged.state["settings"]["workplace"].string, "账号公司")
     }

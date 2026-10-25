@@ -85,7 +85,7 @@ import XCTest
         app.navigationBars.buttons.firstMatch.tap()
         let ease = app.buttons["feedback.ease.方便"]; XCTAssertTrue(ease.waitForExistence(timeout: 4)); ease.tap()
         capture("business-07-feedback-draft", app); app.terminate(); app.launch()
-        XCTAssertTrue(ease.waitForExistence(timeout: 10))
+        XCTAssertTrue(ease.waitForExistence(timeout: 10)); XCTAssertTrue(ease.isSelected)
         app.buttons["关闭反馈"].tap(); app.buttons["home.add"].tap()
         XCTAssertTrue(app.buttons["capacity.continue"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)
@@ -122,4 +122,31 @@ import XCTest
         XCTAssertEqual(input.value as? String, "需要衣柜"); XCTAssertFalse(input.isEnabled)
         capture("business-11-old-detailed-snapshot", app)
     }
+    func testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition() {
+        let app = launch(), scroll = app.scrollViews.firstMatch
+        let first = app.images["setup.drag.房源基本信息"]
+        let start = first.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let edge = scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.18, dy: 0.98))
+        start.press(forDuration: 0.6, thenDragTo: edge, withVelocity: .slow, thenHoldForDuration: 2)
+        let moved = app.staticTexts["setup.title.房源基本信息"], last = app.staticTexts["setup.title.身份与合同"]
+        XCTAssertTrue(last.isHittable); XCTAssertGreaterThan(moved.frame.minY, last.frame.minY)
+        capture("business-12-template-edge-scroll", app)
+        finishSetup(app, mode: "simple"); addAndLearn(app, simple: true)
+        search("室内环境", app)
+        for id in ["simple_11", "simple_12", "simple_13"] {
+            let yes = app.buttons["mp.field.choice." + id + ".是"]; reveal(yes, app); yes.tap()
+        }
+        let lastYes = app.buttons["mp.field.choice.simple_49.是"]; reveal(lastYes, app)
+        let label = app.staticTexts["mp.field.title.simple_49"], before = label.frame.minY
+        lastYes.tap()
+        let later = app.buttons["xiaoda.later"]; XCTAssertTrue(later.waitForExistence(timeout: 5))
+        capture("business-13-completion-guidance", app); later.tap()
+        XCTAssertTrue(later.waitForNonExistence(timeout: 3))
+        let position = expectation(for: NSPredicate { _, _ in abs(label.frame.minY - before) < 2 }, evaluatedWith: label)
+        wait(for: [position], timeout: 3)
+        capture("business-14-later-keeps-position", app)
+        lastYes.tap(); lastYes.tap()
+        XCTAssertFalse(app.buttons["xiaoda.later"].exists)
+    }
+
 }

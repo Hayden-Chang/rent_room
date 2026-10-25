@@ -3,20 +3,20 @@ import XCTest
 
 final class NativeStoreTests: XCTestCase {
     @MainActor
-    private func makeStore() throws -> NativeStore {
+    private func makeStore(free: Int = 1) throws -> NativeStore {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("xunju-tests-\(UUID().uuidString)")
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
-        return try NativeStore(directory: directory)
+        return try NativeStore(directory: directory, freeLimit: free)
     }
 
     @MainActor
     func testCanonicalCatalogAndRoundTripRetainAnswersAndZero() throws {
         let store = try makeStore()
         let catalog = try store.call("catalog")
-        XCTAssertEqual(catalog["count"].int, 302)
+        XCTAssertEqual(catalog["count"].int, 301)
         XCTAssertEqual(catalog["categories"].array.count, 13)
         let id = try store.add("原生房源")
-        XCTAssertEqual(store.houses.first?.stats.total, 204)
+        XCTAssertEqual(store.houses.first?.stats.total, 202)
         try store.answer(id, field: "f1_6", value: .string("0"))
         try store.answer(id, field: "f1_6", property: "note", value: .string("免租期"))
         let restored = try NativeStore(directory: store.records.directory)
@@ -31,18 +31,17 @@ final class NativeStoreTests: XCTestCase {
     func testCapacityArchiveReadOnlyRestoreAndDeleteProtection() throws {
         let store = try makeStore()
         let first = try store.add("第一套")
-        _ = try store.add("第二套")
-        XCTAssertThrowsError(try store.add("第三套"))
+        XCTAssertThrowsError(try store.add("第二套"))
         XCTAssertThrowsError(try store.call("remove", ["id": .string(first)]))
         try store.archive(first, archived: true)
-        XCTAssertEqual(store.capacity.used, 1)
+        XCTAssertEqual(store.capacity.used, 0)
         XCTAssertThrowsError(try store.answer(first, field: "f1_6", value: .string("100")))
         _ = try store.add("第三套")
         XCTAssertThrowsError(try store.archive(first, archived: false))
         XCTAssertTrue(store.house(first)["archived"].bool)
         try store.call("remove", ["id": .string(first)])
-        XCTAssertEqual(store.houses.count, 2)
-        XCTAssertEqual(try NativeStore(directory: store.records.directory).houses.count, 2)
+        XCTAssertEqual(store.houses.count, 1)
+        XCTAssertEqual(try NativeStore(directory: store.records.directory).houses.count, 1)
     }
 
     @MainActor
@@ -90,7 +89,7 @@ final class NativeStoreTests: XCTestCase {
 
     @MainActor
     func testManualIssueAndSummaryComparisonPersist() throws {
-        let store = try makeStore()
+        let store = try makeStore(free: 2)
         let id = try store.add("A")
         let second = try store.add("B")
         let draft: JSONValue = .object(["title": .string("漏水"), "note": .string("确认修复时间"), "media": .array([])])
@@ -144,7 +143,7 @@ final class NativeStoreTests: XCTestCase {
 
     @MainActor
     func testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession() throws {
-        let store = try makeStore()
+        let store = try makeStore(free: 2)
         let id = try store.add("原有房源")
         let current = store.records.directory.appendingPathComponent("state.json")
         try FileManager.default.removeItem(at: current)

@@ -65,7 +65,7 @@ import XCTest
         XCTAssertEqual(try AppWorkspace(root: root, keychain: VolatileSessionStorage()).store.houses.map(\.id), [id])
     }
     func testImportCopyUsesNewIDKeepsOriginalAndFailsAtomicallyAtCapacity() async throws {
-        let store = try NativeStore(directory: root()), id = try store.add("原有"), transfer = BackupTransfers()
+        let store = try NativeStore(directory: root(), freeLimit: 2), id = try store.add("原有"), transfer = BackupTransfers()
         let zip = store.records.directory.appending(path: "copy.zip")
         try await transfer.export(ids: [id], store: store, to: zip)
         let preview = try await transfer.preview(zip, store: store)

@@ -76,16 +76,19 @@ struct ChecklistPage: View {
     @State private var coachSavedFolds: [String: [String: Bool]]?
     @State private var guidance: JSONValue = .null
     @State private var editingField: String?
+    @State private var visiblePrompt: JSONValue = .null
+    @State private var returnOffset: CGFloat?
+    @State private var scrollPosition = NativeScrollPosition()
     @Environment(\.dismiss) private var dismiss
     private var viewKey: String { phase + "|" + query + "|" + filters.sorted().joined(separator: ",") }
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
     private var stats: InspectionStats? { workspace.store.houses.first { $0.id == id }?.stats }
-    private var prompt: JSONValue { isActive && !showCoach && editingField == nil && note == nil && cost == nil && mediaTarget == nil ? guidance["prompt"] : .null }
+    private var prompt: JSONValue { isActive && !showCoach && editingField == nil && note == nil && cost == nil && mediaTarget == nil ? visiblePrompt : .null }
 
     var body: some View {
         MPChecklistSurface(done: stats?.done ?? 0, total: stats?.total ?? 0, issues: stats?.issues ?? 0,
             phase: $phase, query: $query, filters: $filters, showFilters: $showFilters, readonly: readonly,
-            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center,
+            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollPosition: scrollPosition,
             guidance: prompt != .null && !sections.contains(where: { $0["title"].string == prompt["target"].string }) ? prompt : .null,
             guidanceAction: guideAction, capture: { mediaTarget = "" }) {
             VStack(spacing: 16) {
@@ -138,16 +141,22 @@ struct ChecklistPage: View {
                 }
             } }
             .onAppear { refresh(); if showCoach { prepareCoach() } }
-            .onChange(of: isActive) { if !isActive { coordinator.close() } }
+            .onChange(of: isActive) { if !isActive { coordinator.close(); dismissGuidance() } }
             .onChange(of: showCoach) { if showCoach { prepareCoach() } }
             .onChange(of: coachStep) { if coachStep == 4 { scrollTarget = coachTarget["field"].id } }
             .onChange(of: coordinator.active) { _, active in
                 if showCoach && coachStep == 3 && active == coachTarget["field"].id { advanceCoach(swiped: true) }
             }
-            .task(id: prompt["id"].string) {
-                guard prompt != .null else { return }
+            .task(id: guidanceToken) {
+                let incoming = guidance["prompt"]
+                guard incoming != .null, canPresentGuide else { visiblePrompt = .null; return }
+                guard incoming["id"] != visiblePrompt["id"] else { return }
+                visiblePrompt = .null
                 do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
-                guard !Task.isCancelled, isActive, editingField == nil else { return }
+                guard !Task.isCancelled, canPresentGuide else { return }
+                returnOffset = scrollPosition.offset
+                visiblePrompt = incoming; scrollTarget = ""
+                do { try await Task.sleep(for: .milliseconds(20)) } catch { return }
                 scrollTarget = "xiaoda.guide"
             }
             .onChange(of: viewKey) { coordinator.close(); refresh() }
@@ -239,17 +248,26 @@ struct ChecklistPage: View {
             if !showCoach { coordinator.close(); if let saved = coachSavedFolds { folds = saved; coachSavedFolds = nil }; refresh(); scrollTarget = "xiaoda.guide" }
         }
     }
+    private var canPresentGuide: Bool { isActive && !showCoach && editingField == nil && note == nil && cost == nil && mediaTarget == nil }
+    private var guidanceToken: String { guidance["prompt"]["id"].string + "|" + String(canPresentGuide) }
+    private func dismissGuidance() {
+        if visiblePrompt != .null { workspace.perform { try workspace.store.call("guideAction", ["id": .string(id), "value": .string("later")]) } }
+        visiblePrompt = .null; returnOffset = nil
+    }
     private func interaction(_ field: String, _ focus: Bool?) {
         if let focus { editingField = focus ? field : nil }
         if focus == false { refresh(); return }
-        if showCoach || editingField == field && focus == nil { return }
+        if showCoach || editingField == field && focus == nil || focus == true && visiblePrompt == .null { return }
         if guidance["prompt"] != .null {
             workspace.perform { try workspace.store.call("guideAction", ["id": .string(id), "value": .string("input")]) }
         }
     }
     private func guideAction(_ action: String) {
+        let previousOffset = returnOffset
+        let previousView = viewKey
         workspace.perform {
             let result = try workspace.store.call("guideAction", ["id": .string(id), "value": .string(action), "property": prompt["id"]])
+            visiblePrompt = .null; returnOffset = nil
             if result["back"].bool { dismiss(); return }
             if !result["target"].string.isEmpty {
                 phase = result["phase"].string; query = ""; filters = []
@@ -258,7 +276,15 @@ struct ChecklistPage: View {
                 folds[viewKey, default: [:]][target] = true
                 for topic in topics { for group in topic["path"].array { folds[viewKey, default: [:]][group.id] = true } }
                 refresh(); scrollTarget = target
-            } else { refresh() }
+            } else {
+                refresh()
+                if action == "later", let previousOffset {
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(20))
+                        if isActive && viewKey == previousView && visiblePrompt == .null { scrollPosition.restore(previousOffset) }
+                    }
+                }
+            }
         }
     }
 }
