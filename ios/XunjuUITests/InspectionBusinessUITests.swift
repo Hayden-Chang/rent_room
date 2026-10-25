@@ -8,6 +8,10 @@ import XCTest
         app.launch(); XCTAssertTrue(app.buttons["setup.next"].waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
+        for message in app.descendants(matching: .any).matching(identifier: "xiaoda.message").allElementsBoundByIndex where message.isHittable {
+            let typed = expectation(for: NSPredicate(format: "value == %@", "完整显示"), evaluatedWith: message)
+            wait(for: [typed], timeout: 5)
+        }
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
