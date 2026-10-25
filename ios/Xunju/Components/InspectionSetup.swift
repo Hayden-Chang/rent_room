@@ -68,7 +68,7 @@ struct InspectionTemplateEditor: View {
                         Image(systemName: "line.3.horizontal")
                             .font(.system(size: 20)).foregroundStyle(Color.gray)
                             .frame(width: 54, height: 64).contentShape(Rectangle())
-                            .highPriorityGesture(DragGesture(minimumDistance: 5)
+                            .highPriorityGesture(DragGesture(minimumDistance: 5, coordinateSpace: .named("template.list"))
                                 .updating($drag) { value, state, _ in
                                     state = TemplateDrag(title: title, translation: value.translation.height)
                                 }.onEnded { value in
