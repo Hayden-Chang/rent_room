@@ -1,0 +1,97 @@
+{
+  "evidenceSHA": "47d0062",
+  "runId": "xunju-setup-20261025-06",
+  "xcresult": "/Volumes/mac2/codex-builds/xunju-ios-upgrade-20261025-06.xcresult",
+  "summary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+          "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+          "modelName": "iPhone 14 Pro",
+          "osBuildNumber": "22D8075",
+          "osVersion": "18.3.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 9,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "Xunju · Built with macOS 26.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1792917386.54,
+    "passedTests": 9,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1792917355.777,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - Xunju",
+    "topInsights": [],
+    "totalTestCount": 9
+  },
+  "screenshots": [
+    {
+      "name": "01-xiaoda-template-order.png",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-setup-review/01-xiaoda-template-order.png",
+      "source": "9F6900D5-3BC6-4B61-9F33-C84CFF466B9C.png",
+      "test": "InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps()",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "429d37ab86f1896112690fbf20b2057248b24733d425226697463f63a27db3d4"
+    },
+    {
+      "name": "02-template-disabled.png",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-setup-review/02-template-disabled.png",
+      "source": "B5C20FAE-14A9-4BF5-BA6C-38313EDB93B7.png",
+      "test": "InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps()",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "268d4382f490e0906684923506f0bcf09a3a92d0116742ad73b4164fd68e5f82"
+    },
+    {
+      "name": "03-template-reordered.png",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-setup-review/03-template-reordered.png",
+      "source": "4020C260-A4BE-4105-BFA3-E40034CC1554.png",
+      "test": "InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps()",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "72e828efde927cad8fe2e752bd6e0bd7542115edb6688eb10bb7cd7880f17bb4"
+    },
+    {
+      "name": "04-mode-simple-selected.png",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-setup-review/04-mode-simple-selected.png",
+      "source": "80247C20-400D-42AF-AA9D-1C70DD1DC773.png",
+      "test": "InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection()",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "3c4f01b802e3b10e814e4d383a9e17ba086850d9d8527804fc41f30e30b0a9f8"
+    },
+    {
+      "name": "05-mode-detailed-example.png",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-setup-review/05-mode-detailed-example.png",
+      "source": "97849E0A-C109-4491-BEEA-915808DC6D96.png",
+      "test": "InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection()",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "53d29a774ec6c889be0aa382b30e2ea0447eac65962ac1e25c1d44ce87ba26c0"
+    },
+    {
+      "name": "06-mode-selection-retained.png",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-setup-review/06-mode-selection-retained.png",
+      "source": "C83B0554-0084-4876-8696-B801B49716E6.png",
+      "test": "InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection()",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "fba120d5a7e387f4ecc5be22944cfb9e4c6907f59b5c1144399093228d504ff7"
+    }
+  ]
+}

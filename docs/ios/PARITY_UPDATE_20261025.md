@@ -38,3 +38,33 @@
 验证映射：`InspectionSetupTests` 覆盖停用/恢复、最后一项保护、双向移动、非法外部内容、值草稿隔离、图片解码和显式评审入口；`InspectionSetupReviewTests` 通过真实按钮和原生拖动验证排序、往返及模式互斥。截图仅证明组件，不能证明房源持久化、引导完整流程或全功能对齐。
 
 后续接入顺序：组件批准 → 同源清单/模板/小搭桥接及持久化 → 房源页面接线与回归 → 容量协议和平台能力 → 最终 PR head 验证及真机验收。所有条目完成前，PR 保持 Draft，不能标记“已实现所有功能”。
+
+## 本批证据与评审
+
+状态：`REVIEW_READY`，等待用户明确批准本批组件。2026-10-21 的旧组件批准不包含本次新增首次设置。业务接入仍未开始。
+
+- 证据提交：`47d0062afc67ec9cfcb694e7931bb75465212ee1`，已包含远程 #39 的 `281b318`；后续提交只补充本文档和证据索引，不改变组件、资源、宿主、测试、生成输入或运行配置。
+- 设备：共享池 iPhone 14 Pro / iOS 18.3.1 模拟器，UDID `8F178971-C203-4690-A83B-253046EACBB1`；原始截图均为 1178 × 2556。
+- `development` 计划 `xunju-setup-20261025-06`：**7 UT、2 UI，9 通过、0 失败、0 跳过**。这不是全量测试或整个 PR 的最终合并门禁。
+- XcodeGen 2.45.4、仓库包装脚本、共享模拟器 runner。构建和测试均退出 0，运行结束后未留下该任务的队列、槽位或设备租约。
+- `.xcresult`：`/Volumes/mac2/codex-builds/xunju-ios-upgrade-20261025-06.xcresult`。
+- 计划、执行脚本、日志：`/private/tmp/xunju-ios-upgrade-20261025/{plan-06.json,run-06.sh,run-06.log}`；原始附件及其 manifest 在同目录 `attachments-06/`。
+- runner 回执：`/tmp/todo-ios-sim-pool/run-receipts/xunju-setup-20261025-06.json`。
+- 本地六图评审册：`/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-setup-review/review.md`；[逐图来源、尺寸与哈希](evidence/setup-20261025.json)。图片是结果包导出的原始截图副本，未经合成或重绘。
+
+UT 为 `InspectionSetupTests` 的 6 项，加既有 `ComponentLogicTests/testReviewHostRequiresExplicitKnownSurface`。覆盖至少保留一项、停用/恢复、双向移动、无效分类、值草稿独立、资源解码及显式入口。值草稿独立的断言不代表真实房源持久化迁移通过。
+
+UI 为 `InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps` 和 `testModesAreExclusiveAndReturnKeepsSelection`。真实按住拖动后校验两行坐标顺序，再前进/返回检查顺序仍保留；切换模式后检查互斥选择、返回保留和最终回调。没有用直接改状态替代触摸操作。
+
+主 agent 已审查相对 `281b318` 的完整增量，并逐张检查六张最终截图：小搭原图和三行问候、左拖动柄/右停用按钮、灰色划线及恢复状态、周边分类移到第一位、紫色单选卡片、红色示例问题、固定底部操作。截图未见文字截断、状态栏覆盖或底栏遮住可滚动内容；长列表边缘自动滚动仍未实现，小屏/大字号和真机仍待验收。此次增量未变更原 AppRoot、地图查询、StoreKit、持久化或小程序源码，没有提交生成的 `.xcodeproj`。
+
+### 保留的失败过程
+
+- `run-01`：ZIPFoundation 依赖因 GitHub SSH 认证失败，测试未执行。隔离复制已有干净 0.9.20 包缓存后继续，没有修改原共享缓存。
+- `run-02`：`-clonedSourcePackagesDir` 参数名错误，测试未执行；修正为 `-clonedSourcePackagesDirPath`。
+- `run-03`：构建成功，7 UT 与模式 UI 通过，拖动 UI 未改变顺序；没有将此轮描述为全绿。
+- `run-04`：改用 SwiftUI 手势后，7 UT 与模式 UI 仍通过，排序断言仍失败；修复了滚动内容越过顶部安全区的问题。
+- `run-05`：仅重复该失败 UI 并加临时诊断。行中心相距约 64.3 pt，但跟随行移动的局部坐标只测得约 30.7 pt 位移。诊断代码随后删除；手势改用稳定的 `template.list` 命名坐标空间，原排序断言未放宽。
+- `run-06`：在上述证据提交上 9/9 通过。前面各轮的日志、结果包与已导出失败截图仍保留，不能称一次通过。
+
+两轮修复失败后查阅 [Apple DragGesture coordinateSpace](https://developer.apple.com/documentation/swiftui/draggesture/coordinatespace) 并用本项目实测定位；不把公开的其他 iOS 18 手势报告当成本问题已证实的系统缺陷。
