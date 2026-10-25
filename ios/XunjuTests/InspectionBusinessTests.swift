@@ -169,6 +169,19 @@ import XCTest
         XCTAssertEqual(try store.call("finishHouseAction")["id"].string, second)
         XCTAssertFalse(store.house(second)["archived"].bool)
     }
+    func testCreateIntentRetainsEnteredNameAcrossCapacityChangeAndRelaunch() throws {
+        let store = try makeStore()
+        try store.call("beginHouseAction", ["value": .string("create")])
+        try store.call("setFreeLimit", ["value": .number(0)])
+        XCTAssertThrowsError(try store.add("名字已经填好了"))
+        try store.call("beginHouseAction", ["value": .string("create"), "name": .string("名字已经填好了")])
+        let reopened = try NativeStore(directory: store.records.directory, freeLimit: 1)
+        XCTAssertEqual(reopened.state["xiaoda"]["intent"]["name"].string, "名字已经填好了")
+        XCTAssertEqual(try reopened.call("finishHouseAction")["kind"].string, "create")
+        _ = try reopened.add(reopened.state["xiaoda"]["intent"]["name"].string)
+        XCTAssertEqual(reopened.houses.first?.name, "名字已经填好了")
+        XCTAssertEqual(reopened.state["xiaoda"]["intent"], .null)
+    }
     func testNineMediaBatchPreservesOrderAndRejectsPartialWrites() throws {
         let store = try makeStore(), id = try store.add("多选影像")
         let items: [JSONValue] = (0..<9).map { index in .object(["id": .string("m\(index)"), "type": .string(index % 2 == 0 ? "image" : "video"), "path": .string("media/\(index).jpg")]) }

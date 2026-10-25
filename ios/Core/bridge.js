@@ -43,8 +43,8 @@ function appendMedia(h, value) {
   if (value.fieldId && !model.checklistTargets(h).some(f => f.id === value.fieldId)) throw Error('检查项不存在');
   h.media.push(value);
 }
-function execute({operation, id, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds}) {
-  if (Object.hasOwn(inspectionActions, operation)) return inspectionActions[operation](store, {id,property,value});
+function execute({operation, id, name, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds}) {
+  if (Object.hasOwn(inspectionActions, operation)) return inspectionActions[operation](store, {id,name,property,value});
   switch (operation) {
     case 'snapshot': return null;
     case 'setPacks': {

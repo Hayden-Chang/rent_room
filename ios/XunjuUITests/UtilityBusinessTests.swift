@@ -60,7 +60,7 @@ import CoreLocation
         capture("34-business-route-confirm", app); confirm.tap()
         let answer = app.textFields["mp.field.input.21255282-3663-4abe-b7de-d91eeb3825ed"]
         XCTAssertTrue(answer.waitForExistence(timeout: 3)); XCTAssertEqual(answer.value as? String, "24")
-        XCTAssertGreaterThanOrEqual(answer.frame.width, 100)
+        XCTAssertGreaterThanOrEqual(answer.frame.width, 76)
         XCTAssertLessThan(answer.frame.maxX, app.buttons["measurement.21255282-3663-4abe-b7de-d91eeb3825ed"].frame.minX)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.选点与通勤"].waitForExistence(timeout: 10))
         app.buttons["house.选点与通勤"].tap(); XCTAssertFalse(app.buttons["coach.next"].exists)

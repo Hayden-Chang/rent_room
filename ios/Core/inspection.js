@@ -74,10 +74,10 @@ export const inspectionActions = {
     return store.change(state => { state.settings.selectedTemplate = value; }, true);
   },
   checkCapacity(store) { return store.checkCapacity(); },
-  beginHouseAction(store, {value, id = ''}) {
+  beginHouseAction(store, {value, id = '', name = ''}) {
     if (!['create','restore'].includes(value)) throw Error('房源操作无效');
     if (value === 'restore' && !store.house(id)?.archived) throw Error('房源不在归档中');
-    store.change(state => { state.xiaoda.intent = {id:uid(),kind:value,houseId:id}; }, true);
+    store.change(state => { state.xiaoda.intent = {id:uid(),kind:value,houseId:id,...(value === 'create' && typeof name === 'string' && name.trim() ? {name:name.trim().slice(0,100)} : {})}; }, true);
     return store.capacity();
   },
   cancelHouseAction(store) { return store.change(state => { delete state.xiaoda.intent; }, true); },

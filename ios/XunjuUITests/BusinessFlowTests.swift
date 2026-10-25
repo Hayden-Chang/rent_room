@@ -281,7 +281,7 @@ import XCTest
         let note = app.textViews["mp.note.text"]; XCTAssertTrue(note.waitForExistence(timeout: 3)); note.tap(); note.typeText("核实固定车位")
         app.buttons["保存备注"].tap(); XCTAssertTrue(app.buttons["核实固定车位"].waitForExistence(timeout: 3))
         let absence = app.buttons["mp.field.choice." + groupID + ".不涉及"]; reveal(absence, app); absence.tap()
-        XCTAssertTrue(absence.isSelected); XCTAssertFalse(fee.exists); capture("67-business-group-not-applicable", app)
+        XCTAssertTrue(absence.isSelected); XCTAssertEqual(fee.value as? String, "150", "停车费用在费用与付款中独立保留"); capture("67-business-group-not-applicable", app)
         absence.tap(); reveal(fee, app); XCTAssertEqual(fee.value as? String, "150")
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.分组业务"].waitForExistence(timeout: 10)); app.buttons["house.分组业务"].tap()
         query.tap(); query.typeText("停车"); app.buttons["checklist.keyboard.done"].tap()
@@ -331,16 +331,23 @@ import XCTest
         camera.tap()
         let unavailable = app.alerts["无法添加影像"]
         let cameraClose = app.buttons["DismissImagePickerButton"]
-        let cameraReady = expectation(for: NSPredicate { _, _ in cameraClose.exists || unavailable.exists }, evaluatedWith: app)
+        let cameraReady = expectation(for: NSPredicate { _, _ in cameraClose.exists || unavailable.exists || !library.exists }, evaluatedWith: app)
         XCTAssertEqual(XCTWaiter.wait(for: [cameraReady], timeout: 5), .completed)
         if cameraClose.exists {
             XCTAssertTrue(cameraClose.isHittable)
             capture("media-source-system-camera", app); cameraClose.tap()
             XCTAssertTrue(cameraClose.waitForNonExistence(timeout: 3))
-        } else {
+        } else if unavailable.exists {
             XCTAssertTrue(unavailable.staticTexts["当前设备没有可用相机"].exists)
             capture("media-source-camera-unavailable", app); unavailable.buttons["知道了"].tap()
+        } else {
+            // iOS 18 simulator camera renders the native cancel control but
+            // returns an empty remote accessibility tree. Grounded in run-09's
+            // screen recording: Cancel is at 8% width / 91% height.
+            capture("media-source-system-camera-remote", app)
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.91)).tap()
         }
+        XCTAssertTrue(library.waitForExistence(timeout: 5))
         XCTAssertTrue(library.isHittable)
         menu.buttons["取消"].tap(); XCTAssertTrue(library.waitForNonExistence(timeout: 3))
         XCTAssertTrue(app.textFields["issueEditor.title"].exists)
@@ -363,7 +370,7 @@ import XCTest
     }
     func testExportSelectedHousePreparesRealZIPBeforeShare() {
         let app = launch(); add("原生备份房源", app); home(app); app.buttons["tab.我的"].tap()
-        let entry = app.buttons["settings.export"]; if !entry.isHittable { app.swipeUp() }; entry.tap()
+        let entry = app.buttons["settings.export"]; reveal(entry, app); entry.tap()
         let select = app.switches["backup.select.原生备份房源"]; XCTAssertTrue(select.waitForExistence(timeout: 3))
         app.buttons["backup.commit"].tap()
         XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10))

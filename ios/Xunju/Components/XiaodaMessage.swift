@@ -108,13 +108,3 @@ private struct XiaodaTutorialHeight: PreferenceKey {
     static let defaultValue: CGFloat = 330
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
-
-struct InspectionInteractionKey: EnvironmentKey {
-    static let defaultValue: @MainActor @Sendable (String, Bool?) -> Void = { _, _ in }
-}
-extension EnvironmentValues {
-    var inspectionInteraction: @MainActor @Sendable (String, Bool?) -> Void {
-        get { self[InspectionInteractionKey.self] }
-        set { self[InspectionInteractionKey.self] = newValue }
-    }
-}

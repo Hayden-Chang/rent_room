@@ -9,7 +9,7 @@ struct InspectionFieldRow: View {
     var hideDivider = false
     var editNote: ((JSONValue) -> Void)? = nil
     @Environment(\.wheelInput) private var wheelInput
-    @Environment(\.inspectionInteraction) private var interaction
+    var interaction: (String, Bool?) -> Void = { _, _ in }
     @State private var noteText = ""
     @State private var noteError = ""
     @State private var editingNote = false
@@ -30,10 +30,11 @@ struct InspectionFieldRow: View {
                         workspace.perform { try ChecklistPresentation.write(value, from: field, houseID: houseID, store: workspace.store) }
                     }), readonly: readonly, coordinator: coordinator,
                     note: {
+                        interaction(field.id, nil)
                         if let editNote { editNote(field) }
                         else { noteText = field["note"].string; noteError = ""; editingNote = true }
-                    }, capture: { picking = true }, measurement: measurement,
-                    wheel: { wheelInput?.open(houseID: houseID, field: field, store: workspace.store) })
+                    }, capture: { interaction(field.id, nil); picking = true }, measurement: measurement,
+                    wheel: { interaction(field.id, nil); wheelInput?.open(houseID: houseID, field: field, store: workspace.store) }, interaction: interaction)
             }
             FieldRelatedMedia(workspace: workspace, houseID: houseID, fieldID: field.id)
         }.fullScreenCover(isPresented: $editingNote) {
@@ -50,8 +51,8 @@ struct InspectionFieldRow: View {
             .navigationDestination(isPresented: $speed) { SpeedPage(workspace: workspace, houseID: houseID).id(speedVisit) }
     }
     private var measurement: MeasurementAction? {
-        if UtilityField.mode(field.id) != nil { return MeasurementAction(kind: .commute) { commute = true } }
-        if field.id == UtilityField.speed { return MeasurementAction(kind: .speed) { speedVisit = UUID(); speed = true } }
+        if UtilityField.mode(field.id) != nil { return MeasurementAction(kind: .commute) { interaction(field.id, nil); commute = true } }
+        if field.id == UtilityField.speed { return MeasurementAction(kind: .speed) { interaction(field.id, nil); speedVisit = UUID(); speed = true } }
         return nil
     }
 }

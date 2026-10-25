@@ -80,16 +80,19 @@ private struct InspectionTemplatePage: View {
     @State private var draft = InspectionTemplateDraft(order: [])
     @State private var original = InspectionTemplateDraft(order: [])
     @State private var leaving = false
+    @State private var error = ""
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ScrollView { InspectionTemplateEditor(draft: $draft).padding(20) }
             .background(.white).navigationTitle(mode.title).navigationBarTitleDisplayMode(.inline)
             .interactiveDismissDisabled(draft != original)
+            .safeAreaInset(edge: .bottom) { if !error.isEmpty { Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger).padding(16).background(.white).accessibilityIdentifier("template.error") } }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("返回") { if draft != original { leaving = true } else { dismiss() } } }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
-                        if workspace.perform({ try workspace.store.call("templateSave", ["value": .object(["mode": .string(mode.rawValue), "config": draft.json])]) }) { dismiss() }
+                        do { try workspace.store.call("templateSave", ["value": .object(["mode": .string(mode.rawValue), "config": draft.json])]); dismiss() }
+                        catch { self.error = error.localizedDescription }
                     }.accessibilityIdentifier("template.save")
                 }
             }

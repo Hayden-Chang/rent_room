@@ -80,10 +80,11 @@ struct ChecklistPage: View {
     @State private var returnOffset: CGFloat?
     @State private var scrollPosition = NativeScrollPosition()
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.wheelInput) private var wheelInput
     private var viewKey: String { phase + "|" + query + "|" + filters.sorted().joined(separator: ",") }
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
     private var stats: InspectionStats? { workspace.store.houses.first { $0.id == id }?.stats }
-    private var prompt: JSONValue { isActive && !showCoach && editingField == nil && note == nil && cost == nil && mediaTarget == nil ? visiblePrompt : .null }
+    private var prompt: JSONValue { canPresentGuide ? visiblePrompt : .null }
 
     var body: some View {
         MPChecklistSurface(done: stats?.done ?? 0, total: stats?.total ?? 0, issues: stats?.issues ?? 0,
@@ -121,7 +122,6 @@ struct ChecklistPage: View {
                 }
             }
         }
-            .environment(\.inspectionInteraction, interaction)
             .fullScreenCover(item: $note) { target in
                 MPNoteSheet(title: target.title + " · 备注", text: $noteText, readonly: readonly, error: noteError,
                     close: { note = nil }, save: { saveNote(target) })
@@ -159,7 +159,11 @@ struct ChecklistPage: View {
                 do { try await Task.sleep(for: .milliseconds(20)) } catch { return }
                 scrollTarget = "xiaoda.guide"
             }
-            .onChange(of: viewKey) { coordinator.close(); refresh() }
+            .onChange(of: viewKey) {
+                coordinator.close()
+                if !showCoach && guidance["prompt"] != .null { interaction("view", nil); visiblePrompt = .null; returnOffset = nil }
+                refresh()
+            }
             .onChange(of: workspace.store.status.revision) { refresh() }
             .fullScreenCover(isPresented: Binding(get: { mediaTarget != nil }, set: { if !$0 { mediaTarget = nil } })) {
                 if let mediaTarget { MediaPickerSheet(workspace: workspace, houseID: id, fieldID: mediaTarget) }
@@ -175,7 +179,7 @@ struct ChecklistPage: View {
                 group(groupRow, operation: "result", value: new.selected.first ?? old.selected.first ?? "")
             } else if new.expanded != old.expanded { setFold(foldKey, new.expanded) }
         }), readonly: readonly, coordinator: coordinator,
-            note: { openNote(field) }, capture: { mediaTarget = field.id })
+            note: { openNote(field) }, capture: { interaction(field.id, nil); mediaTarget = field.id }, interaction: interaction)
     }
     @ViewBuilder private func checklistRow(_ row: JSONValue, hideDivider: Bool) -> some View {
         if row["kind"].string == "add-cost" {
@@ -189,7 +193,7 @@ struct ChecklistPage: View {
                 FieldRelatedMedia(workspace: workspace, houseID: id, fieldID: row["swipe"].id)
             }
         } else {
-            InspectionFieldRow(workspace: workspace, houseID: id, field: row, coordinator: coordinator, hideDivider: hideDivider, editNote: openNote)
+            InspectionFieldRow(workspace: workspace, houseID: id, field: row, coordinator: coordinator, hideDivider: hideDivider, editNote: openNote, interaction: interaction)
         }
     }
     private func saveNote(_ target: NoteTarget) {
@@ -219,7 +223,7 @@ struct ChecklistPage: View {
             workspace.perform { try workspace.store.answer(id, field: field.id, property: "issueFlag", value: .bool(value)) }
         })
     }
-    private func openNote(_ field: JSONValue) { noteText = field["note"].string; noteError = ""; note = NoteTarget(id: field.id, title: field["label"].string) }
+    private func openNote(_ field: JSONValue) { interaction(field.id, nil); noteText = field["note"].string; noteError = ""; note = NoteTarget(id: field.id, title: field["label"].string) }
     private func setFold(_ key: String, _ value: Bool) { folds[viewKey, default: [:]][key] = value; refresh() }
     private func refresh() {
         workspace.perform {
@@ -248,7 +252,7 @@ struct ChecklistPage: View {
             if !showCoach { coordinator.close(); if let saved = coachSavedFolds { folds = saved; coachSavedFolds = nil }; refresh(); scrollTarget = "xiaoda.guide" }
         }
     }
-    private var canPresentGuide: Bool { isActive && !showCoach && editingField == nil && note == nil && cost == nil && mediaTarget == nil }
+    private var canPresentGuide: Bool { isActive && !showCoach && editingField == nil && note == nil && cost == nil && mediaTarget == nil && wheelInput?.target == nil }
     private var guidanceToken: String { guidance["prompt"]["id"].string + "|" + String(canPresentGuide) }
     private func dismissGuidance() {
         if visiblePrompt != .null { workspace.perform { try workspace.store.call("guideAction", ["id": .string(id), "value": .string("later")]) } }

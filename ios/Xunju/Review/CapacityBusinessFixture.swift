@@ -7,7 +7,7 @@ enum CapacityBusinessFixture {
     static func mode(arguments: [String] = ProcessInfo.processInfo.arguments) -> String? {
         guard let test = arguments.firstIndex(of: "--business-test"), arguments.indices.contains(test + 1), UUID(uuidString: arguments[test + 1]) != nil,
               let index = arguments.firstIndex(of: "--capacity-business-fixture"), arguments.indices.contains(index + 1),
-              ["pending", "refund", "unavailable"].contains(arguments[index + 1]) else { return nil }
+              ["pending", "refund", "unavailable", "zero"].contains(arguments[index + 1]) else { return nil }
         return arguments[index + 1]
     }
     @MainActor static func workspace(root: URL, mode: String) throws -> AppWorkspace {
@@ -18,6 +18,15 @@ enum CapacityBusinessFixture {
         try workspace.accept(LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "phone", expiresIn: 7200, packs: packs, limit: 2 + 10 * packs))
         if mode == "refund", workspace.store.houses.isEmpty {
             for i in 1...3 { _ = try workspace.store.add("退款保留\(i)") }
+        }
+        if mode == "zero" {
+            if workspace.store.houses.isEmpty {
+                try workspace.acceptPolicy(CapacityPolicy(version: 2, freeLimit: 2))
+                _ = try workspace.store.add("超额保留")
+                let archived = try workspace.store.add("零额度待恢复")
+                try workspace.store.archive(archived, archived: true)
+            }
+            try workspace.acceptPolicy(CapacityPolicy(version: 2, freeLimit: 0))
         }
         return workspace
     }
@@ -51,7 +60,9 @@ private actor CapacityFixtureHTTP: AuthTransport {
         }
         try JSONEncoder().encode(state).write(to: file, options: .atomic)
         if status == 200 {
-            value.merge(["account": String(repeating: "a", count: 64), "environment": "Sandbox", "packs": state.packs, "limit": 2 + 10 * state.packs, "revision": state.revision]) { _, new in new }
+            let free = mode == "zero" ? 0 : 1
+            value.merge(["account": String(repeating: "a", count: 64), "environment": "Sandbox", "packs": state.packs, "limit": free + 10 * state.packs, "revision": state.revision,
+                         "capacity": ["version": 2, "freeLimit": free]]) { _, new in new }
         }
         return HTTPPayload(data: try JSONSerialization.data(withJSONObject: value), status: status)
     }

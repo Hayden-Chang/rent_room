@@ -62,4 +62,42 @@ import XCTest
         reopened.navigationBars.buttons.element(boundBy: 0).tap(); reopened.buttons["tab.房源"].tap()
         for i in 1...3 { XCTAssertTrue(reopened.staticTexts["退款保留\(i)"].exists) }
     }
+    func testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore() {
+        let id = UUID().uuidString, app = launch(id, mode: "zero")
+        idle(app); waitTotal("1 / 0 套", app)
+        app.navigationBars.buttons.element(boundBy: 0).tap(); app.buttons["tab.房源"].tap()
+        app.buttons["house.超额保留"].tap()
+        let query = app.textFields["mp.checklist.search"]
+        XCTAssertTrue(query.waitForExistence(timeout: 5)); query.tap(); query.typeText("月租金"); app.buttons["checklist.keyboard.done"].tap()
+        let rent = app.textFields["mp.field.input.f1_6"]; XCTAssertTrue(rent.waitForExistence(timeout: 3))
+        rent.replacePromptText("1800"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertEqual(rent.value as? String, "1800")
+        app.navigationBars.buttons.element(boundBy: 0).tap(); app.buttons["home.add"].tap()
+        waitTotal("1 / 0 套", app); XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)
+        capture("business-zero-capacity-create-blocked", app)
+        app.navigationBars.buttons["返回"].tap(); app.buttons["tab.我的"].tap(); app.buttons["settings.archive"].tap()
+        app.buttons["archive.restore.零额度待恢复"].tap()
+        waitTotal("1 / 0 套", app); XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)
+        app.navigationBars.buttons["返回"].tap()
+        XCTAssertTrue(app.buttons["archive.open.零额度待恢复"].waitForExistence(timeout: 3))
+        app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.超额保留"].waitForExistence(timeout: 10)); app.buttons["house.超额保留"].tap()
+        query.tap(); query.typeText("月租金"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertEqual(rent.value as? String, "1800")
+    }
+    func testConfirmedRestoreContinuesInterruptedCreateWithoutAutoCreatingHouse() {
+        let app = launch(UUID().uuidString, mode: "pending")
+        idle(app); app.navigationBars.buttons.element(boundBy: 0).tap(); app.buttons["tab.房源"].tap()
+        app.buttons["home.add"].tap(); XCTAssertTrue(app.textFields["prompt.text"].waitForExistence(timeout: 3)); app.buttons["prompt.confirm"].tap()
+        XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5)); app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["home.add"].tap(); waitTotal("1 / 1 套", app); idle(app)
+        app.buttons["capacity.purchase"].tap(); XCTAssertTrue(app.staticTexts["capacity.pending"].waitForExistence(timeout: 5))
+        waitTotal("1 / 1 套", app); XCTAssertFalse(app.textFields["prompt.text"].exists)
+        app.buttons["capacity.restore"].tap()
+        let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 12))
+        XCTAssertEqual(name.value as? String, "第2套")
+        capture("business-capacity-resumes-original-create", app)
+        app.buttons["取消"].tap()
+        XCTAssertTrue(app.buttons["house.第1套"].waitForExistence(timeout: 3)); XCTAssertFalse(app.buttons["house.第2套"].exists)
+    }
+
 }

@@ -95,7 +95,6 @@ struct MPFieldState {
 }
 
 struct MPFieldRow: View {
-    @Environment(\.inspectionInteraction) private var interaction
     static let measurementWheelMinimumWidth: CGFloat = 100
     let item: MPFieldItem
     @Binding var state: MPFieldState
@@ -104,6 +103,7 @@ struct MPFieldRow: View {
     let note: () -> Void, capture: () -> Void
     var measurement: MeasurementAction? = nil
     var wheel: (() -> Void)? = nil
+    var interaction: (String, Bool?) -> Void = { _, _ in }
     @FocusState private var focused: Bool
     @State private var datePicker = false
     private var height: CGFloat { item.kind == .category ? 56 : item.heading ? 48 : 44 }
@@ -144,7 +144,7 @@ struct MPFieldRow: View {
                     .accessibilityIdentifier("mp.field.description.\(item.id)")
             }
             if state.selected.contains("其他") {
-                TextField(focused ? "" : "请填写其他内容", text: $state.otherText).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 44)
+                TextField(focused ? "" : "请填写其他内容", text: $state.otherText).focused($focused).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 44)
                     .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).padding(.top, 8).disabled(readonly)
                     .onChange(of: state.otherText) { state.otherText = String(state.otherText.prefix(2000)) }
                     .accessibilityIdentifier("mp.field.other.\(item.id)")

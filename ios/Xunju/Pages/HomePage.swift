@@ -8,6 +8,7 @@ struct HomePage: View {
     @State private var newHouseID: String?
     @State private var capacity = false
     @State private var continueCreate = false
+    @State private var capacityAfterName = false
     @State private var feedback = false
     @State private var homeMessage = ""
     @State private var thankYou = false
@@ -59,8 +60,15 @@ struct HomePage: View {
             } })) {
                 if let id = path.last { HouseDetailPage(workspace: workspace, id: id, newHouse: newHouseID == id) }
             }
-            .sheet(isPresented: $adding) {
-                TextPrompt(title: "新建房源", placeholder: "填写房源名称", text: "第\(workspace.store.activeHouses.count + 1)套") { value in
+            .sheet(isPresented: $adding, onDismiss: {
+                if capacityAfterName { capacityAfterName = false; capacity = true }
+                else if path.isEmpty { workspace.perform { try workspace.store.call("cancelHouseAction") } }
+            }) {
+                TextPrompt(title: "新建房源", placeholder: "填写房源名称", text: workspace.store.state["xiaoda"]["intent"]["name"].string.isEmpty ? "第\(workspace.store.activeHouses.count + 1)套" : workspace.store.state["xiaoda"]["intent"]["name"].string) { value in
+                    if workspace.store.capacity.remaining == 0 {
+                        try workspace.store.call("beginHouseAction", ["value": .string("create"), "name": .string(value)])
+                        capacityAfterName = true; return
+                    }
                     let id = try workspace.store.add(value); newHouseID = id; path = [id]
                 }
             }
