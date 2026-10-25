@@ -140,6 +140,7 @@ struct MPFieldRow: View {
             if !item.inline && !item.heading { answer.padding(.top, 6).allowsHitTesting(offset == 0) }
             if !item.description.isEmpty {
                 Text(item.description).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
                     .accessibilityIdentifier("mp.field.description.\(item.id)")
             }
