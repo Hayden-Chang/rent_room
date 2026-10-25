@@ -57,7 +57,8 @@ struct XiaodaGreeting: View {
 struct InspectionTemplateEditor: View {
     @Binding var draft: InspectionTemplateDraft
     @State private var error = ""
-    @State private var dropTarget: String?
+    @State private var frames: [String: CGRect] = [:]
+    @GestureState private var drag: TemplateDrag?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -67,7 +68,13 @@ struct InspectionTemplateEditor: View {
                         Image(systemName: "line.3.horizontal")
                             .font(.system(size: 20)).foregroundStyle(Color.gray)
                             .frame(width: 54, height: 64).contentShape(Rectangle())
-                            .draggable(title)
+                            .highPriorityGesture(DragGesture(minimumDistance: 5)
+                                .updating($drag) { value, state, _ in
+                                    state = TemplateDrag(title: title, translation: value.translation.height)
+                                }.onEnded { value in
+                                    let target = destination(TemplateDrag(title: title, translation: value.translation.height))
+                                    withAnimation(.easeInOut(duration: 0.18)) { draft.move(title, to: target) }
+                                })
                             .accessibilityLabel("拖动\(title)")
                             .accessibilityIdentifier("setup.drag.\(title)")
                             .accessibilityAction(named: "上移") { move(title, offset: -1) }
@@ -88,17 +95,16 @@ struct InspectionTemplateEditor: View {
                             .accessibilityIdentifier("setup.toggle.\(title)")
                     }
                     .frame(minHeight: 64)
-                    .background(dropTarget == title ? XJTheme.soft : draft.disabled.contains(title) ? XJTheme.background : .white)
-                    .dropDestination(for: String.self) { items, _ in
-                        guard items.count == 1, let item = items.first, draft.order.contains(item) else { return false }
-                        withAnimation(.easeInOut(duration: 0.18)) { draft.move(item, to: title) }
-                        return true
-                    } isTargeted: { targeted in
-                        if targeted { dropTarget = title } else if dropTarget == title { dropTarget = nil }
-                    }
+                    .background(drag?.title == title ? XJTheme.soft : draft.disabled.contains(title) ? XJTheme.background : .white)
+                    .background(GeometryReader { geometry in
+                        Color.clear.preference(key: TemplateFrames.self, value: [title: geometry.frame(in: .named("template.list"))])
+                    })
+                    .offset(y: offset(title)).zIndex(drag?.title == title ? 1 : 0)
                     if title != draft.order.last { Divider().overlay(SetupStyle.border) }
                 }
-            }.clipShape(RoundedRectangle(cornerRadius: 20))
+            }.coordinateSpace(name: "template.list")
+                .onPreferenceChange(TemplateFrames.self) { if drag == nil { frames = $0 } }
+                .clipShape(RoundedRectangle(cornerRadius: 20))
                 .overlay(RoundedRectangle(cornerRadius: 20).stroke(SetupStyle.border, lineWidth: 2))
             if !error.isEmpty {
                 Text(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12)
@@ -111,6 +117,28 @@ struct InspectionTemplateEditor: View {
         guard let index = draft.order.firstIndex(of: title), draft.order.indices.contains(index + offset) else { return }
         draft.move(title, to: draft.order[index + offset])
     }
+
+    private func destination(_ drag: TemplateDrag) -> String {
+        guard let start = frames[drag.title] else { return drag.title }
+        let center = start.midY + drag.translation
+        return draft.order.min { abs((frames[$0]?.midY ?? center) - center) < abs((frames[$1]?.midY ?? center) - center) } ?? drag.title
+    }
+
+    private func offset(_ title: String) -> CGFloat {
+        guard let drag, let from = draft.order.firstIndex(of: drag.title),
+              let to = draft.order.firstIndex(of: destination(drag)), let index = draft.order.firstIndex(of: title) else { return 0 }
+        if title == drag.title { return drag.translation }
+        let height = (frames[drag.title]?.height ?? 64) + 1
+        if from < to && index > from && index <= to { return -height }
+        if from > to && index >= to && index < from { return height }
+        return 0
+    }
+}
+
+private struct TemplateDrag: Equatable { let title: String; let translation: CGFloat }
+private struct TemplateFrames: PreferenceKey {
+    static let defaultValue: [String: CGRect] = [:]
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) { value.merge(nextValue(), uniquingKeysWith: { _, next in next }) }
 }
 
 struct InspectionModeChoice: View {
@@ -215,7 +243,7 @@ struct InspectionSetupSurface: View {
                     if choosingMode { InspectionModeChoice(selection: $mode) }
                     else { XiaodaGreeting(); InspectionTemplateEditor(draft: $draft) }
                 }.padding(20).frame(maxWidth: 680).frame(maxWidth: .infinity)
-            }.background(.white)
+            }.background(.white).clipped()
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     HStack(spacing: 12) {
                         if choosingMode {
