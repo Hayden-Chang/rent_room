@@ -1,0 +1,1911 @@
+{
+  "mainBaseline": "1387070e42253676fed623a567b93f794b960ad6",
+  "priorPRHead": "a98cf9a3dadefdf6e7909c0edea5bbd40c1348dd",
+  "finalTestedCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+  "finalRuntime": "iPhone 14 Pro / iOS 18.3.1 simulator",
+  "postValidationChangePolicy": "Only documentation/evidence; production and test sources remain at finalTestedCommit.",
+  "testCoverage": {
+    "unitPassed": 62,
+    "uiWithApplicablePassedEvidence": 34,
+    "uiReusedByExactSourceEquivalence": 1
+  },
+  "sourceEquivalence": {
+    "baseline": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+    "final": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+    "identicalTrees": {
+      "ios/Xunju": "75eb64fa1ee42fcaeffc431b005f3fd69070e6f2",
+      "ios/Core": "71c49998d1473a164e14c30dd65ea88e333e41cd",
+      "apps/wechat": "b2d52baea2dfa0b9ed000229db34e0885f5b2f12"
+    },
+    "unchangedMethod": "InspectionBusinessUITests.testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition",
+    "passedRun": "xunju-business-20261025-15",
+    "diagnosticFailuresRetained": [
+      "xunju-business-20261025-16",
+      "xunju-business-20261025-17"
+    ],
+    "explanation": "A speculative line-height assertion used text that legitimately fits one line. Its assertion and one layout modifier were removed. An actual 45-character text is validated in run-18."
+  },
+  "runs": [
+    {
+      "runId": "xunju-business-20261025-01",
+      "sourceCommit": "3a9ecbc1709847881314fdb35225f3b00a6c6515",
+      "phase": "development",
+      "selectedUnitTests": 15,
+      "selectedUITests": 0,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-01.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-01.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-01.log"
+    },
+    {
+      "runId": "xunju-business-20261025-02",
+      "sourceCommit": "a358c76f96d8cffa3d95ac2abf7a63be0f0a3c66",
+      "phase": "development",
+      "selectedUnitTests": 15,
+      "selectedUITests": 0,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-02.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-02.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-02.log"
+    },
+    {
+      "runId": "xunju-business-20261025-03",
+      "sourceCommit": "8879c08136adaf22809b28ee73d41266de129c8d",
+      "phase": "development",
+      "selectedUnitTests": 15,
+      "selectedUITests": 0,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-03.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-03.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-03.log"
+    },
+    {
+      "runId": "xunju-business-20261025-04",
+      "sourceCommit": "00d9d42ec35900cc4a0d1f463038025a8786d7db",
+      "phase": "development",
+      "selectedUnitTests": 15,
+      "selectedUITests": 0,
+      "exitCode": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-04.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-04.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-04.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 15,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792919508.755,
+        "passedTests": 15,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1792919499.269,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 15
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-05",
+      "sourceCommit": "8aae467df33604820462a89f5d70e394434f78df",
+      "phase": "development",
+      "selectedUnitTests": 0,
+      "selectedUITests": 2,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-05.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-05.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-05.log"
+    },
+    {
+      "runId": "xunju-business-20261025-06",
+      "sourceCommit": "f2868d36125a1e8eeddd302b72337d987acaeb47",
+      "phase": "development",
+      "selectedUnitTests": 0,
+      "selectedUITests": 2,
+      "exitCode": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-06.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-06.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-06.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 2,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792919976.591,
+        "passedTests": 2,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1792919846.04,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 2
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-07",
+      "sourceCommit": "6214acd7bc344444b9bf2fa343e47c09449f9598",
+      "phase": "development",
+      "selectedUnitTests": 60,
+      "selectedUITests": 5,
+      "exitCode": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-07.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-07.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-07.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 65,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792920453.857,
+        "passedTests": 65,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1792920241.265,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [
+          {
+            "category": "Longest Test Runs",
+            "impact": "32% of duration",
+            "text": "1 longest test run with outlier durations exceeding 3.96s (three standard deviations)"
+          }
+        ],
+        "totalTestCount": 65
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-08",
+      "sourceCommit": "b77622ef28dda95eb4ddee6b956fa8753c2040b4",
+      "phase": "development",
+      "selectedUnitTests": 1,
+      "selectedUITests": 27,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-08.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-08.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-08.log"
+    },
+    {
+      "runId": "xunju-business-20261025-09",
+      "sourceCommit": "1ad21d9d06cd2335fb1574c1afb592de7fdd6ccb",
+      "phase": "development",
+      "selectedUnitTests": 1,
+      "selectedUITests": 27,
+      "exitCode": 73,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-09.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-09.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-09.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 7,
+            "passedTests": 13,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 7,
+        "finishTime": 1792921814.247,
+        "passedTests": 13,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1792920786.665,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "Failed to get matching snapshots: Timed out while evaluating UI query.",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 17,
+            "testIdentifierString": "SpeedBusinessTests/testDeclineAndCancelMeasurementKeepManualValue()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/SpeedBusinessTests/testDeclineAndCancelMeasurementKeepManualValue",
+            "testName": "testDeclineAndCancelMeasurementKeepManualValue()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 7,
+            "testIdentifierString": "BusinessFlowTests/testExportSelectedHousePreparesRealZIPBeforeShare()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/BusinessFlowTests/testExportSelectedHousePreparesRealZIPBeforeShare",
+            "testName": "testExportSelectedHousePreparesRealZIPBeforeShare()"
+          },
+          {
+            "failureText": "XCTAssertFalse failed",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 8,
+            "testIdentifierString": "BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails",
+            "testName": "testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails()"
+          },
+          {
+            "failureText": "Testing was canceled",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 20,
+            "testIdentifierString": "UtilityBusinessTests/testLiveSystemPlaceSearchSelectionAndRelaunch()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/UtilityBusinessTests/testLiveSystemPlaceSearchSelectionAndRelaunch",
+            "testName": "testLiveSystemPlaceSearchSelectionAndRelaunch()"
+          },
+          {
+            "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 12,
+            "testIdentifierString": "BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints",
+            "testName": "testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints()"
+          },
+          {
+            "failureText": "Failed to get matching snapshots: Timed out while evaluating UI query.",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 18,
+            "testIdentifierString": "SpeedBusinessTests/testMobileConsentAutofillsAndPersistsAfterRelaunch()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/SpeedBusinessTests/testMobileConsentAutofillsAndPersistsAfterRelaunch",
+            "testName": "testMobileConsentAutofillsAndPersistsAfterRelaunch()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 16,
+            "testIdentifierString": "ElevatorRatioUITests/testRatioChoicesAutomaticIssueAndRelaunch()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/ElevatorRatioUITests/testRatioChoicesAutomaticIssueAndRelaunch",
+            "testName": "testRatioChoicesAutomaticIssueAndRelaunch()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [
+          {
+            "category": "Common Failures",
+            "impact": "28% of failures",
+            "text": "2 runs of 2 tests failed with Failed to get matching snapshots: Timed out while evaluating UI query."
+          }
+        ],
+        "totalTestCount": 20
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-10",
+      "sourceCommit": "83e6fd14b5f2a269cc3acb4238db04273bdace40",
+      "phase": "development",
+      "selectedUnitTests": 1,
+      "selectedUITests": 8,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-10.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-10.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-10.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 4,
+            "passedTests": 5,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 4,
+        "finishTime": 1792922577.208,
+        "passedTests": 5,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1792922060.227,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "Failed to get matching snapshots: Timed out while evaluating UI query.",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 8,
+            "testIdentifierString": "SpeedBusinessTests/testDeclineAndCancelMeasurementKeepManualValue()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/SpeedBusinessTests/testDeclineAndCancelMeasurementKeepManualValue",
+            "testName": "testDeclineAndCancelMeasurementKeepManualValue()"
+          },
+          {
+            "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 4,
+            "testIdentifierString": "BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints",
+            "testName": "testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints()"
+          },
+          {
+            "failureText": "Failed to get matching snapshots: Timed out while evaluating UI query.",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 9,
+            "testIdentifierString": "SpeedBusinessTests/testMobileConsentAutofillsAndPersistsAfterRelaunch()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/SpeedBusinessTests/testMobileConsentAutofillsAndPersistsAfterRelaunch",
+            "testName": "testMobileConsentAutofillsAndPersistsAfterRelaunch()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 6,
+            "testIdentifierString": "CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore",
+            "testName": "testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [
+          {
+            "category": "Common Failures",
+            "impact": "50% of failures",
+            "text": "2 runs of 2 tests failed with Failed to get matching snapshots: Timed out while evaluating UI query."
+          }
+        ],
+        "totalTestCount": 9
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-11",
+      "sourceCommit": "534e7bd428f3be913063fca9d09f53f8ef794988",
+      "phase": "development",
+      "selectedUnitTests": 0,
+      "selectedUITests": 3,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-11.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-11.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-11.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 2,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1792922876.336,
+        "passedTests": 2,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1792922620.185,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "Failed to get matching snapshots: Timed out while evaluating UI query.",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 3,
+            "testIdentifierString": "SpeedBusinessTests/testDeclineAndCancelMeasurementKeepManualValue()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/SpeedBusinessTests/testDeclineAndCancelMeasurementKeepManualValue",
+            "testName": "testDeclineAndCancelMeasurementKeepManualValue()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 3
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-12",
+      "sourceCommit": "125e2b6af56c480c174b1e9f482f315fce052ab5",
+      "phase": "development",
+      "selectedUnitTests": 0,
+      "selectedUITests": 1,
+      "exitCode": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-12.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-12.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-12.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 1,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792922979.873,
+        "passedTests": 1,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1792922921.508,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 1
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-13",
+      "sourceCommit": "125e2b6af56c480c174b1e9f482f315fce052ab5",
+      "phase": "development",
+      "selectedUnitTests": 0,
+      "selectedUITests": 14,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-13.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-13.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-13.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 13,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1792923615.187,
+        "passedTests": 13,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1792923056.116,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertEqual failed: (\"Optional(\"012\")\") is not equal to (\"Optional(\"0\")\")",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 10,
+            "testIdentifierString": "WheelBusinessUITests/testManualFloorAndOrientationOtherPersistAfterRelaunch()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/WheelBusinessUITests/testManualFloorAndOrientationOtherPersistAfterRelaunch",
+            "testName": "testManualFloorAndOrientationOtherPersistAfterRelaunch()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 14
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-14",
+      "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+      "phase": "development",
+      "selectedUnitTests": 0,
+      "selectedUITests": 1,
+      "exitCode": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-14.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-14.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-14.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 1,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792923761.155,
+        "passedTests": 1,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1792923709.686,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 1
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-15",
+      "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+      "phase": "final-pr-head",
+      "selectedUnitTests": 0,
+      "selectedUITests": 3,
+      "exitCode": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-15.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-15.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-15.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 3,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792923983.367,
+        "passedTests": 3,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1792923806.009,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 3
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-16",
+      "sourceCommit": "e5de0f16b357921ae17b6886b75624c6b616346d",
+      "phase": "development",
+      "selectedUnitTests": 0,
+      "selectedUITests": 1,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-16.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-16.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-16.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 0,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1792924228.417,
+        "passedTests": 0,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1792924177.28,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertGreaterThan failed: (\"14.333333333333371\") is not greater than (\"20.0\") - Long checklist descriptions must wrap without clipping",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 1,
+            "testIdentifierString": "InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition",
+            "testName": "testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 1
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-17",
+      "sourceCommit": "df4bbc42972f892fbedf130334728c26cb631cd9",
+      "phase": "final-pr-head",
+      "selectedUnitTests": 0,
+      "selectedUITests": 3,
+      "exitCode": 65,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-17.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-17.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-17.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 2,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1792924463.695,
+        "passedTests": 2,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1792924291.215,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertGreaterThan failed: (\"14.333333333333371\") is not greater than (\"20.0\") - Long checklist descriptions must wrap without clipping",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 3,
+            "testIdentifierString": "InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition",
+            "testName": "testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 3
+      }
+    },
+    {
+      "runId": "xunju-business-20261025-18",
+      "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+      "phase": "final-pr-head",
+      "selectedUnitTests": 0,
+      "selectedUITests": 1,
+      "exitCode": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+      "buildResult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.build.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/validation/run-18.log",
+      "result": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 1,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1792924697.399,
+        "passedTests": 1,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1792924618.259,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 1
+      }
+    }
+  ],
+  "applicableTests": {
+    "XunjuTests/CapacityPolicyTests/testFeedbackRequiresMatchingServerReceipt": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityPolicyTests/testLoginAndBalanceAcceptVersionTwoZeroPolicyAndRejectMismatch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityPolicyTests/testPolicyAcceptsZeroAndValidatesTotalsWithoutInferringLegacyFreeQuota": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityPolicyTests/testPublicPolicyCacheSurvivesOfflineAndDoesNotExportIdentity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityPolicyTests/testPublicPolicyUsesVersionHeaderWithoutIdentity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testCompletionOnlyGuidesForwardAndDoesNotRepeatAfterClearing": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testGuideCloseScopesAndFeedbackRequestAreDurable": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testLegacySaveSkipsSetupAndRetainsDetailedSnapshot": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testNineMediaBatchPreservesOrderAndRejectsPartialWrites": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testNonePreservesHiddenValueAndCountsAsRecorded": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testSetupDraftStepAndSelectionSurviveRelaunch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testSimpleDescriptionResultsAndNotesCountOnce": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testTemplateChangesApplyOnlyToNewHouseSnapshots": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testTutorialRequiresActualSwipeAndResumesStoredStep": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testZeroCapacityKeepsOldRecordsAndRejectsNetNewImportOrRestore": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot": {
+      "status": "passed",
+      "run": "run-17"
+    },
+    "XunjuUITests/InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity": {
+      "status": "passed",
+      "run": "run-18"
+    },
+    "XunjuTests/AuthenticationAPITests/testAppleNonceAndTokenArePassedToServerAndRevokeUsesBearer": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/AuthenticationAPITests/testSMSChallengeAndSessionKeepServerIdentityContract": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/AuthenticationAPITests/testSMSFailuresDoNotCreateReceiptAndInvalidInputDoesNotSend": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testChoiceCommandRetainsMultipleValuesAndOtherDetailAcrossRelaunch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testCorruptSignedInAccountStillOpensRecoveryAndRetainsOriginalFile": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testGuestWorkspaceRelaunchRetainsRealRecordsAndScopes": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testImportCopyUsesNewIDKeepsOriginalAndFailsAtomicallyAtCapacity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testKeychainFailureDoesNotClaimGuestOrChangeCurrentStore": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testOnlyExplicitUUIDArgumentEnablesIsolatedBusinessDirectory": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testVerifiedLoginClaimLogoutAndSameAccountResumeKeepGuestPrivate": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityAPITests/testContextVerificationAndRestoreUseServerContractAndBearer": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityAPITests/testMalformedAndUnconfirmedResponsesCannotBecomeCapacity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testDuplicateForegroundAndBackgroundVerificationSharesOneGrantAndFinish": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testFixtureRequiresExplicitUUIDAndKnownMode": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testIdentityChangeDuringServerConfirmationCannotGrantOrFinish": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testKeychainFailureKeepsPurchaseUnfinishedUntilCapacityCacheCanBeSaved": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testRefundAndOlderSnapshotsKeepAllHousesAndRejectInconsistentOrForeignBalances": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testUnconfirmedPurchaseRetainsRecordsAndRestoresExactlyOnceAfterRelaunch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/ChecklistPresentationTests/testDividersAndFieldTypesMatchRealFormIncludingDynamicCosts": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/ChecklistPresentationTests/testEveryCategoryAndGroupFoldsOnlyItsDescendantsWithoutWritingAnswers": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/ChecklistPresentationTests/testSharedChoiceAdapterPreservesMultipleOtherAndFlagAcrossRelaunch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testClaimPreservesOverCapacityRecordsWithoutGrantingCapacity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testDuplicateHouseIDsReceiveNewIDWithoutOverwritingAccount": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testFailedMediaClaimRetainsJournalAndCanResumeOnce": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testFirstClaimKeepsGuestSettingsAndCopiesMediaWithoutChangingOriginal": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testGuestClaimIsIdempotentAndLogoutStartsFreshGuest": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testMalformedScopePointerAndMediaPathsNeverEscapeRoot": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testOtherHousesShowsReturnGuideBeforeLeavingAndStaleActionsDoNotDismissIt": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testCanonicalCatalogAndRoundTripRetainAnswersAndZero": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testConditionalGroupKeepsHiddenAnswersNotesAndProblemFlag": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testCorruptFileBlocksWritesAndRecoveryPreservesOriginal": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testImportIsAtomicAndPreservesGlobalSettings": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testIndependentIssueFlagFilteringAndCollapsedFormDoNotMutate": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testManualIssueAndSummaryComparisonPersist": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelBusinessTests/testCancelUntouchedLegacyAndReadonlyIdentityGuards": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelBusinessTests/testConfirmedAnswersReloadKeepAnnotationsOtherAndEmptyZero": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelBusinessTests/testRealFormRoutesNineWheelsAndKeepsMoneyManual": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelBusinessTests/testRemovedWheelsUseManualNumbersOrNativeChoices": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelInputTests/testDraftDistinguishesEmptyZeroAndNetChanges": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelInputTests/testHistoricalValuesAndFormerOtherAreNeverClamped": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelInputTests/testPolicyRangesFixedOptionsAndManualExclusions": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelInputTests/testReviewRequiresExplicitArgument": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition": {
+      "status": "passed-equivalent",
+      "run": "run-15",
+      "reason": "16/17 added an invalid multi-line assertion to a 26-character single-line text; the assertion and speculative layout modifier were removed. Current production trees and this entire test method exactly match the passing run-15 commit.",
+      "supersededDiagnosticRuns": [
+        "run-16",
+        "run-17"
+      ]
+    },
+    "XunjuUITests/InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuUITests/InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testReturningFixtureRequiresExplicitFlagAndValidIsolatedDirectory": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testAutomaticIssueInlineEditingRelatedFilesAndRelaunch": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testAutomaticNumericZeroAndArchiveReadOnly": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testCapacityInterruptionKeepsExistingHouse": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testCompareThenArchiveReadOnlyAndRestore": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testCreateAnswerSummaryAndRelaunchPersistence": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testExportSelectedHousePreparesRealZIPBeforeShare": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testManualIssueSaveResolveAndRelaunch": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testMediaEmptyStateAndSystemPickerCanCancel": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints": {
+      "status": "passed",
+      "run": "run-11"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testCancellationRefundAndUnavailableProductPreserveOverCapacityHouses": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testGuestCapacityOpensExistingLoginAndSMSFormWithoutRequestingCode": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testPendingPurchaseDoesNotGrantAndRestoresOnceAcrossProcessRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/ElevatorRatioUITests/testRatioChoicesAutomaticIssueAndRelaunch": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/SpeedBusinessTests/testDeclineAndCancelMeasurementKeepManualValue": {
+      "status": "passed",
+      "run": "run-12"
+    },
+    "XunjuUITests/SpeedBusinessTests/testMobileConsentAutofillsAndPersistsAfterRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/UtilityBusinessTests/testHouseMapReentryFocusAndAddressPersistAfterRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuTests/InspectionBusinessTests/testCreateIntentRetainsEnteredNameAcrossCapacityChangeAndRelaunch": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testConfirmedRestoreContinuesInterruptedCreateWithoutAutoCreatingHouse": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore": {
+      "status": "passed",
+      "run": "run-11"
+    },
+    "XunjuUITests/UtilityBusinessTests/testLiveSystemPlaceSearchSelectionAndRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/UtilityBusinessTests/testManualWorkplaceSaveAndClearSurviveRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/UtilityBusinessTests/testPlaceWorkplaceAndCommutePersistAfterRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/UtilityBusinessTests/testSystemLocationWithSimulatedPointCanSelectWorkplace": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/WheelBusinessUITests/testManualFloorAndOrientationOtherPersistAfterRelaunch": {
+      "status": "passed",
+      "run": "run-14"
+    },
+    "XunjuUITests/WheelBusinessUITests/testMonthsIssueEditingAndArchiveReadonly": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/WheelInputReviewTests/testAllNineRulesAndManualExceptions": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/WheelInputReviewTests/testDraftConfirmClearAndDiscard": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/WheelInputReviewTests/testExistingValuesAndFixedSuffix": {
+      "status": "passed",
+      "run": "run-13"
+    }
+  },
+  "rawLatestTests": {
+    "XunjuTests/CapacityPolicyTests/testFeedbackRequiresMatchingServerReceipt": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityPolicyTests/testLoginAndBalanceAcceptVersionTwoZeroPolicyAndRejectMismatch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityPolicyTests/testPolicyAcceptsZeroAndValidatesTotalsWithoutInferringLegacyFreeQuota": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityPolicyTests/testPublicPolicyCacheSurvivesOfflineAndDoesNotExportIdentity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityPolicyTests/testPublicPolicyUsesVersionHeaderWithoutIdentity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testCompletionOnlyGuidesForwardAndDoesNotRepeatAfterClearing": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testGuideCloseScopesAndFeedbackRequestAreDurable": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testLegacySaveSkipsSetupAndRetainsDetailedSnapshot": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testNineMediaBatchPreservesOrderAndRejectsPartialWrites": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testNonePreservesHiddenValueAndCountsAsRecorded": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testSetupDraftStepAndSelectionSurviveRelaunch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testSimpleDescriptionResultsAndNotesCountOnce": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testTemplateChangesApplyOnlyToNewHouseSnapshots": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testTutorialRequiresActualSwipeAndResumesStoredStep": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testZeroCapacityKeepsOldRecordsAndRejectsNetNewImportOrRestore": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot": {
+      "status": "passed",
+      "run": "run-17"
+    },
+    "XunjuUITests/InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity": {
+      "status": "passed",
+      "run": "run-18"
+    },
+    "XunjuTests/AuthenticationAPITests/testAppleNonceAndTokenArePassedToServerAndRevokeUsesBearer": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/AuthenticationAPITests/testSMSChallengeAndSessionKeepServerIdentityContract": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/AuthenticationAPITests/testSMSFailuresDoNotCreateReceiptAndInvalidInputDoesNotSend": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testChoiceCommandRetainsMultipleValuesAndOtherDetailAcrossRelaunch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testCorruptSignedInAccountStillOpensRecoveryAndRetainsOriginalFile": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testGuestWorkspaceRelaunchRetainsRealRecordsAndScopes": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testImportCopyUsesNewIDKeepsOriginalAndFailsAtomicallyAtCapacity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testKeychainFailureDoesNotClaimGuestOrChangeCurrentStore": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testOnlyExplicitUUIDArgumentEnablesIsolatedBusinessDirectory": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/BusinessIntegrationTests/testVerifiedLoginClaimLogoutAndSameAccountResumeKeepGuestPrivate": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityAPITests/testContextVerificationAndRestoreUseServerContractAndBearer": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityAPITests/testMalformedAndUnconfirmedResponsesCannotBecomeCapacity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testDuplicateForegroundAndBackgroundVerificationSharesOneGrantAndFinish": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testFixtureRequiresExplicitUUIDAndKnownMode": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testIdentityChangeDuringServerConfirmationCannotGrantOrFinish": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testKeychainFailureKeepsPurchaseUnfinishedUntilCapacityCacheCanBeSaved": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testRefundAndOlderSnapshotsKeepAllHousesAndRejectInconsistentOrForeignBalances": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/CapacityBusinessTests/testUnconfirmedPurchaseRetainsRecordsAndRestoresExactlyOnceAfterRelaunch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/ChecklistPresentationTests/testDividersAndFieldTypesMatchRealFormIncludingDynamicCosts": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/ChecklistPresentationTests/testEveryCategoryAndGroupFoldsOnlyItsDescendantsWithoutWritingAnswers": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/ChecklistPresentationTests/testSharedChoiceAdapterPreservesMultipleOtherAndFlagAcrossRelaunch": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testClaimPreservesOverCapacityRecordsWithoutGrantingCapacity": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testDuplicateHouseIDsReceiveNewIDWithoutOverwritingAccount": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testFailedMediaClaimRetainsJournalAndCanResumeOnce": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testFirstClaimKeepsGuestSettingsAndCopiesMediaWithoutChangingOriginal": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testGuestClaimIsIdempotentAndLogoutStartsFreshGuest": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/IdentityScopeTests/testMalformedScopePointerAndMediaPathsNeverEscapeRoot": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testOtherHousesShowsReturnGuideBeforeLeavingAndStaleActionsDoNotDismissIt": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testCanonicalCatalogAndRoundTripRetainAnswersAndZero": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testConditionalGroupKeepsHiddenAnswersNotesAndProblemFlag": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testCorruptFileBlocksWritesAndRecoveryPreservesOriginal": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testImportIsAtomicAndPreservesGlobalSettings": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testIndependentIssueFlagFilteringAndCollapsedFormDoNotMutate": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/NativeStoreTests/testManualIssueAndSummaryComparisonPersist": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelBusinessTests/testCancelUntouchedLegacyAndReadonlyIdentityGuards": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelBusinessTests/testConfirmedAnswersReloadKeepAnnotationsOtherAndEmptyZero": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelBusinessTests/testRealFormRoutesNineWheelsAndKeepsMoneyManual": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelBusinessTests/testRemovedWheelsUseManualNumbersOrNativeChoices": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelInputTests/testDraftDistinguishesEmptyZeroAndNetChanges": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelInputTests/testHistoricalValuesAndFormerOtherAreNeverClamped": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelInputTests/testPolicyRangesFixedOptionsAndManualExclusions": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/WheelInputTests/testReviewRequiresExplicitArgument": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition": {
+      "status": "failed",
+      "run": "run-17"
+    },
+    "XunjuUITests/InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuUITests/InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps": {
+      "status": "passed",
+      "run": "run-07"
+    },
+    "XunjuTests/InspectionBusinessTests/testReturningFixtureRequiresExplicitFlagAndValidIsolatedDirectory": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testAutomaticIssueInlineEditingRelatedFilesAndRelaunch": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testAutomaticNumericZeroAndArchiveReadOnly": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testCapacityInterruptionKeepsExistingHouse": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testCompareThenArchiveReadOnlyAndRestore": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testCreateAnswerSummaryAndRelaunchPersistence": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testExportSelectedHousePreparesRealZIPBeforeShare": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testManualIssueSaveResolveAndRelaunch": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testMediaEmptyStateAndSystemPickerCanCancel": {
+      "status": "passed",
+      "run": "run-09"
+    },
+    "XunjuUITests/BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints": {
+      "status": "passed",
+      "run": "run-11"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testCancellationRefundAndUnavailableProductPreserveOverCapacityHouses": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testGuestCapacityOpensExistingLoginAndSMSFormWithoutRequestingCode": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testPendingPurchaseDoesNotGrantAndRestoresOnceAcrossProcessRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/ElevatorRatioUITests/testRatioChoicesAutomaticIssueAndRelaunch": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/SpeedBusinessTests/testDeclineAndCancelMeasurementKeepManualValue": {
+      "status": "passed",
+      "run": "run-12"
+    },
+    "XunjuUITests/SpeedBusinessTests/testMobileConsentAutofillsAndPersistsAfterRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/UtilityBusinessTests/testHouseMapReentryFocusAndAddressPersistAfterRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuTests/InspectionBusinessTests/testCreateIntentRetainsEnteredNameAcrossCapacityChangeAndRelaunch": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testConfirmedRestoreContinuesInterruptedCreateWithoutAutoCreatingHouse": {
+      "status": "passed",
+      "run": "run-10"
+    },
+    "XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore": {
+      "status": "passed",
+      "run": "run-11"
+    },
+    "XunjuUITests/UtilityBusinessTests/testLiveSystemPlaceSearchSelectionAndRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/UtilityBusinessTests/testManualWorkplaceSaveAndClearSurviveRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/UtilityBusinessTests/testPlaceWorkplaceAndCommutePersistAfterRelaunch": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/UtilityBusinessTests/testSystemLocationWithSimulatedPointCanSelectWorkplace": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/WheelBusinessUITests/testManualFloorAndOrientationOtherPersistAfterRelaunch": {
+      "status": "passed",
+      "run": "run-14"
+    },
+    "XunjuUITests/WheelBusinessUITests/testMonthsIssueEditingAndArchiveReadonly": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/WheelInputReviewTests/testAllNineRulesAndManualExceptions": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/WheelInputReviewTests/testDraftConfirmClearAndDiscard": {
+      "status": "passed",
+      "run": "run-13"
+    },
+    "XunjuUITests/WheelInputReviewTests/testExistingValuesAndFixedSuffix": {
+      "status": "passed",
+      "run": "run-13"
+    }
+  },
+  "visualEvidence": {
+    "mainBaseline": "1387070e42253676fed623a567b93f794b960ad6",
+    "finalCodeCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+    "device": "iPhone 14 Pro simulator / iOS 18.3.1",
+    "unchangedOriginalPNG": true,
+    "businessVisualApproval": "pending",
+    "screenshots": [
+      {
+        "order": 1,
+        "file": "01-business-00.png",
+        "caption": "首次设置中断后继续，精简模式默认选中。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/0E228C2A-1EE3-4002-B9EE-F9857609ECF1.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "dd725443e57c5b9175668e21f3a90a60b26555df64fea730fed2dca27d1b3a87"
+      },
+      {
+        "order": 2,
+        "file": "02-business-01.png",
+        "caption": "三个看房阶段：完整展示教学文案。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/B5F1F400-0009-4082-96AE-9DF314F853ED.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "8c556b519fd87a877e189e1c593d918155a31250911b64666d1ccede9562aff0"
+      },
+      {
+        "order": 3,
+        "file": "03-business-02.png",
+        "caption": "筛选教学指向实际筛选区。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/4A22F110-5FB0-453F-8650-A9B7B827C231.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "2efe252d2e7bc3d7c956fd3c3309d4617d1bcf949b541da83b30f593030f412e"
+      },
+      {
+        "order": 4,
+        "file": "04-business-03.png",
+        "caption": "第三步需要实际左滑，不能直接点下一步。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/1EE8E6FF-256D-47E6-B6B3-EDB7614070C8.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "c522db1e6061ee07d31ee0ba984e2d2da20ae4aa0510069c8e80b322a1c4f8e9"
+      },
+      {
+        "order": 5,
+        "file": "05-business-04.png",
+        "caption": "真实左滑后展示备注与标记操作。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/6E6309E1-FB8B-4051-BFAB-4017CE981925.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "d66cce8de6bee11f6257148fe1106bc9a4c5ac9f44515703ef42f51f03b391a4"
+      },
+      {
+        "order": 6,
+        "file": "06-business-05.png",
+        "caption": "教学结束后接入真实清单的首次填写引导。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/3113F031-AEB0-4BE0-876C-3CE33D6D22A4.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "a3d5f2846df8d17418cd0672bc2688f445eacad62201d84139642cb89623f479"
+      },
+      {
+        "order": 7,
+        "file": "07-business-06.png",
+        "caption": "精简模式的说明、否选项与蓝色备注；问题状态不改变缩进。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/9DB09228-4B32-428B-9B4F-1BCDED013D84.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "ac2af407668d4e27b986cb1ed9a0099f2ad1d236d1205b3830596fb6d47c8f31"
+      },
+      {
+        "order": 8,
+        "file": "08-business-07.png",
+        "caption": "首次退出后的反馈草稿；用例重启核对所选答案，未提交真实反馈。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/F036FD8D-318C-442E-BA97-7F10D26FD1A4.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "1e3dbe0fc3dbbf20e52fe6c22e02074c0c0049b2155426dabb1dd88f83381707"
+      },
+      {
+        "order": 9,
+        "file": "09-business-08.png",
+        "caption": "第二套房源被默认免费 1 套容量限制；未发起真实购买。",
+        "sourceCommit": "7ab83c84a59566e066e3a8ff9e883da5daea2e90",
+        "runId": "xunju-business-20261025-18",
+        "testIdentifier": "InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-18/5E7F32E7-5D05-4F59-9AA1-D6FB40292F74.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-18.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "619f1fb8a6f45f296f620bdc2528516fa314901d5291f2a279a5f8cdd057b253"
+      },
+      {
+        "order": 10,
+        "file": "10-business-09.png",
+        "caption": "详细模式“缺少的家具”选择“无”；取消后恢复原输入。",
+        "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+        "runId": "xunju-business-20261025-15",
+        "testIdentifier": "InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-15/4C7F7A70-1F86-4C31-B424-A6207427F5BF.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-15.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "b7ca3a1b66e184d76cf9df4371e830095d082aadc980338bd57a63e65b5c39ab"
+      },
+      {
+        "order": 11,
+        "file": "11-business-10.png",
+        "caption": "新建房源采用修改后的独立精简模板，停用分类不再显示。",
+        "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+        "runId": "xunju-business-20261025-15",
+        "testIdentifier": "InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-15/310F30BA-A7AE-485D-9B32-B21C94495B88.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-15.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "9baf3480ff0026dce16f5bc2e7ffe60270f4a7ec7bfcfedd0acf47ef8b5b2a97"
+      },
+      {
+        "order": 12,
+        "file": "12-business-11.png",
+        "caption": "旧详细房源保持原模板和输入，归档后只读。",
+        "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+        "runId": "xunju-business-20261025-15",
+        "testIdentifier": "InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-15/DFA9A1C5-33C8-4F5B-B3AB-EA2D426CEF03.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-15.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "3e1e807b7b97b5dc98cebcf5f33f9ea5a34c9e239065fddf1a6aaacc2b73a957"
+      },
+      {
+        "order": 13,
+        "file": "13-business-12.png",
+        "caption": "拖动至底部并停留后自动滚动，首项移到末尾。",
+        "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+        "runId": "xunju-business-20261025-15",
+        "testIdentifier": "InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-15/4C54F969-F789-4191-BD8A-DE19A91FB7DE.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-15.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "e63b8f4c90021fe0e63851be081fd920b9e697ec234ce192ac96077845d55972"
+      },
+      {
+        "order": 14,
+        "file": "14-business-13.png",
+        "caption": "完成分类后，小搭引导继续填写后续内容。",
+        "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+        "runId": "xunju-business-20261025-15",
+        "testIdentifier": "InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-15/53827197-4B9F-4E92-81FC-4CC4DB20A820.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-15.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "02d9d4223bb50c190761be4a0eff8e36b0a843007440bcf9f7f416a14cdd52a2"
+      },
+      {
+        "order": 15,
+        "file": "15-business-14.png",
+        "caption": "选择“再等等”后恢复原阅读位置，用例核对偏差小于 2 点。",
+        "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+        "runId": "xunju-business-20261025-15",
+        "testIdentifier": "InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-15/1F78DFB4-077A-436C-9F1A-06803D38FBC4.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-15.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "d70d9253ee7f0a4c848455e51507e286db41c25995763a540401523382cd531f"
+      },
+      {
+        "order": 16,
+        "file": "16-business-zero-capacity-create-blocked.png",
+        "caption": "免费额度为 0：既有房源可编辑，新建/还原受限。价格与账户使用测试夹具。",
+        "sourceCommit": "534e7bd428f3be913063fca9d09f53f8ef794988",
+        "runId": "xunju-business-20261025-11",
+        "testIdentifier": "CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-11/029986A0-3088-4CF5-A182-13C0EC45B2E9.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-11.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "cd470aaae10162f272950581e5047c47598b1c1717f09269d334277deaa3741a"
+      },
+      {
+        "order": 17,
+        "file": "17-business-capacity-resumes-original-create.png",
+        "caption": "服务端确认扩容后续接原新建动作；仍须确认名称，取消不会多建。外部服务使用测试夹具。",
+        "sourceCommit": "83e6fd14b5f2a269cc3acb4238db04273bdace40",
+        "runId": "xunju-business-20261025-10",
+        "testIdentifier": "CapacityBusinessUITests/testConfirmedRestoreContinuesInterruptedCreateWithoutAutoCreatingHouse()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-10/11C87E85-3E0B-406D-82EC-4AA3EEA7953F.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-10.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "ab0d170a57c272ac946764bfc7300371d5004a6dd70b1b4c7217bd5959ac36ac"
+      },
+      {
+        "order": 18,
+        "file": "18-live-map-02-selected-collapsed.png",
+        "caption": "实际天地图检索公共地标并选中；候选区收起，地址重启后保留。",
+        "sourceCommit": "125e2b6af56c480c174b1e9f482f315fce052ab5",
+        "runId": "xunju-business-20261025-13",
+        "testIdentifier": "UtilityBusinessTests/testLiveSystemPlaceSearchSelectionAndRelaunch()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-13/B370B11C-A28C-4E8A-A47F-63856068518A.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-13.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "44ce49b9cc75186b05a2100f01ad2efcc7a40c876abd4e88f064995d04de2f59"
+      },
+      {
+        "order": 19,
+        "file": "19-live-map-05-both-commutes-persisted.png",
+        "caption": "实际天地图公交/驾车路线查询回填；两种通勤时间均经过重启核对。",
+        "sourceCommit": "125e2b6af56c480c174b1e9f482f315fce052ab5",
+        "runId": "xunju-business-20261025-13",
+        "testIdentifier": "UtilityBusinessTests/testLiveSystemPlaceSearchSelectionAndRelaunch()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-13/B631DAFC-0BD1-4E4A-8F55-3CD844990B5B.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-13.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "6e2a6e403cdec127faaf4e76666e2e673a111b954b6e9aa7f4f4fb3096384c14"
+      },
+      {
+        "order": 20,
+        "file": "20-app-form-zero-restored.png",
+        "caption": "数字键盘楼层输入：12 经原生选择替换为 0，失焦与重启后仍为 0。",
+        "sourceCommit": "38cb08b13a28449b252600d69ca9f35d5f5b0868",
+        "runId": "xunju-business-20261025-14",
+        "testIdentifier": "WheelBusinessUITests/testManualFloorAndOrientationOtherPersistAfterRelaunch()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-14/CFC462B7-31CC-4425-8622-EBCEE9F97057.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-14.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "891a92a5a6577ed2c6cf156ec9ab0b5a8e2e4418f4917ba3be1e7c3d7a161072"
+      },
+      {
+        "order": 21,
+        "file": "21-media-source-gallery.png",
+        "caption": "影像页打开系统来源菜单；相册和相机取消路径通过，未证明真机成片或真实 9 项多选。",
+        "sourceCommit": "534e7bd428f3be913063fca9d09f53f8ef794988",
+        "runId": "xunju-business-20261025-11",
+        "testIdentifier": "BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints()",
+        "originalAttachment": "/private/tmp/xunju-ios-business-20261025/attachments-11/0FF4D07B-764C-47E4-88E1-CBA90FE2B969.png",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-business-20261025-11.xcresult",
+        "width": 1178,
+        "height": 2556,
+        "sha256": "0bc0ee7526eab7493992d7837c357139e8d4e4440fd78e9fbb3ee71da5b15e77"
+      }
+    ]
+  },
+  "gallery": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-business-review/review.md",
+  "approval": {
+    "firstSetup": "approved by user on 2026-10-25",
+    "newBusinessVisuals": "pending",
+    "mergeOrRelease": "not authorized"
+  },
+  "remaining": [
+    "WeChat mobile AppID / Universal Link, SDK integration and backend support",
+    "Native phone/Apple and StoreKit backend PR model_server#87 is Draft and undeployed",
+    "Real StoreKit purchase/refund/restore/device migration",
+    "Physical-device media selection/capture, hardware speed/location, small-screen and large-text acceptance"
+  ]
+}
