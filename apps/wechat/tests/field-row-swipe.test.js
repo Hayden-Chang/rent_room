@@ -52,7 +52,7 @@ it('moving out and returning near the start does not open a closed tray',()=>{
 const timed=(x,timeStamp,y=50)=>({...point(x,y),timeStamp});
 it('a fast 12px left flick opens even when it ends before a move event',()=>{
  const c=factory()();c.start(timed(250,0));c.end(timed(238,25));
- expect(c.data.actions).toBe(true);expect(c.events).toEqual([]);
+ expect(c.data.actions).toBe(true);expect(c.events).toEqual([{name:'swipeopen',detail:{id:'f1'}}]);
 });
 it('a slow movement of the same distance stays closed',()=>{
  const c=factory()();c.start(timed(250,0));c.move(timed(238,200));c.end(timed(238,220));

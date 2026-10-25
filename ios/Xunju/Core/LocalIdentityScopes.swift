@@ -37,9 +37,9 @@ final class LocalIdentityScopes {
         return guest(id!)
     }
 
-    func claim(account: String, from source: NativeStore?, packs: Int = 0, network: any MapTransport = NativeMapTransport()) throws -> NativeStore {
+    func claim(account: String, from source: NativeStore?, packs: Int = 0, freeLimit: Int = 1, network: any MapTransport = NativeMapTransport()) throws -> NativeStore {
         let directory = try accountDirectory(account)
-        let target = try NativeStore(directory: directory, packs: packs, network: network)
+        let target = try NativeStore(directory: directory, packs: packs, freeLimit: freeLimit, network: network)
         guard !target.status.blocked else { throw CoreFailure(message: "账号记录读取失败，请先恢复记录") }
         let journal = directory.appendingPathComponent("guest-claim.json")
         if files.fileExists(atPath: journal.path) {
@@ -72,7 +72,7 @@ final class LocalIdentityScopes {
         try source.call("save")
         guard source.status.error.isEmpty else { throw CoreFailure(message: "本机内容尚未保存，请重试保存后再登录") }
         let defaults: JSONValue = .object(["template": .string("完整"), "hiddenFields": .array([]), "workplace": .string(""), "onboarding": .bool(true)])
-        if source.houses.isEmpty && source.state["settings"] == defaults { return }
+        if source.houses.isEmpty && source.state["settings"] == defaults && source.state["xiaoda"]["setup"].string == "sort" && source.state["xiaoda"]["draft"] == .null { return }
         let isNew = !files.fileExists(atPath: target.records.directory.appendingPathComponent("state.json").path)
         try JSONEncoder().encode(Journal(guest: id)).write(to: journal, options: .atomic)
         try JSONEncoder().encode(Owner(account: account)).write(to: sourceRoot.appendingPathComponent("account-owner.json"), options: .atomic)

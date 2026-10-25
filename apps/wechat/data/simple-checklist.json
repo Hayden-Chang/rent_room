@@ -1,0 +1,722 @@
+{
+  "version": 1,
+  "source": {
+    "url": "https://chatgpt.com/space/page_f978312f402881919e066ebe0d9bc4c1",
+    "sequence": 17
+  },
+  "items": [
+    {
+      "id": "simple_01",
+      "category": "周边与小区",
+      "label": "通勤时间合理",
+      "description": "公交地铁或开车通勤方便",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "672bfe92-65aa-47c9-9314-95697d095c8c"
+    },
+    {
+      "id": "simple_02",
+      "category": "周边与小区",
+      "label": "生活配套方便",
+      "description": "看看附近的超市、便利店、菜市场、餐饮、药店、医院和快递点是否方便到达，以及外卖能否送上楼。",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "a637b761-6d63-495b-8b32-2fadb2571fb8"
+    },
+    {
+      "id": "simple_03",
+      "category": "周边与小区",
+      "label": "电动车、汽车停车充电正常",
+      "description": "停车位充足、充电方便",
+      "options": [
+        "是",
+        "否",
+        "不涉及"
+      ],
+      "sourceBlock": "93eefbbf-744e-499a-812e-e98ece5381b6"
+    },
+    {
+      "id": "simple_04",
+      "category": "周边与小区",
+      "label": "门禁安保正常",
+      "description": "门禁正常、有公共监控、夜间照明正常、有保安",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "1fe8f595-541e-4232-aca6-47d151bcdb8f"
+    },
+    {
+      "id": "simple_05",
+      "category": "周边与小区",
+      "label": "回家路线安全",
+      "description": "夜间照明正常、无偏僻路段、周边治安正常",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "01d98c85-769b-430f-a166-00a441e043ae"
+    },
+    {
+      "id": "simple_06",
+      "category": "周边与小区",
+      "label": "楼道状况正常",
+      "description": "卫生整洁、无异味、照明正常",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "4afd408f-fb1e-4e30-8fd7-c2c1eb1c91d2"
+    },
+    {
+      "id": "simple_07",
+      "category": "周边与小区",
+      "label": "电梯使用正常",
+      "description": "运行和开门正常、维保记录正常",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "74cd114d-4501-4930-b6ca-30c2ddd20147"
+    },
+    {
+      "id": "simple_08",
+      "category": "周边与小区",
+      "label": "附近无施工",
+      "description": "",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "c4933371-5be2-4355-afbb-4572dfcbe6b6"
+    },
+    {
+      "id": "simple_09",
+      "category": "周边与小区",
+      "label": "垃圾站位置合适",
+      "description": "位置合理、远离卧室",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "5b50cda6-7938-4737-8c51-e9ebd2a54dd0"
+    },
+    {
+      "id": "simple_10",
+      "category": "周边与小区",
+      "label": "绿化与活动空间正常",
+      "description": "绿化较好、有锻炼空间",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "604a1db1-24f6-4d12-a8e8-3e865f105388"
+    },
+    {
+      "id": "simple_11",
+      "category": "室内环境",
+      "label": "自然采光充足",
+      "description": "白天关灯查看室内亮度和日照情况",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "ee0dbb83-d836-4f87-b8de-232f7f6407d4"
+    },
+    {
+      "id": "simple_12",
+      "category": "室内环境",
+      "label": "空气流通正常",
+      "description": "室内无异味，卧室、客厅、厨房、卫生间及晾晒位置通风正常",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "e8351ecc-05a0-48ca-ace1-a618cf58be56"
+    },
+    {
+      "id": "simple_13",
+      "category": "室内环境",
+      "label": "隔音与噪音正常",
+      "description": "室内外噪音小，门窗、墙体隔音效果好",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "5ef64551-fe2a-4dd6-b071-614c8823d07f"
+    },
+    {
+      "id": "simple_49",
+      "category": "室内环境",
+      "label": "无虫害鼠害",
+      "description": "水槽下、冰箱后、柜内、踢脚线、下水口及阳台无虫鼠痕迹",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "bd2c3aee-5b1e-442b-80da-de20ca0effd2"
+    },
+    {
+      "id": "simple_14",
+      "category": "墙面地面与门窗",
+      "label": "墙面与天花板正常",
+      "description": "无裂缝、发黄、掉皮鼓包、霉点或水印",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "4a4ab26e-106c-4761-bae8-e354c8357001"
+    },
+    {
+      "id": "simple_15",
+      "category": "墙面地面与门窗",
+      "label": "隐蔽位置无渗水或霉斑",
+      "description": "检查墙角、窗框、床底、沙发底和踢脚线",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "48d70829-5b11-440f-a916-b9e6a8c012b0"
+    },
+    {
+      "id": "simple_16",
+      "category": "墙面地面与门窗",
+      "label": "地面状况正常",
+      "description": "地板干燥平整、地砖无松动空鼓、地毯干净无异味",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "4c802b67-43d4-488f-87c9-81e0056d6c08"
+    },
+    {
+      "id": "simple_17",
+      "category": "墙面地面与门窗",
+      "label": "入户门正常",
+      "description": "猫眼、门锁、反锁、把手、密封正常，开关顺畅无异响",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "fa3217b7-9c1f-4797-91f1-11b8e3cc2d4c"
+    },
+    {
+      "id": "simple_18",
+      "category": "墙面地面与门窗",
+      "label": "窗户正常",
+      "description": "不与邻窗正对，锁扣、密封和纱窗正常，开关顺畅无异响",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "e30940e9-7331-4664-b92f-4d819afe6461"
+    },
+    {
+      "id": "simple_19",
+      "category": "墙面地面与门窗",
+      "label": "窗帘正常",
+      "description": "遮光正常、干净无异味、拉动顺畅",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "86e17833-9ac4-4d73-94cb-2f8252077516"
+    },
+    {
+      "id": "simple_20",
+      "category": "墙面地面与门窗",
+      "label": "阳台正常",
+      "description": "门窗正常、防盗可靠、晾晒条件合适",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "7d8e0c22-8479-49e4-9b67-01db78b815aa"
+    },
+    {
+      "id": "simple_21",
+      "category": "卫生间",
+      "label": "干湿分离",
+      "description": "",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "5928c9a4-e17d-4969-837f-29342b040f62"
+    },
+    {
+      "id": "simple_22",
+      "category": "卫生间",
+      "label": "地漏排水正常",
+      "description": "排水顺畅、淋浴地面无积水",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "f1353556-9089-4fd5-8483-dd966c4dbc92"
+    },
+    {
+      "id": "simple_23",
+      "category": "卫生间",
+      "label": "马桶正常",
+      "description": "冲水有力、无回流堵塞，蓄水和按钮正常、盖板稳固、水箱干净",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "cbeebf5c-17ec-4c6c-9349-a1aa01480f23"
+    },
+    {
+      "id": "simple_24",
+      "category": "卫生间",
+      "label": "花洒正常",
+      "description": "水压、出水、温度调节和各档位正常，无漏水",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "48607966-697c-491c-bc66-6d0b8568cc31"
+    },
+    {
+      "id": "simple_25",
+      "category": "卫生间",
+      "label": "排气扇正常",
+      "description": "启动和风量正常，无异响或卡顿",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "2aeb4fcd-e4e9-45e6-a687-68f52a7810fd"
+    },
+    {
+      "id": "simple_26",
+      "category": "厨房与水路",
+      "label": "冷热水切换正常",
+      "description": "各处冷热水切换顺畅、温度调节正常",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "9c4ece42-67a6-42fd-a3e1-279e4a401242"
+    },
+    {
+      "id": "simple_27",
+      "category": "厨房与水路",
+      "label": "水槽与水龙头正常",
+      "description": "水压足、水质清，无渗漏反味，水槽够用、排水顺畅，排水口无异味",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "e961e778-3c9d-40e1-a9be-c388e25bb370"
+    },
+    {
+      "id": "simple_28",
+      "category": "厨房与水路",
+      "label": "燃气与灶具正常",
+      "description": "已通燃气，点火、火力和软管外观正常",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "e1ddf20e-c169-4a5a-86f5-fbbb3d0cf9b7"
+    },
+    {
+      "id": "simple_29",
+      "category": "厨房与水路",
+      "label": "抽油烟机正常",
+      "description": "各档位、吸力和排烟正常，无异响、明显油污或漏油",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "366a2562-354b-4bd4-a490-0ee2bb142a94"
+    },
+    {
+      "id": "simple_30",
+      "category": "厨房与水路",
+      "label": "厨卫无霉斑",
+      "description": "瓷砖缝、天花板、柜内无霉斑或霉味",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "af3e098f-6295-47be-8293-110c0bc3cb41"
+    },
+    {
+      "id": "simple_31",
+      "category": "厨房与水路",
+      "label": "冬季水管防冻正常",
+      "description": "",
+      "options": [
+        "是",
+        "否",
+        "不涉及"
+      ],
+      "sourceBlock": "72b9b276-c3ba-43a0-91de-4a11827468ee"
+    },
+    {
+      "id": "simple_32",
+      "category": "卧室与家具收纳",
+      "label": "床正常",
+      "description": "尺寸合适、床板和排骨架完好、床架稳固无异响",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "94734e36-2024-4901-bfc0-c25d81068c4b"
+    },
+    {
+      "id": "simple_33",
+      "category": "卧室与家具收纳",
+      "label": "床垫正常",
+      "description": "无塌陷变形、污渍、异味或虫迹",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "f7694745-1e25-4448-9b5e-91f80206af87"
+    },
+    {
+      "id": "simple_34",
+      "category": "卧室与家具收纳",
+      "label": "衣柜正常",
+      "description": "容量够用、开合顺畅、结构完好，无受潮霉斑或异味",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "59956978-4a3b-46e0-85b7-421b81f10d04"
+    },
+    {
+      "id": "simple_35",
+      "category": "卧室与家具收纳",
+      "label": "书桌正常",
+      "description": "桌体稳固、抽屉顺畅、桌面够用",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "4e41094c-d661-49b9-b5ab-b140a4f28366"
+    },
+    {
+      "id": "simple_36",
+      "category": "卧室与家具收纳",
+      "label": "椅子稳固",
+      "description": "",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "0b41d97a-a4f8-447a-9164-c4659983f13f"
+    },
+    {
+      "id": "simple_37",
+      "category": "卧室与家具收纳",
+      "label": "沙发正常",
+      "description": "稳固，无塌陷、破损或异味",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "88c16a5e-5078-4bed-a563-f871f804ed3b"
+    },
+    {
+      "id": "simple_38",
+      "category": "卧室与家具收纳",
+      "label": "茶几正常",
+      "description": "稳固、无破损",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "62063a05-2e69-42e8-b9a5-b7ed6eb2bb6e"
+    },
+    {
+      "id": "simple_39",
+      "category": "卧室与家具收纳",
+      "label": "餐桌正常",
+      "description": "稳固、无破损",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "de4b7707-7279-4bbe-8d22-60151196f739"
+    },
+    {
+      "id": "simple_40",
+      "category": "卧室与家具收纳",
+      "label": "鞋柜够用",
+      "description": "",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "c716f486-eb3e-496c-a539-52a7f37257c5"
+    },
+    {
+      "id": "simple_41",
+      "category": "卧室与家具收纳",
+      "label": "厨房收纳够用",
+      "description": "",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "7089fbe6-9577-4b28-bb65-ab3fbf2d35d3"
+    },
+    {
+      "id": "simple_42",
+      "category": "家电",
+      "label": "空调正常",
+      "description": "各功能和遥控正常，无异响、漏水或异味，外机位于阳台外",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "80175923-24ed-45f8-a0c8-bc5fd8cb42d9"
+    },
+    {
+      "id": "simple_43",
+      "category": "家电",
+      "label": "冰箱正常",
+      "description": "冷藏冷冻正常、容量够用、门封严密，无异响、异味或异常结霜",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "e99f1a31-caf0-4ce6-b9e7-f4c461436e6e"
+    },
+    {
+      "id": "simple_44",
+      "category": "家电",
+      "label": "洗衣机正常",
+      "description": "各功能正常，无漏水、异响或异常震动，内桶和胶圈干净无异味，排水管完好",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "c3feb73a-f507-48c9-9d5d-0168635dc22c"
+    },
+    {
+      "id": "simple_45",
+      "category": "家电",
+      "label": "热水器正常",
+      "description": "加热和温度调节正常、出热水快、水温稳定",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "d88e41c0-2182-4748-98ef-f2c57d2a4375"
+    },
+    {
+      "id": "simple_46",
+      "category": "家电",
+      "label": "插座通电正常",
+      "description": "二孔、三孔插座通电正常，无松动、破损、烧焦或接触不良",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "522df09c-c754-49df-9d35-e9e602e3e9f7"
+    },
+    {
+      "id": "simple_47",
+      "category": "家电",
+      "label": "插座布局合适",
+      "description": "数量够用、位置方便，满足厨房小电器使用",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "1882ee65-f2a8-408b-a85e-ffadc7677394"
+    },
+    {
+      "id": "simple_48",
+      "category": "家电",
+      "label": "灯具正常",
+      "description": "开关、亮度正常，无频闪或异常电流声",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "b9c1bf3c-0c04-40a2-b1f3-e96f0275a235"
+    },
+    {
+      "id": "simple_50",
+      "category": "电路网络与隐私",
+      "label": "电箱与总闸正常",
+      "description": "电箱、总闸和电表位置明确，开关标识清楚，无明显异常",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "fd45bd3c-1580-4abd-b582-4231bc038f88"
+    },
+    {
+      "id": "simple_51",
+      "category": "电路网络与隐私",
+      "label": "宽带正常",
+      "description": "网速满足需求或允许自装宽带",
+      "options": [
+        "是",
+        "否",
+        "没有"
+      ],
+      "sourceBlock": "136c8a6c-b9ca-4eb6-94dc-272ef4daf81c"
+    },
+    {
+      "id": "simple_52",
+      "category": "电路网络与隐私",
+      "label": "手机信号正常",
+      "description": "卧室、卫生间、厨房通话和移动网络正常",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "455283cb-0d5c-430e-a4a2-d41fff947998"
+    },
+    {
+      "id": "simple_53",
+      "category": "电路网络与隐私",
+      "label": "无可疑摄像设备",
+      "description": "检查卧室、卫生间及插座等位置",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "eb5657fc-2b22-459d-a6db-7473779ff706"
+    },
+    {
+      "id": "simple_62",
+      "category": "身份与合同",
+      "label": "房东身份与产权",
+      "description": "核对房东身份证和房产证，确认房子归谁、合同跟谁签。",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceUrl": "https://chatgpt.com/space/page_e28419ff18308191abc9495f7f112288",
+      "sourceSequence": 20,
+      "sourceBlock": "11e197f8-45aa-4c9a-b7ab-05ce5bcc4a5c"
+    },
+    {
+      "id": "simple_54",
+      "category": "身份与合同",
+      "label": "维修责任已确认",
+      "description": "问清房屋和设备出了问题，谁负责修、谁出钱。",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "646637eb-355c-43e9-b890-7cc2533519c9"
+    },
+    {
+      "id": "simple_55",
+      "category": "身份与合同",
+      "label": "家具家电附件已确认",
+      "description": "对照清单查看家具家电，确认数量、现状和已有损坏。",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "2cf15f22-23f7-43fa-a469-5520319f3ab5"
+    },
+    {
+      "id": "simple_56",
+      "category": "身份与合同",
+      "label": "房屋改造要求已确认",
+      "description": "问清是否允许贴墙纸、贴挂钩、打钉子、墙面改色、换窗帘等，退租是否需恢复原样。",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "24fbe607-0ac5-4d79-8cbf-5de69ce8a84e"
+    },
+    {
+      "id": "simple_57",
+      "category": "身份与合同",
+      "label": "允许养宠",
+      "description": "",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "f1bcb646-9d62-4a65-81b3-75ca314edf0b"
+    },
+    {
+      "id": "simple_58",
+      "category": "身份与合同",
+      "label": "转租与提前退租已确认",
+      "description": "转租、提前退租通知天数和费用",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "f25fed20-8741-46d9-b1aa-292d91d7efb8"
+    },
+    {
+      "id": "simple_59",
+      "category": "身份与合同",
+      "label": "退房保洁费用和要求已确认",
+      "description": "",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "2fad452a-82bb-4c76-9554-230073cabda7"
+    },
+    {
+      "id": "simple_60",
+      "category": "身份与合同",
+      "label": "入住前房东重新做卫生",
+      "description": "",
+      "options": [
+        "是",
+        "否"
+      ],
+      "sourceBlock": "d7d94605-9214-4863-b900-86e295ee82b5"
+    },
+    {
+      "id": "simple_61",
+      "category": "身份与合同",
+      "label": "可配合办理居住证",
+      "description": "",
+      "options": [
+        "是",
+        "否",
+        "不涉及"
+      ],
+      "sourceBlock": "62f3c301-cbc5-4d81-bb8f-cee47f3bd916"
+    }
+  ]
+}

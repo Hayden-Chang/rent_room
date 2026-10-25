@@ -16,7 +16,10 @@ struct AppRoot: View {
             } else { ProgressView("正在读取本机记录…") }
         }.frame(maxWidth: .infinity, maxHeight: .infinity).background(XJTheme.background)
             .task { if workspace == nil { load() } }
-            .onChange(of: scenePhase) { _, phase in if phase != .active { workspace?.save() } }
+            .onChange(of: scenePhase) { _, phase in
+                if phase != .active { workspace?.save() }
+                else if !AppWorkspace.isBusinessTest { Task { await workspace?.refreshPolicy(); await workspace?.billing.load() } }
+            }
             .environment(\.locale, Locale(identifier: "zh_CN")).preferredColorScheme(.light)
     }
     private func load() {
@@ -45,13 +48,17 @@ private struct WorkspaceRoot: View {
     var body: some View {
         NavigationStack {
             Group {
-                switch tab {
+                if workspace.store.state["xiaoda"]["setup"].string != "done", !workspace.store.status.blocked {
+                    InspectionSetupPage(workspace: workspace)
+                } else { switch tab {
                 case "对比": ComparisonPage(workspace: workspace)
                 case "我的": SettingsPage(workspace: workspace)
                 default: HomePage(workspace: workspace)
-                }
+                } }
             }.safeAreaInset(edge: .bottom, spacing: 0) {
-                XJTabBar(selection: $tab, items: [("房源", "home"), ("对比", "compare"), ("我的", "settings")])
+                if workspace.store.state["xiaoda"]["setup"].string == "done" || workspace.store.status.blocked {
+                    XJTabBar(selection: $tab, items: [("房源", "home"), ("对比", "compare"), ("我的", "settings")])
+                }
             }.background(XJTheme.background)
         }.id(workspace.identityRevision).tint(XJTheme.primary)
             .environment(\.wheelInput, wheels)
@@ -66,7 +73,7 @@ private struct WorkspaceRoot: View {
             }
             .onChange(of: workspace.identityRevision) { wheels.target = nil }
             .task(id: workspace.identityRevision) {
-                if !AppWorkspace.isBusinessTest { workspace.billing.start(); await workspace.billing.load() }
+                if !AppWorkspace.isBusinessTest { workspace.billing.start(); await workspace.refreshPolicy(); await workspace.billing.load() }
             }
             .toolbarBackground(XJTheme.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
             .alert("提示", isPresented: Binding(get: { !workspace.error.isEmpty }, set: { if !$0 { workspace.error = "" } })) {

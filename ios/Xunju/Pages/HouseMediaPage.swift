@@ -64,7 +64,7 @@ struct MediaPickerSheet: View {
     let houseID: String
     var fieldID = ""
     var stage: ((JSONValue) throws -> Void)? = nil
-    @State private var photo: PhotosPickerItem?
+    @State private var photos: [PhotosPickerItem] = []
     @State private var library = false
     @State private var camera = false
     @State private var busy = false
@@ -93,12 +93,12 @@ struct MediaPickerSheet: View {
             }
             #endif
         }.presentationBackground(.clear).interactiveDismissDisabled(busy)
-            .photosPicker(isPresented: $library, selection: $photo, matching: .any(of: [.images, .videos]), preferredItemEncoding: .compatible)
+            .photosPicker(isPresented: $library, selection: $photos, maxSelectionCount: 9, selectionBehavior: .ordered, matching: .any(of: [.images, .videos]), preferredItemEncoding: .compatible)
             .alert("无法添加影像", isPresented: Binding(get: { !error.isEmpty }, set: { if !$0 { error = "" } })) {
                 Button("知道了") { error = "" }
             } message: { Text(error) }
             .onDisappear { importTask?.cancel() }
-            .onChange(of: photo) { _, item in if let item { load(item) } }
+            .onChange(of: photos) { _, items in if !items.isEmpty { load(items) } }
             .fullScreenCover(isPresented: $camera) {
                 CameraPicker { result in
                     camera = false
@@ -109,19 +109,35 @@ struct MediaPickerSheet: View {
                 }
             }
     }
-    private func load(_ item: PhotosPickerItem) {
+    private func load(_ items: [PhotosPickerItem]) {
         guard !busy else { return }; busy = true; error = ""
         let store = workspace.store
         importTask = Task { @MainActor in
-            defer { busy = false; photo = nil }
+            var staged: [JSONValue] = [], accepted: Set<String> = []
+            defer {
+                busy = false; photos = []
+                LocalMediaReferences.discard(staged.map { $0["path"].string }.filter { !accepted.contains($0) }, in: store)
+            }
             do {
+                for item in items {
+                let result: JSONValue
                 if item.supportedContentTypes.contains(where: { $0.conforms(to: .movie) }) {
                     guard let video = try await item.loadTransferable(type: ImportedVideo.self) else { throw CoreFailure(message: "视频读取失败") }
                     defer { try? FileManager.default.removeItem(at: video.url) }
-                    try await persist(image: nil, video: video.url, store: store)
+                    result = try await NativeMediaImport.stage(image: nil, video: video.url, store: store, isCurrent: { workspace.store === store })
                 } else {
                     guard let data = try await item.loadTransferable(type: Data.self), data.count <= 50 * 1024 * 1024, let image = UIImage(data: data) else { throw CoreFailure(message: "照片无法读取或超过 50 MiB") }
-                    try await persist(image: image, video: nil, store: store)
+                    result = try await NativeMediaImport.stage(image: image, video: nil, store: store, isCurrent: { workspace.store === store })
+                }
+                staged.append(result.setting("fieldId", to: .string(fieldID)))
+                }
+                try Task.checkCancellation()
+                guard workspace.store === store else { throw CoreFailure(message: "账号已变化，请重新添加影像") }
+                if let stage {
+                    for item in staged { try stage(item); accepted.insert(item["path"].string) }
+                } else {
+                    try store.call("addMediaBatch", ["id": .string(houseID), "value": .array(staged)])
+                    accepted = Set(staged.map { $0["path"].string })
                 }
                 dismiss()
             } catch { self.error = error.localizedDescription }

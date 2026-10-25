@@ -21,21 +21,28 @@ final class AppWorkspace {
     @ObservationIgnored private let mapTransport: any MapTransport
     private(set) var identityRevision = 0
     @ObservationIgnored private(set) var billing: CapacityController!
+    @ObservationIgnored private let policyAPI: any CapacityPolicyServicing
+    @ObservationIgnored private let policyCache: CapacityPolicyCache
+    private(set) var capacityPolicy: CapacityPolicy
+    private(set) var policyError = ""
+    @ObservationIgnored private var refreshingPolicy = false
 
-    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, places: NativePlaceService = NativePlaceService(), capacityAPI: any CapacityServicing = CapacityAPI(), storefront: (any CapacityStorefront)? = nil) throws {
+    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, places: NativePlaceService = NativePlaceService(), capacityAPI: any CapacityServicing = CapacityAPI(), storefront: (any CapacityStorefront)? = nil, policyAPI: any CapacityPolicyServicing = CapacityPolicyAPI()) throws {
         self.keychain = keychain
         self.mapTransport = mapTransport; self.mapKey = mapKey
         self.places = places
         scopes = try LocalIdentityScopes(root: root)
-        let guest = try NativeStore(directory: scopes.guestDirectory(), network: mapTransport)
+        self.policyAPI = policyAPI; policyCache = CapacityPolicyCache(root: scopes.root)
+        capacityPolicy = policyCache.read()
+        let guest = try NativeStore(directory: scopes.guestDirectory(), freeLimit: capacityPolicy.freeLimit, network: mapTransport)
         if let saved = try keychain.read() {
             try saved.validateStored()
-            let account = try NativeStore(directory: scopes.accountDirectory(saved.account), packs: saved.packs, network: mapTransport)
+            let account = try NativeStore(directory: scopes.accountDirectory(saved.account), packs: saved.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
             if account.status.blocked {
                 // Expose the existing recovery banner without attempting a guest claim or write.
                 store = account
             } else {
-                store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs, network: mapTransport)
+                store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
             }
             session = saved
         } else { store = guest }
@@ -72,13 +79,14 @@ final class AppWorkspace {
         guard store.status.error.isEmpty else { throw CoreFailure(message: store.status.error) }
         // Persist verified identity first; claim's journal can resume after interruption.
         try keychain.write(verified)
-        let target = try scopes.claim(account: verified.account, from: session == nil ? store : nil, packs: verified.packs, network: mapTransport)
+        if let policy = receipt.capacity { try acceptPolicy(policy) }
+        let target = try scopes.claim(account: verified.account, from: session == nil ? store : nil, packs: verified.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
         store = target; session = verified; identityRevision += 1; billing.identityChanged()
     }
     func logout() throws {
         try store.call("save")
         guard store.status.error.isEmpty else { throw CoreFailure(message: store.status.error) }
-        let guest = try NativeStore(directory: scopes.guestDirectory(), network: mapTransport)
+        let guest = try NativeStore(directory: scopes.guestDirectory(), freeLimit: capacityPolicy.freeLimit, network: mapTransport)
         try keychain.remove()
         store = guest; session = nil; identityRevision += 1; billing.identityChanged()
     }
@@ -92,10 +100,24 @@ final class AppWorkspace {
         }
         let updated = old.withCapacity(balance)
         try keychain.write(updated)
+        if let policy = balance.capacity { try acceptPolicy(policy) }
         try store.call("setPacks", ["value": .number(Double(balance.packs))])
         session = updated
     }
     func save() { perform { try store.call("save") } }
+    func acceptPolicy(_ policy: CapacityPolicy) throws {
+        _ = try policy.validated()
+        try CapacityPolicy.validate(packs: store.capacity.packs, limit: policy.freeLimit + store.capacity.packs * 10, policy: policy)
+        try policyCache.write(policy)
+        try store.call("setFreeLimit", ["value": .number(Double(policy.freeLimit))])
+        capacityPolicy = policy; policyError = ""
+    }
+    func refreshPolicy() async {
+        guard !refreshingPolicy else { return }
+        refreshingPolicy = true; defer { refreshingPolicy = false }
+        do { if let policy = try await policyAPI.fetch() { try acceptPolicy(policy) } }
+        catch is CancellationError {} catch { policyError = error.localizedDescription }
+    }
 }
 
 /// Explicit UI test runs never read or mutate the user's Keychain session.

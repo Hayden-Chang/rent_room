@@ -27,4 +27,6 @@ it('keeps entered zero hidden on blur, emits the answer, and restores placeholde
 it('handles other-text focus independently and hides prefilled other text',()=>{
  const f=field();f.send('focus','','other');expect(f.placeholder('other')).toBe('');expect(f.placeholder()).toBe('填写数值');
  f.send('input','朝南','other');f.send('blur','朝南','other');expect(f.placeholder('other')).toBe('');expect(field('','已有内容').placeholder('other')).toBe('');
+ expect(f.c.events).toContainEqual({name:'inputfocus',detail:{id:'area',input:'other'}});
+ expect(f.c.events).toContainEqual({name:'inputblur',detail:{id:'area',input:'other'}});
 });

@@ -6,7 +6,7 @@
   <view class="hint">填写后自动保存，也可以在下方搜索或选点。</view>
  </view>
  <view class="card">
-  <address-picker address="{{address}}" location="{{location}}" anchor="{{anchor}}" empty-text="搜索地址或点击定位，选择上班位置" bindselect="selectPlace"/>
+  <address-picker id="workplace-address-picker" address="{{address}}" location="{{location}}" anchor="{{anchor}}" empty-text="搜索地址或点击定位，选择上班位置" bindselect="selectPlace"/>
  </view>
 </view>
 </view>

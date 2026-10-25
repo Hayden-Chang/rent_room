@@ -31,7 +31,9 @@ export function otherChoiceSelected(f,a={}) {
 }
 
 // Keep the selected option separate from its explanation, including when hidden.
+export const noneSelected=(f,a={})=>f.cost?a.noCost===true:!!f.allowNone&&a.none===true;
 export function fieldDisplayValue(f,a={}) {
+  if(noneSelected(f,a))return '无';
   const detail=String(a.otherText??'').trim();
   if(!otherChoiceSelected(f,a)||!detail)return fieldValue(f,a);
   return choiceValues(f,a).map(v=>v.trim()==='其他'?`${v}：${detail}`:v).join('、');
@@ -44,6 +46,7 @@ export function toggleChoiceValue(f,a,value) {
 }
 
 export function fieldRecorded(f,a={}) {
+  if(noneSelected(f,a))return true;
   if(wheelConfig(f))return fieldValue(f,a).trim()!=='';
   const options=choiceOptions(f),values=choiceValues(f,a);
   return options.length?values.length>0&&values.every(v=>options.includes(v)):fieldValue(f,a).trim()!=='';
@@ -85,6 +88,8 @@ const automaticProblemChoices = {
   f21_1:'无',f62_1:'大于 1 分钟',f83_1:'无网络',
 };
 export function isProblem(f, a = {}) {
+  if(f.allowNone&&noneSelected(f,a))return false;
+  if(['f54_0','f54_1'].includes(f.id))return fieldValue(f,a).trim()!=='';
   if(hasOwn(automaticProblemChoices,f.id))return fieldValue(f,a)===automaticProblemChoices[f.id];
   if(isInspectionResult(f))return a.value==='有问题';
   if(f.role==='inspection-check')return a.value==='否';

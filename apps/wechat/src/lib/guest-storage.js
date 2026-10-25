@@ -1,3 +1,4 @@
+import {migrateXiaoda,newXiaoda} from './xiaoda-state.js';
 import {dataRoot,validAccountId} from './account-storage.js';
 import {clone,emptyState,uid,validateState} from './model.js';
 
@@ -38,16 +39,17 @@ export function claimGuestRecords(wx,accountId,target,source){
    if(!validAccountId(owner))throw Error('未登录记录归属信息损坏，原记录已保留');
    if(owner!==accountId)throw Error('这些本机记录已关联其他微信账号，请切回原账号');
   }
-  const current=target+'/state.json',state=exists(current)?validateState(read(current)):emptyState();
+  const current=target+'/state.json',state=exists(current)?migrateXiaoda(validateState(read(current))):emptyState();
   if(state.guestClaims?.includes(batch))return;
-  const incoming=exists(root+'/state.json')?validateState(read(root+'/state.json')):emptyState();
+  const incoming=exists(root+'/state.json')?migrateXiaoda(validateState(read(root+'/state.json'))):emptyState();
   const defaults=emptyState().settings;
-  if(!incoming.houses.length&&JSON.stringify(incoming.settings||defaults)===JSON.stringify(defaults))return;
+  if(!incoming.houses.length&&JSON.stringify(incoming.settings||defaults)===JSON.stringify(defaults)&&JSON.stringify(incoming.xiaoda)===JSON.stringify(newXiaoda()))return;
   write(journal,{root});write(marker,{version:1,accountId});
-  const next=clone(state),ids=new Set(next.houses.map(h=>h.id));
+  const inherit=!exists(current)||(!state.xiaoda.legacy&&state.xiaoda.setup!=='done');
+  const next=clone(state),remapped=new Map(),ids=new Set(next.houses.map(h=>h.id));
   try{fs.mkdirSync(target+'/media',true);}catch{fs.accessSync(target+'/media');}
   for(const [houseIndex,original] of incoming.houses.entries()){
-   const house=clone(original);if(ids.has(house.id))house.id=uid();ids.add(house.id);
+   const house=clone(original);if(ids.has(house.id))house.id=uid();ids.add(house.id);remapped.set(original.id,house.id);
    for(const [mediaIndex,media] of (house.media||[]).entries()){
     if(!media.path.startsWith(root+'/media/')||media.path.includes('/../'))throw Error('本机影像路径无效，原记录已保留');
     const path=target+'/media/'+batch+'-'+houseIndex+'-'+mediaIndex+(media.type==='video'?'.mp4':'.jpg');
@@ -55,7 +57,14 @@ export function claimGuestRecords(wx,accountId,target,source){
    }
    next.houses.push(house);
   }
-  if(!exists(current))next.settings=clone(incoming.settings||next.settings);
+  if(!exists(current)){next.settings=clone(incoming.settings||next.settings);next.xiaoda=clone(incoming.xiaoda);}
+  if(!state.xiaoda.legacy&&state.xiaoda.setup!=='done'){
+   next.xiaoda=clone(incoming.xiaoda);
+   if(incoming.settings?.templates)next.settings.templates=clone(incoming.settings.templates);
+   if(incoming.settings?.selectedTemplate)next.settings.selectedTemplate=incoming.settings.selectedTemplate;
+  }
+  if(incoming.xiaoda.intent)next.xiaoda.intent={...incoming.xiaoda.intent,houseId:remapped.get(incoming.xiaoda.intent.houseId)||incoming.xiaoda.intent.houseId};
+  if(inherit&&next.xiaoda.firstHouseId)next.xiaoda.firstHouseId=remapped.get(next.xiaoda.firstHouseId)||next.xiaoda.firstHouseId;
   next.guestClaims=[...(state.guestClaims||[]),batch];next.updatedAt=new Date().toISOString();validateState(next);
   // Association preserves all records, even if their combined count exceeds
   // current capacity. Normal additions/restores continue to enforce the limit.

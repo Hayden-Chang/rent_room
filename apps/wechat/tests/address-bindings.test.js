@@ -3,6 +3,21 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {XMLParser} from 'fast-xml-parser';
 function component(name,extra={}){let spec;vm.runInNewContext(fs.readFileSync(`dist/components/${name}/index.js`,'utf8'),{Component:o=>spec=o,Date,setTimeout,clearTimeout,...extra});const c={...spec.methods,data:structuredClone(spec.data),setData(p){Object.assign(this.data,p);},triggerEvent:vi.fn()};return {c,spec};}
+it('expands on native search focus without typing, querying or changing the saved viewport',async()=>{
+ const place={id:'focus',address:'已有房源地址',location:{latitude:22.54,longitude:113.95}};
+ const places={nearby:vi.fn(async()=>[place]),search:vi.fn()},api=vi.fn(async()=>place.location);
+ const {c,spec}=component('address-picker',{getApp:()=>({service:{places,api}})});
+ Object.assign(c.data,{address:'',location:null,anchor:'',readonly:false});spec.lifetimes.attached.call(c);
+ try{
+  await c.picker.gps();c.use({currentTarget:{dataset:{id:place.id}}});c.data.scale=18;
+  expect(c.data.collapsed).toBe(true);expect(c.data.query).toBe('');
+  const markup=fs.readFileSync('dist/components/address-picker/index.wxml','utf8');
+  const input=markup.match(/<input\b[^>]*class="address-search"[^>]*>/)[0],handler=input.match(/bindfocus="([^"]+)"/)?.[1];
+  if(handler)c[handler]({detail:{value:''}});
+  expect(c.data).toMatchObject({collapsed:false,query:'',center:place.location,scale:18});
+  expect(api).toHaveBeenCalledTimes(1);expect(places.nearby).toHaveBeenCalledTimes(1);expect(places.search).not.toHaveBeenCalled();
+ }finally{spec.lifetimes.detached.call(c);}
+});
 it('removes the map title row while keeping the embedded picker and ordinary field controls',()=>{
  const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
  function visit(children){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;nodes.push({tag,attrs:node[':@']||{}});visit(node[tag]);}}visit(tree);
@@ -24,6 +39,13 @@ it('handles native drag and zoom end shapes while ignoring automatic region upda
 });
 it('does not apply a delayed native center read after a newer search or detach',()=>{
  let success;const {c}=component('address-picker',{wx:{createMapContext:()=>({getCenterLocation:o=>success=o.success})}});c.picker={revision:1,disposed:false,move:vi.fn()};c.region({type:'end',causedBy:'drag'});c.picker.revision++;success({latitude:22,longitude:114});expect(c.picker.move).not.toHaveBeenCalled();
+});
+it('retains map scale through collapse and ignores late native region events',()=>{
+ const {c}=component('address-picker');c.picker={move:vi.fn(),toggleMap:()=>c.data.collapsed=!c.data.collapsed};
+ c.region({type:'end',causedBy:'scale',detail:{centerLocation:{latitude:22,longitude:114},scale:18}});
+ c.toggleMap();c.region({type:'end',causedBy:'drag',detail:{centerLocation:{latitude:23,longitude:115},scale:14}});
+ expect(c.data.scale).toBe(18);expect(c.picker.move).toHaveBeenCalledTimes(1);
+ c.toggleMap();expect(c.data.scale).toBe(18);
 });
 it('keeps map embedded and zoomable with one center pin and no fullscreen API',()=>{
  const markup=fs.readFileSync('dist/components/address-picker/index.wxml','utf8'),page=fs.readFileSync('dist/pages/detail/index.js','utf8');expect(markup).toContain('enable-zoom="{{true}}"');expect(markup).toContain('bindregionchange="region"');expect(markup.match(/class="center-pin"/g)).toHaveLength(1);expect(markup).not.toContain('markers=');expect(page).not.toContain('chooseLocation');expect(page).not.toContain('openLocation');

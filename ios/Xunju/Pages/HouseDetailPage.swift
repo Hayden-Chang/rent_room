@@ -37,7 +37,7 @@ struct HouseDetailPage: View {
             }
             .navigationBarBackButtonHidden(showCoach)
             .onAppear {
-                if !appeared { appeared = true; showCoach = newHouse && !readonly && workspace.store.state["settings"]["onboarding"].bool }
+                if !appeared { appeared = true; showCoach = !readonly && workspace.store.state["xiaoda"]["firstHouseId"].string == id && workspace.store.state["xiaoda"]["tutorialStep"].int > 0 }
             }
     }
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
@@ -70,23 +70,30 @@ struct ChecklistPage: View {
     @State private var note: NoteTarget?
     @State private var cost: JSONValue?
     @State private var mediaTarget: String?
-    @State private var coachStep = 1
-    @State private var coachSteps: [CoachStep] = []
+    @State private var coachStep = 0
     @State private var coachTarget: JSONValue = .null
-    @State private var coachHidden = false
     @State private var coachError = ""
     @State private var coachSavedFolds: [String: [String: Bool]]?
+    @State private var guidance: JSONValue = .null
+    @State private var editingField: String?
+    @Environment(\.dismiss) private var dismiss
     private var viewKey: String { phase + "|" + query + "|" + filters.sorted().joined(separator: ",") }
     private var readonly: Bool { workspace.store.house(id)["archived"].bool }
     private var stats: InspectionStats? { workspace.store.houses.first { $0.id == id }?.stats }
+    private var prompt: JSONValue { isActive && !showCoach && editingField == nil && note == nil && cost == nil && mediaTarget == nil ? guidance["prompt"] : .null }
 
     var body: some View {
         MPChecklistSurface(done: stats?.done ?? 0, total: stats?.total ?? 0, issues: stats?.issues ?? 0,
             phase: $phase, query: $query, filters: $filters, showFilters: $showFilters, readonly: readonly,
-            coordinator: coordinator, scrollTarget: scrollTarget, capture: { mediaTarget = "" }) {
+            coordinator: coordinator, scrollTarget: scrollTarget,
+            guidance: prompt != .null && !sections.contains(where: { $0["title"].string == prompt["target"].string }) ? prompt : .null,
+            guidanceAction: guideAction, capture: { mediaTarget = "" }) {
             VStack(spacing: 16) {
                 SaveBanner(workspace: workspace)
                 ForEach(sections, id: \.titleKey) { section in
+                    if prompt != .null && section["title"].string == prompt["target"].string {
+                        XiaodaGuidanceCard(prompt: prompt, action: guideAction).id("xiaoda.guide")
+                    }
                     VStack(spacing: 0) {
                         heading(section["header"], foldKey: section["title"].string)
                         FieldRelatedMedia(workspace: workspace, houseID: id, fieldID: section["header"].id)
@@ -96,22 +103,22 @@ struct ChecklistPage: View {
                                 ForEach(Array(rows.enumerated()), id: \.element.rowKey) { index, row in
                                     checklistRow(row, hideDivider: ChecklistPresentation.hidesDivider(at: index, rows: rows))
                                         .padding(.leading, ChecklistPresentation.indent(row)).id(row.id)
-                                        .anchorPreference(key: CoachAnchors.self, value: .bounds) { row.id == coachTarget["field"].id ? [4: $0] : [:] }
+                                        .anchorPreference(key: CoachAnchors.self, value: .bounds) { row.id == coachTarget["field"].id ? [3: $0, 4: $0] : [:] }
                                 }
                             }.padding(.bottom, 12)
                         }
-                    }.padding(.horizontal, 16).background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
+                    }.padding(.horizontal, 16).background(.white).clipShape(RoundedRectangle(cornerRadius: 16)).id(section["title"].string)
                 }
                 if sections.isEmpty { Text("没有符合条件的检查项").font(.system(size: 14)).foregroundStyle(XJTheme.muted).padding(32) }
             }
         }.overlayPreferenceValue(CoachAnchors.self) { anchors in
             if showCoach {
                 GeometryReader { geometry in
-                    CoachOverlay(steps: coachSteps, step: coachStep, target: anchors[coachStep].map { geometry[$0] }, fieldLabel: coachTarget["field"]["label"].string,
-                        hideAutomatically: $coachHidden, error: coachError, mediaIconSize: 22) { advanceCoach() }
+                    XiaodaTutorialOverlay(guide: guidance, target: anchors[coachStep].map { geometry[$0] }) { advanceCoach() }
                 }
             }
         }
+            .environment(\.inspectionInteraction, interaction)
             .fullScreenCover(item: $note) { target in
                 MPNoteSheet(title: target.title + " · 备注", text: $noteText, readonly: readonly, error: noteError,
                     close: { note = nil }, save: { saveNote(target) })
@@ -134,6 +141,15 @@ struct ChecklistPage: View {
             .onChange(of: isActive) { if !isActive { coordinator.close() } }
             .onChange(of: showCoach) { if showCoach { prepareCoach() } }
             .onChange(of: coachStep) { if coachStep == 4 { scrollTarget = coachTarget["field"].id } }
+            .onChange(of: coordinator.active) { _, active in
+                if showCoach && coachStep == 3 && active == coachTarget["field"].id { advanceCoach(swiped: true) }
+            }
+            .task(id: prompt["id"].string) {
+                guard prompt != .null else { return }
+                do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
+                guard !Task.isCancelled, isActive, editingField == nil else { return }
+                scrollTarget = "xiaoda.guide"
+            }
             .onChange(of: viewKey) { coordinator.close(); refresh() }
             .onChange(of: workspace.store.status.revision) { refresh() }
             .fullScreenCover(isPresented: Binding(get: { mediaTarget != nil }, set: { if !$0 { mediaTarget = nil } })) {
@@ -196,31 +212,53 @@ struct ChecklistPage: View {
     }
     private func openNote(_ field: JSONValue) { noteText = field["note"].string; noteError = ""; note = NoteTarget(id: field.id, title: field["label"].string) }
     private func setFold(_ key: String, _ value: Bool) { folds[viewKey, default: [:]][key] = value; refresh() }
-    private func refresh() { workspace.perform { sections = try workspace.store.form(id, phase: phase, query: query, filters: filters.sorted(), folds: folds[viewKey] ?? [:]) } }
+    private func refresh() {
+        workspace.perform {
+            sections = try workspace.store.form(id, phase: phase, query: query, filters: filters.sorted(), folds: folds[viewKey] ?? [:])
+            guidance = try workspace.store.call("inspectionGuide", ["id": .string(id)])
+        }
+    }
     private func prepareCoach() {
         do {
-            let value = try workspace.store.call("coach", ["id": .string(id)])
-            coachSteps = value["steps"].array.map { CoachStep(title: $0["title"].string, body: $0["body"].string) }
-            coachTarget = value["target"]; coachStep = 1; coachError = ""
+            guidance = try workspace.store.call("inspectionGuide", ["id": .string(id)])
+            coachTarget = guidance["target"]; coachStep = guidance["tutorial"].int; coachError = ""
+            showCoach = coachStep > 0
+            if coachStep == 2 { showFilters = true; scrollTarget = "top" }
+            if coachStep >= 3 {
+                if coachSavedFolds == nil { coachSavedFolds = folds }
+                phase = "全部"; query = ""; filters = []; showFilters = false
+                if case .object(let expanded) = coachTarget["folds"] { folds[viewKey, default: [:]].merge(expanded.mapValues(\.bool), uniquingKeysWith: { _, new in new }) }
+                refresh(); scrollTarget = coachTarget["field"].id
+                if coachStep == 4 { coordinator.reveal(coachTarget["field"].id) }
+            }
         } catch { coachError = error.localizedDescription }
     }
-    private func advanceCoach() {
-        if coachStep < 4 {
-            if coachStep == 3 {
-                coachSavedFolds = folds; phase = "全部"; query = ""; filters = []
-                if case .object(let expanded) = coachTarget["folds"] {
-                    folds[viewKey, default: [:]].merge(expanded.mapValues(\.bool), uniquingKeysWith: { _, new in new })
-                }
-                refresh()
-            }
-            coachStep += 1
-        } else {
-            do {
-                try workspace.store.call("coachFinish", ["value": .bool(coachHidden)])
-                showCoach = false; coachError = ""
-                if let saved = coachSavedFolds { folds = saved; coachSavedFolds = nil; refresh() }
-                scrollTarget = "top"
-            } catch { coachError = "偏好未保存，请重试。" }
+    private func advanceCoach(swiped: Bool = false) {
+        if workspace.perform({ try workspace.store.call("tutorialAdvance", ["id": .string(id), "value": .string(swiped ? "swiped" : "next")]) }) {
+            prepareCoach()
+            if !showCoach { coordinator.close(); if let saved = coachSavedFolds { folds = saved; coachSavedFolds = nil }; refresh(); scrollTarget = "xiaoda.guide" }
+        }
+    }
+    private func interaction(_ field: String, _ focus: Bool?) {
+        if let focus { editingField = focus ? field : nil }
+        if focus == false { refresh(); return }
+        if showCoach || editingField == field && focus == nil { return }
+        if guidance["prompt"] != .null {
+            workspace.perform { try workspace.store.call("guideAction", ["id": .string(id), "value": .string("input")]) }
+        }
+    }
+    private func guideAction(_ action: String) {
+        workspace.perform {
+            let result = try workspace.store.call("guideAction", ["id": .string(id), "value": .string(action), "property": prompt["id"]])
+            if result["back"].bool { dismiss(); return }
+            if !result["target"].string.isEmpty {
+                phase = result["phase"].string; query = ""; filters = []
+                let target = result["target"].string
+                let topics = workspace.store.house(id)["templateTopics"].array.filter { $0["category"].string == target }
+                folds[viewKey, default: [:]][target] = true
+                for topic in topics { for group in topic["path"].array { folds[viewKey, default: [:]][group.id] = true } }
+                refresh(); scrollTarget = target
+            } else { refresh() }
         }
     }
 }

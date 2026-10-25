@@ -3,7 +3,7 @@ import {it,expect,vi} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const point=x=>({touches:[{clientX:x,clientY:50}],changedTouches:[{clientX:x,clientY:50}]});
-function row(){let spec;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component(s){spec=s;},Date});return {...spec.methods,data:{...structuredClone(spec.data),field:{id:'window',inline:true,value:'是',note:'保留备注',media:[{id:'photo'}]}},events:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){this.events.push({name,detail});}};}
+function row(){let spec;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component(s){spec=s;},Date});return {...spec.methods,data:{...structuredClone(spec.data),field:{id:'window',inline:true,value:'是',note:'保留备注',media:[{id:'photo'}]}},events:[],notifications:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){(name==='swipeopen'?this.notifications:this.events).push({name,detail});}};}
 const tap=action=>({currentTarget:{dataset:{action,tray:true}}});
 it.each(['flag','note','media'])('an exposed %s button has its own touch boundary and executes exactly once',action=>{
  const markup=fs.readFileSync('dist/components/field-row/index.wxml','utf8');
@@ -26,7 +26,7 @@ it('inline options slide inside a clipped viewport without being unmounted or lo
  const css=fs.readFileSync('dist/components/field-row/index.wxss','utf8');
  expect(css).toMatch(/\.inline \.answer-options\{[^}]*overflow:hidden/);expect(css).toMatch(/\.inline \.choices\{[^}]*transition:transform 180ms ease-out/);
  const c=row(),before=structuredClone(c.data.field);c.start(point(220));c.move(point(154));expect(c.data.offset/132).toBe(-0.5);c.end(point(154));expect(c.data.offset/132).toBe(-1);
- c.bodyStart();expect(c.data.offset).toBe(0);expect(c.data.field).toEqual(before);
+ c.start(point(100));c.end(point(100));c.tapBody();expect(c.data.offset).toBe(0);expect(c.data.field).toEqual(before);
 });
 it('readonly actions stay inert and hidden choices cannot change an answer',()=>{
  const c=row();c.reveal();c.choose({currentTarget:{dataset:{value:'否'}}});expect(c.events).toEqual([]);

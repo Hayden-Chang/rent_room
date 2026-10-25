@@ -10,6 +10,7 @@ struct SettingsPage: View {
     @State private var appleError = ""
     @State private var loggingOut = false
     @State private var appleTask: Task<Void, Never>?
+    @State private var feedback = false
     private let api = AuthenticationAPI()
     var body: some View {
         ScrollView {
@@ -37,7 +38,9 @@ struct SettingsPage: View {
                             .accessibilityIdentifier("settings.workplace")
                         NavigationLink { ArchivePage(workspace: workspace) } label: { menu("归档房源", detail: "\(workspace.store.archivedHouses.count) 套") }
                             .accessibilityIdentifier("settings.archive")
-                        Toggle("操作引导", isOn: Binding(get: { workspace.store.state["settings"]["onboarding"].bool }, set: { value in
+                        NavigationLink { InspectionTemplatesPage(workspace: workspace) } label: { menu("检查清单模板") }
+                            .accessibilityIdentifier("settings.templates")
+                        Toggle("小搭引导", isOn: Binding(get: { workspace.store.state["xiaoda"]["enabled"].bool }, set: { value in
                             workspace.perform { try workspace.store.call("settings", ["property": .string("onboarding"), "value": .bool(value)]) }
                         })).font(.system(size: 14)).tint(XJTheme.primary).frame(minHeight: 52)
                     }
@@ -52,6 +55,15 @@ struct SettingsPage: View {
                 XJCard {
                     Button { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } } label: { menu("权限管理") }
                 }
+                XJCard {
+                    VStack(spacing: 0) {
+                        Button { feedback = true } label: { menu("使用反馈") }.accessibilityIdentifier("settings.feedback")
+                        if let cover = Bundle.main.url(forResource: "InspectionShareCover", withExtension: "jpg") {
+                            ShareLink(item: cover, subject: Text("看房搭子｜看房清单，避坑指南"), message: Text("看房搭子｜看房清单，避坑指南")) { menu("分享看房搭子") }
+                                .accessibilityIdentifier("settings.share")
+                        }
+                    }
+                }
                 XJCard { HStack { Text("版本"); Spacer(); Text("0.1.0").foregroundStyle(XJTheme.muted) }.font(.system(size: 14)).frame(minHeight: 44) }
             }.padding(16)
         }.navigationTitle("我的").navigationBarTitleDisplayMode(.inline)
@@ -65,6 +77,7 @@ struct SettingsPage: View {
                 }
             } message: { Text("账号记录保留在本机，重新登录同一账号后可继续查看。") }
             .sheet(isPresented: $phone) { PhoneAuthenticationPage(workspace: workspace) }
+            .sheet(isPresented: $feedback) { FeedbackPage(workspace: workspace, completed: {}) }
     }
     private func prepareApple() async {
         guard workspace.session == nil, !AppWorkspace.isBusinessTest else { return }

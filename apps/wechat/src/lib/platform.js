@@ -1,3 +1,4 @@
+import {createFeedback} from './feedback.js';
 import {createPlaces} from './places.js';
 import {createCommute} from './commute.js';
 import {createStore} from './store.js';
@@ -24,7 +25,10 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     const version=epoch;
     wx[name]({...args,success:value=>active&&version===epoch?resolve(value):reject(Error('登录状态已变化，请重新操作')),fail:reject});
   });
-  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,
+  const policyRoot=dataRoot(wx),policyPath=policyRoot+'/capacity-policy.json';let rawStore;
+  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,onChange:()=>rawStore?.refreshCapacity(),
+    readPolicy:()=>exists(policyPath)?fs.readFileSync(policyPath,'utf8'):null,
+    writePolicy:text=>{try{fs.mkdirSync(policyRoot,true);}catch{}const tmp=policyPath+'.pending';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,policyPath);},
     read:()=>exists(root+'/purchases.json')?fs.readFileSync(root+'/purchases.json','utf8'):null,
     write:text=>{const tmp=root+'/purchases.pending.json';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,root+'/purchases.json');},
     platform:()=>{const p=wx.getDeviceInfo?.().platform;return p==='ios'?'ios':p==='android'?'android':'unknown';},
@@ -37,7 +41,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
       return true;
     }
   });
-  const rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs}),store={};
+  rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit});const store={};
   for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
   const profile={};
   for(const [name,fn] of Object.entries(createAccountProfile(fs,root)))profile[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
@@ -171,7 +175,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,profile,billing,api,setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),commute:createCommute(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
+  return {store,profile,billing,api,feedback:createFeedback(api,typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__),setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),commute:createCommute(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }

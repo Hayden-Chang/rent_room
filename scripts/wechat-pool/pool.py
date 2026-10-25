@@ -20,6 +20,9 @@ import uuid
 VERSION = '2.01.2510290'
 CAPACITY = 3
 BACKGROUND_POLICY = 'hidden-v1'
+LEGACY_BACKGROUND_HASHES = {'ad7c011e7b0286402bf738cb625d9bb99143192b6437dd705b1b60323bb23e79'}
+def runtime_policy():
+    return 'ui-review-v1' if os.environ.get('WECHAT_POOL_UI_REVIEW') == '1' else BACKGROUND_POLICY
 DIRS = ('WeappCode WeappLog WeappPureSimulatorCache WeappTheming WeappEditor '
         'WeNativeModules WeappRemote WeappSimulator WeappMiniApp WeappHybird '
         'WeappAITemplateCache WeappPluginData WeappMiniCode WebdebuggerVendor '
@@ -458,7 +461,7 @@ def ensure_runtime(root, slot, run_id):
                                 start_new_session=True, close_fds=True,
                                 env=dict(os.environ, WECHAT_POOL_BACKGROUND='1'))
     state.update(pid=proc.pid, identity=process_identity(proc.pid),
-                 backgroundPolicy=BACKGROUND_POLICY)
+                 backgroundPolicy=runtime_policy())
     write_json(state_path, state)
     if not state['identity']:
         raise RuntimeError('Cannot identify newly started resident')
@@ -486,9 +489,13 @@ def configure_background(app):
     manifest['inject_js_start'] = inject.name
     desired_manifest = json.dumps(manifest, ensure_ascii=False).encode()
     desired_inject = Path(__file__).with_name('background.cjs').read_bytes() + b'\n' + vendor
+    existing_inject = inject.read_bytes() if inject.exists() else None
+    suffix = b'\n' + vendor
+    prior_policy = existing_inject[:-len(suffix)] if existing_inject and existing_inject.endswith(suffix) else b''
+    known_prior = hashlib.sha256(prior_policy).hexdigest() in LEGACY_BACKGROUND_HASHES
     # Refuse unexpected edits instead of repeatedly wrapping or overwriting them.
     if (manifest_path.read_bytes() not in (original, desired_manifest) or
-            (inject.exists() and inject.read_bytes() != desired_inject)):
+            (existing_inject is not None and existing_inject != desired_inject and not known_prior)):
         raise RuntimeError('Background resource changed; explicit maintenance required')
     if not original_path.exists():
         original_path.write_bytes(original)
@@ -613,7 +620,7 @@ def metadata_matches(state, project):
 def bootstrap_project(root, slot, run_id, state, project):
     # A legacy idle resident adopts quiet startup once under its own lease.
     # Ordinary quiet jobs keep the same project identity and PID.
-    if metadata_matches(state, project) and state.get('backgroundPolicy') == BACKGROUND_POLICY:
+    if metadata_matches(state, project) and state.get('backgroundPolicy') == runtime_policy():
         return state, False
     current = read_json(runtime_path(root, slot))
     if current.get('runId') != run_id or current.get('identity') != state['identity']:

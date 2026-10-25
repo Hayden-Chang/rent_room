@@ -9,6 +9,7 @@ struct InspectionFieldRow: View {
     var hideDivider = false
     var editNote: ((JSONValue) -> Void)? = nil
     @Environment(\.wheelInput) private var wheelInput
+    @Environment(\.inspectionInteraction) private var interaction
     @State private var noteText = ""
     @State private var noteError = ""
     @State private var editingNote = false
@@ -25,6 +26,7 @@ struct InspectionFieldRow: View {
             } else {
                 MPFieldRow(item: ChecklistPresentation.item(field, hideDivider: hideDivider),
                     state: Binding(get: { ChecklistPresentation.state(field) }, set: { value in
+                        interaction(field.id, nil)
                         workspace.perform { try ChecklistPresentation.write(value, from: field, houseID: houseID, store: workspace.store) }
                     }), readonly: readonly, coordinator: coordinator,
                     note: {

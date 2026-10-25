@@ -21,12 +21,13 @@ struct LoginReceipt: Decodable, Sendable {
     let expiresIn: Int
     let packs: Int
     let limit: Int
+    var capacity: CapacityPolicy? = nil
 
     func validated(provider: String) throws -> LoginReceipt {
+        try CapacityPolicy.validate(packs: packs, limit: limit, policy: capacity)
         guard account.range(of: "\\A[a-f0-9]{64}\\z", options: .regularExpression) != nil,
               (32...256).contains(token.count), self.provider == provider,
-              (1...86400).contains(expiresIn), packs >= 0, packs <= (Int.max - 2) / 10,
-              limit == 2 + 10 * packs else { throw CoreFailure(message: "账号校验失败，请重试") }
+              (1...86400).contains(expiresIn) else { throw CoreFailure(message: "账号校验失败，请重试") }
         return self
     }
 }
@@ -84,6 +85,7 @@ struct AuthenticationAPI: Sendable {
         request.timeoutInterval = 15
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("2", forHTTPHeaderField: "x-rent-room-capacity-version")
         if let token { request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         request.httpBody = try JSONEncoder().encode(body)
         let result: HTTPPayload

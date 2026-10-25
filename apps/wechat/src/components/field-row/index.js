@@ -15,7 +15,7 @@ Component({
   start(e){
    this.suppressTapUntil=0;this.dismissedTouch=!!(activeRow&&activeRow!==this);
    if(this.dismissedTouch)activeRow.closeSwipe();
-   if(this.data.readonly||e.touches.length!==1){this.gesture=null;return;}
+   if(this.data.readonly||this.data.field.map||e.touches.length!==1){this.gesture=null;return;}
    const p=e.touches[0],dataset=e.currentTarget?.dataset||{};
    this.gesture={x:p.clientX,y:p.clientY,base:this.data.offset,axis:'',dx:0,startedAt:Date.now(),samples:[{x:p.clientX,at:touchTime(e)}],trayAction:this.data.actions&&dataset.tray?dataset.action:null};
   },
@@ -48,7 +48,7 @@ Component({
     const velocity=p&&elapsed>0?(last.x-first.x)/elapsed:0;
     const flick=Math.abs(g.dx)>=TOUCH_SLOP&&Math.abs(velocity)>=FLICK_SPEED;
     const open=flick?velocity<0:g.dx<=-SWIPE_DISTANCE?true:g.dx>=SWIPE_DISTANCE?false:g.base<0;
-    if(open)this.reveal();else this.closeSwipe();
+    if(open){this.reveal();this.triggerEvent('swipeopen',{id:this.data.field.id});}else this.closeSwipe();
    }else this.setData({dragging:false});
    this.gesture=null;
    // Phone traces can contain start/end without a native tap. Only a fresh,
@@ -67,6 +67,7 @@ Component({
   },
   bodyStart(){this.suppressTapUntil=0;this.dismissedTouch=!!activeRow;if(activeRow)activeRow.closeSwipe();},
   consumeDismissal(){const dismissed=this.dismissedTouch||this.data.actions||Date.now()<(this.suppressTapUntil||0);this.dismissedTouch=false;if(dismissed)this.closeSwipe();return dismissed;},
+  tapBody(){if(Date.now()<(this.suppressTapUntil||0))return;this.closeSwipe();},
   tapHead(){
    if(Date.now()<(this.suppressTapUntil||0))return;
    if(this.data.field.heading){if(this.consumeDismissal())return;this.triggerEvent('fold',{id:this.data.field.foldId,expanded:!!this.data.field.expanded});}
@@ -75,15 +76,16 @@ Component({
   skip(){if(Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal()||this.data.readonly)return;this.triggerEvent('group',{id:this.data.field.foldId,op:'skip'});},
   noop(){},
   emit(prop,value){if(!this.data.readonly)this.triggerEvent('answer',{id:this.data.field.id,prop,value});},
-  handleInputFocus(e){if(activeRow)activeRow.closeSwipe();this.setData({[e.currentTarget.dataset.input+'Focused']:true});},
-  handleInputBlur(e){const key=e.currentTarget.dataset.input;this.setData({[key+'Focused']:false,[key+'Filled']:hasContent(e.detail.value)});},
-  input(e){this.setData({valueFilled:hasContent(e.detail.value)});this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
+  handleInputFocus(e){if(activeRow)activeRow.closeSwipe();const input=e.currentTarget.dataset.input;this.setData({[input+'Focused']:true});this.triggerEvent('inputfocus',{id:this.data.field.id,input});},
+  handleInputBlur(e){const input=e.currentTarget.dataset.input;this.setData({[input+'Focused']:false,[input+'Filled']:hasContent(e.detail.value)});this.triggerEvent('inputblur',{id:this.data.field.id,input});},
+  input(e){this.setData({valueFilled:hasContent(e.detail.value)});if(this.data.field.id==='fc76beec-52e3-4fe9-a937-dec254d4cc4f'&&e.detail.value==='-')return;this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
+  toggleNone(){const f=this.data.field;if(this.data.readonly||!(f.cost||f.allowNone)||Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal())return;this.emit(f.cost?'noCost':'none',!f.noneSelected);},
   choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly){if(this.data.field.heading)this.triggerEvent('group',{id:this.data.field.foldId,op:'value',value:e.currentTarget.dataset.value});else this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});}},
   trayAction(e){
    if(this.data.readonly||!this.data.actions||Date.now()<(this.suppressTapUntil||0))return;
    const action=e.currentTarget.dataset.action;if(!['flag','note','media'].includes(action))return;
    this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});
   },
-  action(e){if(e.currentTarget.dataset.tray)return this.trayAction(e);if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(this.data.readonly&&['flag','media','map','speed-test','commute'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
+  action(e){if(e.currentTarget.dataset.tray)return this.trayAction(e);if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;const action=e.currentTarget.dataset.action;if(action==='wheel'&&this.data.field.noneSelected)return;if(this.data.readonly&&['flag','media','map','speed-test','commute','wheel'].includes(action))return;this.closeSwipe();this.triggerEvent('action',{id:this.data.field.id,action});}
  }
 });

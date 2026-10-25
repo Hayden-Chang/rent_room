@@ -36,7 +36,7 @@ it('does not overwrite corrupt source or destination records during association'
  }
 });
 it('copies distinct photos even when different records reuse the same media ID',()=>{
- const {m,guest,target}=fixture(),second=guest.store.add('另一条');m.disk.set(guest.root+'/media/second.jpg','second-photo');guest.store.edit(second,h=>h.media.push({id:'p',type:'image',path:guest.root+'/media/second.jpg'}));
+ const {m,guest,id,target}=fixture();guest.store.archive(id,true);const second=guest.store.add('另一条');m.disk.set(guest.root+'/media/second.jpg','second-photo');guest.store.edit(second,h=>h.media.push({id:'p',type:'image',path:guest.root+'/media/second.jpg'}));
  claimGuestRecords(m.wx,A,target,guest.root);const houses=createPlatform(m.wx,{root:target}).store.get().houses;
  expect(houses.map(h=>m.disk.get(h.media[0].path))).toEqual(['photo','second-photo']);
 });
@@ -48,4 +48,16 @@ it('preserves existing account settings and also associates guest settings befor
   claimGuestRecords(m.wx,A,target,guest.root);
   expect(createPlatform(m.wx,{root:target}).store.get().settings.workplace).toBe(existing?'原地点':'新地点');
  }
+});
+it('continues a guest sorting draft on login even before creating any house',()=>{
+ const m=accountWx(),guest=createPlatform(m.wx,guestStorage(m.wx)),target=accountStorage(m.wx,A).root;
+ const draft={order:['房源基本信息'],disabled:[]};guest.store.change(s=>s.xiaoda.draft=draft);
+ claimGuestRecords(m.wx,A,target,guest.root);expect(createPlatform(m.wx,{root:target}).store.get().xiaoda).toMatchObject({setup:'sort',draft});
+});
+it('preserves completed account onboarding while transferring the exact pending restore with remapped IDs',()=>{
+ const {m,guest,id,target}=fixture(),existing=createPlatform(m.wx,{root:target});existing.store.import(guest.store.get().houses);
+ existing.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.tutorialStep=0;s.xiaoda.feedback='done';s.xiaoda.firstHouseId=id;});
+ guest.store.archive(id,true);guest.store.change(s=>{s.xiaoda.intent={kind:'restore',houseId:id};s.xiaoda.tutorialStep=3;});
+ claimGuestRecords(m.wx,A,target,guest.root);const state=createPlatform(m.wx,{root:target}).store.get();
+ expect(state.xiaoda).toMatchObject({setup:'done',tutorialStep:0,feedback:'done',firstHouseId:id});expect(state.xiaoda.intent.houseId).toBe(state.houses[1].id);expect(state.xiaoda.intent.houseId).not.toBe(id);
 });

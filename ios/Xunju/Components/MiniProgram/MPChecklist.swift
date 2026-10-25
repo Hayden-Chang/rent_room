@@ -79,6 +79,10 @@ struct MPFieldItem {
     var labels: [String: String] = [:]
     var multiple = false, inline = true, skippable = false, hideDivider = false
     var stats = "", photoRef = ""
+    var description = ""
+    var allowsNone = false, numberPad = false
+    var progress: Double? = nil
+    var issueCount = 0
     var collapsible = true
     var heading: Bool { kind == .category || kind == .group }
 }
@@ -87,9 +91,11 @@ struct MPFieldState {
     var text = "", note = "", otherText = ""
     var selected: Set<String> = []
     var flagged = false, expanded = false, skipped = false
+    var noneSelected = false
 }
 
 struct MPFieldRow: View {
+    @Environment(\.inspectionInteraction) private var interaction
     static let measurementWheelMinimumWidth: CGFloat = 100
     let item: MPFieldItem
     @Binding var state: MPFieldState
@@ -131,11 +137,12 @@ struct MPFieldRow: View {
                     }
                 }.frame(minHeight: height)
             }.clipped().contentShape(Rectangle())
-                .modifier(MPFieldSwipe(id: item.id, readonly: readonly, coordinator: coordinator))
-                .highPriorityGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                    if !readonly { withAnimation(.easeOut(duration: 0.18)) { coordinator.reveal(item.id) } }
-                })
             if !item.inline && !item.heading { answer.padding(.top, 6).allowsHitTesting(offset == 0) }
+            if !item.description.isEmpty {
+                Text(item.description).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
+                    .accessibilityIdentifier("mp.field.description.\(item.id)")
+            }
             if state.selected.contains("其他") {
                 TextField(focused ? "" : "请填写其他内容", text: $state.otherText).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 44)
                     .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).padding(.top, 8).disabled(readonly)
@@ -144,17 +151,22 @@ struct MPFieldRow: View {
             }
             if !state.note.isEmpty {
                 Button { if !coordinator.consumeTap() { note() } } label: {
-                    Text(state.note).font(.system(size: 12)).foregroundStyle(XJTheme.muted).multilineTextAlignment(.leading)
+                    Text(state.note).font(.system(size: 12)).foregroundStyle(XJTheme.primary).multilineTextAlignment(.leading)
                         .lineLimit(item.heading ? nil : 2).frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(.plain).padding(.top, 8)
             }
             if !item.photoRef.isEmpty { Text("原照片编号：" + item.photoRef).font(.system(size: 11)).foregroundStyle(XJTheme.muted).padding(.top, 4) }
         }.padding(.vertical, item.heading ? 4 : item.inline ? 2 : 12).padding(.top, item.kind == .group ? 8 : 0)
-            .padding(.horizontal, state.flagged ? 8 : 0).background(state.flagged ? XJTheme.dangerBackground : .clear)
+            .background(state.flagged ? XJTheme.dangerBackground : .clear)
             .clipShape(RoundedRectangle(cornerRadius: state.flagged ? 8 : 0))
             .overlay(alignment: .bottom) { if !item.heading && !item.hideDivider { XJTheme.line.frame(height: 1) } }
-            .onChange(of: focused) { if focused { coordinator.close() } }
+            .onChange(of: focused) { if focused { coordinator.close() }; interaction(item.id, focused) }
             .onChange(of: readonly) { if readonly { coordinator.close() } }
+            .contentShape(Rectangle())
+            .modifier(MPFieldSwipe(id: item.id, readonly: readonly, coordinator: coordinator))
+            .highPriorityGesture(LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                if !readonly { withAnimation(.easeOut(duration: 0.18)) { coordinator.reveal(item.id) } }
+            })
             .accessibilityElement(children: .contain).accessibilityIdentifier("mp.field.\(item.id)")
             .accessibilityValue((coordinator.active == item.id ? "操作已展开" : "操作已收起") + coordinator.diagnostic)
             .sheet(isPresented: $datePicker) { DateInputSheet(value: $state.text).presentationDetents([.medium]) }
@@ -169,8 +181,9 @@ struct MPFieldRow: View {
                     }.font(.system(size: 13)).foregroundStyle(state.text.isEmpty ? XJTheme.muted : XJTheme.ink)
                         .padding(.horizontal, 12).frame(minWidth: measurement == nil ? 96 : Self.measurementWheelMinimumWidth, minHeight: 44)
                         .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
-                }.buttonStyle(.plain).disabled(readonly).accessibilityIdentifier("mp.field.wheel.\(item.id)")
+                }.buttonStyle(.plain).disabled(readonly || state.noneSelected).accessibilityIdentifier("mp.field.wheel.\(item.id)")
                     .accessibilityValue(state.text.isEmpty ? "未填写" : state.text)
+                if item.allowsNone { noneOption }
                 if let measurement {
                     Button("查询") { if !coordinator.consumeTap() { measurement.perform() } }
                         .font(.system(size: 13)).padding(.horizontal, 10).frame(height: 44).foregroundStyle(XJTheme.primary)
@@ -186,12 +199,13 @@ struct MPFieldRow: View {
         } else if item.kind == .text || item.kind == .number {
             HStack(spacing: measurement?.kind == .speed ? 6 : 8) {
             TextField(focused ? "" : measurement.map { $0.kind == .speed ? "网速" : "分钟" } ?? (item.kind == .number ? "填写数值" : "填写信息"), text: $state.text)
-                .font(.system(size: 13)).keyboardType(item.kind == .number ? .decimalPad : .default).focused($focused)
+                .font(.system(size: 13)).keyboardType(item.kind == .number ? (item.numberPad ? .numberPad : .decimalPad) : .default).focused($focused)
                 .multilineTextAlignment(item.kind == .number ? .trailing : .leading)
                 .padding(.horizontal, measurement == nil ? 12 : 8).frame(width: item.kind == .number ? (measurement == nil ? 96 : 76) : nil, height: 44)
                 .frame(maxWidth: item.kind == .text ? .infinity : nil)
-                .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).disabled(readonly)
+                .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).disabled(readonly || state.noneSelected)
                 .onChange(of: state.text) { state.text = String(state.text.prefix(2000)) }.accessibilityIdentifier("mp.field.input.\(item.id)")
+                if item.allowsNone { noneOption }
                 if let measurement {
                     if measurement.kind == .speed { Text("Mbps").font(.system(size: 11)).foregroundStyle(XJTheme.muted) }
                     Button(measurement.kind == .speed ? "测试" : "查询") { if !coordinator.consumeTap() { measurement.perform() } }
@@ -202,7 +216,15 @@ struct MPFieldRow: View {
             }
         } else {
             HStack(spacing: 4) {
-                if !item.stats.isEmpty { Text(item.stats).font(.system(size: 12)).foregroundStyle(XJTheme.muted).fixedSize() }
+                if !item.stats.isEmpty {
+                    if let progress = item.progress {
+                        VStack(alignment: .trailing, spacing: 3) {
+                            if item.issueCount > 0 { Text("\(item.issueCount) 个问题").foregroundStyle(XJTheme.danger) }
+                            ProgressView(value: progress).tint(progress == 1 ? .green : XJTheme.primary).frame(width: 64)
+                            Text(item.stats).foregroundStyle(XJTheme.muted)
+                        }.font(.system(size: 11)).accessibilityElement(children: .combine)
+                    } else { Text(item.stats).font(.system(size: 12)).foregroundStyle(XJTheme.muted).fixedSize() }
+                }
                 if item.skippable { option("不涉及", selected: state.skipped, isSkip: true) { state.skipped.toggle() } }
                 if !state.skipped {
                     if item.inline || item.heading {
@@ -213,6 +235,9 @@ struct MPFieldRow: View {
                 }
             }.fixedSize(horizontal: item.inline || item.heading, vertical: false)
         }
+    }
+    private var noneOption: some View {
+        option("无", selected: state.noneSelected) { state.noneSelected.toggle() }
     }
     private func option(_ title: String, selected: Bool, isSkip: Bool = false, action: @escaping () -> Void) -> some View {
         Button { if !coordinator.consumeTap() { action() } } label: {
@@ -243,6 +268,8 @@ struct MPChecklistSurface<Content: View>: View {
     var readonly = false
     var coordinator: MPSwipeCoordinator
     var scrollTarget = ""
+    var guidance: JSONValue = .null
+    var guidanceAction: (String) -> Void = { _ in }
     let capture: () -> Void
     @ViewBuilder var content: Content
     @State private var lastScrollY: CGFloat?
@@ -253,24 +280,21 @@ struct MPChecklistSurface<Content: View>: View {
                     Color.clear.frame(height: 12).id("top")
                     MPCard {
                         VStack(spacing: 0) {
-                            HStack { Text("现场检查").font(.system(size: 17, weight: .semibold)); Spacer(); Text("\(done) / \(total)").font(.system(size: 14)) }
+                            HStack { Text("总进度").font(.system(size: 17, weight: .semibold)); Spacer(); Text("\(done) / \(total)").font(.system(size: 14)) }
                             GeometryReader { geometry in
                                 Capsule().fill(XJTheme.soft)
                                 Capsule().fill(XJTheme.primary).frame(width: geometry.size.width * CGFloat(done) / CGFloat(max(1, total)))
                             }.frame(height: 5).padding(.top, 14).padding(.bottom, 10)
-                            HStack { Text("已记录 \(done) 项"); Spacer(); Text("\(issues) 项有问题").foregroundStyle(XJTheme.danger) }.font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                            HStack { Spacer(); Text("\(issues) 项有问题").foregroundStyle(XJTheme.danger) }.font(.system(size: 12))
                         }
                     }
+                    if guidance != .null { XiaodaGuidanceCard(prompt: guidance, action: guidanceAction).padding(.top, 12).id("xiaoda.guide") }
                     HStack(spacing: 8) {
                         ForEach(["全部", "房源", "现场", "询问签约"], id: \.self) { value in
-                            Button { if !coordinator.consumeTap() { phase = value } } label: { Text(value).font(.system(size: 13)).frame(maxWidth: .infinity, minHeight: 44).background(phase == value ? XJTheme.soft : .white).clipShape(Capsule()) }
+                            Button { if !coordinator.consumeTap() { phase = value } } label: { Text(["房源":"基本情况", "现场":"现场检查", "询问签约":"费用与合同"][value] ?? value).font(.system(size: 13)).frame(maxWidth: .infinity, minHeight: 44).background(phase == value ? XJTheme.soft : .white).clipShape(Capsule()) }
                                 .foregroundStyle(phase == value ? XJTheme.primary : XJTheme.ink).buttonStyle(.plain).accessibilityIdentifier("mp.phase.\(value)")
-                                .anchorPreference(key: CoachAnchors.self, value: .bounds) { anchor in
-                                    let step = value == "房源" ? 1 : value == "现场" ? 2 : value == "询问签约" ? 3 : 0
-                                    return step == 0 ? [:] : [step: anchor]
-                                }
                         }
-                    }.padding(.vertical, 14)
+                    }.padding(.vertical, 14).anchorPreference(key: CoachAnchors.self, value: .bounds) { [1:$0] }
                     HStack(spacing: 8) {
                         TextField("搜索检查项、结果或备注", text: $query).font(.system(size: 14)).padding(.horizontal, 12).frame(height: 44).background(.white)
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).accessibilityIdentifier("mp.checklist.search")
@@ -289,6 +313,7 @@ struct MPChecklistSurface<Content: View>: View {
                                 }.buttonStyle(.plain)
                             }
                         }.padding(12).frame(maxWidth: .infinity, alignment: .leading).background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).padding(.top, 8)
+                            .anchorPreference(key: CoachAnchors.self, value: .bounds) { [2:$0] }
                     }
                     content.padding(.top, 16)
                 }.padding(.horizontal, 16).padding(.bottom, 128)

@@ -2,7 +2,7 @@ import {describe,it,expect,vi} from 'vitest';
 import {createBilling} from '../src/lib/billing.js';
 
 function fixture(options={}){
- let saved=options.saved||'',state='paid',packs=0,account='account-A',failPayment=null,failRequest=false,ready=true;
+ let saved=options.saved||'',state='paid',packs=0,account='account-A',failPayment=null,failRequest=false,ready=true,freeLimit=options.freeLimit??null;
  const calls=[],payment={mode:'short_series_goods',signData:'{"offerId":"1450681249","currencyType":"CNY","goodsPrice":199,"buyQuantity":1,"env":0,"productId":"room_capacity_10","outTradeNo":"order-test"}',paySig:'server-signature',signature:'user-signature'};
  const api=vi.fn(async(name,args)=>{
   calls.push({name,args});if(name==='login')return {code:'wx-code'};
@@ -15,11 +15,12 @@ function fixture(options={}){
   else if(path==='/entitlements')data={packs};
   else if(path.startsWith('/orders/request/')){if(state==='paid')packs=1;data={status:state,packs};}
   else throw Error('Unexpected path '+path);
+  if(freeLimit!==null)data={...data,capacity:{version:2,freeLimit},...(path==='/catalog'?{}:{packs,limit:freeLimit+10*packs})};
   return {statusCode:200,data};
  });
  const config={url:'https://capacity.test/api/rent-room',session:{token:'opaque-token',account,packs},read:()=>saved,write:v=>{saved=v;},wait:async()=>{},...options};
  const billing=createBilling(api,config);
- return {billing,api,calls,payment,cache:()=>saved,reload:()=>createBilling(api,{...config,session:{token:'opaque-token',account,packs},read:()=>saved}),state:v=>{state=v;},packs:v=>{packs=v;},account:v=>{account=v;},cancel:()=>{failPayment={errMsg:'requestVirtualPayment:fail cancel'};},timeout:()=>{failPayment={errMsg:'requestVirtualPayment:fail timeout'};},fail:()=>{failRequest=true;},unavailable:()=>{ready=false;}};
+ return {billing,api,calls,payment,cache:()=>saved,reload:()=>createBilling(api,{...config,session:{token:'opaque-token',account,packs},read:()=>saved}),state:v=>{state=v;},packs:v=>{packs=v;},account:v=>{account=v;},cancel:()=>{failPayment={errMsg:'requestVirtualPayment:fail cancel'};},timeout:()=>{failPayment={errMsg:'requestVirtualPayment:fail timeout'};},fail:()=>{failRequest=true;},unavailable:()=>{ready=false;},freeCapacity:value=>{freeLimit=value;}};
 }
 
 describe('server-confirmed capacity purchases',()=>{
@@ -113,4 +114,22 @@ describe('server-confirmed capacity purchases',()=>{
   await expect(f.billing.purchase()).rejects.toThrow('房源包信息已更新');
   expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toBe(false);
  });
+});
+it('requests the server-configured capacity protocol without changing purchase identifiers',async()=>{
+ const f=fixture();await f.billing.refresh();expect(f.calls.filter(c=>c.name==='request').every(c=>c.args.header['x-rent-room-capacity-version']==='2')).toBe(true);
+});
+
+it('accepts v2 checkout and confirmed order metadata without granting packs early',async()=>{
+ const f=fixture({freeLimit:4});f.state('pending');await expect(f.billing.purchase()).rejects.toThrow('正在确认');
+ expect(f.billing.snapshot()).toMatchObject({packs:0,freeLimit:4,pending:true});
+ f.state('paid');await f.billing.refresh();expect(f.billing.snapshot()).toMatchObject({packs:1,freeLimit:4,pending:false});
+ expect(f.calls.filter(c=>c.name==='requestVirtualPayment')).toHaveLength(1);
+});
+it('finishes an earlier public policy refresh before checkout and uses the fresh order policy',async()=>{
+ const f=fixture({freeLimit:2}),original=f.api.getMockImplementation();let release,entered,first=true;
+ const gate=new Promise(r=>{release=r;}),waiting=new Promise(r=>{entered=r;});
+ f.api.mockImplementation(async(name,args)=>{const response=await original(name,args);if(first&&name==='request'&&args.url.endsWith('/catalog')){first=false;entered();await gate;}return response;});
+ const refresh=f.billing.refreshRules();await waiting;f.freeCapacity(4);const purchase=f.billing.purchase();
+ await Promise.resolve();expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toBe(false);
+ release();await Promise.all([refresh,purchase]);expect(f.billing.snapshot()).toMatchObject({packs:1,freeLimit:4});
 });

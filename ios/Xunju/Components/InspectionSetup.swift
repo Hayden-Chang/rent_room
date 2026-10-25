@@ -12,6 +12,13 @@ struct InspectionTemplateDraft: Equatable {
     var order: [String]
     var disabled: Set<String> = []
 
+    init(order: [String], disabled: Set<String> = []) { self.order = order; self.disabled = disabled }
+    init(_ value: JSONValue) {
+        order = value["order"].array.map(\.string)
+        disabled = Set(value["disabled"].array.map(\.string))
+    }
+    var json: JSONValue { .object(["order": .array(order.map(JSONValue.string)), "disabled": .array(order.filter { disabled.contains($0) }.map(JSONValue.string))]) }
+
     mutating func toggle(_ category: String) -> String? {
         guard order.contains(category) else { return "清单排序数据无效" }
         if disabled.contains(category) { disabled.remove(category); return nil }
@@ -222,6 +229,8 @@ struct InspectionSetupSurface: View {
     @Binding var draft: InspectionTemplateDraft
     @Binding var mode: InspectionMode
     @State private var choosingMode = false
+    var initialStep = "sort"
+    var changeStep: (String) -> Bool = { _ in true }
     var finish: () -> Void
 
     var body: some View {
@@ -247,18 +256,18 @@ struct InspectionSetupSurface: View {
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     HStack(spacing: 12) {
                         if choosingMode {
-                            Button("返回调整") { choosingMode = false; proxy.scrollTo("setup.top", anchor: .top) }
+                            Button("返回调整") { if changeStep("sort") { choosingMode = false; proxy.scrollTo("setup.top", anchor: .top) } }
                                 .font(.system(size: 15, weight: .semibold)).foregroundStyle(SetupStyle.purple)
                                 .frame(minHeight: 50).accessibilityIdentifier("setup.back")
                         }
                         Button(choosingMode ? "选好啦" : "排好啦") {
                             if choosingMode { finish() }
-                            else { choosingMode = true; proxy.scrollTo("setup.top", anchor: .top) }
+                            else if changeStep("mode") { choosingMode = true; proxy.scrollTo("setup.top", anchor: .top) }
                         }.buttonStyle(SetupButtonStyle()).accessibilityIdentifier("setup.next")
                     }.padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 20)
                         .background(.white).overlay(alignment: .top) { Divider() }
                 }
-        }
+        }.onAppear { choosingMode = initialStep == "mode" }
     }
 }
 

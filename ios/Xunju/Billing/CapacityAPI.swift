@@ -6,10 +6,11 @@ struct CapacityBalance: Codable, Sendable, Equatable {
     let packs: Int
     let limit: Int
     let revision: Int
+    var capacity: CapacityPolicy? = nil
     func validated() throws -> Self {
+        try CapacityPolicy.validate(packs: packs, limit: limit, policy: capacity)
         guard account.range(of: "\\A[a-f0-9]{64}\\z", options: .regularExpression) != nil,
               ["Production", "Sandbox"].contains(environment), packs >= 0,
-              packs <= (9_007_199_254_740_991 - 2) / 10, limit == 2 + 10 * packs,
               revision >= 0 else { throw CoreFailure(message: "容量校验失败，请稍后重试") }
         return self
     }
@@ -37,7 +38,8 @@ struct CapacityAPI: CapacityServicing {
         let account: String; let environment: String; let packs: Int; let limit: Int; let revision: Int
         let available: Bool?; let productId: String?; let packSize: Int?; let appAccountToken: UUID?
         let transactionId: String?; let status: String?
-        var balance: CapacityBalance { get throws { try CapacityBalance(account: account, environment: environment, packs: packs, limit: limit, revision: revision).validated() } }
+        let capacity: CapacityPolicy?
+        var balance: CapacityBalance { get throws { try CapacityBalance(account: account, environment: environment, packs: packs, limit: limit, revision: revision, capacity: capacity).validated() } }
     }
     func context(token: String) async throws -> CapacityContext {
         let value = try await request("context", token: token)
@@ -56,6 +58,7 @@ struct CapacityAPI: CapacityServicing {
         var request = URLRequest(url: baseURL.appending(path: path)); request.timeoutInterval = 20
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("2", forHTTPHeaderField: "x-rent-room-capacity-version")
         if let body {
             request.httpMethod = "POST"; request.httpBody = try JSONEncoder().encode(body)
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")

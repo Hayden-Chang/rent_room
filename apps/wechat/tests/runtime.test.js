@@ -7,7 +7,7 @@ it('runs built Page bundles with an authenticated fixture and shares one store',
  const disk=new Map();let app,page;
  const wx={env:{USER_DATA_PATH:'/user'},getFileSystemManager:()=>({mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync:p=>disk.get(p),writeFileSync:(p,v)=>disk.set(p,v),copyFileSync:(a,b)=>disk.set(b,disk.get(a)),renameSync(a,b){disk.set(b,disk.get(a));disk.delete(a);}}),setNavigationBarTitle(){},navigateBack(){},showToast(){},showLoading(){},hideLoading(){},navigateTo(){}};
  const context=vm.createContext({wx,App(o){app=o;},Page(o){page=o;},getApp:()=>app,console,setTimeout,clearTimeout});
- vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
+ vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx,{packs:1});app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.tutorialStep=0;s.xiaoda.legacy=true;});
  const id=app.service.store.add('运行验证');
  for(const name of ['home','detail','compare','settings','archive','templates']){
    vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);
