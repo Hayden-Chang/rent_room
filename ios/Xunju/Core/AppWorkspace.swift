@@ -33,16 +33,17 @@ final class AppWorkspace {
         self.places = places
         scopes = try LocalIdentityScopes(root: root)
         self.policyAPI = policyAPI; policyCache = CapacityPolicyCache(root: scopes.root)
-        capacityPolicy = policyCache.read()
-        let guest = try NativeStore(directory: scopes.guestDirectory(), freeLimit: capacityPolicy.freeLimit, network: mapTransport)
+        let initialPolicy = policyCache.read()
+        capacityPolicy = initialPolicy
+        let guest = try NativeStore(directory: scopes.guestDirectory(), freeLimit: initialPolicy.freeLimit, network: mapTransport)
         if let saved = try keychain.read() {
             try saved.validateStored()
-            let account = try NativeStore(directory: scopes.accountDirectory(saved.account), packs: saved.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
+            let account = try NativeStore(directory: scopes.accountDirectory(saved.account), packs: saved.packs, freeLimit: initialPolicy.freeLimit, network: mapTransport)
             if account.status.blocked {
                 // Expose the existing recovery banner without attempting a guest claim or write.
                 store = account
             } else {
-                store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
+                store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs, freeLimit: initialPolicy.freeLimit, network: mapTransport)
             }
             session = saved
         } else { store = guest }
