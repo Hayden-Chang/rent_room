@@ -110,10 +110,10 @@ private struct XiaodaTutorialHeight: PreferenceKey {
 }
 
 struct InspectionInteractionKey: EnvironmentKey {
-    static let defaultValue: (String, Bool?) -> Void = { _, _ in }
+    static let defaultValue: @MainActor @Sendable (String, Bool?) -> Void = { _, _ in }
 }
 extension EnvironmentValues {
-    var inspectionInteraction: (String, Bool?) -> Void {
+    var inspectionInteraction: @MainActor @Sendable (String, Bool?) -> Void {
         get { self[InspectionInteractionKey.self] }
         set { self[InspectionInteractionKey.self] = newValue }
     }
