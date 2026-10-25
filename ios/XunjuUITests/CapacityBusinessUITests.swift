@@ -68,7 +68,7 @@ import XCTest
         app.navigationBars.buttons.element(boundBy: 0).tap(); app.buttons["tab.房源"].tap()
         app.buttons["house.超额保留"].tap()
         let query = app.textFields["mp.checklist.search"]
-        XCTAssertTrue(query.waitForExistence(timeout: 5)); query.tap(); query.typeText("月租金"); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertTrue(query.waitForExistence(timeout: 5)); query.tap(); query.typeText("租金"); app.buttons["checklist.keyboard.done"].tap()
         let rent = app.textFields["mp.field.input.f1_6"]; XCTAssertTrue(rent.waitForExistence(timeout: 3))
         rent.replacePromptText("1800"); app.buttons["checklist.keyboard.done"].tap()
         XCTAssertEqual(rent.value as? String, "1800")
@@ -81,7 +81,7 @@ import XCTest
         app.navigationBars.buttons["返回"].tap()
         XCTAssertTrue(app.buttons["archive.open.零额度待恢复"].waitForExistence(timeout: 3))
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.超额保留"].waitForExistence(timeout: 10)); app.buttons["house.超额保留"].tap()
-        query.tap(); query.typeText("月租金"); app.buttons["checklist.keyboard.done"].tap()
+        query.tap(); query.typeText("租金"); app.buttons["checklist.keyboard.done"].tap()
         XCTAssertEqual(rent.value as? String, "1800")
     }
     func testConfirmedRestoreContinuesInterruptedCreateWithoutAutoCreatingHouse() {

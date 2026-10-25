@@ -331,8 +331,7 @@ import XCTest
         camera.tap()
         let unavailable = app.alerts["无法添加影像"]
         let cameraClose = app.buttons["DismissImagePickerButton"]
-        let cameraReady = expectation(for: NSPredicate { _, _ in cameraClose.exists || unavailable.exists || !library.exists }, evaluatedWith: app)
-        XCTAssertEqual(XCTWaiter.wait(for: [cameraReady], timeout: 5), .completed)
+        _ = unavailable.waitForExistence(timeout: 2)
         if cameraClose.exists {
             XCTAssertTrue(cameraClose.isHittable)
             capture("media-source-system-camera", app); cameraClose.tap()

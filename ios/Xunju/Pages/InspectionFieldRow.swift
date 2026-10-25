@@ -47,8 +47,14 @@ struct InspectionFieldRow: View {
                     } catch { noteError = error.localizedDescription }
                 }).ignoresSafeArea(.container, edges: .bottom).presentationBackground(.clear)
         }.sheet(isPresented: $picking) { MediaPickerSheet(workspace: workspace, houseID: houseID, fieldID: field.id) }
-            .navigationDestination(isPresented: $commute) { CommutePage(workspace: workspace, houseID: houseID, fieldID: field.id) }
-            .navigationDestination(isPresented: $speed) { SpeedPage(workspace: workspace, houseID: houseID).id(speedVisit) }
+            .navigationDestination(isPresented: $commute) { [workspace, houseID, fieldID = field.id] in
+                CommutePage(workspace: workspace, houseID: houseID, fieldID: fieldID)
+            }
+            // Capture only destination inputs. Capturing the whole row also captures
+            // the checklist's dismiss environment through its edit callbacks.
+            .navigationDestination(isPresented: $speed) { [workspace, houseID, speedVisit] in
+                SpeedPage(workspace: workspace, houseID: houseID).id(speedVisit)
+            }
     }
     private var measurement: MeasurementAction? {
         if UtilityField.mode(field.id) != nil { return MeasurementAction(kind: .commute) { interaction(field.id, nil); commute = true } }
