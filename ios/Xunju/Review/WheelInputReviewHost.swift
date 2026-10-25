@@ -7,12 +7,10 @@ struct WheelInputReviewHost: View {
     @State private var editing: String?
     @State private var money = "2800"
     @State private var speed = "83.25"
-    @State private var other = ""
-    @FocusState private var otherFocused: Bool
-    private let ids = ["fc76beec-52e3-4fe9-a937-dec254d4cc4f", "f1_3", "f1_5", "f5_3", "21255282-3663-4abe-b7de-d91eeb3825ed", "3c70cda2-7c6c-4fa6-b2db-b647af24ba72", "f41_3", "f88_1", "f88_2", "f44_1", "f44_0", "f105_0", "f112_2", "f113_1", "f116_1", "f112_5", "f113_2"]
+    private let ids = ["f5_3", "f88_1", "f88_2", "f105_0", "f112_2", "f113_1", "f116_1", "f112_5", "f113_2"]
     init() {
-        var initial = ["fc76beec-52e3-4fe9-a937-dec254d4cc4f": "12", "f1_3": "45", "f88_1": "1.5"]
-        if ProcessInfo.processInfo.arguments.contains("--wheel-review-legacy") { initial["f1_3"] = "220" }
+        var initial = ["f5_3": "12", "f88_1": "1.5"]
+        if ProcessInfo.processInfo.arguments.contains("--wheel-review-legacy") { initial["f5_3"] = "220" }
         _values = State(initialValue: initial)
     }
     var body: some View {
@@ -26,7 +24,7 @@ struct WheelInputReviewHost: View {
                                     if let spec = WheelFieldSpec.all[id] {
                                         HStack(spacing: 12) {
                                             Text(spec.title).font(.system(size: 13)).frame(maxWidth: .infinity, alignment: .leading)
-                                            Button { otherFocused = false; editing = id } label: {
+                                            Button { editing = id } label: {
                                                 HStack(spacing: 8) {
                                                     Text(display(id, spec)).lineLimit(1)
                                                     Image(systemName: "chevron.down").font(.system(size: 10))
@@ -34,13 +32,6 @@ struct WheelInputReviewHost: View {
                                                     .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                                             }.buttonStyle(.plain).accessibilityIdentifier("wheel.open.\(id)").accessibilityValue((values[id] ?? "").isEmpty ? "未填写" : values[id] ?? "")
                                         }.padding(.vertical, 2)
-                                        if id == "f1_5", values[id] == "其他" {
-                                            TextField("请填写其他内容", text: $other).focused($otherFocused)
-                                                .font(.system(size: 13)).padding(.horizontal, 12).frame(height: 44)
-                                                .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
-                                                .accessibilityIdentifier("wheel.other")
-                                                .onChange(of: other) { other = String(other.prefix(2000)) }
-                                        }
                                         XJTheme.line.frame(height: 1)
                                     }
                                 }

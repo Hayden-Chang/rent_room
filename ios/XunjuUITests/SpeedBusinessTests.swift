@@ -5,18 +5,15 @@ import XCTest
     override func setUpWithError() throws { continueAfterFailure = false }
     private func launch(_ mode: String) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "--speed-measurement-fixture", mode, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "--speed-measurement-fixture", mode, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10)); return app
     }
     private func addHouse(_ name: String, _ app: XCUIApplication) {
         app.buttons["home.add"].tap(); let text = app.textFields["prompt.text"]
-        XCTAssertTrue(text.waitForExistence(timeout: 3)); text.tap(); text.typeText(name); app.buttons["prompt.confirm"].tap()
-        let next = app.buttons["coach.next"]; XCTAssertTrue(next.waitForExistence(timeout: 5))
-        for _ in 0..<3 { next.tap() }
-        XCTAssertTrue(app.descendants(matching: .any)["coach.actions"].waitForExistence(timeout: 3))
-        app.buttons["coach.preference"].tap(); next.tap(); XCTAssertFalse(next.exists)
+        XCTAssertTrue(text.waitForExistence(timeout: 3)); text.replacePromptText(name); app.buttons["prompt.confirm"].tap()
+
         searchSpeed(app)
-        let input = app.textFields["mp.field.input.\(field)"]; input.tap(); input.typeText("10")
+        let input = app.textFields["mp.field.input.\(field)"]; input.replacePromptText("10")
         app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(input.value as? String, "10")
     }
     private func searchSpeed(_ app: XCUIApplication) {

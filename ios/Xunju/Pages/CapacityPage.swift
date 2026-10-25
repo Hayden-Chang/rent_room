@@ -17,9 +17,6 @@ struct CapacityPage: View {
                 authenticated: workspace.session != nil, price: workspace.billing.product?.displayPrice,
                 activity: workspace.billing.activity, error: workspace.billing.error,
                 purchase: { act(restore: false) }, restore: { act(restore: true) })
-            Text("免费额度 \(workspace.capacityPolicy.freeLimit) 套；归档或删除房源可释放额度。已有超额房源仍可查看和编辑。")
-                .font(.system(size: 13)).foregroundStyle(XJTheme.muted)
-            NavigationLink("管理归档房源") { ArchivePage(workspace: workspace) }
             if continued != nil {
                 Button(workspace.store.state["xiaoda"]["intent"]["kind"].string == "restore" ? "继续恢复房源" : "继续新建房源") {
                     workspace.perform { let result = try workspace.store.call("finishHouseAction"); continued?(result); dismiss() }

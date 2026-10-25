@@ -24,7 +24,7 @@ import Observation
         edgeTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
                 do { try await Task.sleep(for: .milliseconds(16)) } catch { return }
-                self?.advance()
+                guard let self else { return }; self.advance()
             }
         }
     }

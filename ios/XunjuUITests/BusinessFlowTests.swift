@@ -1,27 +1,21 @@
 import XCTest
 
 @MainActor final class BusinessFlowTests: XCTestCase {
-    private var guideDismissed = false
-    override func setUpWithError() throws { continueAfterFailure = false; guideDismissed = false }
-    private func launch(mediaFixture: Bool = false) -> XCUIApplication {
+    override func setUpWithError() throws { continueAfterFailure = false }
+    private func launch(mediaFixture: Bool = false, twoRooms: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if twoRooms { app.launchArguments.append("--two-room-policy-fixture") }
         if mediaFixture { app.launchArguments.append("--media-import-fixture") }
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10)); return app
     }
     private func add(_ name: String, _ app: XCUIApplication) {
         app.buttons["home.add"].tap()
         let input = app.textFields["prompt.text"]
-        XCTAssertTrue(input.waitForExistence(timeout: 3)); input.tap(); input.typeText(name)
+        XCTAssertTrue(input.waitForExistence(timeout: 3)); input.replacePromptText(name)
         app.buttons["prompt.confirm"].tap()
         XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
-        if !guideDismissed {
-            let next = app.buttons["coach.next"]
-            XCTAssertTrue(next.waitForExistence(timeout: 3))
-            for _ in 0..<3 { next.tap() }
-            app.buttons["coach.preference"].tap(); next.tap()
-            XCTAssertFalse(next.exists); guideDismissed = true
-        }
+
     }
     private func home(_ app: XCUIApplication) { app.navigationBars.buttons.firstMatch.tap(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3)) }
     private func capture(_ name: String, _ app: XCUIApplication) {
@@ -67,7 +61,7 @@ import XCTest
         XCTAssertTrue(app.buttons["含物业费"].exists)
     }
     func testCompareThenArchiveReadOnlyAndRestore() {
-        let app = launch(); add("第一套", app); app.buttons["tab.总结"].tap(); app.buttons["summary.考虑租住"].tap(); home(app)
+        let app = launch(twoRooms: true); add("第一套", app); app.buttons["tab.总结"].tap(); app.buttons["summary.考虑租住"].tap(); home(app)
         add("第二套", app); home(app)
         app.buttons["tab.对比"].tap()
         let first = app.buttons["compare.select.第一套"]
@@ -297,21 +291,18 @@ import XCTest
         reveal(group, app); group.swipeLeft(); XCTAssertTrue(app.buttons["mp.field.action." + groupID + ".取消问题"].exists)
         capture("68-business-group-restored", app)
     }
-    func testCapacityFailureKeepsNameAndExistingHouses() {
-        let app = launch(); add("容量一", app); home(app); add("容量二", app); home(app)
+    func testCapacityInterruptionKeepsExistingHouse() {
+        let app = launch(); add("容量一", app); home(app)
         app.buttons["home.add"].tap()
-        let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3)); name.tap(); name.typeText("尚未新增的第三套")
-        app.buttons["prompt.confirm"].tap()
-        let error = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "房源容量不足")).firstMatch
-        XCTAssertTrue(error.waitForExistence(timeout: 4))
-        capture("20-native-capacity-failure", app)
-        if app.alerts.firstMatch.exists { app.alerts.firstMatch.buttons["知道了"].tap() }
-        XCTAssertEqual(name.value as? String, "尚未新增的第三套")
-        app.buttons["取消"].tap()
-        XCTAssertTrue(app.buttons["house.容量一"].exists); XCTAssertTrue(app.buttons["house.容量二"].exists)
+        XCTAssertTrue(app.staticTexts["capacity.total"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["capacity.total"].label, "1 / 1 套")
+        XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)
+        XCTAssertFalse(app.textFields["prompt.text"].exists)
+        capture("20-native-capacity-interruption", app)
+        app.navigationBars.buttons["返回"].tap()
+        XCTAssertTrue(app.buttons["house.容量一"].waitForExistence(timeout: 3))
         app.terminate(); app.launch()
         XCTAssertTrue(app.buttons["house.容量一"].waitForExistence(timeout: 10))
-        XCTAssertFalse(app.buttons["house.尚未新增的第三套"].exists)
     }
     func testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints() {
         let app = launch(); add("来源菜单检查", app)

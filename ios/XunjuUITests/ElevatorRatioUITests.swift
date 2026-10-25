@@ -8,12 +8,11 @@ import XCTest
     }
     func testRatioChoicesAutomaticIssueAndRelaunch() {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10)); app.buttons["home.add"].tap()
-        let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3)); name.tap(); name.typeText("电梯住户比验收")
+        let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3)); name.replacePromptText("电梯住户比验收")
         app.buttons["prompt.confirm"].tap()
-        let next = app.buttons["coach.next"]; XCTAssertTrue(next.waitForExistence(timeout: 5))
-        for _ in 0..<3 { next.tap() }; app.buttons["coach.preference"].tap(); next.tap()
+
         let search = app.textFields["mp.checklist.search"]; XCTAssertTrue(search.waitForExistence(timeout: 3)); search.tap(); search.typeText("电梯住户比")
         app.buttons["checklist.keyboard.done"].tap()
         let group = app.buttons["mp.field.choice.node:group:topic_16.是"]

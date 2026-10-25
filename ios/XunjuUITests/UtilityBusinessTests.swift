@@ -5,7 +5,7 @@ import CoreLocation
     override func setUpWithError() throws { continueAfterFailure = false }
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "--utility-network-fixture", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "--utility-network-fixture", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
@@ -26,21 +26,12 @@ import CoreLocation
         XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Using a place must collapse the real page map")
         XCTAssertEqual(app.buttons["place.mapToggle"].label, "展开地图")
     }
-    func testRealGuidePlaceWorkplaceAndCommutePersistAfterRelaunch() {
+    func testPlaceWorkplaceAndCommutePersistAfterRelaunch() {
         let app = launch()
         app.buttons["home.add"].tap(); let name = app.textFields["prompt.text"]
-        XCTAssertTrue(name.waitForExistence(timeout: 3)); name.tap(); name.typeText("选点与通勤")
+        XCTAssertTrue(name.waitForExistence(timeout: 3)); name.replacePromptText("选点与通勤")
         app.buttons["prompt.confirm"].tap()
-        let next = app.buttons["coach.next"]; XCTAssertTrue(next.waitForExistence(timeout: 5))
-        capture("30-business-coach-phase", app)
-        for _ in 0..<3 { next.tap() }
-        let demo = app.otherElements["coach.demo"]
-        XCTAssertTrue(app.descendants(matching: .any)["coach.actions"].waitForExistence(timeout: 3))
-        XCTAssertGreaterThan(demo.frame.minY, app.navigationBars.firstMatch.frame.maxY)
-        XCTAssertLessThan(demo.frame.maxY, app.buttons["tab.清单"].frame.minY)
-        demo.swipeLeft()
-        app.buttons["coach.preference"].tap(); capture("31-business-coach-field", app); next.tap()
-        XCTAssertTrue(next.waitForNonExistence(timeout: 3))
+
         let checklist = app.textFields["mp.checklist.search"]; focus(checklist, in: app); checklist.typeText("地图")
         app.buttons["checklist.keyboard.done"].tap()
         let place = app.textFields["place.query"]; XCTAssertTrue(place.waitForExistence(timeout: 3))
@@ -67,7 +58,7 @@ import CoreLocation
         let ready = expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: confirm)
         XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 4), .completed)
         capture("34-business-route-confirm", app); confirm.tap()
-        let answer = app.buttons["mp.field.wheel.21255282-3663-4abe-b7de-d91eeb3825ed"]
+        let answer = app.textFields["mp.field.input.21255282-3663-4abe-b7de-d91eeb3825ed"]
         XCTAssertTrue(answer.waitForExistence(timeout: 3)); XCTAssertEqual(answer.value as? String, "24")
         XCTAssertGreaterThanOrEqual(answer.frame.width, 100)
         XCTAssertLessThan(answer.frame.maxX, app.buttons["measurement.21255282-3663-4abe-b7de-d91eeb3825ed"].frame.minX)
@@ -96,11 +87,8 @@ import CoreLocation
         let app = launch()
         app.buttons["home.add"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
-        name.tap(); name.typeText("地图状态回归"); app.buttons["prompt.confirm"].tap()
-        let next = app.buttons["coach.next"]; XCTAssertTrue(next.waitForExistence(timeout: 5))
-        for _ in 0..<3 { next.tap() }
-        app.buttons["coach.preference"].tap(); next.tap()
-        XCTAssertTrue(next.waitForNonExistence(timeout: 3))
+        name.replacePromptText("地图状态回归"); app.buttons["prompt.confirm"].tap()
+
         let basic = app.staticTexts["mp.field.title.node:category:房源基本信息"]
         XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap()
         let query = app.textFields["place.query"], address = app.textFields["mp.field.input.f1_1"]
@@ -209,7 +197,7 @@ import CoreLocation
     // network fixtures or physical/user location; not an offline CI gate.
     func testLiveSystemPlaceSearchSelectionAndRelaunch() {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
         let query = app.textFields["place.query"]; focus(query, in: app)
@@ -225,10 +213,8 @@ import CoreLocation
         XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
         app.navigationBars.buttons.firstMatch.tap(); app.buttons["tab.房源"].tap(); app.buttons["home.add"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3)); focus(name, in: app)
-        name.typeText("在线通勤回归"); app.buttons["prompt.confirm"].tap()
-        let next = app.buttons["coach.next"]; XCTAssertTrue(next.waitForExistence(timeout: 5))
-        for _ in 0..<3 { next.tap() }
-        app.buttons["coach.preference"].tap(); next.tap(); XCTAssertTrue(next.waitForNonExistence(timeout: 3))
+        name.replacePromptText("在线通勤回归"); app.buttons["prompt.confirm"].tap()
+
         let basic = app.staticTexts["mp.field.title.node:category:房源基本信息"]
         XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap(); focus(query, in: app)
         query.typeText("上海人民广场\n")

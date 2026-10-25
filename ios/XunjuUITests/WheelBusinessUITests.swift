@@ -5,14 +5,12 @@ import XCTest
     private let floor = "fc76beec-52e3-4fe9-a937-dec254d4cc4f"
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
         app.buttons["home.add"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
-        name.tap(); name.typeText("轮盘正式表单"); app.buttons["prompt.confirm"].tap()
-        let next = app.buttons["coach.next"]; XCTAssertTrue(next.waitForExistence(timeout: 5))
-        for _ in 0..<3 { next.tap() }
-        app.buttons["coach.preference"].tap(); next.tap()
+        name.replacePromptText("轮盘正式表单"); app.buttons["prompt.confirm"].tap()
+
         XCTAssertTrue(app.textFields["mp.checklist.search"].waitForExistence(timeout: 3))
         return app
     }
@@ -41,33 +39,23 @@ import XCTest
     private func capture(_ name: String, _ app: XCUIApplication) {
         let a = XCTAttachment(screenshot: app.screenshot()); a.name = name; a.lifetime = .keepAlways; add(a)
     }
-    func testChecklistWheelOtherCancelAndRelaunchPersistence() {
-        let app = launch(); search("楼层", app); open(floor, app)
-        choose("12 层", app); app.buttons["wheel.close"].tap()
-        XCTAssertTrue(app.buttons["wheel.keep"].waitForExistence(timeout: 3)); capture("app-form-discard-warning", app)
-        app.buttons["wheel.keep"].tap(); confirm(app)
-        open(floor, app); XCTAssertEqual(app.pickerWheels.firstMatch.value as? String, "12 层")
-        capture("app-form-existing-floor-12", app)
-        choose("-1 层", app); confirm(app)
-        open(floor, app); app.buttons["wheel.clear"].tap(); app.buttons["wheel.close"].tap()
-        app.buttons["wheel.discard"].tap()
-        XCTAssertEqual(app.buttons["mp.field.wheel.\(floor)"].value as? String, "-1")
-        open(floor, app); app.buttons["wheel.clear"].tap(); confirm(app)
-        XCTAssertEqual(app.buttons["mp.field.wheel.\(floor)"].value as? String, "未填写")
-        open(floor, app); choose("0 层", app); confirm(app)
-        search("朝向", app); open("f1_5", app); choose("其他", app); confirm(app)
-        let other = app.textFields["mp.field.other.f1_5"]
-        XCTAssertTrue(other.isHittable); capture("app-form-other-empty", app)
+    func testManualFloorAndOrientationOtherPersistAfterRelaunch() {
+        let app = launch(); search("楼层", app)
+        let input = app.textFields["mp.field.input." + floor]
+        XCTAssertTrue(input.waitForExistence(timeout: 3)); input.tap(); input.typeText("12")
+        XCTAssertFalse(app.keyboards.buttons["."].exists)
+        app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(input.value as? String, "12")
+        input.replacePromptText("0"); app.buttons["checklist.keyboard.done"].tap()
+        capture("app-form-manual-floor-zero", app)
+        search("朝向", app); app.buttons["mp.field.choice.f1_5.其他"].tap()
+        let other = app.textFields["mp.field.other.f1_5"]; XCTAssertTrue(other.isHittable)
         other.tap(); other.typeText("SE 15"); app.buttons["checklist.keyboard.done"].tap()
-        open("f1_5", app); choose("南", app); confirm(app); XCTAssertFalse(other.exists)
-        open("f1_5", app); choose("其他", app); confirm(app)
-        XCTAssertEqual(other.value as? String, "SE 15")
+        app.buttons["mp.field.choice.f1_5.南"].tap(); XCTAssertFalse(other.exists)
+        app.buttons["mp.field.choice.f1_5.其他"].tap(); XCTAssertEqual(other.value as? String, "SE 15")
         app.terminate(); app.launch()
         let house = app.buttons["house.轮盘正式表单"]; XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
-        XCTAssertTrue(app.textFields["mp.checklist.search"].waitForExistence(timeout: 3))
         search("朝向", app); XCTAssertEqual(other.value as? String, "SE 15"); capture("app-form-other-restored", app)
-        search("楼层", app); XCTAssertEqual(app.buttons["mp.field.wheel.\(floor)"].value as? String, "0")
-        capture("app-form-zero-restored", app)
+        search("楼层", app); XCTAssertEqual(input.value as? String, "0"); capture("app-form-zero-restored", app)
     }
     func testMonthsIssueEditingAndArchiveReadonly() {
         let app = launch(), penalty = "f113_2"

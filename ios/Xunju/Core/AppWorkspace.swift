@@ -48,6 +48,18 @@ final class AppWorkspace {
             session = saved
         } else { store = guest }
         billing = CapacityController(workspace: self, api: capacityAPI, storefront: storefront ?? NativeStorefront())
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        if ReturningBusinessFixture.enabled(arguments) {
+            if arguments.contains("--two-room-policy-fixture") { try acceptPolicy(CapacityPolicy(version: 2, freeLimit: 2)) }
+            if store.state["xiaoda"]["setup"].string != "done" {
+                try store.call("settings", ["property": .string("onboarding"), "value": .bool(false)])
+                let legacy = store.state.removing("xiaoda")
+                try store.records.write(String(decoding: JSONEncoder().encode(legacy), as: UTF8.self), keepPrevious: false)
+                store = try NativeStore(directory: store.records.directory, packs: store.capacity.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
+            }
+        }
+        #endif
     }
 
     static func dataRoot(arguments: [String] = ProcessInfo.processInfo.arguments) throws -> URL {

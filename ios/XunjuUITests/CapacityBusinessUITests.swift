@@ -4,7 +4,7 @@ import XCTest
     override func setUpWithError() throws { continueAfterFailure = false }
     private func launch(_ id: String, mode: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", id, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--returning-business-fixture", "--business-test", id, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         if let mode { app.launchArguments += ["--capacity-business-fixture", mode] }
         app.launch(); XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["settings.capacity"].tap()
@@ -25,7 +25,7 @@ import XCTest
     func testGuestCapacityOpensExistingLoginAndSMSFormWithoutRequestingCode() {
         let app = launch(UUID().uuidString)
         XCTAssertEqual(app.buttons["capacity.purchase"].label, "登录后购买")
-        waitTotal("0 / 2 套", app); app.buttons["capacity.purchase"].tap()
+        waitTotal("0 / 1 套", app); app.buttons["capacity.purchase"].tap()
         XCTAssertTrue(app.buttons["login.phone"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["login.wechat"].exists); XCTAssertTrue(app.buttons["login.apple"].exists)
         app.buttons["login.phone"].tap()
@@ -38,25 +38,25 @@ import XCTest
         idle(app); XCTAssertEqual(app.buttons["capacity.purchase"].label, "¥1.99 扩容10个")
         app.buttons["capacity.purchase"].tap()
         XCTAssertTrue(app.staticTexts["capacity.pending"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["capacity.purchase"].isEnabled); waitTotal("0 / 2 套", app)
+        XCTAssertFalse(app.buttons["capacity.purchase"].isEnabled); waitTotal("0 / 1 套", app)
         capture("95-capacity-unconfirmed-no-grant", app)
-        app.buttons["capacity.restore"].tap(); waitTotal("0 / 12 套", app); idle(app)
+        app.buttons["capacity.restore"].tap(); waitTotal("0 / 11 套", app); idle(app)
         XCTAssertFalse(app.staticTexts["capacity.pending"].exists)
         capture("96-capacity-server-confirmed", app)
         app.terminate()
-        let reopened = launch(id, mode: "pending"); idle(reopened); waitTotal("0 / 12 套", reopened)
-        reopened.buttons["capacity.restore"].tap(); idle(reopened); waitTotal("0 / 12 套", reopened)
+        let reopened = launch(id, mode: "pending"); idle(reopened); waitTotal("0 / 11 套", reopened)
+        reopened.buttons["capacity.restore"].tap(); idle(reopened); waitTotal("0 / 11 套", reopened)
         capture("97-capacity-relaunch-restore-idempotent", reopened)
     }
     func testCancellationRefundAndUnavailableProductPreserveOverCapacityHouses() {
         let id = UUID().uuidString, app = launch(id, mode: "refund")
-        idle(app); waitTotal("3 / 12 套", app)
-        app.buttons["capacity.purchase"].tap(); idle(app); waitTotal("3 / 12 套", app)
+        idle(app); waitTotal("3 / 11 套", app)
+        app.buttons["capacity.purchase"].tap(); idle(app); waitTotal("3 / 11 套", app)
         XCTAssertFalse(app.staticTexts["capacity.error"].exists)
-        app.buttons["capacity.restore"].tap(); idle(app); waitTotal("3 / 2 套", app)
+        app.buttons["capacity.restore"].tap(); idle(app); waitTotal("3 / 1 套", app)
         capture("98-capacity-refund-retains-houses", app)
         app.terminate()
-        let reopened = launch(id, mode: "unavailable"); idle(reopened); waitTotal("3 / 2 套", reopened)
+        let reopened = launch(id, mode: "unavailable"); idle(reopened); waitTotal("3 / 1 套", reopened)
         XCTAssertFalse(reopened.buttons["capacity.purchase"].isEnabled)
         capture("99-capacity-unavailable-retains-houses", reopened)
         reopened.navigationBars.buttons.element(boundBy: 0).tap(); reopened.buttons["tab.房源"].tap()

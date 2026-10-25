@@ -10,6 +10,12 @@ import XCTest
     private func finishTutorial(_ store: NativeStore, _ id: String) throws {
         for value in ["next", "next", "swiped", "next"] { try store.call("tutorialAdvance", ["id": .string(id), "value": .string(value)]) }
     }
+    func testReturningFixtureRequiresExplicitFlagAndValidIsolatedDirectory() {
+        XCTAssertFalse(ReturningBusinessFixture.enabled([]))
+        XCTAssertFalse(ReturningBusinessFixture.enabled(["--returning-business-fixture"]))
+        XCTAssertFalse(ReturningBusinessFixture.enabled(["--returning-business-fixture", "--business-test", "invalid"]))
+        XCTAssertTrue(ReturningBusinessFixture.enabled(["--returning-business-fixture", "--business-test", UUID().uuidString]))
+    }
     func testSetupDraftStepAndSelectionSurviveRelaunch() throws {
         let store = try makeStore()
         var draft = InspectionTemplateDraft(try store.call("setupState")["config"])
