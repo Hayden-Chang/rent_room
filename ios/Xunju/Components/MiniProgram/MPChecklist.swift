@@ -268,6 +268,7 @@ struct MPChecklistSurface<Content: View>: View {
     var readonly = false
     var coordinator: MPSwipeCoordinator
     var scrollTarget = ""
+    var scrollAnchor: UnitPoint = .center
     var guidance: JSONValue = .null
     var guidanceAction: (String) -> Void = { _ in }
     let capture: () -> Void
@@ -326,7 +327,7 @@ struct MPChecklistSurface<Content: View>: View {
                     if let lastScrollY, abs(y - lastScrollY) > 1 { coordinator.trace("scroll \(y - lastScrollY)"); coordinator.close() }
                     lastScrollY = y
                 }.accessibilityIdentifier("mp.checklist.scroll")
-                .onChange(of: scrollTarget) { if !scrollTarget.isEmpty { proxy.scrollTo(scrollTarget, anchor: scrollTarget == "top" ? .top : .center) } }
+                .onChange(of: scrollTarget) { if !scrollTarget.isEmpty { proxy.scrollTo(scrollTarget, anchor: scrollTarget == "top" ? .top : scrollAnchor) } }
                 .overlay(alignment: .bottomTrailing) {
                     VStack(spacing: 12) {
                         MPFloatingButton(icon: "up", label: "回到顶部", size: 44) { coordinator.close(); withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo("top", anchor: .top) } }

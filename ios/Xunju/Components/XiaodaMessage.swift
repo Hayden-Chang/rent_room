@@ -60,7 +60,7 @@ struct XiaodaGuidanceCard: View {
             Button("当前房源关闭") { action("house") }
             Button("今天关闭") { action("day") }
             Button("永久关闭") { action("permanent") }
-        }.accessibilityIdentifier("xiaoda.guide")
+        }.accessibilityElement(children: .contain).accessibilityIdentifier("xiaoda.guide")
     }
 }
 
