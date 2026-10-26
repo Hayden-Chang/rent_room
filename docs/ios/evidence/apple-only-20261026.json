@@ -1,0 +1,196 @@
+{
+  "date": "2026-10-26",
+  "sourceSha": "7d4434f57412b779b8520e5c1c5641b0c99d7c32",
+  "productionEquivalentTo": "ec61962b2afaee37c7136bcf495296491b7b2ba6",
+  "status": "Apple-only client verified; real provider not verified; visual approval pending",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/AuthenticationAPITests/testAppleNonceAndTokenArePassedToServerAndRevokeUsesBearer",
+      "reason": "Apple-only API validation, challenge retry, receipt and fixture opt-in",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AuthenticationAPITests/testAppleChallengeFailureCanRetryWithoutCreatingSession",
+      "reason": "Apple-only API validation, challenge retry, receipt and fixture opt-in",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AuthenticationAPITests/testAppleRejectsInvalidChallengeAndTokenBeforeSessionRequest",
+      "reason": "Apple-only API validation, challenge retry, receipt and fixture opt-in",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AuthenticationAPITests/testAppleRejectsUnverifiedProviderIdentityAndCapacityReceipts",
+      "reason": "Apple-only API validation, challenge retry, receipt and fixture opt-in",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AuthenticationAPITests/testAppleSessionUsesV2CapacityAndExpiresAtServerLifetime",
+      "reason": "Apple-only API validation, challenge retry, receipt and fixture opt-in",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AuthenticationAPITests/testAppleRetryFixtureRequiresExplicitUUIDSandbox",
+      "reason": "Apple-only API validation, challenge retry, receipt and fixture opt-in",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/BusinessIntegrationTests/testVerifiedLoginClaimLogoutAndSameAccountResumeKeepGuestPrivate",
+      "reason": "Apple receipt fixture exercises account claim, logout and preserved records",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/BusinessIntegrationTests/testKeychainFailureDoesNotClaimGuestOrChangeCurrentStore",
+      "reason": "Apple receipt fixture exercises account claim, logout and preserved records",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/BusinessIntegrationTests/testCorruptSignedInAccountStillOpensRecoveryAndRetainsOriginalFile",
+      "reason": "Apple receipt fixture exercises account claim, logout and preserved records",
+      "source": "new-or-modified"
+    }
+  ],
+  "developmentUITests": [
+    {
+      "selector": "XunjuUITests/AppleLoginUITests/testLogoutShowsAppleOnlyAndChallengeRetryKeepsGuestRecords",
+      "reason": "Changed Apple-only UI and logout/challenge retry flow",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/ComponentReviewTests/testAppleOnlyLoginComponent",
+      "reason": "Changed Apple-only UI and logout/challenge retry flow",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/MiniProgramReviewTests/testSettingsProfileAndAppleOnlyLogin",
+      "reason": "Changed Apple-only UI and logout/challenge retry flow",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/CapacityBusinessUITests/testGuestCapacityOpensAppleOnlyLogin",
+      "reason": "Changed Apple-only UI and logout/challenge retry flow",
+      "source": "new-or-modified"
+    }
+  ],
+  "finalCampaignUITests": [
+    "XunjuUITests/AppleLoginUITests/testLogoutShowsAppleOnlyAndChallengeRetryKeepsGuestRecords",
+    "XunjuUITests/CapacityBusinessUITests/testGuestCapacityOpensAppleOnlyLogin",
+    "XunjuUITests/MiniProgramReviewTests/testSettingsProfileAndAppleOnlyLogin"
+  ],
+  "finalCampaignUIReasons": [
+    "Production logout, failure, retry and guest data retention",
+    "Capacity purchase leads to Apple-only login",
+    "Settings review surface has no alternate provider"
+  ],
+  "evidenceReuse": "ec61962 -> final source changes only AppleLoginUITests method prerequisites. All production, project, shared generated inputs, other tests and runner configuration unchanged. Reuse run03 9 UT + 3 UI; failed Apple method passes run05. Final campaign selects 3 methods, two reused plus one executed; component harness remains development evidence. Earlier parity evidence outside login remains historical in business-20261025.json.",
+  "runs": [
+    {
+      "id": "xunju-apple-only-20261025-01",
+      "sha": "e33e4cf7f8381e53f1e9d2b19e657bdaff9f6e2f",
+      "result": "Build failed: shared CloseSheetButton accidentally removed with phone page; restored verbatim before tests"
+    },
+    {
+      "id": "xunju-apple-only-20261025-02",
+      "sha": "ec61962b2afaee37c7136bcf495296491b7b2ba6",
+      "result": "Build passed; simulator bootstatus failed before any tests"
+    },
+    {
+      "id": "xunju-apple-only-20261026-03",
+      "sha": "ec61962b2afaee37c7136bcf495296491b7b2ba6",
+      "result": "9 UT and 3 UI passed, 1 UI failed: new guest setup prerequisite omitted"
+    },
+    {
+      "id": "xunju-apple-only-20261026-04",
+      "sha": "1282332b9171bb280276fbcd57755eaef56641af",
+      "result": "Only Apple UI method failed: first-house tutorial hides navigation, proved by hierarchy"
+    },
+    {
+      "id": "xunju-apple-only-20261026-05",
+      "sha": "7d4434f57412b779b8520e5c1c5641b0c99d7c32",
+      "result": "Only Apple UI method passed after real setup, teaching and feedback dismissal"
+    }
+  ],
+  "backend": {
+    "url": "https://github.com/Hayden-Chang/model_server/pull/87",
+    "state": "open draft unmerged",
+    "verifiedDate": "2026-10-26",
+    "head": "f30455b1310d4448a20a5f67c0e4eea5bfbb3ea2",
+    "challengeProbe": {
+      "date": "2026-10-25",
+      "method": "POST",
+      "url": "https://api.keeline.xyz/api/rent-room/auth/apple/challenge",
+      "status": 404,
+      "body": "{}",
+      "credentialsSent": false
+    }
+  },
+  "device": {
+    "architecture": "arm64",
+    "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+    "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+    "modelName": "iPhone 14 Pro",
+    "osBuildNumber": "22D8075",
+    "osVersion": "18.3.1",
+    "platform": "iOS Simulator"
+  },
+  "plansAndLogs": "/private/tmp/xunju-apple-only-20261025",
+  "gallery": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-apple-only-review/review.md",
+  "images": [
+    {
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-apple-only-review/01-apple-only-ready.png",
+      "caption": "Apple 挑战服务重试后就绪，仍为游客；房源容量 1 / 1",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "7dfd971475e49caeaf729b2525c261d51bf2b0ec70834b037b6bcaf6b6724cda",
+      "test": "AppleLoginUITests/testLogoutShowsAppleOnlyAndChallengeRetryKeepsGuestRecords()",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-apple-only-20261026-05.xcresult",
+      "sourceSha": "7d4434f57412b779b8520e5c1c5641b0c99d7c32"
+    },
+    {
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-apple-only-review/02-apple-service-unavailable.png",
+      "caption": "Apple 服务失败时显示重试，按钮不可用，游客房源仍保留",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "cbb6207c15bf8fd61daec0123038796d30528074b6801ec30338d8e031632892",
+      "test": "AppleLoginUITests/testLogoutShowsAppleOnlyAndChallengeRetryKeepsGuestRecords()",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-apple-only-20261026-05.xcresult",
+      "sourceSha": "7d4434f57412b779b8520e5c1c5641b0c99d7c32"
+    },
+    {
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-apple-only-review/03-capacity-login.png",
+      "caption": "游客从扩容流程进入 Apple 登录页",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "d17433b9494596ce278c8c49e3be9dfe9275f1b86d2dcdd1c2e573ff15953720",
+      "test": "CapacityBusinessUITests/testGuestCapacityOpensAppleOnlyLogin()",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-apple-only-20261026-03.xcresult",
+      "sourceSha": "ec61962b2afaee37c7136bcf495296491b7b2ba6"
+    },
+    {
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-apple-only-review/04-login-component.png",
+      "caption": "独立组件预览，Apple 按钮禁用",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "60776a5079045a2d523eff98e53a62fe20769c901adfbceebeb4744b9e16d8e1",
+      "test": "ComponentReviewTests/testAppleOnlyLoginComponent()",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-apple-only-20261026-03.xcresult",
+      "sourceSha": "ec61962b2afaee37c7136bcf495296491b7b2ba6"
+    },
+    {
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-apple-only-review/05-settings-preview.png",
+      "caption": "设置组件预览，仅保留 Apple；容量使用历史预览夹具",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "abeb904f92df93c3ef47d79a454ebcc86527da0f88ba1fed62c11b923efaf2c8",
+      "test": "MiniProgramReviewTests/testSettingsProfileAndAppleOnlyLogin()",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-apple-only-20261026-03.xcresult",
+      "sourceSha": "ec61962b2afaee37c7136bcf495296491b7b2ba6"
+    }
+  ],
+  "limitations": [
+    "No actual Apple authorization, signed-device login or production session verified",
+    "No merge, deployment, TestFlight, payment or external message",
+    "Legacy stored sessions remain readable, no existing account directories deleted",
+    "Source entitlement exists; Apple Developer capability/provisioning and backend audience configuration not verified"
+  ]
+}
