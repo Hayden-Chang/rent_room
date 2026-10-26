@@ -33,8 +33,22 @@ import XCTest
         let name = app.textFields["prompt.text"]
         XCTAssertTrue(name.waitForExistence(timeout: 3)); name.replacePromptText("未登录保留房源")
         app.buttons["prompt.confirm"].tap()
-        XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
-        app.navigationBars.buttons.firstMatch.tap()
+        // First-house teaching is independent of the optional guidance toggle.
+        let coach = app.staticTexts["coach.title"]
+        XCTAssertTrue(coach.waitForExistence(timeout: 5))
+        app.buttons["coach.next"].tap()
+        XCTAssertEqual(coach.label, "找到你想看的内容")
+        app.buttons["coach.next"].tap()
+        XCTAssertEqual(coach.label, "向左滑，试试看")
+        let row = app.otherElements["mp.field.simple_01"].firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 3)); row.swipeLeft()
+        let lastStep = expectation(for: NSPredicate(format: "label == %@", "随手记下房屋细节"), evaluatedWith: coach)
+        wait(for: [lastStep], timeout: 4)
+        app.buttons["coach.next"].tap()
+        let back = app.navigationBars.buttons.firstMatch
+        XCTAssertTrue(back.waitForExistence(timeout: 3)); back.tap()
+        let feedback = app.buttons["关闭反馈"]
+        XCTAssertTrue(feedback.waitForExistence(timeout: 4)); feedback.tap()
         XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 3)); app.buttons["tab.我的"].tap()
         let error = app.staticTexts["login.apple.error"]
         XCTAssertTrue(error.waitForExistence(timeout: 5))
