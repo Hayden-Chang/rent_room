@@ -5,27 +5,10 @@
  <block wx:else>
   <view class="modes">
    <view class="mode {{mode==='simple'?'selected':''}}" data-mode="simple" bindtap="selectMode">
-    <view class="mode-header">
-    <button id="mode-simple" class="mode-choice" data-mode="simple" catchtap="selectMode" aria-role="radio" aria-checked="{{mode==='simple'}}" aria-label="{{mode==='simple'?'已选择精简模式':'选择精简模式'}}" disabled="{{busy}}"><view class="mode-radio {{mode==='simple'?'checked':''}}"/><view class="mode-label"><text>精简模式</text><text class="mode-description">整体判断，补充备注</text></view></button>
-    </view>
-    <view class="example">
-     <view class="example-label">示例</view>
-     <view class="simple-record">
-      <view class="example-head"><view class="example-title">生活配套方便</view><view class="example-options"><text>是</text><text class="answer-no">否</text></view></view>
-      <view class="example-description">看看附近的超市、菜市场、餐饮、药店、医院和快递，以及外卖能否上楼。</view>
-      <view class="example-note"><view class="note-label">备注</view><text>附近没有菜市场</text></view>
-     </view>
-    </view>
+    <button id="mode-simple" class="mode-choice" data-mode="simple" catchtap="selectMode" aria-role="radio" aria-checked="{{mode==='simple'}}" aria-label="{{mode==='simple'?'已选择精简模式':'选择精简模式'}}" disabled="{{busy}}"><view class="mode-radio {{mode==='simple'?'checked':''}}"/><view class="mode-label"><text>精简模式</text><text class="mode-description">90个检查项，突出重点</text></view></button>
    </view>
    <view class="mode {{mode==='detailed'?'selected':''}}" data-mode="detailed" bindtap="selectMode">
-    <view class="mode-header">
-    <button id="mode-detailed" class="mode-choice" data-mode="detailed" catchtap="selectMode" aria-role="radio" aria-checked="{{mode==='detailed'}}" aria-label="{{mode==='detailed'?'已选择详细模式':'选择详细模式'}}" disabled="{{busy}}"><view class="mode-radio {{mode==='detailed'?'checked':''}}"/><view class="mode-label"><text>详细模式</text><text class="mode-description">展开细节，逐项记录</text></view></button>
-    </view>
-    <view class="example">
-     <view class="example-label">示例</view>
-     <view class="example-title detailed-title">生活配套</view>
-     <view class="example-row {{item.answer==='否'?'problem-row':''}}" wx:for="{{detailedExample}}" wx:key="label"><text class="example-row-label">{{item.label}}</text><text class="example-answer {{item.answer==='否'?'answer-no':''}}">{{item.answer}}</text></view>
-    </view>
+    <button id="mode-detailed" class="mode-choice" data-mode="detailed" catchtap="selectMode" aria-role="radio" aria-checked="{{mode==='detailed'}}" aria-label="{{mode==='detailed'?'已选择详细模式':'选择详细模式'}}" disabled="{{busy}}"><view class="mode-radio {{mode==='detailed'?'checked':''}}"/><view class="mode-label"><text>详细模式</text><text class="mode-description">200+检查项，更加全面</text></view></button>
    </view>
   </view>
   <view class="bottom"><button class="back guide-secondary" bindtap="back">返回调整</button><button class="primary guide-primary grow" hover-class="guide-pressed" bindtap="finish" loading="{{busy}}" disabled="{{busy}}">选好啦</button></view>
