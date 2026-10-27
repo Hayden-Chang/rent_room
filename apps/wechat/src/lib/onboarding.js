@@ -7,7 +7,7 @@ export const coachSteps=[
  {title:'看房的三个阶段',pose:'greet',text:'看房分成三个阶段，可以在这里切换哦！\n看房前—了解房屋基本情况\n看房中—现场检查房屋细节\n选定后——核对费用与合同条款',highlights:['基本情况','现场检查','费用与合同']},
  {title:'找到你想看的内容',pose:'think',text:'点击里面的内容可以筛选哦'},
  {title:'向左滑，试试看',pose:'think',text:'在检查项上向左滑一下，试试看！'},
- {title:'随手记下房屋细节',pose:'success',text:'这里可以标记问题、写备注，还能添加照片和视频。'}
+ {title:'随手记下房屋细节',pose:'success',text:'这里可以标记问题❗、\n写备注🖊，\n还能拍照📷和录视频。',icons:{'❗':'issue','🖊':'note','📷':'camera'}}
 ];
 export function coachTarget(h){
  const topics=houseTopics(h),expanded=Object.fromEntries(topics.flatMap(t=>[[t.category,true],...(t.path||[]).map(p=>[p.id,true])]));
@@ -17,7 +17,7 @@ export function coachTarget(h){
  return field?{field,folds:Object.fromEntries([[topic.category,true],...(topic.path||[]).map(p=>[p.id,true])])}:null;
 }
 export const coachMethods={
- clearCoachTimer(){clearTimeout(this.coachTimer);this.coachTimer=null;},
+ clearCoachTimer(){clearTimeout(this.coachTimer);this.coachTimer=null;this.coachTouchCancel();},
  initXiaoda(){
   this.xiaodaService=service();const state=service().store.get(),h=service().store.house(this.data.id);if(!h||h.archived)return;
   const coach=state.xiaoda.firstHouseId===h.id?state.xiaoda.tutorialStep:0;
@@ -55,7 +55,31 @@ export const coachMethods={
   if(next)this.coachPrepare();else{if(this.coachSavedFolds){this.folds=this.coachSavedFolds;this.coachSavedFolds=null;}this.refresh();this.startFilling();}
  },
  coachSwiped(e){if(this.data.coach!==3||e.detail.id!==this.data.coachField?.id)return;
-  try{service().store.change(s=>s.xiaoda.tutorialStep=4,true);this.setData({coach:4});this.coachLayout();}catch(error){this.setData({coachError:error.message});}},
+  try{service().store.change(s=>s.xiaoda.tutorialStep=4,true);this.setData({coach:4,coachError:''});this.coachLayout();}catch(error){this.setData({coachError:error.message});}},
+ coachTouchStart(e){
+  this.coachTouchCancel();
+  if(this.data.coach!==3||!this.data.coachReady||this.data.coachMissing||this.coachHidden||this.unloaded||e.touches.length!==1)return;
+  const row=(this.selectAllComponents?.('.field-row')||[]).find(row=>row.data.field?.id===this.data.coachField?.id);
+  if(!row)return;
+  this.coachGestureRow=row;row.closeSwipe();row.start(e);
+ },
+ coachTouchMove(e){
+  const row=this.coachGestureRow;if(!row)return;
+  if(this.data.coach!==3||this.coachHidden||this.unloaded){this.coachTouchCancel();return;}
+  row.move(e);
+  const g=row.gesture;
+  // The transparent target owns input; only a leftward gesture reaches the row.
+  if(!g||g.axis==='y'||g.axis==='x'&&g.dx>0)this.coachTouchCancel();
+ },
+ coachTouchEnd(e){
+  if(e.changedTouches?.length)this.coachTouchMove({touches:e.changedTouches,timeStamp:e.timeStamp});
+  const row=this.coachGestureRow;this.coachGestureRow=null;
+  if(!row)return;
+  row.end(e);
+  // A failed progress save must leave the same gesture available for retry.
+  if(this.data.coach===3)row.closeSwipe();
+ },
+ coachTouchCancel(){const row=this.coachGestureRow;this.coachGestureRow=null;row?.closeSwipe();},
  startFilling(){
   const state=service().store.get(),h=service().store.house(this.data.id);
   if(!h||h.xiaoda?.intro!=='pending')return;
