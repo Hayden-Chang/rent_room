@@ -4,7 +4,7 @@ import XCTest
     override func setUpWithError() throws { continueAfterFailure = false }
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--parity-trace", "--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); XCTAssertTrue(app.buttons["setup.next"].waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
@@ -75,6 +75,7 @@ import XCTest
         let field = app.textFields["mp.checklist.search"]; field.tap()
         if let value = field.value as? String, value != "搜索检查项" && !value.isEmpty { field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: value.count)) }
         field.typeText(text); app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
     }
     private func homeAndSkipFeedback(_ app: XCUIApplication) {
         app.navigationBars.buttons.firstMatch.tap()
@@ -125,10 +126,8 @@ import XCTest
         let app = launch(); finishSetup(app, mode: "detailed"); addAndLearn(app, simple: false)
         search("缺少的家具", app)
         let input = app.textFields["mp.field.input.f54_0"]; reveal(input, app)
-        capture("diagnostic-before-field-tap", app)
-        input.tap()
-        let screen = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); screen.name = "diagnostic-after-field-tap"; screen.lifetime = .keepAlways; add(screen)
-        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3), app.otherElements["mp.field.f54_0"].value as? String ?? "no trace")
+        XCTAssertTrue(input.isEnabled); input.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3), "缺少的家具输入框应取得键盘焦点")
         input.typeText("需要衣柜")
         app.buttons["checklist.keyboard.done"].tap()
         let none = app.buttons["mp.field.choice.f54_0.无"]; none.tap()
