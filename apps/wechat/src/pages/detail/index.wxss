@@ -87,4 +87,12 @@
 .fill-return{position:fixed;left:16px;right:16px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:30;padding:0;max-height:60vh;overflow:auto;margin:0}
 .fill-return .fill-content{padding:12px 0 4px}
 .coach-progress{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:600;color:#70788b}.coach-dots{display:flex;gap:6px;flex:1}.coach-dots view{height:6px;border-radius:6px;background:#e9eaf2;flex:1}.coach-dots .done{background:#6159e8}.coach-heading{font-size:21px;font-weight:700;margin:12px 0 16px;color:#30394c}
+.coach-swipe-lock{pointer-events:auto;touch-action:none}
+.coach-swipe-lock .coach-card{overflow:hidden}
+.coach-swipe-target{position:absolute;pointer-events:auto;touch-action:none}
+.coach-swipe-demo{position:absolute;left:50%;top:50%;width:160px;height:52px;margin-left:-80px;margin-top:-26px;pointer-events:none}
+.coach-swipe-trail{position:absolute;left:16px;right:22px;top:17px;height:4px;border-radius:4px;background:linear-gradient(to right,#6763ed,#6763ed18)}
+.coach-swipe-trail:before{content:'';position:absolute;left:0;top:-4px;width:10px;height:10px;border-left:3px solid #6763ed;border-bottom:3px solid #6763ed;transform:rotate(45deg)}
+.coach-swipe-hand{position:absolute;left:104px;top:0;width:48px;height:52px;animation:coach-swipe-left 1.8s ease-in-out infinite}
+@keyframes coach-swipe-left{0%,12%{transform:translateX(0);opacity:0}22%{transform:translateX(0);opacity:1}70%{transform:translateX(-104px);opacity:1}85%,100%{transform:translateX(-104px);opacity:0}}
 .progress-meta{justify-content:flex-end}

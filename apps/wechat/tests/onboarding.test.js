@@ -16,6 +16,57 @@ function harness({disabled=false,legacy=false,mode='detailed'}={}){
  return {app,id,open,wx,fail:v=>{fail=v;},disk,selectors};
 }
 function reachSwipe(page){page.coachNext();expect(page.data.coach).toBe(2);expect(page.data.showFilters).toBe(true);page.coachNext();expect(page.data.coach).toBe(3);}
+it('keeps the swipe spotlight attached after a late native scroll notification',()=>{
+ const h=harness(),p=h.open();reachSwipe(p);
+ p.createSelectorQuery=()=>{const q={select:()=>q,boundingClientRect:()=>q,selectViewport:()=>q,scrollOffset:()=>q,exec:cb=>cb([{left:20,top:100,width:350,height:60},{height:250},{scrollTop:200}])};return q;};
+ p.onPageScroll({scrollTop:200});expect(p.data.coachRect.top).toBe(96);
+});
+function swipeHarness(mode='detailed'){
+ const h=harness({mode}),p=h.open();reachSwipe(p);let spec;
+ vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component(o){spec=o;},Date});
+ const row={...spec.methods,data:{...JSON.parse(JSON.stringify(spec.data)),field:p.data.coachField,readonly:false},setData(v){Object.assign(this.data,v);},events:[],triggerEvent(name,detail){this.events.push({name,detail});if(name==='swipeopen')p.coachSwiped({detail});}};
+ p.selectAllComponents=()=>[row];return {...h,p,row};
+}
+const touch=(x,y=80,timeStamp=0)=>({touches:[{clientX:x,clientY:y}],changedTouches:[{clientX:x,clientY:y}],timeStamp});
+it.each(['simple','detailed'])('forwards only a real left swipe to the target row in %s mode and preserves saved data',mode=>{
+ const h=swipeHarness(mode),{p,row}=h,before=JSON.stringify(h.app.service.store.house(h.id));
+ p.coachTouchStart(touch(270));p.coachTouchMove(touch(190,82,100));expect(row.data.offset).toBe(-80);
+ expect(p.data.coach).toBe(3);p.coachTouchEnd(touch(130,82,180));
+ expect(p.data.coach).toBe(4);expect(row.data.actions).toBe(true);expect(row.events).toEqual([{name:'swipeopen',detail:{id:p.data.coachField.id}}]);
+ expect(JSON.stringify(h.app.service.store.house(h.id))).toBe(before);
+ p.onUnload();expect(h.open().data.coach).toBe(4);
+});
+it.each([
+ ['tap',[[270,80,200]]],['long press',[[270,80,2000]]],['up',[[268,15,100]]],['down',[[269,180,100]]],
+ ['right',[[330,80,100]]],['right then left',[[310,80,100],[100,80,200]]],
+ ['vertical then left',[[268,170,100],[100,170,200]]],['tiny jitter',[[267,81,20]]]
+])('keeps the tutorial and answers unchanged for %s',(_,points)=>{
+ const h=swipeHarness(),{p,row}=h,before=JSON.stringify(h.app.service.store.house(h.id));
+ p.coachTouchStart(touch(270));for(const point of points)p.coachTouchMove(touch(...point));p.coachTouchEnd(touch(...points.at(-1)));
+ expect(p.data.coach).toBe(3);expect(row.data.offset).toBe(0);expect(row.events).toEqual([]);
+ expect(JSON.stringify(h.app.service.store.house(h.id))).toBe(before);
+});
+it('rejects multitouch, cancelled and hidden-page gestures and releases the guard after teaching',()=>{
+ const {p,row}=swipeHarness();
+ p.coachTouchStart(touch(270));p.coachTouchMove({touches:[{clientX:200,clientY:80},{clientX:180,clientY:90}]});p.coachTouchEnd(touch(120));expect(p.data.coach).toBe(3);
+ p.coachTouchStart(touch(270));p.coachTouchMove(touch(170));p.coachTouchCancel();p.coachTouchEnd(touch(120));expect(row.data.actions).toBe(false);
+ p.coachTouchStart(touch(270));p.onHide();p.coachTouchEnd(touch(120));expect(p.data.coach).toBe(3);
+ p.coachHidden=false;p.coachTouchStart(touch(270));p.coachTouchEnd(touch(120,80,100));expect(p.data.coach).toBe(4);
+ p.coachNext();expect(p.data.coach).toBe(0);p.coachTouchStart(touch(270));expect(p.coachGestureRow).toBeNull();
+});
+it('lets the same left gesture retry after a failed tutorial-progress save',()=>{
+ const h=swipeHarness(),{p,row}=h;h.fail(true);p.coachTouchStart(touch(270));p.coachTouchEnd(touch(120,80,100));
+ expect(p.data.coach).toBe(3);expect(p.data.coachError).toContain('保存失败');expect(row.data.actions).toBe(false);
+ h.fail(false);p.coachTouchStart(touch(270));p.coachTouchEnd(touch(120,80,100));expect(p.data.coach).toBe(4);expect(p.data.coachError).toBe('');
+});
+it('catches scrolling and clicks across the step-three surface, including the highlighted item',()=>{
+ const wxml=fs.readFileSync('src/pages/detail/index.wxml','utf8'),css=fs.readFileSync('src/pages/detail/index.wxss','utf8');
+ expect(wxml).toContain('catchtouchmove="{{coach===3?\'noop\':\'\'}}"');
+ const target=wxml.match(/<view wx:if="{{coach===3 && coachReady && !coachMissing}}"[^>]+>/)?.[0];
+ for(const event of ['touchstart','touchmove','touchend','touchcancel','tap','longpress'])expect(target).toContain('catch'+event+'=');
+ expect(css).toContain('.coach-swipe-lock{pointer-events:auto;touch-action:none}');
+ expect(css).toContain('animation:coach-swipe-left 1.8s ease-in-out infinite');
+});
 it('opens the filter choices automatically but still requires a real row swipe, never a timer',()=>{const h=harness({disabled:true}),p=h.open();expect(p.data.coach).toBe(1);reachSwipe(p);vi.advanceTimersByTime(10000);expect(p.data.coach).toBe(3);p.coachSwiped({detail:{id:'wrong'}});expect(p.data.coach).toBe(3);p.coachSwiped({detail:{id:p.data.coachField.id}});expect(p.data.coach).toBe(4);p.coachNext();expect(p.data.coach).toBe(0);expect(p.data.fillPrompt).toBeNull();});
 it('resumes the saved teaching step after exiting and reopening without login',()=>{const h=harness(),p=h.open();p.coachNext();p.onUnload();expect(h.open().data.coach).toBe(2);});
 it('keeps the step when saving fails and allows retry',()=>{const h=harness(),p=h.open();h.fail(true);p.coachNext();expect(p.data.coach).toBe(1);expect(p.data.coachError).toContain('保存失败');h.fail(false);p.coachNext();expect(p.data.coach).toBe(2);});
