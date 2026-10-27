@@ -14,7 +14,7 @@ struct InspectionSetupPage: View {
                     if workspace.perform({ try workspace.store.call("setupDraft", ["value": value.json]) }) { draft = value }
                 }), mode: Binding(get: { mode }, set: { value in
                     if workspace.perform({ try workspace.store.call("setupMode", ["value": .string(value.rawValue)]) }) { mode = value }
-                }), initialStep: step, changeStep: { value in
+                }), conciseWelcome: true, initialStep: step, changeStep: { value in
                     let saved = workspace.perform { try workspace.store.call("setupStep", ["value": .string(value)]) }
                     if saved { step = value }; return saved
                 }, finish: {

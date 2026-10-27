@@ -74,7 +74,6 @@ struct ChecklistPage: View {
     @State private var mediaTarget: String?
     @State private var coachStep = 0
     @State private var coachTarget: JSONValue = .null
-    @State private var coachError = ""
     @State private var coachSavedFolds: [String: [String: Bool]]?
     @State private var guidance: JSONValue = .null
     @State private var editingField: String?
@@ -90,7 +89,7 @@ struct ChecklistPage: View {
     var body: some View {
         MPChecklistSurface(done: stats?.done ?? 0, total: stats?.total ?? 0, issues: stats?.issues ?? 0,
             phase: $phase, query: $query, filters: $filters, showFilters: $showFilters, readonly: readonly,
-            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollPosition: scrollPosition,
+            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollLocked: showCoach && coachStep == 3, scrollPosition: scrollPosition,
             guidance: prompt != .null && !sections.contains(where: { $0["title"].string == prompt["target"].string }) ? prompt : .null,
             guidanceAction: guideAction, capture: { mediaTarget = "" }) {
             VStack(spacing: 16) {
@@ -119,7 +118,8 @@ struct ChecklistPage: View {
         }.overlayPreferenceValue(CoachAnchors.self) { anchors in
             if showCoach {
                 GeometryReader { geometry in
-                    XiaodaTutorialOverlay(guide: guidance, target: anchors[coachStep].map { geometry[$0] }) { advanceCoach() }
+                    XiaodaTutorialOverlay(guide: guidance, target: anchors[coachStep].map { geometry[$0] },
+                        swipeCompleted: { advanceCoach(swiped: true) }, decoratedSpeech: true) { advanceCoach() }
                 }
             }
         }
@@ -145,9 +145,6 @@ struct ChecklistPage: View {
             .onChange(of: isActive) { if !isActive { coordinator.close(); dismissGuidance() } }
             .onChange(of: showCoach) { if showCoach { prepareCoach() } }
             .onChange(of: coachStep) { if coachStep == 4 { scrollTarget = coachTarget["field"].id } }
-            .onChange(of: coordinator.active) { _, active in
-                if showCoach && coachStep == 3 && active == coachTarget["field"].id { advanceCoach(swiped: true) }
-            }
             .task(id: guidanceToken) {
                 let incoming = guidance["prompt"]
                 guard incoming != .null, canPresentGuide else { visiblePrompt = .null; return }
@@ -235,7 +232,7 @@ struct ChecklistPage: View {
     private func prepareCoach() {
         do {
             guidance = try workspace.store.call("inspectionGuide", ["id": .string(id)])
-            coachTarget = guidance["target"]; coachStep = guidance["tutorial"].int; coachError = ""
+            coachTarget = guidance["target"]; coachStep = guidance["tutorial"].int
             showCoach = coachStep > 0
             if coachStep == 2 { showFilters = true; scrollTarget = "top" }
             if coachStep >= 3 {
@@ -245,13 +242,14 @@ struct ChecklistPage: View {
                 refresh(); scrollTarget = coachTarget["field"].id
                 if coachStep == 4 { coordinator.reveal(coachTarget["field"].id) }
             }
-        } catch { coachError = error.localizedDescription }
+        } catch { workspace.error = error.localizedDescription }
     }
     private func advanceCoach(swiped: Bool = false) {
+        guard showCoach, (coachStep == 3) == swiped else { return }
         if workspace.perform({ try workspace.store.call("tutorialAdvance", ["id": .string(id), "value": .string(swiped ? "swiped" : "next")]) }) {
             prepareCoach()
             if !showCoach { coordinator.close(); if let saved = coachSavedFolds { folds = saved; coachSavedFolds = nil }; refresh(); scrollTarget = "xiaoda.guide" }
-        }
+        } else { coordinator.close() }
     }
     private var canPresentGuide: Bool { isActive && !showCoach && editingField == nil && note == nil && cost == nil && mediaTarget == nil && wheelInput?.target == nil }
     private var guidanceToken: String { guidance["prompt"]["id"].string + "|" + String(canPresentGuide) }

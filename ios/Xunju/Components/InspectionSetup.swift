@@ -239,7 +239,6 @@ struct InspectionSetupSurface: View {
     @Binding var draft: InspectionTemplateDraft
     @Binding var mode: InspectionMode
     @State private var choosingMode = false
-    // Enabled only by the isolated review host until the updated welcome is approved.
     var conciseWelcome = false
     var initialStep = "sort"
     var changeStep: (String) -> Bool = { _ in true }

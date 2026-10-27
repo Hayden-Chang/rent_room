@@ -269,6 +269,7 @@ struct MPChecklistSurface<Content: View>: View {
     var coordinator: MPSwipeCoordinator
     var scrollTarget = ""
     var scrollAnchor: UnitPoint = .center
+    var scrollLocked = false
     var scrollPosition: NativeScrollPosition? = nil
     var guidance: JSONValue = .null
     var guidanceAction: (String) -> Void = { _ in }
@@ -323,6 +324,7 @@ struct MPChecklistSurface<Content: View>: View {
                         Color.clear.preference(key: MPChecklistScrollOrigin.self, value: geometry.frame(in: .named("mp.checklist")).minY)
                     })
             }.scrollDismissesKeyboard(.interactively)
+                .scrollDisabled(scrollLocked)
                 .coordinateSpace(name: "mp.checklist")
                 .onPreferenceChange(MPChecklistScrollOrigin.self) { y in
                     if let lastScrollY, abs(y - lastScrollY) > 1 { coordinator.trace("scroll \(y - lastScrollY)"); coordinator.close() }

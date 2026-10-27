@@ -4,8 +4,8 @@ import XCTest
 final class WheelInputTests: XCTestCase {
     func testPolicyRangesFixedOptionsAndManualExclusions() throws {
         let fields = WheelFieldSpec.all
-        XCTAssertEqual(fields.count, 9)
-        for id in ["f1_6", "f88_0", "f11_1", "617bd84f-3208-42ec-b2e4-5bb95d5c754c", "d244dc92-351e-4f3c-8738-45295fec9ff9", "cost_custom", "f1_3", "fc76beec-52e3-4fe9-a937-dec254d4cc4f", "f1_5", "f44_0", "f44_1", "f41_3", "21255282-3663-4abe-b7de-d91eeb3825ed", "f6_0"] { XCTAssertNil(fields[id]) }
+        XCTAssertEqual(fields.count, 8)
+        for id in ["f5_3", "f1_6", "f88_0", "f11_1", "617bd84f-3208-42ec-b2e4-5bb95d5c754c", "d244dc92-351e-4f3c-8738-45295fec9ff9", "cost_custom", "f1_3", "fc76beec-52e3-4fe9-a937-dec254d4cc4f", "f1_5", "f44_0", "f44_1", "f41_3", "21255282-3663-4abe-b7de-d91eeb3825ed", "f6_0"] { XCTAssertNil(fields[id]) }
         for spec in fields.values where spec.values == nil {
             let min = try XCTUnwrap(spec.min), max = try XCTUnwrap(spec.max), step = try XCTUnwrap(spec.step)
             XCTAssertEqual(spec.choices.first?.value, "")

@@ -28,7 +28,7 @@ import XCTest
         reveal(choice, app); choice.tap(); app.buttons["setup.next"].tap()
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 5))
     }
-    private func addAndLearn(_ app: XCUIApplication, simple: Bool) {
+    private func addAndLearn(_ app: XCUIApplication, simple: Bool, verifyGuardAndResume: Bool = false) {
         app.buttons["home.add"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
         XCTAssertEqual(name.value as? String, "第1套"); app.buttons["prompt.confirm"].tap()
@@ -39,10 +39,32 @@ import XCTest
         app.buttons["coach.next"].tap(); XCTAssertEqual(title.label, "向左滑，试试看")
         XCTAssertFalse(app.buttons["coach.next"].exists)
         let row = app.otherElements["mp.field." + (simple ? "simple_01" : "f56_1")].firstMatch
-        XCTAssertTrue(row.waitForExistence(timeout: 3)); XCTAssertTrue(row.isHittable)
-        capture("business-03-swipe-teaching", app); row.swipeLeft()
+        XCTAssertTrue(row.waitForExistence(timeout: 3))
+        let target = app.otherElements["coach.swipeTarget"]
+        XCTAssertTrue(target.waitForExistence(timeout: 3)); XCTAssertTrue(target.isHittable)
+        if verifyGuardAndResume {
+            let before = target.frame
+            target.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5)).tap()
+            target.press(forDuration: 0.7); target.swipeRight(); target.swipeUp()
+            XCTAssertEqual(title.label, "向左滑，试试看")
+            XCTAssertEqual(target.frame.minY, before.minY, accuracy: 1)
+            XCTAssertFalse(app.buttons["mp.field.action.simple_01.备注"].isHittable)
+            XCTAssertFalse(app.buttons["mp.field.choice.simple_01.是"].isSelected)
+            XCTAssertFalse(app.buttons["mp.field.choice.simple_01.否"].isSelected)
+            app.terminate(); app.launch()
+            let house = app.buttons["house.第1套"]; XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
+            XCTAssertTrue(target.waitForExistence(timeout: 4)); XCTAssertEqual(title.label, "向左滑，试试看")
+        }
+        capture("business-03-swipe-teaching", app); target.swipeLeft()
         let step4 = expectation(for: NSPredicate(format: "label == %@", "随手记下房屋细节"), evaluatedWith: title)
-        wait(for: [step4], timeout: 4); capture("business-04-swipe-actions", app)
+        wait(for: [step4], timeout: 4)
+        if verifyGuardAndResume {
+            app.terminate(); app.launch()
+            let house = app.buttons["house.第1套"]; XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
+            XCTAssertTrue(title.waitForExistence(timeout: 4)); XCTAssertEqual(title.label, "随手记下房屋细节")
+            XCTAssertTrue(app.buttons["mp.field.action.simple_01.备注"].waitForExistence(timeout: 3))
+        }
+        capture("business-04-swipe-actions", app)
         app.buttons["coach.next"].tap()
         XCTAssertTrue(app.buttons["xiaoda.accept"].waitForExistence(timeout: 4))
         capture("business-05-intro-guidance", app); app.buttons["xiaoda.accept"].tap()
@@ -62,6 +84,7 @@ import XCTest
     }
     func testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity() {
         let app = launch()
+        capture("business-welcome-connected", app)
         let toggle = app.buttons["setup.toggle.房源基本信息"]; toggle.tap()
         app.terminate(); app.launch()
         XCTAssertTrue(toggle.waitForExistence(timeout: 10)); XCTAssertEqual(toggle.label, "恢复房源基本信息")
@@ -71,7 +94,7 @@ import XCTest
         XCTAssertTrue(simple.waitForExistence(timeout: 10)); XCTAssertTrue(simple.isSelected)
         capture("business-00-setup-resumed", app); app.buttons["setup.next"].tap()
         XCTAssertTrue(app.buttons["home.first"].waitForExistence(timeout: 5))
-        addAndLearn(app, simple: true); search("生活配套", app)
+        addAndLearn(app, simple: true, verifyGuardAndResume: true); search("生活配套", app)
         let description = app.staticTexts["mp.field.description.simple_02"]; reveal(description, app)
         XCTAssertTrue(description.label.contains("菜市场"))
         XCTAssertLessThanOrEqual(description.frame.maxX, app.frame.maxX - 20)
@@ -106,6 +129,29 @@ import XCTest
         let none = app.buttons["mp.field.choice.f54_0.无"]; none.tap()
         XCTAssertTrue(none.isSelected); XCTAssertFalse(input.isEnabled); capture("business-09-missing-furniture-none", app)
         none.tap(); XCTAssertEqual(input.value as? String, "需要衣柜")
+        search("免租期", app)
+        let rentFree = app.textFields["mp.field.input.f5_3"]
+        reveal(rentFree, app); XCTAssertFalse(app.buttons["mp.field.wheel.f5_3"].exists)
+        rentFree.tap(); XCTAssertTrue(app.keyboards.keys["9"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.keyboards.keys["."].exists)
+        app.keyboards.keys["9"].tap(); app.keyboards.keys["0"].tap()
+        XCTAssertEqual(rentFree.value as? String, "90")
+        let keyboard = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        keyboard.name = "business-rent-free-system-number-pad"; keyboard.lifetime = .keepAlways; add(keyboard)
+        app.buttons["checklist.keyboard.done"].tap()
+        app.staticTexts["mp.field.title.f5_3"].swipeLeft()
+        app.buttons["mp.field.action.f5_3.标记问题"].tap()
+        app.staticTexts["mp.field.title.f5_3"].swipeLeft(); app.buttons["mp.field.action.f5_3.备注"].tap()
+        let rentNote = app.textViews["mp.note.text"]; XCTAssertTrue(rentNote.waitForExistence(timeout: 3)); rentNote.tap(); rentNote.typeText("协商90天")
+        app.buttons["mp.note.save"].tap()
+        app.terminate(); app.launch()
+        let savedHouse = app.buttons["house.第1套"]; XCTAssertTrue(savedHouse.waitForExistence(timeout: 10)); savedHouse.tap()
+        search("免租期", app)
+        XCTAssertEqual(rentFree.value as? String, "90"); XCTAssertTrue(app.buttons["协商90天"].exists)
+        app.buttons["tab.问题"].tap()
+        XCTAssertEqual(rentFree.value as? String, "90"); XCTAssertTrue(app.buttons["协商90天"].exists)
+        capture("business-rent-free-issue-restored", app)
+        app.buttons["tab.清单"].tap()
         homeAndSkipFeedback(app)
         app.buttons["tab.我的"].tap(); let templates = app.buttons["settings.templates"]; reveal(templates, app); templates.tap()
         XCTAssertTrue(app.buttons["setup.mode.detailed"].isSelected)
@@ -127,6 +173,10 @@ import XCTest
         app.buttons["archive.open.第1套"].tap(); search("缺少的家具", app)
         XCTAssertEqual(input.value as? String, "需要衣柜"); XCTAssertFalse(input.isEnabled)
         capture("business-11-old-detailed-snapshot", app)
+        search("免租期", app)
+        XCTAssertEqual(rentFree.value as? String, "90"); XCTAssertFalse(rentFree.isEnabled)
+        XCTAssertTrue(app.buttons["协商90天"].exists)
+        capture("business-rent-free-archive-retained", app)
     }
     func testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition() {
         let app = launch(), scroll = app.scrollViews.firstMatch

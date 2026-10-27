@@ -97,7 +97,7 @@ export const inspectionActions = {
   inspectionGuide: (store, {id}) => guide(store,id),
   tutorialAdvance(store, {id, value}) {
     const current = guide(store,id).tutorial;
-    if (!current || current === 3 && value !== 'swiped') return null;
+    if (!current || current === 3 && value !== 'swiped' || value === 'swiped' && current !== 3) return null;
     editable(store,id);
     return store.change(state => { state.xiaoda.tutorialStep = current === 4 ? 0 : current + 1; }, true);
   },

@@ -94,6 +94,80 @@ import XCTest
         let guide = try restored.call("inspectionGuide", ["id": .string(id)])
         XCTAssertEqual(guide["tutorial"].int, 0); XCTAssertEqual(guide["prompt"]["kind"].string, "intro")
     }
+    private func withBlockedWrites(_ store: NativeStore, _ work: () throws -> Void) throws {
+        // Only this test's UUID directory is moved; no production failure switch.
+        let root = store.records.directory, parked = root.appendingPathExtension("parked")
+        let files = FileManager.default
+        try files.moveItem(at: root, to: parked)
+        defer { try? files.removeItem(at: root); try? files.moveItem(at: parked, to: root) }
+        try Data("write barrier".utf8).write(to: root)
+        try work()
+    }
+    func testSetupFailureKeepsDraftAndCanRetry() throws {
+        let store = try makeStore()
+        let before = store.state, saved = try store.records.read()
+        try withBlockedWrites(store) {
+            XCTAssertThrowsError(try store.call("setupFinish", ["value": .string("simple")]))
+            XCTAssertEqual(store.state, before)
+            XCTAssertFalse(store.status.error.isEmpty)
+        }
+        XCTAssertEqual(try store.records.read(), saved)
+        try store.call("setupFinish", ["value": .string("simple")])
+        XCTAssertTrue(store.status.error.isEmpty)
+        XCTAssertEqual(try NativeStore(directory: store.records.directory).state["xiaoda"]["setup"].string, "done")
+    }
+    func testTutorialSaveFailureRollsBackAndDuplicateSwipeCannotSkipStepFour() throws {
+        let store = try makeStore(); try store.call("setupFinish", ["value": .string("simple")])
+        let id = try store.add("左滑保存失败")
+        for _ in 0..<2 { try store.call("tutorialAdvance", ["id": .string(id), "value": .string("next")]) }
+        let before = store.state, saved = try store.records.read()
+        try withBlockedWrites(store) {
+            XCTAssertThrowsError(try store.call("tutorialAdvance", ["id": .string(id), "value": .string("swiped")]))
+            XCTAssertEqual(store.state, before)
+        }
+        XCTAssertEqual(try store.records.read(), saved)
+        XCTAssertEqual(try NativeStore(directory: store.records.directory).state["xiaoda"]["tutorialStep"].int, 3)
+        try store.call("tutorialAdvance", ["id": .string(id), "value": .string("swiped")])
+        XCTAssertTrue(store.status.error.isEmpty)
+        let restored = try NativeStore(directory: store.records.directory)
+        XCTAssertEqual(restored.state["xiaoda"]["tutorialStep"].int, 4)
+        try restored.call("tutorialAdvance", ["id": .string(id), "value": .string("swiped")])
+        XCTAssertEqual(restored.state["xiaoda"]["tutorialStep"].int, 4)
+        let entry = try restored.call("inspectionGuide", ["id": .string(id)])["steps"].array[3]
+        XCTAssertEqual(XiaodaSpeech.iconMap(entry["icons"]), ["❗":"issue", "🖊":"note", "📷":"camera"])
+        try restored.call("tutorialAdvance", ["id": .string(id), "value": .string("next")])
+        XCTAssertEqual(try NativeStore(directory: store.records.directory).state["xiaoda"]["tutorialStep"].int, 0)
+        XCTAssertEqual(store.house(id)["answers"], before["houses"].array[0]["answers"])
+    }
+    func testRentFreeNumberPreservesHistoricalValuesMetadataAndArchive() throws {
+        for mode in ["simple", "detailed"] {
+            let store = try makeStore(); try store.call("setupFinish", ["value": .string(mode)])
+            let id = try store.add("免租期")
+            try store.answer(id, field: "f5_3", value: .string("90"))
+            try store.answer(id, field: "f5_3", property: "note", value: .string("原有协商备注"))
+            try store.answer(id, field: "f5_3", property: "issueFlag", value: .bool(true))
+            try store.call("addMedia", ["id": .string(id), "value": .object(["id": .string("rent-photo"), "type": .string("image"), "path": .string("media/rent.jpg"), "fieldId": .string("f5_3")])])
+            let before = store.house(id), restored = try NativeStore(directory: store.records.directory)
+            XCTAssertEqual(restored.house(id), before)
+            let row = try XCTUnwrap(restored.form(id, query: "免租期").flatMap { $0["rows"].array }.first { $0.id == "f5_3" })
+            XCTAssertEqual(ChecklistPresentation.item(row).kind, .number)
+            XCTAssertTrue(ChecklistPresentation.item(row).numberPad)
+            XCTAssertEqual(row["value"].string, "90")
+            for value in ["0", "", "120"] {
+                try restored.answer(id, field: "f5_3", value: .string(value))
+                let reopened = try NativeStore(directory: store.records.directory)
+                XCTAssertEqual(reopened.house(id)["answers"]["f5_3"]["value"].string, value)
+                XCTAssertEqual(reopened.house(id)["answers"]["f5_3"]["note"], before["answers"]["f5_3"]["note"])
+                XCTAssertEqual(reopened.house(id)["answers"]["f5_3"]["issueFlag"], .bool(true))
+                XCTAssertEqual(reopened.house(id)["media"], before["media"])
+                XCTAssertEqual(reopened.house(id)["templateTopics"], before["templateTopics"])
+            }
+            XCTAssertThrowsError(try restored.answer(id, field: "f5_3", value: .string("-1")))
+            try restored.archive(id, archived: true)
+            XCTAssertThrowsError(try restored.answer(id, field: "f5_3", value: .string("20")))
+            XCTAssertEqual(try NativeStore(directory: store.records.directory).house(id)["answers"]["f5_3"]["value"].string, "120")
+        }
+    }
     func testCompletionOnlyGuidesForwardAndDoesNotRepeatAfterClearing() throws {
         let store = try makeStore(); try store.call("setupFinish", ["value": .string("simple")])
         let id = try store.add("前进引导"); try finishTutorial(store,id)
