@@ -8,3 +8,5 @@
 .layout-stage{margin-left:-15px}
 
 .speech-trash{position:relative;display:inline-block;width:20px;height:20px;vertical-align:-4px;color:#d94b55}.speech-trash-lid{position:absolute;top:4px;left:2px;right:2px;border-top:2px solid currentColor}.speech-trash-lid::before{content:"";position:absolute;top:-5px;left:4px;width:8px;height:5px;border:2px solid currentColor;border-bottom:0;border-radius:2px 2px 0 0;box-sizing:border-box}.speech-trash-can{position:absolute;top:4px;bottom:1px;left:4px;right:4px;border:2px solid currentColor;border-top:0;border-radius:0 0 3px 3px;display:flex;justify-content:center;gap:3px;padding-top:3px;box-sizing:border-box}.speech-trash-can view{width:2px;height:7px;border-radius:1px;background:currentColor}
+
+.speech-action{display:inline-block;width:20px;height:20px;padding:2px;margin-left:2px;vertical-align:-5px}.speech-issue{background:#fff0ef}.speech-note{background:#eceeff}.speech-camera{background:#4d56df}
