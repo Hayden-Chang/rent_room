@@ -16,7 +16,9 @@ import XCTest
         app.buttons["tab.我的"].tap()
         XCTAssertTrue(app.staticTexts["已通过 Apple 登录"].waitForExistence(timeout: 5))
         capture("apple-signed-in-fixture", app)
-        app.buttons["退出登录"].tap()
+        let logout = app.buttons["退出登录"]
+        for _ in 0..<3 { if logout.isHittable { break }; app.swipeUp() }
+        logout.tap()
         let confirm = app.sheets.buttons["退出登录"]
         XCTAssertTrue(confirm.waitForExistence(timeout: 3)); confirm.tap()
         // Logout opens a fresh guest scope, which needs its own first setup.

@@ -5,6 +5,8 @@ struct BackupPage: View {
     let workspace: AppWorkspace
     var importing = false
     var initialIDs: Set<String> = []
+    var imported: () -> Void = {}
+    @State private var entered = false
     @State private var selected = Set<String>()
     @State private var replace = Set<String>()
     @State private var conflictModes: [String: MPConflictMode] = [:]
@@ -78,14 +80,13 @@ struct BackupPage: View {
             }
             VStack(spacing: 12) {
                 if busy { ProgressView(importing ? "正在读取并校验 ZIP…" : "正在生成 ZIP…") }
-                if !message.isEmpty { Text(message).font(.system(size: 12)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("backup.result") }
                 HStack(spacing: 8) {
                     Button(busy ? "取消操作" : "取消") {
                         if busy { progress.cancel(); task?.cancel() } else { dismiss() }
                     }.buttonStyle(MPButtonStyle())
                     if let output {
                         ShareLink(item: output) { Text("导出 \(selected.count) 套") }
-                            .buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("backup.share")
+                            .buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("backup.share").accessibilityValue(message)
                     } else {
                         Button(importing ? "导入 \(selected.count) 套" : "导出 \(selected.count) 套") {
                             if importing && !replace.intersection(selected).isEmpty { confirming = true }
@@ -96,7 +97,12 @@ struct BackupPage: View {
                 }
             }.padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 16).background(.white).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
         }.foregroundStyle(XJTheme.ink).background(XJTheme.background).miniNavigation(importing ? "导入房源" : "导出房源")
-            .onAppear { if !importing && selected.isEmpty { selected = initialIDs.isEmpty ? Set(houses.map(\.id)) : initialIDs } }
+            .onAppear {
+                guard !entered else { return }; entered = true
+                if importing { choosing = true }
+                else { selected = initialIDs.isEmpty ? Set(houses.map(\.id)) : initialIDs; if !selected.isEmpty { start() } }
+            }
+            .onChange(of: selected) { if entered && !importing && !selected.isEmpty { start() } }
             .onDisappear { progress.cancel(); task?.cancel() }
             .fileImporter(isPresented: $choosing, allowedContentTypes: [.zip]) { result in
                 switch result {
@@ -160,7 +166,7 @@ struct BackupPage: View {
                     let copies = Set(preview.houses.filter { ids.contains($0.id) && store.house($0.id) != .null && !replacements.contains($0.id) }.map(\.id))
                     try await transfers.importSelected(input, preview: preview, selectedIDs: ids, replacing: Array(replacements), copying: copies,
                         store: store, progress: progress, isCurrent: { workspace.store === store })
-                    message = "已导入 \(ids.count) 套房源"; selected = []
+                    message = "已导入 \(ids.count) 套房源"; selected = []; dismiss(); imported()
                 } else {
                     let directory = FileManager.default.temporaryDirectory.appending(path: "XunjuTransfers/\(UUID().uuidString)")
                     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

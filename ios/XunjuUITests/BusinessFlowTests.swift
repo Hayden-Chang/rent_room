@@ -374,9 +374,8 @@ import XCTest
         let app = launch(); add("原生备份房源", app); home(app); app.buttons["tab.我的"].tap()
         let entry = app.buttons["settings.export"]; reveal(entry, app); entry.tap()
         let select = app.buttons["backup.select.原生备份房源"]; XCTAssertTrue(select.waitForExistence(timeout: 3))
-        app.buttons["backup.commit"].tap()
         XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.staticTexts["backup.result"].label, "ZIP 已生成，包含 1 套房源及其影像")
+        XCTAssertEqual(app.buttons["backup.share"].value as? String, "ZIP 已生成，包含 1 套房源及其影像")
         capture("17-native-backup-ready", app)
     }
 }

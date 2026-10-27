@@ -86,7 +86,7 @@ struct MPFloatingButton: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) { XJIcon(name: icon).frame(width: size, height: size).background(.white)
-            .clipShape(Circle()).overlay(Circle().stroke(XJTheme.line)).shadow(color: XJTheme.ink.opacity(0.10), radius: 6, y: 3) }
+            .clipShape(Circle()).overlay(Circle().strokeBorder(XJTheme.line)).shadow(color: XJTheme.ink.opacity(0.10), radius: 6, y: 3) }
             .buttonStyle(.plain).accessibilityLabel(label)
     }
 }

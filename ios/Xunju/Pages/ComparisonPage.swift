@@ -47,14 +47,14 @@ struct ComparisonPage: View {
             .onChange(of: workspace.store.status.revision) { _, _ in if comparing { refresh() } }
     }
     private func table(width: CGFloat) -> some View {
-        Grid(horizontalSpacing: 0, verticalSpacing: 0) {
-            GridRow {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
                 cell("属性", width: width * 0.26, label: true, header: true)
                 ForEach(selected, id: \.self) { id in cell(workspace.store.house(id)["name"].string, width: width * 0.74 / CGFloat(selected.count), header: true) }
             }.background(XJTheme.soft)
                 .overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
             ForEach(rows, id: \.id) { row in
-                GridRow(alignment: .top) {
+                HStack(alignment: .top, spacing: 0) {
                     cell(row["label"].string, width: width * 0.26, label: true)
                     ForEach(Array(row["values"].array.enumerated()), id: \.offset) { _, value in
                         cell(value.string, width: width * 0.74 / CGFloat(selected.count))

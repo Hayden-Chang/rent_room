@@ -12,8 +12,7 @@ import XCTest
         return app
     }
     private func shot(_ name: String, _ app: XCUIApplication) {
-        let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = "pixel-" + name; shot.lifetime = .keepAlways; add(shot)
-        let ids = ["home.add", "house.阳光小区", "house.新城公寓", "tab.房源", "tab.对比", "tab.我的", "tab.清单", "tab.影像", "tab.问题", "tab.总结", "settings.capacity", "settings.archive", "settings.templates", "settings.workplace", "settings.export", "capacity.total", "capacity.title", "capacity.purchase", "templates.confirm", "template.save", "prompt.text", "prompt.confirm", "backup.commit", "issueEditor.title", "issueEditor.save", "xiaoda.message"]
+        let ids = ["home.add", "house.阳光小区", "house.新城公寓", "tab.房源", "tab.对比", "tab.我的", "tab.清单", "tab.影像", "tab.问题", "tab.总结", "settings.capacity", "settings.archive", "settings.templates", "settings.workplace", "settings.export", "capacity.total", "capacity.title", "capacity.purchase", "templates.confirm", "template.save", "prompt.text", "prompt.confirm", "backup.commit", "backup.share", "issueEditor.title", "issueEditor.save", "xiaoda.message"]
         var geometry: [[String: Any]] = []
         func collect(_ element: XCUIElementSnapshot) {
             if ids.contains(element.identifier) {
@@ -26,7 +25,9 @@ import XCTest
         if let data = try? JSONSerialization.data(withJSONObject: geometry, options: [.prettyPrinted, .sortedKeys]) {
             let bounds = XCTAttachment(data: data, uniformTypeIdentifier: "public.json"); bounds.name = "pixel-" + name + "-geometry"; bounds.lifetime = .keepAlways; add(bounds)
         }
+        let shot = XCTAttachment(screenshot: app.screenshot()); shot.name = "pixel-" + name; shot.lifetime = .keepAlways; add(shot)
     }
+
     private func tap(_ id: String, _ app: XCUIApplication) {
         let b = app.buttons[id]
         for _ in 0..<5 { if b.exists && b.isHittable { b.tap(); return }; app.swipeUp() }
@@ -50,8 +51,11 @@ import XCTest
         app.buttons["templates.edit.simple"].tap(); XCTAssertTrue(app.buttons["template.save"].waitForExistence(timeout: 3)); shot("06-template-simple", app); back(app)
         app.buttons["templates.edit.detailed"].tap(); XCTAssertTrue(app.buttons["template.save"].waitForExistence(timeout: 3)); shot("07-template-detailed", app); back(app); back(app)
         tap("settings.workplace", app); XCTAssertTrue(app.textFields["workplace.address"].waitForExistence(timeout: 3)); shot("10-workplace", app); back(app)
-        tap("settings.export", app); XCTAssertTrue(app.buttons["backup.commit"].waitForExistence(timeout: 3)); shot("14-export", app); back(app)
-        tap("settings.import", app); XCTAssertTrue(app.buttons["选择 ZIP 文件"].waitForExistence(timeout: 3)); shot("15-import-empty", app); back(app)
+        tap("settings.export", app); XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10)); shot("14-export", app); back(app)
+        tap("settings.import", app)
+        let cancelFile = app.buttons["取消"].firstMatch
+        XCTAssertTrue(cancelFile.waitForExistence(timeout: 5)); cancelFile.tap()
+        XCTAssertTrue(app.buttons["选择 ZIP 文件"].waitForExistence(timeout: 3)); shot("15-import-empty", app); back(app)
         tap("settings.feedback", app)
         XCTAssertTrue(app.buttons["feedback.ease.方便"].waitForExistence(timeout: 3)); shot("16-feedback", app)
         app.buttons["关闭反馈"].tap()

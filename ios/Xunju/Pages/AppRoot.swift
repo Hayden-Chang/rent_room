@@ -52,7 +52,7 @@ private struct WorkspaceRoot: View {
                     InspectionSetupPage(workspace: workspace)
                 } else { switch tab {
                 case "对比": ComparisonPage(workspace: workspace)
-                case "我的": SettingsPage(workspace: workspace)
+                case "我的": SettingsPage(workspace: workspace, imported: { tab = "房源" })
                 default: HomePage(workspace: workspace)
                 } }
             }.safeAreaInset(edge: .bottom, spacing: 0) {
