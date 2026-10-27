@@ -1,0 +1,595 @@
+{
+  "state": "REVIEW_READY",
+  "miniProgramReference": "a262e7d6b58dce14c8ed8bcb3af2f84a24661bee",
+  "sourceSha": "0cb88ef72b2d417a2754051d7b029f1459b37030",
+  "businessIntegrated": false,
+  "deviceInstalled": false,
+  "reviewGallery": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/review.md",
+  "runs": [
+    {
+      "plan": {
+        "schemaVersion": 1,
+        "runId": "xunju-parity-20261027-01",
+        "phase": "development",
+        "taskName": "mini-program-latest-component-parity",
+        "sessionId": "01a1721f-22ca-7ce3-9baf-ac15f055d0d5",
+        "workspace": "/Users/pc/.codex/worktrees/ios-parity-update-20261025/rent_room",
+        "unitTestTarget": "XunjuTests",
+        "uiTestTarget": "XunjuUITests",
+        "unitTests": [
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testSpeechKeepsUnicodeLinesAndMapsActionIcons",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testIconMapRejectsUnknownAndMultipleCharacters",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureRejectsTapRightVerticalAndAllowsRetry",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureUsesChecklistShortFlickThreshold",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testActionAndHandAssetsRenderAtInlineSize",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testTeachingReviewRequiresExplicitKnownRoute",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testDisableRestoreAndLastCategoryProtection",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testReorderBothDirectionsPreservesDisabledCategories",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testInvalidDropAndToggleCannotAlterDraft",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testValueDraftCannotModifyExistingTemplateSnapshot",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testSetupReviewRequiresExplicitArgument",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          }
+        ],
+        "uiTests": [
+          {
+            "selector": "XunjuUITests/InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps",
+            "reason": "Updated isolated component interaction and screenshot evidence",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuUITests/InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection",
+            "reason": "Updated isolated component interaction and screenshot evidence",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuUITests/InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard",
+            "reason": "Updated isolated component interaction and screenshot evidence",
+            "source": "new-or-modified"
+          }
+        ],
+        "changedUITests": [
+          "XunjuUITests/InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps",
+          "XunjuUITests/InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection",
+          "XunjuUITests/InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard"
+        ]
+      },
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 1,
+            "passedTests": 13,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "finishTime": 1793073220.031,
+        "passedTests": 13,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1793073118.389,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "Failed to tap \"xiaoda.message\" StaticText: No matches found for Elements matching predicate '\"xiaoda.message\" IN identifiers' from input {(\n    StaticText, label: '清单操作预览',\n    StaticText, identifier: 'teaching.events', label: '未选择；操作次数：0',\n    StaticText, label: '4 / 4',\n    StaticText, identifier: 'coach.title', label: '随手记下房屋细节',\n    StaticText, identifier: 'mp.field.title.teaching', label: '窗户密封',\n    StaticText, label: '这里可以标记问题  、\n写备注  ，\n还能拍照  和录视频。'\n)}",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 14,
+            "testIdentifierString": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard",
+            "testName": "testGuardedSwipeTeachingAndRentFreeNumberKeyboard()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 14
+      },
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-parity-20261027-01.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/evidence/run-01.log"
+    },
+    {
+      "plan": {
+        "schemaVersion": 1,
+        "runId": "xunju-parity-20261027-02",
+        "phase": "final-pr-head",
+        "taskName": "mini-program-latest-component-parity",
+        "sessionId": "01a1721f-22ca-7ce3-9baf-ac15f055d0d5",
+        "workspace": "/Users/pc/.codex/worktrees/ios-parity-update-20261025/rent_room",
+        "unitTestTarget": "XunjuTests",
+        "uiTestTarget": "XunjuUITests",
+        "unitTests": [
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testSpeechKeepsUnicodeLinesAndMapsActionIcons",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testIconMapRejectsUnknownAndMultipleCharacters",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureRejectsTapRightVerticalAndAllowsRetry",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureUsesChecklistShortFlickThreshold",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testActionAndHandAssetsRenderAtInlineSize",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/XiaodaTeachingTests/testTeachingReviewRequiresExplicitKnownRoute",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testDisableRestoreAndLastCategoryProtection",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testReorderBothDirectionsPreservesDisabledCategories",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testInvalidDropAndToggleCannotAlterDraft",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testValueDraftCannotModifyExistingTemplateSnapshot",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionSetupTests/testSetupReviewRequiresExplicitArgument",
+            "reason": "Updated speech/teaching or unchanged draft boundary consumed by revised components",
+            "source": "affected-existing"
+          }
+        ],
+        "uiTests": [
+          {
+            "selector": "XunjuUITests/InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps",
+            "reason": "Updated isolated component interaction and screenshot evidence",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuUITests/InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection",
+            "reason": "Updated isolated component interaction and screenshot evidence",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuUITests/InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard",
+            "reason": "Updated isolated component interaction and screenshot evidence",
+            "source": "new-or-modified"
+          }
+        ],
+        "changedUITests": [
+          "XunjuUITests/InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps",
+          "XunjuUITests/InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection",
+          "XunjuUITests/InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard"
+        ],
+        "headSha": "e3ffbc0f81a001babc08bfd586fb099c1bf6645d"
+      },
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 14,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793073442.679,
+        "passedTests": 14,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1793073386.7,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 14
+      },
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-parity-20261027-02.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/evidence/run-02.log"
+    },
+    {
+      "plan": {
+        "schemaVersion": 1,
+        "runId": "xunju-parity-20261027-03",
+        "phase": "final-pr-head",
+        "taskName": "mini-program-latest-component-parity",
+        "sessionId": "01a1721f-22ca-7ce3-9baf-ac15f055d0d5",
+        "workspace": "/Users/pc/.codex/worktrees/ios-parity-update-20261025/rent_room",
+        "unitTestTarget": "XunjuTests",
+        "uiTestTarget": "XunjuUITests",
+        "unitTests": [],
+        "uiTests": [
+          {
+            "selector": "XunjuUITests/InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard",
+            "reason": "System screen capture and real number key taps resolve app screenshot missing keyboard; source unchanged; 11 UT and 2 other UI reused from e3ffbc0",
+            "source": "new-or-modified"
+          }
+        ],
+        "changedUITests": [
+          "XunjuUITests/InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard"
+        ],
+        "headSha": "0cb88ef72b2d417a2754051d7b029f1459b37030"
+      },
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 1,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793073594.447,
+        "passedTests": 1,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1793073571.211,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 1
+      },
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-parity-20261027-03.xcresult",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/evidence/run-03.log"
+    }
+  ],
+  "images": [
+    {
+      "name": "01-xiaoda-template-order",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/01-xiaoda-template-order.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "33c747fabd221625cefc8d94ba17314959726a5176179f66452c437f8b720707",
+      "test": "InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "02-template-disabled",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/02-template-disabled.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "783c638c050a1d8764be332a622d0c07743bc7c0f8307e0d48fd9a4198c1e861",
+      "test": "InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "03-template-reordered",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/03-template-reordered.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "fbe17fe1c4042d6485a298c990f15133edeecfa0b2551423a69eeb3c5c160aaa",
+      "test": "InspectionSetupReviewTests/testTemplateToggleAndNativeDragPreserveDraftAcrossSteps()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "04-mode-simple-selected",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/04-mode-simple-selected.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "fe4ab352ecbe9b8a99949eed5d4a0d9c03bcf3a9a9f29c43813ed5c7b3b4ab5e",
+      "test": "InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "05-mode-detailed-selected",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/05-mode-detailed-selected.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "b8283dd73cadbaf2500491a028a4fb0cada418ab8ee86f905afd775500352b7e",
+      "test": "InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "06-mode-selection-retained",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/06-mode-selection-retained.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "b8283dd73cadbaf2500491a028a4fb0cada418ab8ee86f905afd775500352b7e",
+      "test": "InspectionSetupReviewTests/testModesAreExclusiveAndReturnKeepsSelection()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "07-swipe-hand-0",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/07-swipe-hand-0.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "a7bde97044c76db6b84e4778d4bf9250d2029799d61123f8860abc2be77285bc",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "07-swipe-hand-1",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/07-swipe-hand-1.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "3d7fc83665d32acfcd8f988e8ce858b40a79c1bfceceeec632e84e08f969c84d",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "07-swipe-hand-2",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/07-swipe-hand-2.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "fe47e04f2180a5fd488005d50d59bb41de8a1a4768a6bbdcd023522b9d89fa2b",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "07-swipe-hand-3",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/07-swipe-hand-3.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "58c99cc94dc58bc70c723bf59460b81d672e443dc174c4136ac3df37cce196fd",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "07-swipe-hand-4",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/07-swipe-hand-4.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "213985a8a6355fa010f7fbcd54210a5f55298284152071b4483a547f210e2df5",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "07-swipe-hand-5",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/07-swipe-hand-5.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "00eb511c296162c698e678e26dbf4d5e8d47aa6b44129defcfc308d67e2a32be",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "07-swipe-hand-6",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/07-swipe-hand-6.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "dffa08694578a1a68eb228693ded38bb31234be8ba2c411d2bd2313e76c130a5",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "07-swipe-hand-7",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/07-swipe-hand-7.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "2d88d5490fdcc80eb97ace9f829755d5ee66526612a93ad8269bf9f866dd5b85",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "08-inline-action-icons",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/08-inline-action-icons.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "e381bee96517d504af623ba8ee00d16899bd132d2de5be42e6a1bc783eb34066",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "09-rent-free-number-keyboard",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/09-rent-free-number-keyboard.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "c42bba57126a26a56238cc6dde8a2c76c23d5d820fd8d77c357ceb1a8c50e32e",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "10-rent-free-input-preserves-note",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/10-rent-free-input-preserves-note.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "69875a4368b35977550ddd237a0302d11840f007dd8303fcc2ba92aba2a29d8d",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-02"
+    },
+    {
+      "name": "10-rent-free-input-preserves-note",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/10-rent-free-input-preserves-note.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "664cd6771e74131d606d02271251fd04bc655a06d8e9e7c465b5eb25f6a660bf",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "09-rent-free-system-number-keyboard",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/09-rent-free-system-number-keyboard.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "4f18d28b0bd66c2ec41c9408c7abe014aa520abdf631977968e612401f062b1f",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "08-inline-action-icons",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/08-inline-action-icons.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "f0c1417e87ac4cc895ecf61c68d8159c5c31e6ea3c45949564470d16e37b7bf5",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "07-swipe-hand-7",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/07-swipe-hand-7.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "c35f4e727e366ce2d4cfdca9b7f754ee1bf8b7046d9ec0e684e28b10c8006c7e",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "07-swipe-hand-6",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/07-swipe-hand-6.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "c35f4e727e366ce2d4cfdca9b7f754ee1bf8b7046d9ec0e684e28b10c8006c7e",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "07-swipe-hand-5",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/07-swipe-hand-5.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "f8115c859fa3f36ca104792a215d5083ff95b1babb03c52d633899438ce34866",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "07-swipe-hand-4",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/07-swipe-hand-4.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "e36fdbef28b94de40d194792119d142b620fd9ec155dcc3210e6968319ced52d",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "07-swipe-hand-3",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/07-swipe-hand-3.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "2051a7459328b5dbaeaf08d7ac89ac7f58e69109a6e74b1d4b173629b3d91914",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "07-swipe-hand-2",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/07-swipe-hand-2.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "3f4a293dc191c4cb1fffd017cdd0db25ec8d5a074c23ebecbc2243ba82549a65",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "07-swipe-hand-1",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/07-swipe-hand-1.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "56ee6202d3355e31bcae787fe31a89d807461d7c005aa4723d2ea3dfaab68b06",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    },
+    {
+      "name": "07-swipe-hand-0",
+      "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-parity-20261027/run03/07-swipe-hand-0.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "a6a07d5396f33a96af79200fd65172df7edd867a6af853c8608710537b9ec22c",
+      "test": "InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard()",
+      "run": "xunju-parity-20261027-03"
+    }
+  ],
+  "equivalence": "e3ffbc0..0cb88ef changes only teaching screenshot/key-tap assertions; production/config/dependencies/setup tests unchanged. 11 UT and 2 UI reused; exact remaining UI rerun."
+}
