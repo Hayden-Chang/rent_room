@@ -4,6 +4,10 @@ struct XiaodaMessage<Actions: View>: View {
     let text: String
     var pose = "think"
     var compact = true
+    var highlights: [String] = []
+    var icons: [Character: String] = [:]
+    var highlightColor: Color = Color(red: 184/255, green: 134/255, blue: 11/255)
+    var actionLayout = false
     @ViewBuilder var actions: Actions
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shown = ""
@@ -13,15 +17,15 @@ struct XiaodaMessage<Actions: View>: View {
             Image("xiaoda-" + pose).resizable().scaledToFit()
                 .frame(width: compact ? 72 : 88, height: compact ? 84 : 104).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 12) {
-                Text(text).hidden().overlay(alignment: .topLeading) {
-                    Text(shown).frame(maxWidth: .infinity, alignment: .leading)
-                }.font(.system(size: compact ? 15 : 16)).lineSpacing(5)
+                speech(text).hidden().overlay(alignment: .topLeading) {
+                    speech(shown).frame(maxWidth: .infinity, alignment: .leading)
+                }.font(.system(size: compact ? 15 : 16)).lineSpacing(actionLayout ? 13 : 5)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .ignore).accessibilityLabel(text)
                     .accessibilityValue(completed ? "完整显示" : "正在显示").accessibilityIdentifier("xiaoda.message")
                     .contentShape(Rectangle()).onTapGesture { completed = true; shown = text }
                 actions
-            }.padding(14).frame(maxWidth: .infinity, alignment: .leading)
+            }.padding(actionLayout ? 18 : 14).frame(maxWidth: .infinity, alignment: .leading)
                 .foregroundStyle(Color(red: 52/255, green: 59/255, blue: 77/255))
                 .background(.white, in: RoundedRectangle(cornerRadius: 20))
                 .overlay(RoundedRectangle(cornerRadius: 20).stroke(XJTheme.line, lineWidth: 2))
@@ -34,6 +38,16 @@ struct XiaodaMessage<Actions: View>: View {
                 do { try await Task.sleep(for: .milliseconds(24)) } catch { return }
             }
             completed = true
+        }
+    }
+    private func speech(_ value: String) -> Text {
+        XiaodaSpeech.parts(value, highlights: highlights, icons: icons).reduce(Text("")) { result, part in
+            if let icon = part.icon {
+                if icon == "handle" { return result + Text(Image(systemName: "line.3.horizontal")).foregroundColor(.gray) }
+                if icon == "trash" { return result + Text(Image(systemName: "trash")).foregroundColor(XJTheme.danger) }
+                if let image = XiaodaSpeech.actionImage(icon) { return result + Text(" ") + Text(Image(uiImage: image)).baselineOffset(-4) + Text(" ") }
+            }
+            return result + (part.emphasis ? Text(part.text).bold().foregroundColor(highlightColor) : Text(part.text))
         }
     }
 }
@@ -67,6 +81,8 @@ struct XiaodaGuidanceCard: View {
 struct XiaodaTutorialOverlay: View {
     let guide: JSONValue
     let target: CGRect?
+    var swipeCompleted: (() -> Void)? = nil
+    var decoratedSpeech = false
     let next: () -> Void
     @State private var measuredHeight: CGFloat = 330
     private var step: Int { guide["tutorial"].int }
@@ -84,10 +100,16 @@ struct XiaodaTutorialOverlay: View {
                     RoundedRectangle(cornerRadius: 10).stroke(.white, lineWidth: 2)
                         .frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY).allowsHitTesting(false)
                 } else { shade(width: geometry.size.width, height: geometry.size.height) }
+                if step == 3, let rect, let swipeCompleted {
+                    XiaodaSwipeTarget(completed: swipeCompleted)
+                        .frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
+                }
                 VStack(alignment: .leading, spacing: 12) {
                     Text("\(step) / 4").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                     Text(entry["title"].string).font(.system(size: 17, weight: .semibold)).accessibilityIdentifier("coach.title")
-                    XiaodaMessage(text: entry["text"].string, pose: entry["pose"].string) { EmptyView() }
+                    XiaodaMessage(text: entry["text"].string, pose: entry["pose"].string,
+                        highlights: decoratedSpeech ? entry["highlights"].array.map(\.string) : [],
+                        icons: decoratedSpeech ? XiaodaSpeech.iconMap(entry["icons"]) : [:], actionLayout: decoratedSpeech && !XiaodaSpeech.iconMap(entry["icons"]).isEmpty) { EmptyView() }
                     if step != 3 {
                         Button(step == 4 ? "我会啦" : "知道啦", action: next)
                             .buttonStyle(XJButtonStyle(primary: true)).accessibilityIdentifier("coach.next")

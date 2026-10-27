@@ -9,7 +9,7 @@ enum ReviewSurface: String {
     case issueMedia = "issue-media"
     case issueCards = "issue-cards", fieldMedia = "field-media", capacity
     case topFloor = "top-floor"
-    case inspectionSetup = "inspection-setup"
+    case inspectionSetup = "inspection-setup", inspectionTeaching = "inspection-teaching"
 
     var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent, .measurements].contains(self) }
 
@@ -34,6 +34,8 @@ struct ComponentReviewHost: View {
     var body: some View {
         if surface == .inspectionSetup {
             InspectionSetupReviewHost()
+        } else if surface == .inspectionTeaching {
+            InspectionTeachingReviewHost()
         } else if surface == .wheels {
             WheelInputReviewHost()
         } else if surface == .topFloor {
@@ -58,7 +60,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -83,6 +85,7 @@ struct ComponentReviewHost: View {
 
     private var title: String {
         switch surface {
+        case .inspectionTeaching: "小搭教学组件"
         case .wheels: "清单轮盘组件"
         case .homes: "我的房源"
         case .checklist: "清单组件"

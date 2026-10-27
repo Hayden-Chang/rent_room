@@ -10,7 +10,7 @@ struct InspectionSetupReviewHost: View {
     @State private var finished = false
 
     var body: some View {
-        InspectionSetupSurface(draft: $draft, mode: $mode) { finished = true }
+        InspectionSetupSurface(draft: $draft, mode: $mode, conciseWelcome: true) { finished = true }
             .alert("组件回调已收到", isPresented: $finished) {
                 Button("继续检查", role: .cancel) {}
             } message: {

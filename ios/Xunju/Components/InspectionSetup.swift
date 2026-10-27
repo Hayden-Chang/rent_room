@@ -63,6 +63,7 @@ struct XiaodaGreeting: View {
 
 struct InspectionTemplateEditor: View {
     @Binding var draft: InspectionTemplateDraft
+    var disabledTrash = false
     @State private var error = ""
     @State private var frames: [String: CGRect] = [:]
     @GestureState private var drag: TemplateDrag?
@@ -96,7 +97,7 @@ struct InspectionTemplateEditor: View {
                         Button {
                             error = draft.toggle(title) ?? ""
                         } label: {
-                            Image(systemName: draft.disabled.contains(title) ? "arrow.uturn.backward" : "trash")
+                            Image(systemName: draft.disabled.contains(title) ? (disabledTrash ? "trash.slash" : "arrow.uturn.backward") : "trash")
                                 .font(.system(size: 21)).frame(width: 48, height: 48)
                                 .foregroundStyle(draft.disabled.contains(title) ? Color.gray : XJTheme.danger)
                         }.buttonStyle(.plain).padding(.horizontal, 8)
@@ -155,6 +156,7 @@ private struct TemplateFrames: PreferenceKey {
 
 struct InspectionModeChoice: View {
     @Binding var selection: InspectionMode
+    var showsExamples = true
     private let details = ["外卖能上楼", "超市 / 便利店", "附近有菜市场", "附近有餐饮", "附近有药店", "附近有医院", "附近有快递"]
 
     var body: some View {
@@ -165,20 +167,23 @@ struct InspectionModeChoice: View {
                         HStack(spacing: 8) {
                             Image(systemName: selection == mode ? "largecircle.fill.circle" : "circle")
                                 .font(.system(size: 20)).foregroundStyle(selection == mode ? SetupStyle.purple : Color.gray)
-                            ViewThatFits(in: .horizontal) {
+                            if !showsExamples {
+                                VStack(alignment: .leading, spacing: 4) { title(mode); subtitle(mode) }
+                            } else { ViewThatFits(in: .horizontal) {
                                 HStack(alignment: .firstTextBaseline, spacing: 12) { title(mode); subtitle(mode) }
                                 VStack(alignment: .leading, spacing: 4) { title(mode); subtitle(mode) }
+                            }
                             }
                             Spacer(minLength: 0)
                         }.frame(minHeight: 44).contentShape(Rectangle())
                     }.buttonStyle(.plain).accessibilityIdentifier("setup.mode.\(mode.rawValue)")
                         .accessibilityLabel(mode.title).accessibilityValue(selection == mode ? "已选择" : "未选择")
                         .accessibilityAddTraits(selection == mode ? .isSelected : [])
-                    VStack(alignment: .leading, spacing: 8) {
+                    if showsExamples { VStack(alignment: .leading, spacing: 8) {
                         Text("示例").font(.system(size: 12, weight: .semibold)).foregroundStyle(XJTheme.muted)
                             .padding(.horizontal, 8).padding(.vertical, 3).background(XJTheme.background, in: RoundedRectangle(cornerRadius: 5))
                         if mode == .simple { simpleExample } else { detailedExample }
-                    }.padding(12).background(.white, in: RoundedRectangle(cornerRadius: 12))
+                    }.padding(12).background(.white, in: RoundedRectangle(cornerRadius: 12)) }
                 }.padding(14)
                     .background(selection == mode ? SetupStyle.soft : .white, in: RoundedRectangle(cornerRadius: 18))
                     .overlay(RoundedRectangle(cornerRadius: 18).stroke(selection == mode ? SetupStyle.purple : SetupStyle.border, lineWidth: 2))
@@ -190,7 +195,7 @@ struct InspectionModeChoice: View {
         Text(mode.title).font(.system(size: 18, weight: .bold)).foregroundStyle(selection == mode ? SetupStyle.purple : SetupStyle.ink)
     }
     private func subtitle(_ mode: InspectionMode) -> some View {
-        Text(mode.detail).font(.system(size: 14)).foregroundStyle(XJTheme.muted)
+        Text(showsExamples ? mode.detail : (mode == .simple ? "90个检查项，突出重点" : "200+检查项，更加全面")).font(.system(size: 14)).foregroundStyle(XJTheme.muted)
     }
     private var simpleExample: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -234,6 +239,8 @@ struct InspectionSetupSurface: View {
     @Binding var draft: InspectionTemplateDraft
     @Binding var mode: InspectionMode
     @State private var choosingMode = false
+    // Enabled only by the isolated review host until the updated welcome is approved.
+    var conciseWelcome = false
     var initialStep = "sort"
     var changeStep: (String) -> Bool = { _ in true }
     var finish: () -> Void
@@ -254,8 +261,14 @@ struct InspectionSetupSurface: View {
                         Text(choosingMode ? "选一种记录方式" : "定制你的看房清单")
                             .font(.system(size: 24, weight: .bold)).foregroundStyle(SetupStyle.ink)
                     }
-                    if choosingMode { InspectionModeChoice(selection: $mode) }
-                    else { XiaodaGreeting(); InspectionTemplateEditor(draft: $draft) }
+                    if choosingMode { InspectionModeChoice(selection: $mode, showsExamples: !conciseWelcome) }
+                    else {
+                        if conciseWelcome {
+                            XiaodaMessage(text: "你好呀！我是小搭。\n拖动 ☰ 可以排序，\n点击 🗑 可以删除哦～", pose: "greet", compact: false,
+                                highlights: ["排序", "删除"], icons: ["☰": "handle", "🗑": "trash"], highlightColor: .orange) { EmptyView() }
+                        } else { XiaodaGreeting() }
+                        InspectionTemplateEditor(draft: $draft, disabledTrash: conciseWelcome)
+                    }
                 }.padding(20).frame(maxWidth: 680).frame(maxWidth: .infinity)
             }.background(.white).clipped()
                 .safeAreaInset(edge: .bottom, spacing: 0) {
