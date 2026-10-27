@@ -44,17 +44,17 @@ it('uses matching full and typed styles, pauses on hide, and clears emphasis for
 });
 
 it('reveals inline icons once, preserves adjacent text and highlights, and reserves identical runs',()=>{
- vi.useFakeTimers();const text='拖动 ☰ 可以排序，\n点击 🗑 可以删除哦～',icons={'🗑':'trash'},highlights=['排序','删除'];
+ vi.useFakeTimers();const text='拖动 ☰ 可以排序，\n点击 🗑 可以删除哦～',icons={'🗑':'trash','☰':'handle'},highlights=['排序','删除'];
  const {instance:c,spec}=component(text,highlights,false,icons);
  const prefix='拖动 ☰ 可以排序，\n点击 ';
  vi.advanceTimersByTime(Array.from(prefix).length*45);
  expect(textOf(c.data.shownParts)).toBe(prefix);
- expect(c.data.shownParts.some(part=>part.icon)).toBe(false);
+ expect(c.data.shownParts.filter(part=>part.icon).map(part=>part.icon)).toEqual(['handle']);
  vi.advanceTimersByTime(45);
  expect(c.data.shownParts.at(-1)).toMatchObject({text:'🗑',icon:'trash'});
  vi.advanceTimersByTime(45);
  expect(textOf(c.data.shownParts)).toBe(prefix+'🗑 ');
- expect(c.data.shownParts.filter(part=>part.icon)).toHaveLength(1);
+ expect(c.data.shownParts.filter(part=>part.icon).map(part=>part.icon)).toEqual(['handle','trash']);
  c.finish();expect(c.data.shownParts).toEqual(c.data.fullParts);
  expect(textOf(c.data.shownParts)).toBe(text);
  expect(c.data.shownParts.filter(part=>part.emphasis).map(part=>part.text)).toEqual(highlights);
