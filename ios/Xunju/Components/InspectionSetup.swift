@@ -255,7 +255,7 @@ struct InspectionSetupSurface: View {
                         Text(choosingMode ? "2 / 2" : "1 / 2").font(.system(size: 12, weight: .semibold)).padding(.leading, 10)
                     }.foregroundStyle(XJTheme.muted).id("setup.top")
                     VStack(alignment: .leading, spacing: 8) {
-                        if !choosingMode {
+                        if !choosingMode && !conciseWelcome {
                             Text("和小搭一起，准备看房").font(.system(size: 12, weight: .semibold)).foregroundStyle(XJTheme.muted)
                         }
                         Text(choosingMode ? "选一种记录方式" : "定制你的看房清单")
@@ -265,7 +265,7 @@ struct InspectionSetupSurface: View {
                     else {
                         if conciseWelcome {
                             XiaodaMessage(text: "你好呀！我是小搭。\n拖动 ☰ 可以排序，\n点击 🗑 可以删除哦～", pose: "greet", compact: false,
-                                highlights: ["排序", "删除"], icons: ["☰": "handle", "🗑": "trash"], highlightColor: .orange) { EmptyView() }
+                                highlights: ["排序", "删除"], icons: ["☰": "handle", "🗑": "trash"], highlightColor: Color(red: 230/255, green: 174/255, blue: 37/255)) { EmptyView() }
                         } else { XiaodaGreeting() }
                         InspectionTemplateEditor(draft: $draft, disabledTrash: conciseWelcome)
                     }
