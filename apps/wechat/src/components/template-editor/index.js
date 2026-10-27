@@ -5,7 +5,7 @@ const rowsFor=config=>config.order.map(title=>({title,disabled:config.disabled.i
 const finger=(event,id,ending=false)=>(ending?event?.changedTouches:event?.touches)?.find(t=>id===undefined||t.identifier===id);
 const dropOffset=(d,to)=>to>d.from?d.rects[to].top+d.rects[to].height-d.rects[d.from].top-d.rects[d.from].height:d.rects[to].top-d.rects[d.from].top;
 Component({
- properties:{config:Object},data:{rows:[],dragging:'',settling:false,error:''},
+ properties:{config:Object,disabledTrash:Boolean},data:{rows:[],dragging:'',settling:false,error:''},
  observers:{config(value){
   if(!value||sameConfig(value,this.drag?.config)||sameConfig(value,this.pending))return;
   this.reset();this.setData({rows:rowsFor(value)});
