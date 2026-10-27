@@ -7,7 +7,7 @@ export const coachSteps=[
  {title:'看房的三个阶段',pose:'greet',text:'看房分成三个阶段，可以在这里切换哦！\n看房前—了解房屋基本情况\n看房中—现场检查房屋细节\n选定后——核对费用与合同条款',highlights:['基本情况','现场检查','费用与合同']},
  {title:'找到你想看的内容',pose:'think',text:'点击里面的内容可以筛选哦'},
  {title:'向左滑，试试看',pose:'think',text:'在检查项上向左滑一下，试试看！'},
- {title:'随手记下房屋细节',pose:'success',text:'标记问题❗、写备注🖊，\n还能拍照📷和录视频。',icons:{'❗':'issue','🖊':'note','📷':'camera'}}
+ {title:'随手记下房屋细节',pose:'success',text:'这里可以标记问题❗、\n写备注🖊，\n还能拍照📷和录视频。',icons:{'❗':'issue','🖊':'note','📷':'camera'}}
 ];
 export function coachTarget(h){
  const topics=houseTopics(h),expanded=Object.fromEntries(topics.flatMap(t=>[[t.category,true],...(t.path||[]).map(p=>[p.id,true])]));
