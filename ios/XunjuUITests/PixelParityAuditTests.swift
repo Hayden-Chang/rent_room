@@ -53,8 +53,10 @@ import XCTest
         tap("settings.workplace", app); XCTAssertTrue(app.textFields["workplace.address"].waitForExistence(timeout: 3)); shot("10-workplace", app); back(app)
         tap("settings.export", app); XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10)); shot("14-export", app); back(app)
         tap("settings.import", app)
-        let cancelFile = app.buttons["取消"].firstMatch
+        let cancelFile = app.navigationBars.buttons["取消"].firstMatch
         XCTAssertTrue(cancelFile.waitForExistence(timeout: 5)); cancelFile.tap()
+        XCTAssertTrue(cancelFile.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["navigation.back"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["选择 ZIP 文件"].waitForExistence(timeout: 3)); shot("15-import-empty", app); back(app)
         tap("settings.feedback", app)
         XCTAssertTrue(app.buttons["feedback.ease.方便"].waitForExistence(timeout: 3)); shot("16-feedback", app)
@@ -81,6 +83,8 @@ import XCTest
         capture.tap()
         XCTAssertTrue(app.buttons["从相册选择照片或视频"].waitForExistence(timeout: 3))
         app.buttons["取消"].tap()
+        XCTAssertTrue(app.buttons["从相册选择照片或视频"].waitForNonExistence(timeout: 3))
+        shot("11b-media-after-source", app)
         app.buttons["tab.问题"].tap(); shot("11c-issues-empty", app)
         app.buttons["issue.add"].tap(); XCTAssertTrue(app.textFields["issueEditor.title"].waitForExistence(timeout: 3)); shot("12-issue", app)
         app.buttons["issueEditor.cancel"].tap(); app.buttons["tab.总结"].tap(); shot("11d-summary", app)

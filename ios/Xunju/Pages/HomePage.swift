@@ -3,7 +3,9 @@ import SwiftUI
 struct HomePage: View {
     let workspace: AppWorkspace
     @State private var adding = false
-    @State private var rename: HouseSummary?
+    @State private var managed: HouseSummary?
+    @State private var exportAfterMenu: String?
+    @State private var exporting: String?
     @State private var path: [String] = []
     @State private var newHouseID: String?
     @State private var capacity = false
@@ -30,11 +32,7 @@ struct HomePage: View {
                         ForEach(workspace.store.activeHouses) { house in
                             HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { path.append(house.id) }
                                 .accessibilityIdentifier("house.\(house.name)")
-                                .contextMenu {
-                                    Button("重命名") { rename = house }
-                                    Button("归档") { workspace.perform { try workspace.store.archive(house.id, archived: true) } }
-                                    NavigationLink("导出 ZIP") { BackupPage(workspace: workspace, initialIDs: [house.id]) }
-                                }
+                                .modifier(MPPressActions(tap: { path.append(house.id) }, hold: { managed = house }))
                         }
                     }
                 }
@@ -73,11 +71,14 @@ struct HomePage: View {
                     let id = try workspace.store.add(value); newHouseID = id; path = [id]
                 } }
             }
-            .sheet(item: $rename) { house in
-                TextPrompt(title: "重命名", placeholder: "填写房源名称", text: house.name) { name in
-                    try workspace.store.call("rename", ["id": .string(house.id), "value": .string(name)])
-                }
+            .fullScreenCover(item: $managed, onDismiss: {
+                exporting = exportAfterMenu; exportAfterMenu = nil
+            }) { house in
+                HouseActionSheet(workspace: workspace, house: house, close: { managed = nil },
+                    export: { exportAfterMenu = house.id; managed = nil })
+                    .presentationBackground(.clear)
             }
+            .navigationDestination(item: $exporting) { id in BackupPage(workspace: workspace, initialIDs: [id]) }
             .fullScreenCover(isPresented: $capacity, onDismiss: {
                 if continueCreate { continueCreate = false; adding = true }
                 else { workspace.perform { try workspace.store.call("cancelHouseAction") } }
@@ -118,7 +119,8 @@ struct HomePage: View {
 struct ArchivePage: View {
     let workspace: AppWorkspace
     @State private var openedHouse: String?
-    @State private var deleting: HouseSummary?
+    @State private var managed: HouseSummary?
+    @State private var capacityAfterMenu = false
     @State private var capacity = false
     var body: some View {
         ScrollView {
@@ -131,13 +133,7 @@ struct ArchivePage: View {
                     ForEach(workspace.store.archivedHouses) { house in
                         MPHouseCard(item: MPHouseItem(id: house.id, card: house.card, cover: houseCover(house, store: workspace.store)), archived: true) { openedHouse = house.id }
                             .accessibilityIdentifier("archive.open.\(house.name)")
-                            .contextMenu {
-                                Button("还原房源") { workspace.perform {
-                                    let info = try workspace.store.call("beginHouseAction", ["id": .string(house.id), "value": .string("restore")])
-                                    if info["remaining"].int > 0 { try workspace.store.call("finishHouseAction") } else { capacity = true }
-                                } }.accessibilityIdentifier("archive.restore.\(house.name)")
-                                Button("彻底删除", role: .destructive) { deleting = house }
-                            }
+                            .modifier(MPPressActions(tap: { openedHouse = house.id }, hold: { managed = house }))
                     }
                 }
                 if !workspace.store.archivedHouses.isEmpty {
@@ -147,12 +143,60 @@ struct ArchivePage: View {
         }.background(XJTheme.background).miniNavigation("归档房源")
             .navigationDestination(item: $openedHouse) { id in HouseDetailPage(workspace: workspace, id: id) }
             .fullScreenCover(isPresented: $capacity) { NavigationStack { CapacityPage(workspace: workspace, continued: { _ in }) } }
-            .alert("永久删除房源？", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
-                Button("取消", role: .cancel) { deleting = nil }
-                Button("永久删除", role: .destructive) {
-                    if let house = deleting { workspace.perform { try workspace.store.call("remove", ["id": .string(house.id)]) } }
-                    deleting = nil
+            .fullScreenCover(item: $managed, onDismiss: {
+                if capacityAfterMenu { capacityAfterMenu = false; capacity = true }
+            }) { house in
+                HouseActionSheet(workspace: workspace, house: house, close: { managed = nil },
+                    capacity: { capacityAfterMenu = true; managed = nil })
+                    .presentationBackground(.clear)
+            }
+    }
+}
+
+private struct HouseActionSheet: View {
+    let workspace: AppWorkspace
+    let house: HouseSummary
+    let close: () -> Void
+    var export: () -> Void = {}
+    var capacity: () -> Void = {}
+    @State private var mode = "menu"
+    @State private var name = ""
+    @State private var error = ""
+    var body: some View {
+        Group {
+            switch mode {
+            case "rename":
+                MPInputDialog(title: "重命名房源", placeholder: "", text: $name, error: error, cancel: close, save: {
+                    guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { close(); return }
+                    perform { try workspace.store.call("rename", ["id": .string(house.id), "value": .string(name)]) }
+                })
+            case "archive":
+                MPConfirmation(title: "归档房源", message: "归档后保留全部记录，可在设置中还原。", confirmTitle: "确认", cancel: close,
+                    confirm: { perform { try workspace.store.archive(house.id, archived: true) } })
+            case "delete":
+                MPConfirmation(title: "彻底删除房源", message: "将删除本机房源记录，已有导出备份不受影响。请确认已保存需要的备份。", confirmTitle: "确认", cancel: close,
+                    confirm: { perform { try workspace.store.call("remove", ["id": .string(house.id)]) } })
+            default:
+                if house.archived {
+                    MPActionMenu(title: "", actions: [("还原房源", false, restore), ("彻底删除", false, { mode = "delete" })],
+                        identifiers: ["archive.restore." + house.name, "archive.delete." + house.name], close: close)
+                } else {
+                    MPActionMenu(title: "", actions: [("重命名", false, { mode = "rename" }), ("归档房源", false, { mode = "archive" }), ("导出房源 ZIP", false, export)], close: close)
                 }
-            } message: { Text("删除后无法还原，请先导出 ZIP 备份。") }
+            }
+        }.foregroundStyle(XJTheme.ink)
+            .alert("操作失败", isPresented: Binding(get: { !error.isEmpty && mode != "rename" }, set: { if !$0 { error = "" } })) {
+                Button("知道了") { error = "" }
+            } message: { Text(error) }
+    }
+    private func perform(_ action: () throws -> Void) {
+        do { try action(); close() } catch { self.error = error.localizedDescription }
+    }
+    private func restore() {
+        do {
+            let info = try workspace.store.call("beginHouseAction", ["id": .string(house.id), "value": .string("restore")])
+            if info["remaining"].int > 0 { try workspace.store.call("finishHouseAction"); close() }
+            else { capacity() }
+        } catch { self.error = error.localizedDescription }
     }
 }

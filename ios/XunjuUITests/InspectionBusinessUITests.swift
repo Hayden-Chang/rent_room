@@ -174,7 +174,7 @@ import XCTest
         let toggle = app.buttons["setup.toggle.周边与小区"]; XCTAssertTrue(toggle.waitForExistence(timeout: 3)); toggle.tap()
         app.buttons["template.save"].tap(); app.buttons["templates.confirm"].tap()
         app.buttons["tab.房源"].tap(); let old = app.buttons["house.第1套"]; old.press(forDuration: 1)
-        app.buttons["归档"].tap(); app.homeAddButton.tap()
+        app.confirmArchiveFromHouseMenu(); app.homeAddButton.tap()
         XCTAssertTrue(app.textFields["prompt.text"].waitForExistence(timeout: 3)); app.buttons["prompt.confirm"].tap()
         XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5)); XCTAssertFalse(app.buttons["coach.next"].exists)
         app.buttons["xiaoda.accept"].tap(); search("生活配套", app)

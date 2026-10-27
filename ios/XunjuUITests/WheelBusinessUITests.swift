@@ -88,7 +88,7 @@ import XCTest
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["tab.清单"].waitForNonExistence(timeout: 3))
         let house = app.buttons["house.轮盘正式表单"]; XCTAssertTrue(house.waitForExistence(timeout: 3)); house.press(forDuration: 1)
-        let archive = app.buttons["归档"]; XCTAssertTrue(archive.waitForExistence(timeout: 3)); archive.tap()
+        app.confirmArchiveFromHouseMenu()
         app.buttons["tab.我的"].tap()
         let archives = app.buttons["settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
         let archived = app.buttons["archive.open.轮盘正式表单"]; XCTAssertTrue(archived.waitForExistence(timeout: 3)); archived.tap()

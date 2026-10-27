@@ -60,6 +60,22 @@ import XCTest
         app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.buttons["含物业费"].exists)
     }
+    func testHouseActionMenuRenameAndArchiveCancellation() {
+        let app = launch(); add("待改名房源", app); home(app)
+        app.buttons["house.待改名房源"].press(forDuration: 1)
+        XCTAssertTrue(app.buttons["重命名"].waitForExistence(timeout: 3)); capture("pixel-17-home-actions", app)
+        app.buttons["重命名"].tap()
+        let name = app.textFields["mp.prompt.text"]
+        XCTAssertTrue(name.waitForExistence(timeout: 3)); name.tap(); name.typeText("改名房源")
+        capture("pixel-17b-rename", app)
+        app.buttons["mp.prompt.save"].tap()
+        let house = app.buttons["house.改名房源"]
+        XCTAssertTrue(house.waitForExistence(timeout: 3)); house.press(forDuration: 1)
+        app.buttons["归档房源"].tap()
+        XCTAssertTrue(app.buttons["mp.confirm.cancel"].waitForExistence(timeout: 3)); capture("pixel-17c-archive-confirm", app)
+        app.buttons["mp.confirm.cancel"].tap(); XCTAssertTrue(house.waitForExistence(timeout: 3))
+        app.terminate(); app.launch(); XCTAssertTrue(house.waitForExistence(timeout: 10))
+    }
     func testCompareThenArchiveReadOnlyAndRestore() {
         let app = launch(twoRooms: true); add("第一套", app); app.buttons["tab.总结"].tap(); app.buttons["summary.考虑租住"].tap(); home(app)
         add("第二套", app); home(app)
@@ -75,7 +91,7 @@ import XCTest
         capture("14-native-comparison", app)
         app.buttons["tab.房源"].tap()
         app.buttons["house.第一套"].press(forDuration: 1)
-        let archive = app.buttons["归档"]; XCTAssertTrue(archive.waitForExistence(timeout: 3)); archive.tap()
+        app.confirmArchiveFromHouseMenu()
         XCTAssertFalse(app.buttons["house.第一套"].exists)
         app.buttons["tab.我的"].tap()
         let archives = app.buttons["settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
@@ -179,7 +195,7 @@ import XCTest
         XCTAssertTrue(app.buttons["issue.add"].waitForExistence(timeout: 3)); XCTAssertFalse(app.buttons["放弃的新问题"].exists)
         app.buttons["tab.影像"].tap(); XCTAssertEqual(buttons("gallery.preview.", app).count, 2)
         home(app); app.buttons["house.影像业务"].press(forDuration: 1)
-        let archive = app.buttons["归档"]; XCTAssertTrue(archive.waitForExistence(timeout: 3)); archive.tap()
+        app.confirmArchiveFromHouseMenu()
         app.buttons["tab.我的"].tap(); let archives = app.buttons["settings.archive"]; reveal(archives, app); archives.tap()
         let open = app.buttons["archive.open.影像业务"]; XCTAssertTrue(open.waitForExistence(timeout: 3)); open.tap()
         app.buttons["tab.影像"].tap(); XCTAssertFalse(app.buttons["拍照或录视频"].exists)
@@ -252,7 +268,7 @@ import XCTest
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.自动数值问题"].waitForExistence(timeout: 10)); app.buttons["house.自动数值问题"].tap()
         app.buttons["tab.问题"].tap(); XCTAssertEqual(rent.value as? String, "0"); capture("83-business-automatic-numeric-restored", app)
         home(app); app.buttons["house.自动数值问题"].press(forDuration: 1)
-        let archive = app.buttons["归档"]; XCTAssertTrue(archive.waitForExistence(timeout: 3)); archive.tap()
+        app.confirmArchiveFromHouseMenu()
         app.buttons["tab.我的"].tap(); let archives = app.buttons["settings.archive"]; reveal(archives, app); archives.tap()
         let open = app.buttons["archive.open.自动数值问题"]; XCTAssertTrue(open.waitForExistence(timeout: 3)); open.tap()
         query.tap(); query.typeText("租金"); app.buttons["checklist.keyboard.done"].tap()

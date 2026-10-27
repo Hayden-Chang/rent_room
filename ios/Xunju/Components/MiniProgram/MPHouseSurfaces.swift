@@ -79,6 +79,7 @@ struct MPHouseCard: View {
 struct MPActionMenu: View {
     let title: String
     let actions: [(String, Bool, () -> Void)]
+    var identifiers: [String] = []
     let close: () -> Void
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -89,7 +90,8 @@ struct MPActionMenu: View {
                     ForEach(actions.indices, id: \.self) { index in
                         Button(action: actions[index].2) { Text(actions[index].0).font(.system(size: 16))
                             .foregroundStyle(actions[index].1 ? XJTheme.danger : XJTheme.ink).frame(maxWidth: .infinity, minHeight: 54) }
-                            .buttonStyle(.plain).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
+                            .buttonStyle(.plain).accessibilityIdentifier(index < identifiers.count ? identifiers[index] : "")
+                            .overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
                     }
                 }.background(.white).clipShape(RoundedRectangle(cornerRadius: 12))
                 Button("取消", action: close).font(.system(size: 16)).frame(maxWidth: .infinity, minHeight: 54).background(.white).clipShape(RoundedRectangle(cornerRadius: 12))

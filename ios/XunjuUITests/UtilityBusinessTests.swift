@@ -71,7 +71,7 @@ import CoreLocation
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["tab.清单"].waitForNonExistence(timeout: 3))
         app.buttons["house.选点与通勤"].press(forDuration: 1)
-        XCTAssertTrue(app.buttons["归档"].waitForExistence(timeout: 3)); app.buttons["归档"].tap()
+        app.confirmArchiveFromHouseMenu()
         app.buttons["tab.我的"].tap()
         let archives = app.buttons["settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
         let archived = app.buttons["archive.open.选点与通勤"]; XCTAssertTrue(archived.waitForExistence(timeout: 3)); archived.tap()
