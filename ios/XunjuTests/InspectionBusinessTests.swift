@@ -151,9 +151,16 @@ import XCTest
             XCTAssertEqual(restored.house(id), before)
             let row = try XCTUnwrap(restored.form(id, query: "免租期").flatMap { $0["rows"].array }.first { $0.id == "f5_3" })
             XCTAssertEqual(ChecklistPresentation.item(row).kind, .number)
-            XCTAssertTrue(ChecklistPresentation.item(row).numberPad)
+            XCTAssertFalse(ChecklistPresentation.item(row).numberPad)
+            XCTAssertEqual(row["inputType"].string, "digit")
             XCTAssertEqual(row["value"].string, "90")
-            for value in ["0", "", "120"] {
+            try restored.answer(id, field: "f5_3", property: "none", value: .bool(true))
+            let absent = try NativeStore(directory: store.records.directory)
+            let absentRow = try XCTUnwrap(absent.form(id, query: "免租期").flatMap { $0["rows"].array }.first { $0.id == "f5_3" })
+            XCTAssertTrue(absentRow["noneSelected"].bool); XCTAssertEqual(absentRow["value"].string, "")
+            XCTAssertEqual(absent.house(id)["answers"]["f5_3"]["value"].string, "90")
+            try restored.answer(id, field: "f5_3", property: "none", value: .bool(false))
+            for value in ["7.5", "0", "", "120"] {
                 try restored.answer(id, field: "f5_3", value: .string(value))
                 let reopened = try NativeStore(directory: store.records.directory)
                 XCTAssertEqual(reopened.house(id)["answers"]["f5_3"]["value"].string, value)

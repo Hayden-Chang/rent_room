@@ -160,7 +160,7 @@ struct MPFieldRow: View {
             .background(state.flagged ? XJTheme.dangerBackground : .clear)
             .clipShape(RoundedRectangle(cornerRadius: state.flagged ? 8 : 0))
             .overlay(alignment: .bottom) { if !item.heading && !item.hideDivider { XJTheme.line.frame(height: 1) } }
-            .onChange(of: focused) { if focused { coordinator.close() }; interaction(item.id, focused) }
+            .onChange(of: focused) { coordinator.trace("focus \(item.id)=\(focused)"); if focused { coordinator.close() }; interaction(item.id, focused) }
             .onChange(of: readonly) { if readonly { coordinator.close() } }
             .contentShape(Rectangle())
             .modifier(MPFieldSwipe(id: item.id, readonly: readonly, coordinator: coordinator))
@@ -403,6 +403,10 @@ private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
         let trace: (String) -> Void
         let vertical: () -> Void
         init(trace: @escaping (String) -> Void, vertical: @escaping () -> Void) { self.trace = trace; self.vertical = vertical }
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+            trace("touch " + String(describing: type(of: touch.view!)))
+            return true
+        }
         func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
             guard let pan = gestureRecognizer as? UIPanGestureRecognizer else { return false }
             let velocity = pan.velocity(in: nil)

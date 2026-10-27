@@ -4,7 +4,7 @@ import XCTest
     override func setUpWithError() throws { continueAfterFailure = false }
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--parity-trace", "--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch(); XCTAssertTrue(app.buttons["setup.next"].waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
@@ -124,7 +124,12 @@ import XCTest
     func testDetailedNoneTemplateChangesAndArchivedSnapshot() {
         let app = launch(); finishSetup(app, mode: "detailed"); addAndLearn(app, simple: false)
         search("缺少的家具", app)
-        let input = app.textFields["mp.field.input.f54_0"]; reveal(input, app); input.tap(); input.typeText("需要衣柜")
+        let input = app.textFields["mp.field.input.f54_0"]; reveal(input, app)
+        capture("diagnostic-before-field-tap", app)
+        input.tap()
+        let screen = XCTAttachment(screenshot: XCUIScreen.main.screenshot()); screen.name = "diagnostic-after-field-tap"; screen.lifetime = .keepAlways; add(screen)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3), app.otherElements["mp.field.f54_0"].value as? String ?? "no trace")
+        input.typeText("需要衣柜")
         app.buttons["checklist.keyboard.done"].tap()
         let none = app.buttons["mp.field.choice.f54_0.无"]; none.tap()
         XCTAssertTrue(none.isSelected); XCTAssertFalse(input.isEnabled); capture("business-09-missing-furniture-none", app)
@@ -133,23 +138,26 @@ import XCTest
         let rentFree = app.textFields["mp.field.input.f5_3"]
         reveal(rentFree, app); XCTAssertFalse(app.buttons["mp.field.wheel.f5_3"].exists)
         rentFree.tap(); XCTAssertTrue(app.keyboards.keys["9"].waitForExistence(timeout: 3))
-        XCTAssertFalse(app.keyboards.keys["."].exists)
-        app.keyboards.keys["9"].tap(); app.keyboards.keys["0"].tap()
-        XCTAssertEqual(rentFree.value as? String, "90")
+        XCTAssertTrue(app.keyboards.keys["."].exists)
+        app.keyboards.keys["9"].tap(); app.keyboards.keys["0"].tap(); app.keyboards.keys["."].tap(); app.keyboards.keys["5"].tap()
+        XCTAssertEqual(rentFree.value as? String, "90.5")
         let keyboard = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         keyboard.name = "business-rent-free-system-number-pad"; keyboard.lifetime = .keepAlways; add(keyboard)
         app.buttons["checklist.keyboard.done"].tap()
+        let noRent = app.buttons["mp.field.choice.f5_3.无"]; noRent.tap()
+        XCTAssertTrue(noRent.isSelected); XCTAssertFalse(rentFree.isEnabled)
+        noRent.tap(); XCTAssertEqual(rentFree.value as? String, "90.5")
         app.staticTexts["mp.field.title.f5_3"].swipeLeft()
         app.buttons["mp.field.action.f5_3.标记问题"].tap()
         app.staticTexts["mp.field.title.f5_3"].swipeLeft(); app.buttons["mp.field.action.f5_3.备注"].tap()
-        let rentNote = app.textViews["mp.note.text"]; XCTAssertTrue(rentNote.waitForExistence(timeout: 3)); rentNote.tap(); rentNote.typeText("协商90天")
+        let rentNote = app.textViews["mp.note.text"]; XCTAssertTrue(rentNote.waitForExistence(timeout: 3)); rentNote.tap(); rentNote.typeText("协商90.5天")
         app.buttons["mp.note.save"].tap()
         app.terminate(); app.launch()
         let savedHouse = app.buttons["house.第1套"]; XCTAssertTrue(savedHouse.waitForExistence(timeout: 10)); savedHouse.tap()
         search("免租期", app)
-        XCTAssertEqual(rentFree.value as? String, "90"); XCTAssertTrue(app.buttons["协商90天"].exists)
+        XCTAssertEqual(rentFree.value as? String, "90.5"); XCTAssertTrue(app.buttons["协商90.5天"].exists)
         app.buttons["tab.问题"].tap()
-        XCTAssertEqual(rentFree.value as? String, "90"); XCTAssertTrue(app.buttons["协商90天"].exists)
+        XCTAssertEqual(rentFree.value as? String, "90.5"); XCTAssertTrue(app.buttons["协商90.5天"].exists)
         capture("business-rent-free-issue-restored", app)
         app.buttons["tab.清单"].tap()
         homeAndSkipFeedback(app)
@@ -174,8 +182,8 @@ import XCTest
         XCTAssertEqual(input.value as? String, "需要衣柜"); XCTAssertFalse(input.isEnabled)
         capture("business-11-old-detailed-snapshot", app)
         search("免租期", app)
-        XCTAssertEqual(rentFree.value as? String, "90"); XCTAssertFalse(rentFree.isEnabled)
-        XCTAssertTrue(app.buttons["协商90天"].exists)
+        XCTAssertEqual(rentFree.value as? String, "90.5"); XCTAssertFalse(rentFree.isEnabled)
+        XCTAssertTrue(app.buttons["协商90.5天"].exists)
         capture("business-rent-free-archive-retained", app)
     }
     func testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition() {
