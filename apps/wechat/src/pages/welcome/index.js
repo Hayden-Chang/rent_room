@@ -2,9 +2,8 @@ import {protectedPage} from '../../lib/auth-page.js';
 import {service,notify} from '../../lib/ui.js';
 import {templateConfig,assertTemplate} from '../../lib/templates.js';
 const modes=['simple','detailed'];
-const detailedExample=[{label:'外卖能上楼',answer:'是'},{label:'超市 / 便利店',answer:'是'},{label:'附近有菜市场',answer:'否'},{label:'附近有餐饮',answer:'是'},{label:'附近有药店',answer:'是'},{label:'附近有医院',answer:'是'},{label:'附近有快递',answer:'是'}];
 Page(protectedPage({
- data:{intro:'你好呀！我是小搭。\n拖动 ☰ 可以排序，\n点击 🗑 可以删除哦～',introHighlights:['排序','删除'],introIcons:{'🗑':'trash'},detailedExample,step:'sort',mode:'simple',config:null,busy:false,error:''},
+ data:{intro:'你好呀！我是小搭。\n拖动 ☰ 可以排序，\n点击 🗑 可以删除哦～',introHighlights:['排序','删除'],introIcons:{'🗑':'trash'},step:'sort',mode:'simple',config:null,busy:false,error:''},
  onLoad(){const state=service().store.get();if(state.xiaoda.setup==='done'){wx.switchTab({url:'/pages/home/index'});return;}
   this.setData({step:state.xiaoda.setup,mode:modes.includes(state.xiaoda.draftMode)?state.xiaoda.draftMode:'simple',config:state.xiaoda.draft||templateConfig(state.settings)});},
  change(e){this.setData({config:e.detail});try{service().store.change(s=>s.xiaoda.draft=e.detail,true);}catch(error){this.setData({error:error.message});}},
