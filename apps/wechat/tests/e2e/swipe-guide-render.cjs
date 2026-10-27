@@ -14,7 +14,9 @@ const out=process.env.WECHAT_ARTIFACT_DIR,sleep=ms=>new Promise(resolve=>setTime
   assert.match(await evaluate(function(){return getApp().service.root;}),/\/xunju-test-swipe-guide-/);
   for(const mode of ['detailed','simple']){
    // Each mode gets an empty, disposable pool fixture; no extra room entitlement.
-   await evaluate(function(){wx.reLaunch({url:'/pages/home/index'});return true;});await sleep(400);
+   await evaluate(function(){getApp().service.store.change(s=>s.xiaoda.setup='done',true);wx.reLaunch({url:'/pages/settings/index'});return true;});
+   let staging;for(let i=0;i<100;i++){staging=await read();if(staging.route==='pages/settings/index'&&staging.pageReady)break;await sleep(100);}
+   assert.equal(staging.route,'pages/settings/index');assert.equal(staging.pageReady,true);
    await evaluate(function(){getApp().service.store.change(s=>{s.houses=[];s.xiaoda.firstHouseId=null;},true);return true;});
    const id=await evaluate(function(mode){const store=getApp().service.store;store.change(s=>{s.xiaoda.setup='done';s.settings.selectedTemplate=mode;},true);const id=store.add(mode==='simple'?'精简模式 · 左滑引导':'详细模式 · 左滑引导');store.change(s=>{s.xiaoda.firstHouseId=id;s.xiaoda.tutorialStep=3;},true);return id;},mode);
    await evaluate(function(id){wx.reLaunch({url:'/pages/detail/index?id='+id});return true;},id);
