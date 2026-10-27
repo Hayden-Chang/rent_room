@@ -1,7 +1,7 @@
 <view wx:if="{{accountReady}}" class="page welcome {{step==='mode'?'mode-step':''}}">
  <view class="welcome-progress"><view class="steps"><view class="filled"/><view class="{{step==='mode'?'filled':''}}"/></view><text>{{step==='sort'?'1':'2'}} / 2</text></view>
  <view class="guide-title">{{step==='sort'?'定制你的看房清单':'选一种记录方式'}}</view>
- <block wx:if="{{step==='sort'}}"><xiaoda id="welcome-xiaoda" pose="greet" text="{{intro}}" highlights="{{introHighlights}}" highlight-color="#E6AE25" icons="{{introIcons}}"/><view class="sorting-list"><template-editor id="template-editor" config="{{config}}" bindchange="change"/></view><view wx:if="{{error}}" class="error">{{error}}</view><view class="bottom"><button class="primary guide-primary" hover-class="guide-pressed" bindtap="next">排好啦</button></view></block>
+ <block wx:if="{{step==='sort'}}"><xiaoda id="welcome-xiaoda" pose="greet" text="{{intro}}" highlights="{{introHighlights}}" highlight-color="#E6AE25" icons="{{introIcons}}"/><view class="sorting-list"><template-editor disabled-trash="{{true}}" id="template-editor" config="{{config}}" bindchange="change"/></view><view wx:if="{{error}}" class="error">{{error}}</view><view class="bottom"><button class="primary guide-primary" hover-class="guide-pressed" bindtap="next">排好啦</button></view></block>
  <block wx:else>
   <view class="modes">
    <view class="mode {{mode==='simple'?'selected':''}}" data-mode="simple" bindtap="selectMode">
