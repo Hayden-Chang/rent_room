@@ -8,23 +8,26 @@ struct CapacityPage: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-            if continued != nil || thanking {
-                Text(thanking ? "谢谢你的小饼干！" : "房源容量不够啦").font(.system(size: 24, weight: .bold))
-                XiaodaMessage(text: thanking ? "谢谢主人，您现在多了 10 套房源额度啦！" : "主人，可以投喂我一个小饼干🍪吗？", pose: thanking ? "success" : "expect", compact: false) { EmptyView() }
+            VStack(spacing: 0) {
+            if !workspace.billing.activity.busy || thanking {
+                Text(thanking ? "谢谢你的小饼干！" : "房源容量不够啦").font(.system(size: 24, weight: .bold)).foregroundStyle(Color(red: 38/255, green: 48/255, blue: 71/255))
+                    .frame(maxWidth: .infinity).frame(height: 33.6).padding(.top, 8).padding(.bottom, 24).accessibilityIdentifier("capacity.title")
+                XiaodaMessage(text: thanking ? "谢谢主人，您现在多了 10 套房源额度啦！" : "主人，可以投喂我一个小饼干🍪吗？", pose: thanking ? "success" : "expect", compact: false, hero: true) { EmptyView() }
             }
             CapacitySurface(used: workspace.store.capacity.used, limit: workspace.store.capacity.limit,
                 authenticated: workspace.session != nil, price: workspace.billing.product?.displayPrice,
                 activity: workspace.billing.activity, error: workspace.billing.error,
-                purchase: { act(restore: false) }, restore: { act(restore: true) })
+                purchase: { act(restore: false) }, restore: { act(restore: true) }, cancel: {
+                    if continued != nil { workspace.perform { try workspace.store.call("cancelHouseAction") } }; dismiss()
+                })
             if continued != nil {
                 Button(workspace.store.state["xiaoda"]["intent"]["kind"].string == "restore" ? "继续恢复房源" : "继续新建房源") {
                     workspace.perform { let result = try workspace.store.call("finishHouseAction"); continued?(result); dismiss() }
                 }.buttonStyle(XJButtonStyle(primary: true)).disabled(workspace.store.capacity.remaining == 0)
                     .accessibilityIdentifier("capacity.continue")
             }
-            }.padding(16).disabled(thanking)
-        }.background(XJTheme.background).navigationTitle("房源容量").navigationBarTitleDisplayMode(.inline)
+            }.padding(.horizontal, 20).padding(.vertical, 24).disabled(thanking)
+        }.background(.white).miniNavigation("房源容量", background: .white, back: { if continued == nil || workspace.perform({ try workspace.store.call("cancelHouseAction") }) { dismiss() } })
             .task {
                 if !AppWorkspace.isBusinessTest { await workspace.refreshPolicy() }
                 await workspace.billing.load()
@@ -35,8 +38,7 @@ struct CapacityPage: View {
                 do { try await Task.sleep(for: .seconds(3)) } catch { return }
                 thanking = false; resume()
             }
-            .toolbar { if continued != nil { ToolbarItem(placement: .cancellationAction) { Button("返回") { if workspace.perform({ try workspace.store.call("cancelHouseAction") }) { dismiss() } } } } }
-            .sheet(isPresented: $login) { NavigationStack { SettingsPage(workspace: workspace).toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton() } } } }
+            .sheet(isPresented: $login) { NavigationStack { SettingsPage(workspace: workspace, showsBack: true) } }
     }
     private func resume() {
         guard continued != nil, workspace.store.capacity.remaining > 0, workspace.store.state["xiaoda"]["intent"] != .null else { return }

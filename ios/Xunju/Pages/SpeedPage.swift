@@ -17,7 +17,7 @@ struct SpeedPage: View {
             SpeedStatusCard(state: flow.state, reading: flow.session.reading,
                             cancel: { flow.cancel(close: true) }, retry: { flow.start() }, save: { flow.save() })
                 .padding(.horizontal, 16).padding(.top, 24)
-        }.background(XJTheme.background).navigationTitle("网速测试").navigationBarTitleDisplayMode(.inline)
+        }.background(XJTheme.background).miniNavigation("网速测试")
             .background {
                 SpeedNetworkConsent(request: flow.prompt) { id, accepted in flow.answer(id, accepted: accepted) }
                     .frame(width: 0, height: 0)

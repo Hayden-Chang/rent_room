@@ -40,7 +40,7 @@ struct MPArchiveSurface: View {
                             .modifier(MPPressActions(tap: { open(house.id) }, hold: { manage(house.id) })).accessibilityIdentifier("mp.archive.\(house.id)")
                     }
                 }
-                if !houses.isEmpty { Text("长按房源可还原或删除").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 10) }
+                if !houses.isEmpty { Text("长按房源可还原或删除").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).padding(.vertical, 10) }
             }.padding(16)
         }
     }
@@ -58,17 +58,17 @@ struct MPHouseCard: View {
                     if let image = item.cover { Image(uiImage: image).resizable().scaledToFill().frame(maxWidth: .infinity, maxHeight: .infinity).clipped() }
                     else { XJIcon(name: "home-selected", size: 46).opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity) }
                     Text(archived ? "已归档" : item.card.decision.isEmpty ? "待检查" : item.card.decision)
-                        .font(.system(size: 11)).foregroundStyle(XJTheme.primary).padding(.horizontal, 8).padding(.vertical, 3)
+                        .font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.primary).padding(.horizontal, 8).padding(.vertical, 3)
                         .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)).padding(10)
                 }.frame(height: 142).clipped()
                 VStack(alignment: .leading, spacing: 0) {
                     Text(item.card.name).font(.system(size: 14, weight: .semibold)).lineLimit(1).frame(height: 20)
                     Text(item.card.rent.isEmpty ? "租金待填写" : "¥ \(item.card.rent) / 月").font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary).frame(height: 24).padding(.vertical, 8)
-                    Text("\(item.card.address.isEmpty ? "地址待填写" : item.card.address) · \(item.card.area)m²").font(.system(size: 11)).foregroundStyle(XJTheme.muted).lineLimit(1).frame(height: 16).padding(.bottom, 10)
-                    if archived { Text("\(item.card.issues) 个问题").font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
+                    Text("\(item.card.address.isEmpty ? "地址待填写" : item.card.address) · \(item.card.area)m²").font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.muted).lineLimit(1).frame(height: 16).padding(.bottom, 10)
+                    if archived { Text("\(item.card.issues) 个问题").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted) }
                     else if item.card.issues > 0 {
-                        Text("\(item.card.issues) 个问题").font(.system(size: 11)).foregroundStyle(XJTheme.danger).padding(.horizontal, 8).padding(.vertical, 3).background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 6))
-                    } else { Text("检查 \(item.card.done) / \(item.card.total)").font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
+                        Text("\(item.card.issues) 个问题").font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.danger).padding(.horizontal, 8).padding(.vertical, 3).background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 6))
+                    } else { Text("检查 \(item.card.done) / \(item.card.total)").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted) }
                     Spacer(minLength: 0)
                 }.padding(12).frame(height: 144).frame(maxWidth: .infinity, alignment: .leading)
             }.foregroundStyle(XJTheme.ink).background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
@@ -106,7 +106,7 @@ struct MPComparisonSelection: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 12) {
-                    if houses.count < 2 { Text("选择 2 至 3 套房源进行对比").font(.system(size: 12)).foregroundStyle(XJTheme.muted) }
+                    if houses.count < 2 { Text("选择 2 至 3 套房源进行对比").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted) }
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                         ForEach(houses) { house in
                             Button { if selected.contains(house.id) { selected.remove(house.id) } else if selected.count < 3 { selected.insert(house.id) } } label: {
@@ -124,7 +124,7 @@ struct MPComparisonSelection: View {
                                     VStack(alignment: .leading, spacing: 8) {
                                         Text(house.card.name).font(.system(size: 14, weight: .semibold)).lineLimit(1)
                                         Text(house.card.rent.isEmpty ? "租金待填写" : "¥ \(house.card.rent) / 月").font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary)
-                                        Text("\(house.card.area)m² · \(house.card.decision.isEmpty ? "待检查" : house.card.decision)").font(.system(size: 11)).foregroundStyle(XJTheme.muted)
+                                        Text("\(house.card.area)m² · \(house.card.decision.isEmpty ? "待检查" : house.card.decision)").font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.muted)
                                         Spacer(minLength: 0)
                                     }.padding(.horizontal, 11).padding(.vertical, 12).frame(height: 126).frame(maxWidth: .infinity, alignment: .leading)
                                 }.background(.white).clipShape(RoundedRectangle(cornerRadius: 16))

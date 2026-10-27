@@ -12,16 +12,16 @@ struct ComparisonPage: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 20) {
                         if comparing {
-                            Toggle("隐藏相同属性", isOn: $differences).tint(XJTheme.primary)
+                            Toggle("隐藏相同属性", isOn: $differences).toggleStyle(MPSwitchStyle())
                                 .font(.system(size: 14, weight: .semibold)).padding(.horizontal, 12).frame(minHeight: 48)
                                 .background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).padding(.top, 8)
                             table(width: max(0, geometry.size.width - 32))
                             if rows.isEmpty { Text("所选房源没有已显示的差异").foregroundStyle(XJTheme.muted) }
                         } else {
-                            if houses.count < 2 { Text("选择 2 至 3 套房源进行对比").font(.system(size: 13)).foregroundStyle(XJTheme.muted) }
-                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible())], spacing: 12) {
+                            if houses.count < 2 { Text("选择 2 至 3 套房源进行对比").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading) }
+                            LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                                 ForEach(houses) { house in
                                     ComparisonHouseCard(house: house, cover: houseCover(house, store: workspace.store), selected: selected.contains(house.id)) { toggle(house.id) }
                                         .accessibilityIdentifier("compare.select.\(house.name)")
@@ -38,10 +38,10 @@ struct ComparisonPage: View {
                         .foregroundStyle(!comparing && selected.count < 2 ? Color(red: 141 / 255, green: 149 / 255, blue: 163 / 255) : .white)
                         .background(!comparing && selected.count < 2 ? Color(red: 231 / 255, green: 233 / 255, blue: 239 / 255) : XJTheme.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
-                }.buttonStyle(.plain).disabled(!comparing && selected.count < 2)
+                }.buttonStyle(ComparisonFooterButtonStyle()).disabled(!comparing && selected.count < 2)
                     .accessibilityIdentifier("compare.start").padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 22)
             }
-        }.navigationTitle("房源对比").navigationBarTitleDisplayMode(.inline)
+        }.miniNavigation("房源对比", showsBack: false)
             .onChange(of: differences) { _, _ in refresh() }
             .onChange(of: houses.map(\.id)) { _, ids in selected.removeAll { !ids.contains($0) }; if selected.count < 2 { comparing = false } }
             .onChange(of: workspace.store.status.revision) { _, _ in if comparing { refresh() } }
@@ -95,17 +95,24 @@ private struct ComparisonHouseCard: View {
                     else { XJIcon(name: "home-selected", size: 46).opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity) }
                     Text(selected ? "✓" : "").font(.system(size: 18)).foregroundStyle(.white).frame(width: 28, height: 28)
                         .background(selected ? XJTheme.primary : .white).clipShape(RoundedRectangle(cornerRadius: 9))
-                        .overlay(RoundedRectangle(cornerRadius: 9).stroke(selected ? XJTheme.primary : XJTheme.line))
+                        .overlay(RoundedRectangle(cornerRadius: 9).stroke(selected ? XJTheme.primary : Color(red: 196 / 255, green: 202 / 255, blue: 213 / 255)))
                         .frame(width: 44, height: 44).padding(.leading, 4).padding(.bottom, 2)
                 }.frame(height: 142).clipped()
                 VStack(alignment: .leading, spacing: 0) {
                     Text(house.name).font(.system(size: 14, weight: .semibold)).lineLimit(1).frame(height: 20)
                     Text(house.rent.isEmpty ? "租金待填写" : "¥ \(house.rent) / 月").font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary).frame(height: 24).padding(.vertical, 8)
-                    Text("\(house.area)m² · \(house.decision.isEmpty ? "待检查" : house.decision)").font(.system(size: 11)).foregroundStyle(XJTheme.muted).lineLimit(1)
+                    Text("\(house.area)m² · \(house.decision.isEmpty ? "待检查" : house.decision)").font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.muted).lineLimit(1)
                     Spacer(minLength: 0)
                 }.padding(.horizontal, 11).padding(.vertical, 12).frame(height: 126).frame(maxWidth: .infinity, alignment: .leading)
             }.foregroundStyle(XJTheme.ink).background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(selected ? XJTheme.primary : XJTheme.line).allowsHitTesting(false))
         }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+// Disabled colors are explicit in the mini-program; PlainButtonStyle adds a second dimming pass.
+private struct ComparisonFooterButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.opacity(configuration.isPressed ? 0.8 : 1)
     }
 }

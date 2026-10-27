@@ -33,7 +33,7 @@ struct InspectionTemplateDraft: Equatable {
     }
 }
 
-private enum SetupStyle {
+enum SetupStyle {
     static let purple = Color(red: 97 / 255, green: 89 / 255, blue: 232 / 255)
     static let ink = Color(red: 52 / 255, green: 59 / 255, blue: 77 / 255)
     static let border = Color(red: 226 / 255, green: 229 / 255, blue: 236 / 255)
@@ -63,7 +63,6 @@ struct XiaodaGreeting: View {
 
 struct InspectionTemplateEditor: View {
     @Binding var draft: InspectionTemplateDraft
-    var disabledTrash = false
     @State private var error = ""
     @State private var frames: [String: CGRect] = [:]
     @GestureState private var drag: TemplateDrag?
@@ -74,9 +73,9 @@ struct InspectionTemplateEditor: View {
             VStack(spacing: 0) {
                 ForEach(draft.order, id: \.self) { title in
                     HStack(spacing: 0) {
-                        Image(systemName: "line.3.horizontal")
-                            .font(.system(size: 20)).foregroundStyle(Color.gray)
-                            .frame(width: 54, height: 64).contentShape(Rectangle())
+                        Text("≡")
+                            .font(.system(size: 20)).foregroundStyle(Color(red: 154/255, green: 158/255, blue: 178/255))
+                            .frame(width: 54, height: 66).contentShape(Rectangle())
                             .highPriorityGesture(DragGesture(minimumDistance: 5, coordinateSpace: .global)
                                 .updating($drag) { value, state, _ in
                                     state = TemplateDrag(title: title, translation: value.translation.height)
@@ -90,35 +89,33 @@ struct InspectionTemplateEditor: View {
                             .accessibilityAction(named: "上移") { move(title, offset: -1) }
                             .accessibilityAction(named: "下移") { move(title, offset: 1) }
                         Text(title).font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(draft.disabled.contains(title) ? Color.gray : SetupStyle.ink)
+                            .foregroundStyle(draft.disabled.contains(title) ? Color(red: 182/255, green: 185/255, blue: 198/255) : Color(red: 41/255, green: 50/255, blue: 75/255))
                             .strikethrough(draft.disabled.contains(title))
                             .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 12)
                             .accessibilityIdentifier("setup.title.\(title)")
                         Button {
                             error = draft.toggle(title) ?? ""
                         } label: {
-                            Image(systemName: draft.disabled.contains(title) ? (disabledTrash ? "trash.slash" : "arrow.uturn.backward") : "trash")
-                                .font(.system(size: 21)).frame(width: 48, height: 48)
-                                .foregroundStyle(draft.disabled.contains(title) ? Color.gray : XJTheme.danger)
-                        }.buttonStyle(.plain).padding(.horizontal, 8)
+                            MPTrashIcon(disabled: draft.disabled.contains(title)).frame(width: 24, height: 24).frame(width: 48, height: 48)
+                        }.buttonStyle(.plain).padding(.leading, 8).padding(.trailing, 12)
                             .accessibilityLabel("\(draft.disabled.contains(title) ? "恢复" : "停用")\(title)")
                             .accessibilityIdentifier("setup.toggle.\(title)")
                     }
-                    .frame(minHeight: 64)
+                    .frame(minHeight: 66)
                     .background(drag?.title == title ? XJTheme.soft : draft.disabled.contains(title) ? XJTheme.background : .white)
                     .background(GeometryReader { geometry in
                         Color.clear.preference(key: TemplateFrames.self, value: [title: geometry.frame(in: .named("template.list"))])
                     })
                     .offset(y: offset(title)).zIndex(drag?.title == title ? 1 : 0)
-                    if title != draft.order.last { Divider().overlay(SetupStyle.border) }
+                    if title != draft.order.last { Color(red: 238/255, green: 240/255, blue: 246/255).frame(height: 1) }
                 }
             }.coordinateSpace(name: "template.list")
                 .background(NativeScrollProbe(position: scroll))
                 .onChange(of: drag?.title) { _, value in if value == nil { scroll.stop() } }
                 .onDisappear { scroll.stop() }
                 .onPreferenceChange(TemplateFrames.self) { if drag == nil { frames = $0 } }
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(SetupStyle.border, lineWidth: 2))
+                .padding(2).clipShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(SetupStyle.border, lineWidth: 2))
             if !error.isEmpty {
                 Text(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12)
                     .accessibilityIdentifier("setup.error")
@@ -165,8 +162,7 @@ struct InspectionModeChoice: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Button { selection = mode } label: {
                         HStack(spacing: 8) {
-                            Image(systemName: selection == mode ? "largecircle.fill.circle" : "circle")
-                                .font(.system(size: 20)).foregroundStyle(selection == mode ? SetupStyle.purple : Color.gray)
+                            Circle().fill(.white).overlay(Circle().strokeBorder(selection == mode ? SetupStyle.purple : Color(red: 181/255, green: 186/255, blue: 200/255), lineWidth: selection == mode ? 6 : 1.5)).frame(width: 20, height: 20)
                             if !showsExamples {
                                 VStack(alignment: .leading, spacing: 4) { title(mode); subtitle(mode) }
                             } else { ViewThatFits(in: .horizontal) {
@@ -175,7 +171,7 @@ struct InspectionModeChoice: View {
                             }
                             }
                             Spacer(minLength: 0)
-                        }.frame(minHeight: 44).contentShape(Rectangle())
+                        }.padding(.vertical, showsExamples ? 0 : 8).frame(minHeight: 44).contentShape(Rectangle())
                     }.buttonStyle(.plain).accessibilityIdentifier("setup.mode.\(mode.rawValue)")
                         .accessibilityLabel(mode.title).accessibilityValue(selection == mode ? "已选择" : "未选择")
                         .accessibilityAddTraits(selection == mode ? .isSelected : [])
@@ -184,18 +180,19 @@ struct InspectionModeChoice: View {
                             .padding(.horizontal, 8).padding(.vertical, 3).background(XJTheme.background, in: RoundedRectangle(cornerRadius: 5))
                         if mode == .simple { simpleExample } else { detailedExample }
                     }.padding(12).background(.white, in: RoundedRectangle(cornerRadius: 12)) }
-                }.padding(14)
+                }.padding(.horizontal, 16).padding(.vertical, 14)
                     .background(selection == mode ? SetupStyle.soft : .white, in: RoundedRectangle(cornerRadius: 18))
-                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(selection == mode ? SetupStyle.purple : SetupStyle.border, lineWidth: 2))
+                    .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(selection == mode ? SetupStyle.purple : SetupStyle.border, lineWidth: 2))
+                    .compositingGroup().shadow(color: selection == mode ? Color(red: 217/255, green: 214/255, blue: 251/255) : .clear, radius: 0, y: 3)
             }
         }
     }
 
     private func title(_ mode: InspectionMode) -> some View {
-        Text(mode.title).font(.system(size: 18, weight: .bold)).foregroundStyle(selection == mode ? SetupStyle.purple : SetupStyle.ink)
+        Text(mode.title).font(.system(size: 18, weight: .bold)).foregroundStyle(selection == mode ? Color(red: 81/255, green: 73/255, blue: 207/255) : SetupStyle.ink).frame(minHeight: 27)
     }
     private func subtitle(_ mode: InspectionMode) -> some View {
-        Text(showsExamples ? mode.detail : (mode == .simple ? "90个检查项，突出重点" : "200+检查项，更加全面")).font(.system(size: 14)).foregroundStyle(XJTheme.muted)
+        Text(showsExamples ? mode.detail : (mode == .simple ? "90个检查项，突出重点" : "200+检查项，更加全面")).font(.system(size: 14)).foregroundStyle(Color(red: 96/255, green: 107/255, blue: 125/255)).frame(minHeight: 21)
     }
     private var simpleExample: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -266,7 +263,7 @@ struct InspectionSetupSurface: View {
                             XiaodaMessage(text: "你好呀！我是小搭。\n拖动 ☰ 可以排序，\n点击 🗑 可以删除哦～", pose: "greet", compact: false,
                                 highlights: ["排序", "删除"], icons: ["☰": "handle", "🗑": "trash"], highlightColor: Color(red: 230/255, green: 174/255, blue: 37/255)) { EmptyView() }
                         } else { XiaodaGreeting() }
-                        InspectionTemplateEditor(draft: $draft, disabledTrash: conciseWelcome)
+                        InspectionTemplateEditor(draft: $draft)
                     }
                 }.padding(20).frame(maxWidth: 680).frame(maxWidth: .infinity)
             }.background(.white).clipped()
@@ -288,12 +285,13 @@ struct InspectionSetupSurface: View {
     }
 }
 
-private struct SetupButtonStyle: ButtonStyle {
+struct SetupButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(.system(size: 16, weight: .bold)).foregroundStyle(.white)
+        configuration.label.font(.system(size: 16, weight: .bold)).foregroundStyle(enabled ? .white : Color(red: 133/255, green: 139/255, blue: 154/255))
             .frame(maxWidth: .infinity).frame(minHeight: 50)
-            .background(Color(red: 82 / 255, green: 80 / 255, blue: 220 / 255), in: RoundedRectangle(cornerRadius: 14))
-            .shadow(color: Color(red: 56 / 255, green: 54 / 255, blue: 179 / 255), radius: 0, y: configuration.isPressed ? 2 : 4)
+            .background(enabled ? Color(red: 82 / 255, green: 80 / 255, blue: 220 / 255) : Color(red: 229/255, green: 231/255, blue: 237/255), in: RoundedRectangle(cornerRadius: 14))
+            .compositingGroup().shadow(color: enabled ? Color(red: 56 / 255, green: 54 / 255, blue: 179 / 255) : Color(red: 200/255, green: 203/255, blue: 213/255), radius: 0, y: configuration.isPressed ? 2 : 4)
             .offset(y: configuration.isPressed ? 2 : 0)
     }
 }

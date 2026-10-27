@@ -21,7 +21,7 @@ struct InspectionSetupPage: View {
                     workspace.perform { try workspace.store.call("setupFinish", ["value": .string(mode.rawValue)]) }
                 })
             } else { ProgressView("读取清单设置…") }
-        }.task {
+        }.miniNavigation("初次见面", showsBack: false, background: .white).task {
             workspace.perform {
                 let value = try workspace.store.call("setupState")
                 draft = InspectionTemplateDraft(value["config"])
@@ -41,34 +41,54 @@ struct InspectionTemplatesPage: View {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                InspectionModeChoice(selection: $selected)
-                ForEach(InspectionMode.allCases, id: \.self) { mode in
-                    Button("编辑" + mode.title + "清单") { editing = mode }
-                        .buttonStyle(XJButtonStyle(primary: false)).accessibilityIdentifier("templates.edit.\(mode.rawValue)")
+            MPCard {
+                VStack(spacing: 0) {
+                    ForEach(InspectionMode.allCases, id: \.self) { mode in
+                        HStack(spacing: 8) {
+                            Button { editing = mode } label: {
+                                Text(mode.title).font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.ink)
+                                    .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading).contentShape(Rectangle())
+                            }.buttonStyle(.plain).accessibilityIdentifier("templates.edit.\(mode.rawValue)")
+                            Button { selected = mode } label: {
+                                ZStack {
+                                    Circle().fill(selected == mode ? XJTheme.primary : .white)
+                                    Circle().strokeBorder(selected == mode ? XJTheme.primary : Color(white: 0.84), lineWidth: 1)
+                                    if selected == mode { Text("✓").font(.system(size: 16)).foregroundStyle(.white) }
+                                }.frame(width: 24, height: 24).frame(width: 44, height: 44).contentShape(Rectangle())
+                            }.buttonStyle(.plain).accessibilityLabel(mode.title).accessibilityIdentifier("setup.mode.\(mode.rawValue)")
+                                .accessibilityAddTraits(selected == mode ? .isSelected : [])
+                            Text("›").font(.system(size: 24)).foregroundStyle(XJTheme.muted).onTapGesture { editing = mode }
+                        }.overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
+                    }
                 }
-                Text("模板只用于以后新建的房源，已有房源保留原来的清单和记录。")
-                    .font(.system(size: 13)).foregroundStyle(XJTheme.muted)
-            }.padding(20)
-        }.background(.white).navigationTitle("检查清单模板").navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("返回") { if selected != original { leaving = true } else { dismiss() } } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("确定") {
-                        if workspace.perform({ try workspace.store.call("templateSelect", ["value": .string(selected.rawValue)]) }) { dismiss() }
-                    }.accessibilityIdentifier("templates.confirm")
-                }
+            }.padding(16).padding(.bottom, 84)
+        }.background(XJTheme.background).miniNavigation("模板", leadingTitle: true, back: { if selected != original { leaving = true } else { dismiss() } })
+            .overlay(alignment: .bottom) {
+                Button("确定", action: confirm).buttonStyle(XJButtonStyle(primary: true)).accessibilityIdentifier("templates.confirm")
+                    .padding(.horizontal, 20).padding(.bottom, 16)
             }
-            .confirmationDialog("修改尚未保存，是否放弃？", isPresented: $leaving, titleVisibility: .visible) {
-                Button("放弃修改", role: .destructive) { dismiss() }
-                Button("继续编辑", role: .cancel) {}
+            .overlay {
+                if leaving { MPBottomSheet(close: { leaving = false }) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("要更换模板吗？").font(.system(size: 17, weight: .semibold))
+                        Button("更换并退出", action: confirm).buttonStyle(MPButtonStyle(kind: .primary))
+                        Button("不更换并退出") { dismiss() }.buttonStyle(MPButtonStyle())
+                        Button("继续选择") { leaving = false }.buttonStyle(MPButtonStyle()).accessibilityIdentifier("templates.stay")
+                    }
+                } }
             }
-            .sheet(item: $editing) { mode in NavigationStack { InspectionTemplatePage(workspace: workspace, mode: mode) } }
+            .navigationDestination(item: $editing) { mode in InspectionTemplatePage(workspace: workspace, mode: mode) }
             .onAppear {
-                let value = workspace.store.state["settings"]["selectedTemplate"].string
-                selected = InspectionMode(rawValue: value) ?? .detailed; original = selected
+                // Returning from an editor must not silently reset the user's radio selection.
+                if !initialized {
+                    let value = workspace.store.state["settings"]["selectedTemplate"].string
+                    selected = InspectionMode(rawValue: value) ?? .detailed; original = selected; initialized = true
+                }
             }
+    }
+    @State private var initialized = false
+    private func confirm() {
+        if workspace.perform({ try workspace.store.call("templateSelect", ["value": .string(selected.rawValue)]) }) { dismiss() }
     }
 }
 
@@ -83,22 +103,23 @@ private struct InspectionTemplatePage: View {
     @State private var error = ""
     @Environment(\.dismiss) private var dismiss
     var body: some View {
-        ScrollView { InspectionTemplateEditor(draft: $draft).padding(20) }
-            .background(.white).navigationTitle(mode.title).navigationBarTitleDisplayMode(.inline)
+        ScrollView { InspectionTemplateEditor(draft: $draft).padding(16).padding(.bottom, 84) }
+            .background(XJTheme.background).miniNavigation(mode.title, leadingTitle: true, back: { if draft != original { leaving = true } else { dismiss() } })
             .interactiveDismissDisabled(draft != original)
             .safeAreaInset(edge: .bottom) { if !error.isEmpty { Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger).padding(16).background(.white).accessibilityIdentifier("template.error") } }
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("返回") { if draft != original { leaving = true } else { dismiss() } } }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
-                        do { try workspace.store.call("templateSave", ["value": .object(["mode": .string(mode.rawValue), "config": draft.json])]); dismiss() }
-                        catch { self.error = error.localizedDescription }
-                    }.accessibilityIdentifier("template.save")
-                }
+            .overlay(alignment: .bottom) {
+                Button("保存", action: save).buttonStyle(XJButtonStyle(primary: true)).accessibilityIdentifier("template.save")
+                    .padding(.horizontal, 20).padding(.bottom, 16)
             }
-            .confirmationDialog("修改尚未保存，是否放弃？", isPresented: $leaving, titleVisibility: .visible) {
-                Button("放弃修改", role: .destructive) { dismiss() }
-                Button("继续编辑", role: .cancel) {}
+            .overlay {
+                if leaving { MPBottomSheet(close: { leaving = false }) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("要保存修改吗？").font(.system(size: 17, weight: .semibold))
+                        Button("保存并退出", action: save).buttonStyle(MPButtonStyle(kind: .primary))
+                        Button("不保存退出") { dismiss() }.buttonStyle(MPButtonStyle())
+                        Button("继续编辑") { leaving = false }.buttonStyle(MPButtonStyle()).accessibilityIdentifier("template.stay")
+                    }
+                } }
             }.task {
                 workspace.perform {
                     let modes = try workspace.store.call("templates")["modes"].array
@@ -106,4 +127,9 @@ private struct InspectionTemplatePage: View {
                 }
             }
     }
+    private func save() {
+        do { try workspace.store.call("templateSave", ["value": .object(["mode": .string(mode.rawValue), "config": draft.json])]); dismiss() }
+        catch { self.error = error.localizedDescription }
+    }
+
 }

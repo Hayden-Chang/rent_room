@@ -3,6 +3,7 @@ import AuthenticationServices
 
 struct SettingsPage: View {
     let workspace: AppWorkspace
+    var showsBack = false
     @State private var capacity = false
     @State private var appleChallenge: AppleChallenge?
     @State private var appleRequestedAt = Date.distantPast
@@ -20,7 +21,7 @@ struct SettingsPage: View {
     }()
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 SaveBanner(workspace: workspace)
                 if let session = workspace.session {
                     XJCard {
@@ -52,17 +53,17 @@ struct SettingsPage: View {
                             .accessibilityIdentifier("settings.workplace")
                         NavigationLink { ArchivePage(workspace: workspace) } label: { menu("归档房源", detail: "\(workspace.store.archivedHouses.count) 套") }
                             .accessibilityIdentifier("settings.archive")
-                        NavigationLink { InspectionTemplatesPage(workspace: workspace) } label: { menu("检查清单模板") }
+                        NavigationLink { InspectionTemplatesPage(workspace: workspace) } label: { menu("模板") }
                             .accessibilityIdentifier("settings.templates")
-                        Toggle("小搭引导", isOn: Binding(get: { workspace.store.state["xiaoda"]["enabled"].bool }, set: { value in
+                        Toggle("小搭", isOn: Binding(get: { workspace.store.state["xiaoda"]["enabled"].bool }, set: { value in
                             workspace.perform { try workspace.store.call("settings", ["property": .string("onboarding"), "value": .bool(value)]) }
-                        })).font(.system(size: 14)).tint(XJTheme.primary).frame(minHeight: 52)
+                        })).accessibilityIdentifier("小搭引导").font(.system(size: 14, weight: .medium)).toggleStyle(MPSwitchStyle()).frame(minHeight: 60).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
                     }
                 }
-                Text("数据与备份").font(.system(size: 13)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading)
+                Text("数据与备份").font(.system(size: 16, weight: .semibold)).foregroundStyle(XJTheme.ink).padding(.top, 8).frame(maxWidth: .infinity, alignment: .leading)
                 XJCard {
                     VStack(spacing: 0) {
-                        NavigationLink { BackupPage(workspace: workspace, importing: true) } label: { menu("导入房源") }
+                        NavigationLink { BackupPage(workspace: workspace, importing: true) } label: { menu("导入房源") }.accessibilityIdentifier("settings.import")
                         NavigationLink { BackupPage(workspace: workspace) } label: { menu("导出房源") }.accessibilityIdentifier("settings.export")
                     }
                 }
@@ -80,7 +81,7 @@ struct SettingsPage: View {
                 }
                 XJCard { HStack { Text("版本"); Spacer(); Text("0.1.0").foregroundStyle(XJTheme.muted) }.font(.system(size: 14)).frame(minHeight: 44) }
             }.padding(16)
-        }.navigationTitle("我的").navigationBarTitleDisplayMode(.inline)
+        }.miniNavigation("我的", showsBack: showsBack)
             .navigationDestination(isPresented: $capacity) { CapacityPage(workspace: workspace) }
             .task(id: [workspace.identityRevision, applePreparationRevision]) { await prepareApple() }
             .onDisappear { appleTask?.cancel(); appleChallenge = nil }
@@ -90,7 +91,7 @@ struct SettingsPage: View {
                     if workspace.perform({ try workspace.logout() }), let token { Task { try? await api.revoke(token) } }
                 }
             } message: { Text("账号记录保留在本机，重新登录同一账号后可继续查看。") }
-            .sheet(isPresented: $feedback) { FeedbackPage(workspace: workspace, completed: {}) }
+            .fullScreenCover(isPresented: $feedback) { FeedbackPage(workspace: workspace, completed: {}).presentationBackground(.clear) }
     }
     private func prepareApple() async {
         appleChallenge = nil
@@ -132,8 +133,12 @@ struct SettingsPage: View {
         }
     }
     private func menu(_ title: String, detail: String = "") -> some View {
-        HStack { Text(title).foregroundStyle(XJTheme.ink); Spacer(); Text(detail + " ›").foregroundStyle(XJTheme.muted).lineLimit(1) }
-            .font(.system(size: 14)).frame(minHeight: 52).contentShape(Rectangle())
+        HStack(spacing: 16) {
+            Text(title).fontWeight(.medium).foregroundStyle(XJTheme.ink).fixedSize()
+            Spacer(minLength: 0)
+            Text(detail + (detail.isEmpty ? "›" : " ›")).font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).lineLimit(1)
+        }.font(.system(size: 14)).frame(minHeight: 50).contentShape(Rectangle())
+            .overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
     }
 }
 

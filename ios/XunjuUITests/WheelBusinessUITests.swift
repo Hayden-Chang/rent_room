@@ -84,7 +84,7 @@ import XCTest
         app.buttons["tab.清单"].tap(); search("租金", app)
         XCTAssertTrue(app.textFields["mp.field.input.f1_6"].exists); XCTAssertFalse(app.buttons["mp.field.wheel.f1_6"].exists)
         capture("app-form-money-manual", app)
-        app.navigationBars.buttons.firstMatch.tap()
+        app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["tab.清单"].waitForNonExistence(timeout: 3))
         let house = app.buttons["house.轮盘正式表单"]; XCTAssertTrue(house.waitForExistence(timeout: 3)); house.press(forDuration: 1)

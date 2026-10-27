@@ -29,7 +29,7 @@ import XCTest
         let guide = app.switches["小搭引导"]
         XCTAssertTrue(guide.waitForExistence(timeout: 3))
         if guide.value as? String == "1" { guide.tap() }
-        app.buttons["tab.房源"].tap(); app.buttons["home.add"].tap()
+        app.buttons["tab.房源"].tap(); app.homeAddButton.tap()
         let name = app.textFields["prompt.text"]
         XCTAssertTrue(name.waitForExistence(timeout: 3)); name.replacePromptText("未登录保留房源")
         app.buttons["prompt.confirm"].tap()
@@ -45,7 +45,7 @@ import XCTest
         let lastStep = expectation(for: NSPredicate(format: "label == %@", "随手记下房屋细节"), evaluatedWith: coach)
         wait(for: [lastStep], timeout: 4)
         app.buttons["coach.next"].tap()
-        let back = app.navigationBars.buttons.firstMatch
+        let back = app.navigationBackButton
         XCTAssertTrue(back.waitForExistence(timeout: 3)); back.tap()
         let feedback = app.buttons["关闭反馈"]
         XCTAssertTrue(feedback.waitForExistence(timeout: 4)); feedback.tap()

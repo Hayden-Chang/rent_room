@@ -4,6 +4,7 @@ struct XiaodaMessage<Actions: View>: View {
     let text: String
     var pose = "think"
     var compact = true
+    var hero = false
     var highlights: [String] = []
     var icons: [Character: String] = [:]
     var highlightColor: Color = Color(red: 184/255, green: 134/255, blue: 11/255)
@@ -13,23 +14,34 @@ struct XiaodaMessage<Actions: View>: View {
     @State private var shown = ""
     @State private var completed = false
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Image("xiaoda-" + pose).resizable().scaledToFit()
-                .frame(width: compact ? 72 : 88, height: compact ? 84 : 104).accessibilityHidden(true)
+        let layout = hero ? AnyLayout(VStackLayout(spacing: 20)) : AnyLayout(HStackLayout(alignment: .center, spacing: compact ? 12 : 14))
+        layout {
+            if !hero { character }
             VStack(alignment: .leading, spacing: 12) {
-                speech(text).hidden().overlay(alignment: .topLeading) {
-                    speech(shown).frame(maxWidth: .infinity, alignment: .leading)
-                }.font(.system(size: compact ? 15 : 16)).lineSpacing(actionLayout ? 13 : 5)
+                speech(text).frame(maxWidth: .infinity, alignment: hero ? .center : .leading).hidden().overlay(alignment: .topLeading) {
+                    speech(shown).frame(maxWidth: .infinity, alignment: hero ? .center : .leading)
+                }.font(.system(size: compact ? 15 : 16))
+                    .lineSpacing((actionLayout ? 34 : (compact ? 15 : 16) * 1.65) - UIFont.systemFont(ofSize: compact ? 15 : 16).lineHeight)
+                    .padding(.vertical, max(0, ((actionLayout ? 34 : (compact ? 15 : 16) * 1.65) - UIFont.systemFont(ofSize: compact ? 15 : 16).lineHeight) / 2))
+                    .multilineTextAlignment(hero ? .center : .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .ignore).accessibilityLabel(text)
                     .accessibilityValue(completed ? "完整显示" : "正在显示").accessibilityIdentifier("xiaoda.message")
                     .contentShape(Rectangle()).onTapGesture { completed = true; shown = text }
                 actions
-            }.padding(actionLayout ? 18 : 14).frame(maxWidth: .infinity, alignment: .leading)
+            }.padding(.horizontal, (compact ? 14 : 16) + 2).padding(.vertical, (actionLayout ? 18 : compact ? 14 : 16) + 2)
+                .frame(maxWidth: .infinity, alignment: hero ? .center : .leading)
                 .foregroundStyle(Color(red: 52/255, green: 59/255, blue: 77/255))
                 .background(.white, in: RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(XJTheme.line, lineWidth: 2))
-        }.task(id: text) {
+                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Color(red: 226/255, green: 229/255, blue: 236/255), lineWidth: 2))
+                .overlay(alignment: hero ? .bottom : .leading) {
+                    XiaodaBubbleTail().fill(.white)
+                        .overlay(XiaodaBubbleTail().stroke(Color(red: 226/255, green: 229/255, blue: 236/255), lineWidth: 2))
+                        .frame(width: 10, height: 18).rotationEffect(.degrees(hero ? -90 : 0))
+                        .offset(x: hero ? 0 : -7, y: hero ? 12 : 0).allowsHitTesting(false)
+                }
+            if hero { character }
+        }.frame(minHeight: hero ? 0 : 108).task(id: text) {
             completed = false; shown = ""
             if reduceMotion { shown = text; completed = true; return }
             for character in text {
@@ -39,6 +51,10 @@ struct XiaodaMessage<Actions: View>: View {
             }
             completed = true
         }
+    }
+    private var character: some View {
+        Image("xiaoda-" + pose).resizable().scaledToFit()
+            .frame(width: hero ? 144 : compact ? 72 : 88, height: hero ? 156 : compact ? 84 : 104).accessibilityHidden(true)
     }
     private func speech(_ value: String) -> Text {
         XiaodaSpeech.parts(value, highlights: highlights, icons: icons).reduce(Text("")) { result, part in
@@ -129,4 +145,14 @@ struct XiaodaTutorialOverlay: View {
 private struct XiaodaTutorialHeight: PreferenceKey {
     static let defaultValue: CGFloat = 330
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
+}
+
+private struct XiaodaBubbleTail: Shape {
+    func path(in rect: CGRect) -> Path {
+        Path { path in
+            path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+            path.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        }
+    }
 }

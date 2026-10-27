@@ -13,7 +13,7 @@ import XCTest
     }
     private func reveal(_ element: XCUIElement, app: XCUIApplication, up: Bool = true) {
         for _ in 0..<4 {
-            if element.isHittable && element.frame.minY >= app.navigationBars.firstMatch.frame.maxY && element.frame.maxY <= app.buttons["issueEditor.cancel"].frame.minY { return }
+            if element.isHittable && element.frame.minY >= app.navigationHeader.frame.maxY && element.frame.maxY <= app.buttons["issueEditor.cancel"].frame.minY { return }
             if up { app.swipeUp() } else { app.swipeDown() }
         }
         XCTAssertTrue(element.isHittable)

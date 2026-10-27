@@ -85,19 +85,21 @@ private struct WorkspaceRoot: View {
 struct XJTabBar: View {
     @Binding var selection: String
     let items: [(String, String)]
+    var mediaCount = 0
+    var issueCount = 0
     var body: some View {
         HStack(spacing: 0) {
             ForEach(items, id: \.0) { name, icon in
                 Button { selection = name } label: {
-                    VStack(spacing: 4) {
+                    VStack(spacing: items.count == 4 ? 1 : 3) {
                         XJIcon(name: icon + (selection == name ? "-selected" : "-default"))
-                        Text(name).font(.system(size: items.count == 4 ? 13 : 10))
-                    }.frame(maxWidth: .infinity, minHeight: items.count == 4 ? 48 : 56).contentShape(Rectangle())
-                        .foregroundStyle(selection == name ? XJTheme.primary : XJTheme.muted)
+                        Text(name + (items.count == 4 && name == "影像" ? " \(mediaCount)" : items.count == 4 && name == "问题" ? " \(issueCount)" : "")).font(.system(size: items.count == 4 ? 13 : 10))
+                    }.frame(maxWidth: .infinity, minHeight: items.count == 4 ? 48 : 50).contentShape(Rectangle())
+                        .foregroundStyle(selection == name ? XJTheme.primary : Color(red: 141 / 255, green: 149 / 255, blue: 163 / 255))
                 }.buttonStyle(.plain).accessibilityIdentifier("tab.\(name)")
                     .accessibilityAddTraits(selection == name ? .isSelected : [])
             }
-        }.padding(.horizontal, 8).background(.white)
+        }.background(.white)
             .overlay(alignment: .top) { Rectangle().fill(XJTheme.line).frame(height: 1) }
     }
 }

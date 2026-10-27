@@ -29,7 +29,7 @@ struct HouseCard: View {
                             .opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     Text(house.decision.isEmpty ? "待检查" : house.decision)
-                        .font(.system(size: 11)).foregroundStyle(XJTheme.primary)
+                        .font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.primary)
                         .padding(.horizontal, 8).padding(.vertical, 3)
                         .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6))
                         .padding(10)
@@ -41,15 +41,15 @@ struct HouseCard: View {
                         .font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary)
                         .frame(height: 24).padding(.vertical, 8)
                     Text("\(house.address.isEmpty ? "地址待填写" : house.address) · \(house.area)m²")
-                        .font(.system(size: 11)).foregroundStyle(XJTheme.muted)
+                        .font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.muted)
                         .lineLimit(1).frame(height: 16).padding(.bottom, 10)
                     if house.issues > 0 {
-                        Text("\(house.issues) 个问题").font(.system(size: 11))
+                        Text("\(house.issues) 个问题").font(.system(size: 11, weight: .medium))
                             .foregroundStyle(XJTheme.danger).padding(.horizontal, 8).padding(.vertical, 3)
                             .background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 6))
                     } else {
                         Text("检查 \(house.done) / \(house.total)")
-                            .font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                            .font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted)
                     }
                     Spacer(minLength: 0)
                 }.padding(12).frame(height: 144, alignment: .topLeading)
@@ -64,10 +64,10 @@ struct EmptyHouseState: View {
     var add: () -> Void
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 36) {
             Image("empty-art").resizable().scaledToFit().frame(width: 166, height: 152)
-            Button("添加房源", action: add).buttonStyle(XJButtonStyle(primary: true))
-                .accessibilityIdentifier("house.add")
+            Button("新建房源", action: add).buttonStyle(SetupButtonStyle())
+                .accessibilityIdentifier("home.add")
         }.padding(.horizontal, 24).padding(.top, 56)
     }
 }

@@ -4,11 +4,12 @@ struct PlacePicker: View {
     @Bindable var search: PlaceSearch
     var readonly = false
     var address = ""
+    var emptyText = "搜索地址或点击定位，选择房源位置"
     let choose: (JSONValue) throws -> Void
     var body: some View {
         PlacePickerSurface(query: Binding(get: { search.query }, set: { search.query = $0; search.submit(debounce: true) }),
                            center: search.center, places: search.choices, busy: search.busy,
-                           message: search.message, permissionDenied: search.permissionDenied, readonly: readonly, address: address, attribution: search.attribution,
+                           message: search.message, permissionDenied: search.permissionDenied, readonly: readonly, emptyText: emptyText, address: address, attribution: search.attribution,
                            search: { search.submit() }, locate: { search.locate() }, retry: { search.submit() },
                            settings: { if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) } },
                            moved: search.moved, choose: { place in
@@ -48,28 +49,30 @@ struct WorkplacePage: View {
     }
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 SaveBanner(workspace: workspace)
                 XJCard {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 0) {
                         HStack {
-                            Text("上班地址").font(.system(size: 15, weight: .semibold)); Spacer()
+                            Text("上班地址").font(.system(size: 17, weight: .semibold)).frame(minHeight: 25.5); Spacer()
                             if !text.isEmpty { Button("清空地点") { save(clear: true) }.font(.system(size: 13)).accessibilityIdentifier("workplace.clear") }
                         }
-                        TextField("手动填写上班地址或地点", text: $text, axis: .vertical).lineLimit(2...5).font(.system(size: 14))
-                            .focused($editing).accessibilityIdentifier("workplace.address")
+                        TextField("手动填写上班地址或地点", text: $text, prompt: Text("手动填写上班地址或地点").foregroundStyle(Color(white: 0.5)), axis: .vertical).lineLimit(2...5).font(.system(size: 14))
+                            .lineSpacing(7).padding(12)
+                            .frame(minHeight: 72, maxHeight: 144, alignment: .topLeading).background(XJTheme.background).clipShape(RoundedRectangle(cornerRadius: 8))
+                            .padding(.top, 12).focused($editing).accessibilityIdentifier("workplace.address")
                             .onChange(of: text) { if text.count > 200 { text = String(text.prefix(200)) }; save() }
-                        Text("填写后自动保存，也可以在下方搜索或选点。").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                        Text("填写后自动保存，也可以在下方搜索或选点。").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(minHeight: 18).padding(.top, 10)
                         if !error.isEmpty { Text(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger); Button("重试保存") { save() } }
                     }
                 }
                 XJCard {
-                    PlacePicker(search: search, address: text) { place in
+                    PlacePicker(search: search, address: text, emptyText: "搜索地址或点击定位，选择上班位置") { place in
                         try search.store.call("workplacePlace", ["value": place]); text = search.store.state["settings"]["workplace"].string; error = ""
                     }
                 }
             }.padding(16)
-        }.background(XJTheme.background).navigationTitle("上班地点").navigationBarTitleDisplayMode(.inline)
+        }.background(XJTheme.background).miniNavigation("上班地点")
             .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("完成") { editing = false; UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) } } }
             .onAppear { search.start(address: text) }
     }
@@ -116,7 +119,7 @@ struct CommutePage: View {
             CommuteRouteFooter(minutes: search.chosen?.minutes, busy: search.busy, cancel: { search.cancel(); dismiss() }, confirm: {
                 do { try search.confirm(); dismiss() } catch { search.message = error.localizedDescription }
             })
-        }.navigationTitle(fieldID == UtilityField.driving ? "驾车通勤" : "公共交通通勤").navigationBarTitleDisplayMode(.inline)
+        }.miniNavigation(fieldID == UtilityField.driving ? "驾车通勤" : "公共交通通勤")
             .onAppear { search.query() }.onDisappear { search.cancel() }
             .navigationDestination(isPresented: $choosingOrigin) {
                 ScrollView { XJCard { HousePlaceField(workspace: workspace, id: houseID) }.padding(16) }.background(XJTheme.background).navigationTitle("选择房源位置")

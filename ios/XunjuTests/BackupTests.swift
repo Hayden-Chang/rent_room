@@ -52,7 +52,8 @@ final class BackupTests: XCTestCase {
         let source = try store(), target = try store(), transfers = BackupTransfers()
         let id = try source.add("导入房源")
         try addMedia(source, house: id, bytes: Data([1, 2, 3]))
-        _ = try target.add("已有一"); _ = try target.add("已有二")
+        _ = try target.add("已有房源")
+        XCTAssertEqual(target.capacity.used, target.capacity.limit)
         let archive = source.records.directory.appendingPathComponent("rooms.zip")
         try await transfers.export(ids: [id], store: source, to: archive)
         let preview = try await transfers.preview(archive, store: target)
@@ -68,14 +69,16 @@ final class BackupTests: XCTestCase {
     @MainActor func testReplacementImportUsesNetCapacityAndRetainsGlobalSettings() async throws {
         let source = try store(), transfers = BackupTransfers()
         let id = try source.add("原房源")
-        _ = try source.add("其他房源")
+        XCTAssertEqual(source.capacity.used, source.capacity.limit)
+        try source.call("settings", ["property": .string("workplace"), "value": .string("保留上班地点")])
         let archive = source.records.directory.appendingPathComponent("rooms.zip")
         try await transfers.export(ids: [id], store: source, to: archive)
         let preview = try await transfers.preview(archive, store: source)
         try source.call("rename", ["id": .string(id), "value": .string("新名称")])
         try await transfers.importSelected(archive, preview: preview, selectedIDs: [id], replacing: [id], store: source, isCurrent: { true })
         XCTAssertEqual(source.house(id)["name"].string, "原房源")
-        XCTAssertEqual(source.capacity.used, 2)
+        XCTAssertEqual(source.capacity.used, 1)
+        XCTAssertEqual(source.state["settings"]["workplace"].string, "保留上班地点")
     }
 
     @MainActor func testCancelledExportAndChangedFileNeverCommitOrOverwrite() async throws {

@@ -14,12 +14,12 @@ struct IssuesPage: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 SaveBanner(workspace: workspace)
-                Text("需要关注 · \(workspace.store.houses.first { $0.id == id }?.stats.issues ?? 0)").font(.system(size: 14))
+                Text("需要关注 · \(workspace.store.houses.first { $0.id == id }?.stats.issues ?? 0)").font(.system(size: 16, weight: .semibold)).padding(.top, 20).padding(.bottom, 12)
                 if automatic.isEmpty && manual.isEmpty {
                     VStack(spacing: 12) {
-                        Text("目前没有标记的问题").font(.system(size: 16, weight: .semibold))
+                        Text("目前没有标记的问题").font(.system(size: 17, weight: .semibold))
                         Text("未检查的项目仍需继续查看。").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
-                    }.frame(maxWidth: .infinity).padding(.top, 40)
+                    }.frame(maxWidth: .infinity).padding(.top, 40).padding(.bottom, 56)
                 }
                 ForEach(automatic, id: \.id) { field in
                     AutomaticIssueCard(category: field["category"].string) {
@@ -34,11 +34,11 @@ struct IssuesPage: View {
                         open: { selection = IssueSelection(id: issue.id, isNew: false) }, preview: { preview = $0 })
                 }
             }.padding(16)
-        }.safeAreaInset(edge: .bottom) {
-            if !readonly { Button("新建问题") { selection = IssueSelection(id: "i" + UUID().uuidString.replacingOccurrences(of: "-", with: ""), isNew: true) }
-                .buttonStyle(XJButtonStyle(primary: true)).padding(16).accessibilityIdentifier("issue.add") }
+        }.overlay(alignment: .bottomTrailing) {
+            if !readonly { MPFloatingButton(icon: "plus", label: "新建问题") { selection = IssueSelection(id: "i" + UUID().uuidString.replacingOccurrences(of: "-", with: ""), isNew: true) }
+                .padding(16).accessibilityIdentifier("issue.add") }
         }.onAppear(perform: refresh).onChange(of: workspace.store.status.revision) { _, _ in refresh() }
-            .sheet(item: $selection) { selection in IssueEditor(workspace: workspace, houseID: id, issueID: selection.id, isNew: selection.isNew) }
+            .fullScreenCover(item: $selection) { selection in IssueEditor(workspace: workspace, houseID: id, issueID: selection.id, isNew: selection.isNew) }
             .sheet(item: $preview) { MediaPreviewSheet(item: $0) }
             .toolbar { ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
@@ -54,6 +54,7 @@ private struct IssueEditor: View {
     let isNew: Bool
     @State private var draft: IssueDraft
     @State private var picking = false
+    @State private var discarding = false
     @State private var preview: MediaTile?
     @Environment(\.dismiss) private var dismiss
 
@@ -71,7 +72,11 @@ private struct IssueEditor: View {
                 addMedia: { picking = true },
                 removeMedia: { tile in if let item = draft.media.first(where: { $0.id == tile.id }) { draft.remove(item) } },
                 preview: { preview = $0 }, cancel: { draft.discard(); dismiss() }, save: { if draft.save() { dismiss() } })
-                .navigationTitle(isNew ? "新建问题" : "问题详情").navigationBarTitleDisplayMode(.inline)
+                .miniNavigation(isNew ? "新建问题" : "问题详情", back: { if draft.dirty { discarding = true } else { draft.discard(); dismiss() } })
+                .alert("放弃修改？", isPresented: $discarding) {
+                    Button("放弃", role: .destructive) { draft.discard(); dismiss() }
+                    Button("继续编辑", role: .cancel) {}
+                } message: { Text("尚未保存的文字和新增影像将被放弃。") }
                 .interactiveDismissDisabled(draft.dirty || picking || draft.saving)
                 .fullScreenCover(isPresented: $picking) {
                     MediaPickerSheet(workspace: workspace, houseID: draft.houseID, stage: { try draft.addImported($0) })

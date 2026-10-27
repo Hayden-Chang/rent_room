@@ -30,13 +30,13 @@ struct HouseDetailPage: View {
                 default: EmptyView()
                 } }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
-        }.background(XJTheme.background).navigationTitle(workspace.store.house(id)["name"].string)
-            .navigationBarTitleDisplayMode(.inline)
+        }.background(XJTheme.background).miniNavigation(workspace.store.house(id)["name"].string, showsBack: !showCoach)
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                XJTabBar(selection: $tab, items: [("清单", "checklist"), ("影像", "media"), ("问题", "issues"), ("总结", "summary")])
+                XJTabBar(selection: $tab, items: [("清单", "checklist"), ("影像", "media"), ("问题", "issues"), ("总结", "summary")],
+                    mediaCount: workspace.store.house(id)["media"].array.count,
+                    issueCount: workspace.store.houses.first { $0.id == id }?.stats.issues ?? 0)
                     .disabled(showCoach)
             }
-            .navigationBarBackButtonHidden(showCoach)
             .onAppear {
                 if !appeared { appeared = true; showCoach = !readonly && workspace.store.state["xiaoda"]["firstHouseId"].string == id && workspace.store.state["xiaoda"]["tutorialStep"].int > 0 }
             }
@@ -92,7 +92,7 @@ struct ChecklistPage: View {
             coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollLocked: showCoach && coachStep == 3, floatingActionsVisible: editingField == nil, scrollPosition: scrollPosition,
             guidance: prompt != .null && !sections.contains(where: { $0["title"].string == prompt["target"].string }) ? prompt : .null,
             guidanceAction: guideAction, capture: { mediaTarget = "" }) {
-            VStack(spacing: 16) {
+            VStack(spacing: 12) {
                 SaveBanner(workspace: workspace)
                 ForEach(sections, id: \.titleKey) { section in
                     if prompt != .null && section["title"].string == prompt["target"].string {

@@ -136,14 +136,28 @@ struct MPInputDialog: View {
 }
 
 struct MPBottomSheet<Content: View>: View {
+    var cornerRadius: CGFloat = 20
+    var topPadding: CGFloat = 24
+    var bottomPadding: CGFloat = 24
     let close: () -> Void
     @ViewBuilder var content: Content
+    @State private var keyboardHeight: CGFloat = 0
     var body: some View {
         ZStack(alignment: .bottom) {
             XJTheme.ink.opacity(0.38).ignoresSafeArea().onTapGesture(perform: close)
-            content.padding(.horizontal, 20).padding(.top, 24).padding(.bottom, 24)
+            content.padding(.horizontal, 20).padding(.top, topPadding).padding(.bottom, bottomPadding)
                 .frame(maxWidth: .infinity).background(.white)
-                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20))
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: cornerRadius, topTrailingRadius: cornerRadius))
+                .padding(.bottom, keyboardHeight)
+        }.ignoresSafeArea(.container, edges: .bottom).ignoresSafeArea(.keyboard)
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { notification in
+            let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect ?? .zero
+            let window = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows).first { $0.isKeyWindow }
+            let intersection = window.map { $0.bounds.intersection($0.convert(frame, from: nil)) } ?? .null
+            withAnimation(.easeOut(duration: 0.2)) { keyboardHeight = intersection.isNull ? 0 : max(0, intersection.height) }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            withAnimation(.easeOut(duration: 0.2)) { keyboardHeight = 0 }
         }
     }
 }
@@ -153,11 +167,15 @@ struct MPNoteSheet: View {
     @Binding var text: String
     var readonly = false, error = ""
     let close: () -> Void, save: () -> Void
+    private var bottomInset: CGFloat {
+        let window = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows).first { $0.isKeyWindow }
+        return max(8, window?.safeAreaInsets.bottom ?? 0)
+    }
     var body: some View {
-        MPBottomSheet(close: close) {
+        MPBottomSheet(topPadding: 12, bottomPadding: bottomInset, close: close) {
             VStack(alignment: .leading, spacing: 12) {
-                Text(title).font(.system(size: 17, weight: .semibold))
-                TextEditor(text: $text).font(.system(size: 14)).frame(height: 160).scrollContentBackground(.hidden)
+                Text(title).font(.system(size: 17, weight: .semibold)).frame(minHeight: 25.5)
+                TextEditor(text: $text).font(.system(size: 14)).frame(height: 136).scrollContentBackground(.hidden)
                     .padding(12).background(XJTheme.background).clipShape(RoundedRectangle(cornerRadius: 8))
                     .disabled(readonly).accessibilityIdentifier("mp.note.text")
                     .onChange(of: text) { if text.count > 10000 { text = String(text.prefix(10000)) } }
@@ -165,7 +183,7 @@ struct MPNoteSheet: View {
                 HStack(spacing: 8) {
                     Button(readonly ? "关闭" : "取消", action: close).buttonStyle(MPButtonStyle())
                     if !readonly { Button("保存备注", action: save).buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("mp.note.save") }
-                }.padding(.top, 4)
+                }
             }
         }
     }

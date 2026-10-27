@@ -156,7 +156,7 @@ struct MPFieldRow: View {
                 }.buttonStyle(.plain).padding(.top, 8)
             }
             if !item.photoRef.isEmpty { Text("原照片编号：" + item.photoRef).font(.system(size: 11)).foregroundStyle(XJTheme.muted).padding(.top, 4) }
-        }.padding(.vertical, item.heading ? 4 : item.inline ? 2 : 12).padding(.top, item.kind == .group ? 8 : 0)
+        }.padding(.vertical, item.inline ? 2 : item.heading ? 4 : 12).padding(.top, item.kind == .group ? 8 : 0)
             .background(state.flagged ? XJTheme.dangerBackground : .clear)
             .clipShape(RoundedRectangle(cornerRadius: state.flagged ? 8 : 0))
             .overlay(alignment: .bottom) { if !item.heading && !item.hideDivider { XJTheme.line.frame(height: 1) } }
@@ -218,11 +218,15 @@ struct MPFieldRow: View {
             HStack(spacing: 4) {
                 if !item.stats.isEmpty {
                     if let progress = item.progress {
-                        VStack(alignment: .trailing, spacing: 3) {
+                        HStack(spacing: 8) {
                             if item.issueCount > 0 { Text("\(item.issueCount) 个问题").foregroundStyle(XJTheme.danger) }
-                            ProgressView(value: progress).tint(progress == 1 ? .green : XJTheme.primary).frame(width: 64)
-                            Text(item.stats).foregroundStyle(XJTheme.muted)
-                        }.font(.system(size: 11)).accessibilityElement(children: .combine)
+                            GeometryReader { geometry in
+                                Capsule().fill(XJTheme.soft)
+                                Capsule().fill(progress == 1 ? Color(red: 22/255, green: 163/255, blue: 74/255) : XJTheme.primary)
+                                    .frame(width: geometry.size.width * max(0, min(1, progress)))
+                            }.frame(width: 48, height: 4)
+                            Text(item.stats).monospacedDigit().foregroundStyle(XJTheme.muted).frame(minWidth: 40, alignment: .trailing)
+                        }.font(.system(size: 12)).accessibilityElement(children: .combine)
                     } else { Text(item.stats).font(.system(size: 12)).foregroundStyle(XJTheme.muted).fixedSize() }
                 }
                 if item.skippable { option("不涉及", selected: state.skipped, isSkip: true) { state.skipped.toggle() } }
@@ -281,28 +285,39 @@ struct MPChecklistSurface<Content: View>: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 0) {
-                    Color.clear.frame(height: 12).id("top").background { if let scrollPosition { NativeScrollProbe(position: scrollPosition) } }
+                    Color.clear.frame(height: 28).id("top").background { if let scrollPosition { NativeScrollProbe(position: scrollPosition) } }
                     MPCard {
                         VStack(spacing: 0) {
-                            HStack { Text("总进度").font(.system(size: 17, weight: .semibold)); Spacer(); Text("\(done) / \(total)").font(.system(size: 14)) }
+                            HStack { Text("总进度").font(.system(size: 17, weight: .semibold)).frame(height: 25.5); Spacer(); Text("\(done) / \(total)").font(.system(size: 14)) }
                             GeometryReader { geometry in
                                 Capsule().fill(XJTheme.soft)
                                 Capsule().fill(XJTheme.primary).frame(width: geometry.size.width * CGFloat(done) / CGFloat(max(1, total)))
                             }.frame(height: 5).padding(.top, 14).padding(.bottom, 10)
-                            HStack { Spacer(); Text("\(issues) 项有问题").foregroundStyle(XJTheme.danger) }.font(.system(size: 12))
+                            HStack { Spacer(); Text("\(issues) 项有问题").foregroundStyle(XJTheme.danger) }.font(.system(size: 12)).frame(height: 18)
                         }
                     }
                     if guidance != .null { XiaodaGuidanceCard(prompt: guidance, action: guidanceAction).padding(.top, 12).id("xiaoda.guide") }
-                    HStack(spacing: 8) {
-                        ForEach(["全部", "房源", "现场", "询问签约"], id: \.self) { value in
-                            Button { if !coordinator.consumeTap() { phase = value } } label: { Text(["房源":"基本情况", "现场":"现场检查", "询问签约":"费用与合同"][value] ?? value).font(.system(size: 13)).frame(maxWidth: .infinity, minHeight: 44).background(phase == value ? XJTheme.soft : .white).clipShape(Capsule()) }
-                                .foregroundStyle(phase == value ? XJTheme.primary : XJTheme.ink).buttonStyle(.plain).accessibilityIdentifier("mp.phase.\(value)")
+                    GeometryReader { geometry in
+                        HStack(spacing: 8) {
+                            ForEach(["全部", "房源", "现场", "询问签约"], id: \.self) { value in
+                                Button { if !coordinator.consumeTap() { phase = value } } label: {
+                                    Text(["房源":"基本情况", "现场":"现场检查", "询问签约":"费用与合同"][value] ?? value)
+                                        .font(.system(size: 13, weight: .medium))
+                                        .frame(width: max(0, geometry.size.width - 24) / 4.25 * (value == "询问签约" ? 1.25 : 1), height: 44)
+                                        .background(phase == value ? XJTheme.soft : .white).clipShape(Capsule())
+                                }.foregroundStyle(phase == value ? XJTheme.primary : XJTheme.ink).buttonStyle(.plain).accessibilityIdentifier("mp.phase.\(value)")
+                            }
                         }
-                    }.padding(.vertical, 14).anchorPreference(key: CoachAnchors.self, value: .bounds) { [1:$0] }
+                    }.frame(height: 44).padding(.vertical, 14).anchorPreference(key: CoachAnchors.self, value: .bounds) { [1:$0] }
                     HStack(spacing: 8) {
-                        TextField("搜索检查项、结果或备注", text: $query).font(.system(size: 14)).padding(.horizontal, 12).frame(height: 44).background(.white)
+                        TextField("搜索检查项、结果或备注", text: $query, prompt: Text("搜索检查项、结果或备注").foregroundStyle(Color(white: 0.5))).font(.system(size: 14)).padding(.horizontal, 12).frame(height: 44).background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).accessibilityIdentifier("mp.checklist.search")
-                        Button("筛选" + (filters.isEmpty ? "" : " \(filters.count)")) { if !coordinator.consumeTap() { showFilters.toggle() } }.buttonStyle(MPButtonStyle(kind: .soft)).frame(width: 64)
+                        Button { if !coordinator.consumeTap() { showFilters.toggle() } } label: {
+                            HStack(spacing: 8) {
+                                Text("筛选" + (filters.isEmpty ? "" : " \(filters.count)"))
+                                Image(systemName: showFilters ? "chevron.up" : "chevron.down").font(.system(size: 10, weight: .semibold))
+                            }
+                        }.buttonStyle(MPButtonStyle(kind: .soft)).frame(width: filters.isEmpty ? 71 : 88).accessibilityLabel("筛选" + (filters.isEmpty ? "" : " \(filters.count)"))
                     }
                     if showFilters {
                         ChoiceFlow {

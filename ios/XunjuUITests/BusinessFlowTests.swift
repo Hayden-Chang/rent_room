@@ -17,7 +17,7 @@ import XCTest
         XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
 
     }
-    private func home(_ app: XCUIApplication) { app.navigationBars.buttons.firstMatch.tap(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3)) }
+    private func home(_ app: XCUIApplication) { app.navigationBackButton.tap(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3)) }
     private func capture(_ name: String, _ app: XCUIApplication) {
         let a = XCTAttachment(screenshot: app.screenshot()); a.name = name; a.lifetime = .keepAlways; add(a)
     }
@@ -46,7 +46,7 @@ import XCTest
         app.buttons["tab.总结"].tap()
         app.buttons["summary.考虑租住"].tap()
         let note = app.textViews["summary.note"]; note.tap(); note.typeText("采光好，入住时间待确认")
-        app.navigationBars.firstMatch.tap()
+        app.dismissKeyboardFromHeader()
         home(app); capture("12-native-home-saved", app)
         app.terminate(); app.launch()
         let house = app.buttons["house.朝阳路公寓"]
@@ -83,8 +83,8 @@ import XCTest
         XCTAssertTrue(app.staticTexts["house.readonly"].waitForExistence(timeout: 3))
         app.buttons["tab.总结"].tap(); XCTAssertFalse(app.buttons["summary.考虑租住"].isEnabled)
         capture("15-native-archive-readonly", app)
-        app.navigationBars.buttons.firstMatch.tap()
-        app.buttons["archive.restore.第一套"].tap(); XCTAssertFalse(app.buttons["archive.open.第一套"].exists)
+        app.navigationBackButton.tap()
+        app.buttons["archive.open.第一套"].press(forDuration: 1); app.buttons["archive.restore.第一套"].tap(); XCTAssertFalse(app.buttons["archive.open.第一套"].exists)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.第一套"].waitForExistence(timeout: 10))
     }
     func testManualIssueSaveResolveAndRelaunch() {
@@ -103,7 +103,7 @@ import XCTest
     private func reveal(_ element: XCUIElement, _ app: XCUIApplication) {
         // SwiftUI may report clipped content behind the inset tab/footer as
         // hittable. Bring the whole control into the actual content area first.
-        let top = app.navigationBars.firstMatch.frame.maxY + 12
+        let top = app.navigationHeader.frame.maxY + 12
         let bottom = app.buttons["issueEditor.save"].exists ? app.buttons["issueEditor.save"].frame.minY - 12
             : app.buttons["tab.清单"].exists ? app.buttons["tab.清单"].frame.minY - 64 : app.frame.maxY - 96
         for _ in 0..<5 {
@@ -278,7 +278,10 @@ import XCTest
         XCTAssertEqual(group.value as? String, "已展开")
         group.swipeLeft(); app.buttons["mp.field.action." + groupID + ".标记问题"].tap()
         group.swipeLeft(); app.buttons["mp.field.action." + groupID + ".备注"].tap()
-        let note = app.textViews["mp.note.text"]; XCTAssertTrue(note.waitForExistence(timeout: 3)); note.tap(); note.typeText("核实固定车位")
+        let note = app.textViews["mp.note.text"]; XCTAssertTrue(note.waitForExistence(timeout: 3))
+        capture("66b-business-note-surface", app)
+        note.tap(); note.typeText("核实固定"); note.typeText("车位"); XCTAssertEqual(note.value as? String, "核实固定车位")
+        capture("66c-business-note-editing", app)
         app.buttons["保存备注"].tap(); XCTAssertTrue(app.buttons["核实固定车位"].waitForExistence(timeout: 3))
         let absence = app.buttons["mp.field.choice." + groupID + ".不涉及"]; reveal(absence, app); absence.tap()
         XCTAssertTrue(absence.isSelected); XCTAssertEqual(fee.value as? String, "150", "停车费用在费用与付款中独立保留"); capture("67-business-group-not-applicable", app)
@@ -299,7 +302,7 @@ import XCTest
         XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)
         XCTAssertFalse(app.textFields["prompt.text"].exists)
         capture("20-native-capacity-interruption", app)
-        app.navigationBars.buttons["返回"].tap()
+        app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["house.容量一"].waitForExistence(timeout: 3))
         app.terminate(); app.launch()
         XCTAssertTrue(app.buttons["house.容量一"].waitForExistence(timeout: 10))
@@ -370,7 +373,7 @@ import XCTest
     func testExportSelectedHousePreparesRealZIPBeforeShare() {
         let app = launch(); add("原生备份房源", app); home(app); app.buttons["tab.我的"].tap()
         let entry = app.buttons["settings.export"]; reveal(entry, app); entry.tap()
-        let select = app.switches["backup.select.原生备份房源"]; XCTAssertTrue(select.waitForExistence(timeout: 3))
+        let select = app.buttons["backup.select.原生备份房源"]; XCTAssertTrue(select.waitForExistence(timeout: 3))
         app.buttons["backup.commit"].tap()
         XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.staticTexts["backup.result"].label, "ZIP 已生成，包含 1 套房源及其影像")

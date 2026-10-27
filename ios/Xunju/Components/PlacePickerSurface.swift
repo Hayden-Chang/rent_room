@@ -42,13 +42,13 @@ struct PlacePickerSurface: View {
     @FocusState private var searchFocused: Bool
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
             if !readonly {
             HStack(spacing: 4) {
                 TextField("搜索地址，更快填写", text: Binding(get: { query }, set: {
                     guard query != $0 else { return }
                     expandForSearch(); query = $0
-                }))
+                }), prompt: Text("搜索地址，更快填写").foregroundStyle(Color(white: 0.5)))
                     .font(.system(size: 14)).submitLabel(.search)
                     .focused($searchFocused).onSubmit { searchFocused = false; search() }
                     .onChange(of: query) {
@@ -64,11 +64,11 @@ struct PlacePickerSurface: View {
                 }
             }.padding(.horizontal, 12).frame(minHeight: 44)
                 .background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).padding(.bottom, 10)
             }
             if !readonly && !query.isEmpty && !places.isEmpty {
                 results(nearby: false).frame(height: 230).clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).padding(.bottom, 10)
             }
             if !readonly {
                 Button {
@@ -81,7 +81,7 @@ struct PlacePickerSurface: View {
                         Text(collapsed ? "展开地图" : "收起地图")
                         Spacer()
                         Image(systemName: collapsed ? "chevron.down" : "chevron.up")
-                    }.font(.system(size: 13)).padding(.horizontal, 12).frame(minHeight: 44)
+                    }.font(.system(size: 13, weight: .medium)).padding(.horizontal, 12).frame(minHeight: 44)
                         .background(XJTheme.background).clipShape(RoundedRectangle(cornerRadius: 8))
                         .contentShape(Rectangle())
                 }.buttonStyle(.plain).foregroundStyle(XJTheme.primary).accessibilityIdentifier("place.mapToggle")
@@ -109,7 +109,7 @@ struct PlacePickerSurface: View {
                 }
                 if !readonly {
                 Button(action: locate) {
-                    Text("定位").font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
+                    Text("定位").font(.system(size: 13, weight: .medium)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                         .contentShape(Rectangle())
                 }.buttonStyle(.plain)
@@ -138,7 +138,7 @@ struct PlacePickerSurface: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8)).accessibilityIdentifier("place.retry")
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
-        }.foregroundStyle(XJTheme.ink).tint(XJTheme.primary)
+        }.padding(.top, 4).padding(.bottom, 10).foregroundStyle(XJTheme.ink).tint(XJTheme.primary)
             .onAppear {
                 collapsed = !readonly && (center != nil || !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 recenter()

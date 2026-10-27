@@ -22,7 +22,7 @@ struct IssueEditorSurface: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 if readonly {
                     Text("房源已归档，问题只读").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                 }
@@ -30,11 +30,11 @@ struct IssueEditorSurface: View {
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(spacing: 8) {
                             Text("标题").font(.system(size: 15, weight: .semibold))
-                            Text("必填").font(.system(size: 11)).foregroundStyle(XJTheme.danger)
+                            Text("必填").font(.system(size: 11)).fixedSize().foregroundStyle(XJTheme.danger)
                                 .padding(.vertical, 2).padding(.horizontal, 6).background(XJTheme.dangerBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: 4))
-                        }.padding(.bottom, 12)
-                        TextField("例如：卧室窗户关不严", text: limited($title, to: 200, isTitle: true))
+                        }.frame(minHeight: 22.5).padding(.bottom, 12)
+                        TextField("例如：卧室窗户关不严", text: limited($title, to: 200, isTitle: true), prompt: Text("例如：卧室窗户关不严").foregroundStyle(Color(white: 0.5)))
                             .font(.system(size: 14)).padding(.horizontal, 12).frame(height: 48)
                             .background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(titleError.isEmpty ? XJTheme.line : XJTheme.danger))
@@ -48,7 +48,7 @@ struct IssueEditorSurface: View {
                         ZStack(alignment: .topLeading) {
                             if note.isEmpty {
                                 Text("补充问题详情、需要确认或跟进的事项…")
-                                    .foregroundStyle(XJTheme.muted).padding(.horizontal, 12).padding(.vertical, 12)
+                                    .foregroundStyle(Color(white: 0.5)).padding(.horizontal, 12).padding(.vertical, 12)
                                     .allowsHitTesting(false)
                             }
                             TextEditor(text: limited($note, to: 10000)).scrollContentBackground(.hidden)
@@ -65,7 +65,7 @@ struct IssueEditorSurface: View {
                         if media.isEmpty && readonly {
                             Text("未添加影像").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                         }
-                        VStack(spacing: 10) {
+                        if !media.isEmpty { VStack(spacing: 10) {
                             ForEach(IssueMediaRows.arrange(media), id: \.first!.id) { row in
                                 if row.first?.kind == .video, let item = row.first {
                                     mediaCell(item)
@@ -76,11 +76,11 @@ struct IssueEditorSurface: View {
                                     }
                                 }
                             }
-                        }
+                        } }
                         if !readonly {
                             Button(action: addMedia) {
                                 HStack { if selecting { ProgressView() }; Text("＋ 添加照片 / 视频") }
-                            }.buttonStyle(XJButtonStyle())
+                            }.buttonStyle(XJButtonStyle()).padding(.top, 4)
                                 .disabled(busy).opacity(busy ? 0.45 : 1).accessibilityIdentifier("issueEditor.addMedia")
                         }
                     }
@@ -109,8 +109,8 @@ struct IssueEditorSurface: View {
     private func label(_ text: String, hint: String) -> some View {
         HStack(spacing: 8) {
             Text(text).font(.system(size: 15, weight: .semibold))
-            Text(hint).font(.system(size: 13)).foregroundStyle(XJTheme.muted)
-        }
+            Text(hint).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+        }.frame(minHeight: 22.5)
     }
     private func limited(_ binding: Binding<String>, to count: Int, isTitle: Bool = false) -> Binding<String> {
         // Limit typing only; opening an imported record never rewrites its text.
@@ -142,7 +142,7 @@ struct IssueEditorSurface: View {
                 Button(readonly ? "返回" : "取消") {
                     focused = nil
                     if dirty && !readonly { discarding = true } else { cancel() }
-                }.buttonStyle(XJButtonStyle()).frame(width: readonly ? geometry.size.width : (geometry.size.width - 12) / 3)
+                }.buttonStyle(MPButtonStyle()).frame(width: readonly ? geometry.size.width : (geometry.size.width - 12) / 3)
                     .accessibilityIdentifier("issueEditor.cancel")
                 if !readonly {
                     Button { focused = nil; save() } label: {
