@@ -6,15 +6,16 @@ import {accountWx,localPageFixture} from './helpers/account-fixture.js';
 import {createStore} from '../src/lib/store.js';
 const floor='fc76beec-52e3-4fe9-a937-dec254d4cc4f',transit='21255282-3663-4abe-b7de-d91eeb3825ed',driving='3c70cda2-7c6c-4fa6-b2db-b647af24ba72';
 const field=(h,id)=>houseTopics(h).flatMap(t=>t.fields).find(f=>f.id===id);
-it.each([[floor,'-1'],['f1_3','45.5'],[transit,'137'],[driving,'28']])('edits %s directly and preserves saved values and annotations on reload',(id,value)=>{
+it.each([[floor,'-1'],['f1_3','45.5'],[transit,'137'],[driving,'28'],['f5_3','7'],['f5_3','0'],['f5_3','75']])('edits %s directly and preserves saved values and annotations on reload',(id,value)=>{
  const h=freshHouse('直接填写');h.answers[id]={value,note:'保留备注',issueFlag:true};
  let disk=JSON.stringify({...emptyState(),houses:[h]});const io={read:()=>disk,write:v=>disk=v};let store=createStore(io);
  expect(fieldView(store.house(h.id),field(h,id))).toMatchObject({wheel:false,value});
- store.answer(h.id,id,'value',value);store=createStore(io);expect(store.house(h.id).answers[id]).toEqual({value,note:'保留备注',issueFlag:true});
- store.answer(h.id,id,'value','');expect(fieldView(store.house(h.id),field(h,id)).value).toBe('');
+ store.answer(h.id,id,'value',value);store=createStore(io);expect(store.house(h.id).answers[id]).toEqual({value,note:'保留备注',issueFlag:true,...(field(h,id).allowNone?{none:false}:{})});
+ store.answer(h.id,id,'value','');store=createStore(io);expect(fieldView(store.house(h.id),field(h,id)).value).toBe('');
 });
 it.each(['simple','detailed'])('adds rent-free none to new and legacy %s snapshots without losing previous days',mode=>{
  const h=freshHouse('免租期',{selectedTemplate:mode}),id='f5_3';delete h.templateTopics.flatMap(t=>t.fields).find(f=>f.id===id).allowNone;
+ expect(fieldView(h,field(h,id))).toMatchObject({wheel:false,inputType:'digit'});
  h.answers[id]={value:'7',note:'搬家用',issueFlag:true};h.media=[{id:'p',fieldId:id,type:'image',path:'/p.jpg'}];
  const snapshot=JSON.stringify(h.templateTopics);updateAnswer(h,id,'none',true);
  expect(fieldView(h,field(h,id))).toMatchObject({allowNone:true,noneSelected:true,value:'',display:'无',note:'搬家用',problem:true});
@@ -42,15 +43,19 @@ it('uses a native radio group for the two template modes while isolating editor 
  expect(markup).not.toMatch(/[☑☐]/);expect(markup).toMatch(/<label[^>]*catchtap="noop"/);
 });
 
-it('binds a trailing none button to the wheel and blocks editing while none or readonly',()=>{
+it('binds a trailing none button to numeric input and blocks editing while none or readonly',()=>{
  let spec;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date});
  const h=freshHouse('免租');h.answers.f5_3={value:'7'};const view=()=>fieldView(h,field(h,'f5_3'));
  const c={...spec.methods,data:{...structuredClone(spec.data),field:view()},events:[],setData(v){Object.assign(this.data,v);},triggerEvent(name,detail){this.events.push({name,detail});if(name==='answer'){updateAnswer(h,detail.id,detail.prop,detail.value);this.data.field=view();}}};
- const markup=fs.readFileSync('dist/components/field-row/index.wxml','utf8'),wheel=markup.split('class="wheel-entry"')[1].split('</view>')[0];
- expect(wheel).toMatch(/data-action="wheel" disabled="\{\{readonly\|\|field.noneSelected\}\}"/);
- const tag=wheel.match(/<button[^>]*class="[^"]*cost-none[^>]*>/)[0],handler=tag.match(/catchtap="([^"]+)"/)[1];
- c[handler]();expect(view()).toMatchObject({noneSelected:true,value:''});c.events=[];c.action({currentTarget:{dataset:{action:'wheel'}}});expect(c.events).toEqual([]);
+ const markup=fs.readFileSync('dist/components/field-row/index.wxml','utf8'),entry=markup.split('class="cost-entry"')[1].split('</view>')[0];
+ expect(view().wheel).toBe(false);
+ const input=entry.match(/<input[^>]*>/)[0];
+ expect(vm.runInNewContext(input.match(/type="\{\{(.*?)\}\}"/)[1],{field:view()})).toBe('digit');
+ const disabled=input.match(/disabled="\{\{(.*?)\}\}"/)[1];
+ const tag=entry.match(/<button[^>]*class="[^"]*cost-none[^>]*>/)[0],handler=tag.match(/catchtap="([^"]+)"/)[1];
+ c[handler]();expect(view()).toMatchObject({noneSelected:true,value:''});expect(vm.runInNewContext(disabled,{field:view(),readonly:false})).toBe(true);
  c[handler]();expect(view()).toMatchObject({noneSelected:false,value:'7'});c.data.readonly=true;c[handler]();expect(view().noneSelected).toBe(false);
+ expect(vm.runInNewContext(disabled,{field:view(),readonly:true})).toBe(true);
 });
 
 it('handles native radio changes as a draft and saves only the confirmed mode',()=>{
