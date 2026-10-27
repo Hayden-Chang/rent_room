@@ -51,13 +51,16 @@ import UIKit
         XCTAssertFalse(app.keyboards.keys["a"].exists)
         let numeric = app.keyboards.keys["9"]
         XCTAssertTrue(numeric.exists)
-        capture("09-rent-free-number-keyboard", app)
         input.doubleTap()
         let selectAll = app.menuItems["全选"]
         if selectAll.waitForExistence(timeout: 2) { selectAll.tap() }
-        input.typeText("90")
+        XCTAssertTrue(numeric.isHittable, "The real numeric key must be touchable")
+        numeric.tap()
+        app.keyboards.keys["0"].tap()
+        let keyboardImage = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        keyboardImage.name = "09-rent-free-system-number-keyboard"; keyboardImage.lifetime = .keepAlways; add(keyboardImage)
         app.buttons["teaching.dismissKeyboard"].tap()
-        XCTAssertTrue(app.staticTexts["teaching.days"].label.contains("90"))
+        XCTAssertEqual(input.value as? String, "90")
         XCTAssertTrue(app.staticTexts["teaching.days"].label.contains("原有备注"))
         capture("10-rent-free-input-preserves-note", app)
     }
