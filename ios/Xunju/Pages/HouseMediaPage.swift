@@ -18,9 +18,10 @@ struct HouseMediaPage: View {
             MediaGallerySurface(items: media.map { mediaTile($0, store: workspace.store) }, filter: $filter, readonly: readonly,
                 preview: { tile in selected = media.first { $0.id == tile.id } },
                 caption: { tile in caption = media.first { $0.id == tile.id } }).padding(16)
-        }.safeAreaInset(edge: .bottom) {
+        }.overlay(alignment: .bottomTrailing) {
             if !readonly {
-                Button("拍照或录视频") { picking = true }.buttonStyle(XJButtonStyle(primary: true)).padding(16).accessibilityIdentifier("media.add")
+                MPFloatingButton(icon: "camera", label: "拍照或录视频") { picking = true }
+                    .padding(16).accessibilityIdentifier("media.add")
             }
         }.onAppear(perform: refresh)
             .onChange(of: workspace.store.status.revision) { _, _ in refresh() }

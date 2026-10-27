@@ -103,10 +103,10 @@ struct MPTabBar: View {
                     VStack(spacing: detail ? 1 : 3) {
                         XJIcon(name: icon + (selection == title ? "-selected" : "-default"))
                         Text(title + (detail && title == "影像" ? " \(mediaCount)" : detail && title == "问题" ? " \(issueCount)" : ""))
-                            .font(.system(size: detail ? 13 : 10))
+                            .font(.system(size: detail ? 13 : 10, weight: detail ? .medium : .regular))
                     }.frame(maxWidth: .infinity, minHeight: detail ? 48 : 50).contentShape(Rectangle())
                         .foregroundStyle(selection == title ? XJTheme.primary : Color(red: 141/255, green: 149/255, blue: 163/255))
-                }.buttonStyle(.plain).accessibilityIdentifier("mp.tab.\(title)").accessibilityAddTraits(selection == title ? .isSelected : [])
+                }.buttonStyle(MPStaticButtonStyle()).accessibilityIdentifier("mp.tab.\(title)").accessibilityAddTraits(selection == title ? .isSelected : [])
             }
         }.background(.white).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
     }
@@ -187,4 +187,9 @@ struct MPNoteSheet: View {
             }
         }
     }
+}
+
+// Detail tabs use hover-class="none" in the mini-program.
+struct MPStaticButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { configuration.label }
 }

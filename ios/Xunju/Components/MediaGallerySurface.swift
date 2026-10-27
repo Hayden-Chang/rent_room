@@ -81,7 +81,7 @@ struct MediaGallerySurface: View {
                 ForEach(MediaFilter.allCases, id: \.self) { value in
                     Button(value.rawValue) { filter = value }
                         .font(.system(size: 13)).padding(.horizontal, 18).frame(minHeight: 36)
-                        .foregroundStyle(filter == value ? XJTheme.primary : XJTheme.muted)
+                        .foregroundStyle(filter == value ? XJTheme.primary : XJTheme.ink)
                         .background(filter == value ? XJTheme.soft : .white)
                         .clipShape(Capsule()).buttonStyle(.plain)
                         .accessibilityIdentifier("gallery.filter.\(value.rawValue)")
@@ -90,10 +90,10 @@ struct MediaGallerySurface: View {
             }
             if visible.isEmpty {
                 VStack(spacing: 12) {
-                    Text("还没有影像").font(.system(size: 16, weight: .semibold))
+                    Text("还没有影像").font(.system(size: 17, weight: .semibold)).frame(height: 25.5)
                     Text("把房间、细节和需要确认的地方拍下来。")
-                        .font(.system(size: 13)).foregroundStyle(XJTheme.muted)
-                }.frame(maxWidth: .infinity).padding(.top, 40)
+                        .font(.system(size: 14)).foregroundStyle(XJTheme.muted).frame(height: 21)
+                }.frame(maxWidth: .infinity).padding(.horizontal, 24).padding(.vertical, 56)
                     .accessibilityIdentifier("gallery.empty")
             } else {
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8, alignment: .top), count: 3), alignment: .leading, spacing: 16) {

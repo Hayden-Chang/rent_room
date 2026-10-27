@@ -52,23 +52,28 @@ struct ComparisonPage: View {
                 cell("属性", width: width * 0.26, label: true, header: true)
                 ForEach(selected, id: \.self) { id in cell(workspace.store.house(id)["name"].string, width: width * 0.74 / CGFloat(selected.count), header: true) }
             }.background(XJTheme.soft)
+                .overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
             ForEach(rows, id: \.id) { row in
-                GridRow {
+                GridRow(alignment: .top) {
                     cell(row["label"].string, width: width * 0.26, label: true)
                     ForEach(Array(row["values"].array.enumerated()), id: \.offset) { _, value in
                         cell(value.string, width: width * 0.74 / CGFloat(selected.count))
                     }
                 }.background(Set(row["values"].array).count > 1 ? Color(red: 1, green: 245 / 255, blue: 206 / 255) : .white)
+                    .overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
                     .accessibilityElement(children: .contain).accessibilityIdentifier("compare.row.\(row.id)")
             }
         }.clipShape(RoundedRectangle(cornerRadius: 14))
     }
     private func cell(_ value: String, width: CGFloat, label: Bool = false, header: Bool = false) -> some View {
-        Text(value).font(.system(size: label ? 12 : 13, weight: header ? .semibold : .regular))
+        let size: CGFloat = label ? 12 : 13
+        let leading = size * 1.5 - UIFont.systemFont(ofSize: size, weight: header ? .semibold : .regular).lineHeight
+        return Text(value).font(.system(size: size, weight: header ? .semibold : .regular))
             .foregroundStyle(label || value == "未填写" ? XJTheme.muted : XJTheme.ink)
-            .multilineTextAlignment(label ? .leading : .center).padding(.vertical, 16).padding(.horizontal, label ? 12 : 6)
-            .frame(width: width).frame(minHeight: header ? 74 : 56, alignment: label ? .leading : .center)
-            .overlay(alignment: .bottom) { Rectangle().fill(XJTheme.line).frame(height: 1) }
+            .multilineTextAlignment(label ? .leading : .center).lineSpacing(leading).padding(.vertical, leading / 2)
+            .padding(.vertical, 16).padding(.horizontal, label ? 12 : 6)
+            .frame(width: width, alignment: label ? .leading : .center)
+            .frame(minHeight: header ? 74 : 56, alignment: header ? .center : .top)
     }
     private func toggle(_ id: String) {
         if let index = selected.firstIndex(of: id) { selected.remove(at: index) }

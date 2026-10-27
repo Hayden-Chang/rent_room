@@ -12,14 +12,14 @@ struct IssuesPage: View {
     private var manual: [JSONValue] { workspace.store.house(id)["issues"].array }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 SaveBanner(workspace: workspace)
-                Text("需要关注 · \(workspace.store.houses.first { $0.id == id }?.stats.issues ?? 0)").font(.system(size: 16, weight: .semibold)).padding(.top, 20).padding(.bottom, 12)
+                Text("需要关注 · \(workspace.store.houses.first { $0.id == id }?.stats.issues ?? 0)").font(.system(size: 16, weight: .semibold)).frame(height: 24).padding(.top, 20)
                 if automatic.isEmpty && manual.isEmpty {
                     VStack(spacing: 12) {
-                        Text("目前没有标记的问题").font(.system(size: 17, weight: .semibold))
-                        Text("未检查的项目仍需继续查看。").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
-                    }.frame(maxWidth: .infinity).padding(.top, 40).padding(.bottom, 56)
+                        Text("目前没有标记的问题").font(.system(size: 17, weight: .semibold)).frame(height: 25.5)
+                        Text("未检查的项目仍需继续查看。").font(.system(size: 14)).frame(height: 21).foregroundStyle(XJTheme.muted)
+                    }.frame(maxWidth: .infinity).padding(.horizontal, 24).padding(.vertical, 56)
                 }
                 ForEach(automatic, id: \.id) { field in
                     AutomaticIssueCard(category: field["category"].string) {

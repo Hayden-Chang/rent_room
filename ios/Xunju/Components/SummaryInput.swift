@@ -23,12 +23,42 @@ struct SummaryInput: View {
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(XJTheme.line))
             Text("备注").font(.system(size: 14)).frame(height: 20).padding(.top, 12)
             ZStack(alignment: .topLeading) {
-                if note.isEmpty { Text("记录下你对这套房源的整体感受…").foregroundStyle(XJTheme.muted).padding(.top, 8).padding(.leading, 5) }
-                TextEditor(text: $note).scrollContentBackground(.hidden).frame(height: 168)
-                    .disabled(readonly).accessibilityIdentifier("summary.note")
+                if note.isEmpty { Text("记录下你对这套房源的整体感受…").foregroundStyle(Color(white: 0.5)).frame(height: 22) }
+                SummaryNoteTextView(text: $note, readonly: readonly).frame(height: 168)
             }.font(.system(size: 14)).lineSpacing(5).padding(16).frame(height: 200).background(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(XJTheme.line))
         }.foregroundStyle(XJTheme.ink)
+    }
+}
+
+// Match textarea padding/line height without UITextView's implicit 8pt/5pt inset.
+private struct SummaryNoteTextView: UIViewRepresentable {
+    @Binding var text: String
+    let readonly: Bool
+    func makeCoordinator() -> Coordinator { Coordinator(text: $text) }
+    func makeUIView(context: Context) -> UITextView {
+        let view = UITextView()
+        view.delegate = context.coordinator
+        view.backgroundColor = .clear
+        view.textContainerInset = .zero
+        view.textContainer.lineFragmentPadding = 0
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.minimumLineHeight = 22; paragraph.maximumLineHeight = 22
+        view.typingAttributes = [.font: UIFont.systemFont(ofSize: 14), .foregroundColor: UIColor(XJTheme.ink), .paragraphStyle: paragraph]
+        view.accessibilityIdentifier = "summary.note"
+        return view
+    }
+    func updateUIView(_ view: UITextView, context: Context) {
+        context.coordinator.text = $text
+        if view.text != text {
+            view.attributedText = NSAttributedString(string: text, attributes: view.typingAttributes)
+        }
+        view.isEditable = !readonly
+    }
+    final class Coordinator: NSObject, UITextViewDelegate {
+        var text: Binding<String>
+        init(text: Binding<String>) { self.text = text }
+        func textViewDidChange(_ textView: UITextView) { text.wrappedValue = textView.text }
     }
 }

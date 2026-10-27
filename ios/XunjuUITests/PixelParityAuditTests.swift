@@ -71,6 +71,12 @@ import XCTest
         XCTAssertTrue(app.buttons["tab.影像"].waitForExistence(timeout: 5)); XCTAssertEqual(app.buttons["tab.影像"].label, "影像 0")
         shot("11-detail", app)
         app.buttons["tab.影像"].tap(); shot("11b-media-empty", app)
+        let capture = app.buttons["media.add"]
+        XCTAssertEqual(capture.frame.width, 52, accuracy: 0.5)
+        XCTAssertEqual(capture.frame.height, 52, accuracy: 0.5)
+        capture.tap()
+        XCTAssertTrue(app.buttons["从相册选择照片或视频"].waitForExistence(timeout: 3))
+        app.buttons["取消"].tap()
         app.buttons["tab.问题"].tap(); shot("11c-issues-empty", app)
         app.buttons["issue.add"].tap(); XCTAssertTrue(app.textFields["issueEditor.title"].waitForExistence(timeout: 3)); shot("12-issue", app)
         app.buttons["issueEditor.cancel"].tap(); app.buttons["tab.总结"].tap(); shot("11d-summary", app)
