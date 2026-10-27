@@ -1,0 +1,186 @@
+{
+  "status": "INTEGRATED_SIMULATOR_VERIFIED",
+  "approval": {
+    "date": "2026-10-27",
+    "userMessage": "没问题，接入"
+  },
+  "validatedSHA": "607cfd7a75758c5c5d9e0e9f40f104386eb0da59",
+  "miniProgramBaseline": "a262e7d6b58dce14c8ed8bcb3af2f84a24661bee",
+  "coreSHA256": "551cc888c4632bca02c13e17e874d758f9c45d99b024a6bb34129d0d34162d60",
+  "plan": {
+    "schemaVersion": 1,
+    "runId": "xunju-integration-20261027-03",
+    "phase": "final-pr-head",
+    "taskName": "approved-parity-business-integration",
+    "sessionId": "01a1721f-22ca-7ce3-9baf-ac15f055d0d5",
+    "workspace": "/Users/pc/.codex/worktrees/ios-parity-update-20261025/rent_room",
+    "unitTestTarget": "XunjuTests",
+    "uiTestTarget": "XunjuUITests",
+    "unitTests": [
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testSetupDraftStepAndSelectionSurviveRelaunch",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testTemplateChangesApplyOnlyToNewHouseSnapshots",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testLegacySaveSkipsSetupAndRetainsDetailedSnapshot",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testTutorialRequiresActualSwipeAndResumesStoredStep",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testSetupFailureKeepsDraftAndCanRetry",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testTutorialSaveFailureRollsBackAndDuplicateSwipeCannotSkipStepFour",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testRentFreeNumberPreservesHistoricalValuesMetadataAndArchive",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/WheelInputTests/testPolicyRangesFixedOptionsAndManualExclusions",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureRejectsTapRightVerticalAndAllowsRetry",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureUsesChecklistShortFlickThreshold",
+        "reason": "Approved integration, persistence or gesture boundary",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/WheelBusinessTests/testRealFormRoutesNineWheelsAndKeepsMoneyManual",
+        "reason": "Changed shared wheel map must still route the eight remaining fields and retain values",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/WheelBusinessTests/testConfirmedAnswersReloadKeepAnnotationsOtherAndEmptyZero",
+        "reason": "Changed shared wheel map must still route the eight remaining fields and retain values",
+        "source": "affected-existing"
+      }
+    ],
+    "uiTests": [
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity",
+        "reason": "Real first-run setup, guarded tutorial, stored field and archive interactions",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+        "reason": "Real first-run setup, guarded tutorial, stored field and archive interactions",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition",
+        "reason": "Real first-run setup, guarded tutorial, stored field and archive interactions",
+        "source": "new-or-modified"
+      }
+    ],
+    "changedUITests": [
+      "XunjuUITests/InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity",
+      "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+      "XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition"
+    ],
+    "headSha": "607cfd7a75758c5c5d9e0e9f40f104386eb0da59"
+  },
+  "runs": [
+    {
+      "id": "01",
+      "sha": "c69bbc80c4ecfab5c94cd517495f192702236928",
+      "passed": 11,
+      "failed": 2,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-integration-20261027-01.xcresult",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/plan-01.json",
+      "command": "bash /Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-01.sh",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-01.log",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/receipt-01.json"
+    },
+    {
+      "id": "diagnostic",
+      "sha": "968bd03ff321225db0e923a196745423e968a9b3",
+      "passed": 2,
+      "failed": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-integration-20261027-diagnostic.xcresult",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/plan-diagnostic.json",
+      "command": "bash /Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-diagnostic.sh",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-diagnostic.log",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/receipt-diagnostic.json"
+    },
+    {
+      "id": "02",
+      "sha": "0844b6fcb6a373a38622473b5f1e3b43497f4336",
+      "passed": 15,
+      "failed": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-integration-20261027-02.xcresult",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/plan-02.json",
+      "command": "bash /Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-02.sh",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-02.log",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/receipt-02.json"
+    },
+    {
+      "id": "keyboard-before",
+      "sha": "4af62eb2b7bb1f4e140d9aa25b932f550cc981fb",
+      "passed": 0,
+      "failed": 1,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-integration-20261027-keyboard-before.xcresult",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/plan-keyboard-before.json",
+      "command": "bash /Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-keyboard-before.sh",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-keyboard-before.log",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/receipt-keyboard-before.json"
+    },
+    {
+      "id": "03",
+      "sha": "607cfd7a75758c5c5d9e0e9f40f104386eb0da59",
+      "passed": 15,
+      "failed": 0,
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-integration-20261027-03.xcresult",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/plan-03.json",
+      "command": "bash /Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-03.sh",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/run-03.log",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/evidence/receipt-03.json"
+    }
+  ],
+  "gallery": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/review.md",
+  "imagesManifest": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-integration-20261027/images.json",
+  "device": {
+    "architecture": "arm64",
+    "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+    "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+    "modelName": "iPhone 14 Pro",
+    "osBuildNumber": "22D8075",
+    "osVersion": "18.3.1",
+    "platform": "iOS Simulator"
+  },
+  "scope": [
+    "approved welcome and compact mode selection",
+    "durable guarded tutorial including failed save and duplicate swipe",
+    "rent-free decimal number input, none, old metadata and archive",
+    "floating camera overlap regression"
+  ],
+  "limitations": [
+    "No physical-device installation or real Apple authorization",
+    "No live StoreKit transaction or camera/GPS acceptance",
+    "Media tests preserve references, not new media file capture",
+    "No multi-touch interruption, VoiceOver, Reduce Motion, small-screen or large-type runtime coverage"
+  ],
+  "finalHeadPolicy": "Only documentation and evidence may follow validatedSHA; verify diff before reusing evidence."
+}
