@@ -270,6 +270,7 @@ struct MPChecklistSurface<Content: View>: View {
     var scrollTarget = ""
     var scrollAnchor: UnitPoint = .center
     var scrollLocked = false
+    var floatingActionsVisible = true
     var scrollPosition: NativeScrollPosition? = nil
     var guidance: JSONValue = .null
     var guidanceAction: (String) -> Void = { _ in }
@@ -332,10 +333,12 @@ struct MPChecklistSurface<Content: View>: View {
                 }.accessibilityIdentifier("mp.checklist.scroll")
                 .onChange(of: scrollTarget) { if !scrollTarget.isEmpty { proxy.scrollTo(scrollTarget, anchor: scrollTarget == "top" ? .top : scrollAnchor) } }
                 .overlay(alignment: .bottomTrailing) {
-                    VStack(spacing: 12) {
-                        MPFloatingButton(icon: "up", label: "回到顶部", size: 44) { coordinator.close(); withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo("top", anchor: .top) } }
-                        if !readonly { MPFloatingButton(icon: "camera", label: "拍照或录视频", action: capture).accessibilityIdentifier("mp.checklist.capture") }
-                    }.padding(16)
+                    if floatingActionsVisible {
+                        VStack(spacing: 12) {
+                            MPFloatingButton(icon: "up", label: "回到顶部", size: 44) { coordinator.close(); withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo("top", anchor: .top) } }
+                            if !readonly { MPFloatingButton(icon: "camera", label: "拍照或录视频", action: capture).accessibilityIdentifier("mp.checklist.capture") }
+                        }.padding(16)
+                    }
                 }
         }
     }

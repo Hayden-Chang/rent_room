@@ -89,7 +89,7 @@ struct ChecklistPage: View {
     var body: some View {
         MPChecklistSurface(done: stats?.done ?? 0, total: stats?.total ?? 0, issues: stats?.issues ?? 0,
             phase: $phase, query: $query, filters: $filters, showFilters: $showFilters, readonly: readonly,
-            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollLocked: showCoach && coachStep == 3, scrollPosition: scrollPosition,
+            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollLocked: showCoach && coachStep == 3, floatingActionsVisible: editingField == nil, scrollPosition: scrollPosition,
             guidance: prompt != .null && !sections.contains(where: { $0["title"].string == prompt["target"].string }) ? prompt : .null,
             guidanceAction: guideAction, capture: { mediaTarget = "" }) {
             VStack(spacing: 16) {

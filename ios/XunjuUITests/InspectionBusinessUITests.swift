@@ -143,10 +143,11 @@ import XCTest
         let keyboard = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         keyboard.name = "business-rent-free-system-number-pad"; keyboard.lifetime = .keepAlways; add(keyboard)
         XCTAssertFalse(app.buttons["mp.checklist.capture"].exists, "输入期间悬浮拍照按钮不能遮住无选项")
-        app.buttons["checklist.keyboard.done"].tap()
-        XCTAssertTrue(app.buttons["mp.checklist.capture"].waitForExistence(timeout: 3))
-        let noRent = app.buttons["mp.field.choice.f5_3.无"]; noRent.tap()
+        let noRent = app.buttons["mp.field.choice.f5_3.无"]
+        XCTAssertTrue(noRent.isHittable); noRent.tap()
         XCTAssertTrue(noRent.isSelected); XCTAssertFalse(rentFree.isEnabled)
+        if app.buttons["checklist.keyboard.done"].isHittable { app.buttons["checklist.keyboard.done"].tap() }
+        XCTAssertTrue(app.buttons["mp.checklist.capture"].waitForExistence(timeout: 3))
         noRent.tap(); XCTAssertEqual(rentFree.value as? String, "90.5")
         app.staticTexts["mp.field.title.f5_3"].swipeLeft()
         app.buttons["mp.field.action.f5_3.标记问题"].tap()
