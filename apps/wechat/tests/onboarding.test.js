@@ -62,6 +62,7 @@ it('lets the same left gesture retry after a failed tutorial-progress save',()=>
 it('catches scrolling and clicks across the step-three surface, including the highlighted item',()=>{
  const wxml=fs.readFileSync('src/pages/detail/index.wxml','utf8'),css=fs.readFileSync('src/pages/detail/index.wxss','utf8');
  expect(wxml).toContain('catchtouchmove="{{coach===3?\'noop\':\'\'}}"');
+ for(const event of ['tap','longpress'])expect(wxml).toContain('capture-catch:'+event+'="{{coach===3?\'noop\':\'\'}}"');
  const target=wxml.match(/<view wx:if="{{coach===3 && coachReady && !coachMissing}}"[^>]+>/)?.[0];
  for(const event of ['touchstart','touchmove','touchend','touchcancel','tap','longpress'])expect(target).toContain('catch'+event+'=');
  expect(css).toContain('.coach-swipe-lock{pointer-events:auto;touch-action:none}');
