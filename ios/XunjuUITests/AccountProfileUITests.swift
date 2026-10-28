@@ -8,6 +8,11 @@ import XCTest
             "--capacity-business-fixture", "pending", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
         XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 10)); app.buttons["tab.我的"].tap()
+        let capacity = app.buttons["settings.capacity"]
+        XCTAssertEqual(capacity.frame.height, 44, accuracy: 0.5)
+        capacity.tap()
+        XCTAssertTrue(app.buttons["capacity.purchase"].waitForExistence(timeout: 5))
+        app.navigationBackButton.tap()
         let nickname = app.textFields["settings.nickname"]
         XCTAssertTrue(nickname.waitForExistence(timeout: 3)); nickname.tap(); nickname.typeText("小林")
         app.dismissKeyboardFromHeader()

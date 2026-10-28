@@ -53,10 +53,7 @@ import XCTest
         tap("settings.workplace", app); XCTAssertTrue(app.textFields["workplace.address"].waitForExistence(timeout: 3)); shot("10-workplace", app); back(app)
         tap("settings.export", app); XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10)); shot("14-export", app); back(app)
         tap("settings.import", app)
-        let cancelFile = app.navigationBars.buttons["取消"].firstMatch
-        XCTAssertTrue(cancelFile.waitForExistence(timeout: 5)); cancelFile.tap()
-        XCTAssertTrue(cancelFile.waitForNonExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["navigation.back"].waitForExistence(timeout: 5))
+        dismissImportPicker(app)
         XCTAssertTrue(app.buttons["选择 ZIP 文件"].waitForExistence(timeout: 3)); shot("15-import-empty", app); back(app)
         tap("settings.feedback", app)
         XCTAssertTrue(app.buttons["feedback.ease.方便"].waitForExistence(timeout: 3)); shot("16-feedback", app)
@@ -67,23 +64,24 @@ import XCTest
         if message.exists { let complete = expectation(for: NSPredicate(format: "value == %@", "完整显示"), evaluatedWith: message); wait(for: [complete], timeout: 5) }
         shot("09-capacity", app)
     }
-    func testImportPickerCancellationReturnsToSettings() {
-        let app = launch()
-        app.buttons["tab.我的"].tap(); tap("settings.import", app)
-        let picker = app.otherElements["DOC.browsingModeContainer"]
-        _ = picker.waitForExistence(timeout: 5)
-        let tree = XCTAttachment(string: app.debugDescription)
-        tree.name = "file-picker-accessibility"; tree.lifetime = .keepAlways; add(tree)
-        shot("15a-file-picker", app)
-        let cancel = app.buttons["取消"].firstMatch
-        XCTAssertTrue(cancel.waitForExistence(timeout: 5)); cancel.tap()
-        let after = XCTAttachment(string: app.debugDescription)
-        after.name = "file-picker-after-cancel"; after.lifetime = .keepAlways; add(after)
-        shot("15b-after-cancel", app)
+    private func dismissImportPicker(_ app: XCUIApplication) {
+        let bar = app.navigationBars["FullDocumentManagerViewControllerNavigationBar"]
+        XCTAssertTrue(bar.waitForExistence(timeout: 5))
+        bar.buttons["取消"].tap()
+        XCTAssertTrue(bar.waitForNonExistence(timeout: 5))
         let back = app.buttons["navigation.back"].firstMatch
         let ready = expectation(for: NSPredicate(format: "exists == true AND hittable == true"), evaluatedWith: back)
         wait(for: [ready], timeout: 5)
-        back.tap()
+    }
+    func testImportPickerCancellationReturnsToSettings() {
+        let app = launch()
+        app.buttons["tab.我的"].tap(); tap("settings.import", app)
+        dismissImportPicker(app)
+        XCTAssertTrue(app.buttons["选择 ZIP 文件"].exists)
+        shot("15-import-empty", app)
+        app.buttons["选择 ZIP 文件"].tap()
+        dismissImportPicker(app)
+        app.buttons["navigation.back"].tap()
         XCTAssertTrue(app.buttons["settings.import"].waitForExistence(timeout: 3))
     }
     func testNamingAndDetailTabGeometry() {
