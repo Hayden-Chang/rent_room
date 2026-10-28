@@ -56,7 +56,7 @@ struct SettingsPage: View {
                                     Text("房源容量")
                                     Spacer()
                                     Text("\(workspace.store.capacity.used) / \(workspace.store.capacity.limit) 套 ›").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
-                                }.font(.system(size: 14, weight: .medium)).padding(.top, 14)
+                                }.font(.system(size: 14, weight: .medium)).padding(.top, 14).frame(minHeight: 44)
                             }.buttonStyle(.plain).accessibilityIdentifier("settings.capacity")
                             if session.expiresAt <= Date() { Text("登录已过期，本机记录已保留，请重新登录后购买扩容。").font(.system(size: 13)).foregroundStyle(XJTheme.muted).padding(.top, 12) }
                         }

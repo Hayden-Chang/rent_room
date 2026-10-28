@@ -67,6 +67,25 @@ import XCTest
         if message.exists { let complete = expectation(for: NSPredicate(format: "value == %@", "完整显示"), evaluatedWith: message); wait(for: [complete], timeout: 5) }
         shot("09-capacity", app)
     }
+    func testImportPickerCancellationReturnsToSettings() {
+        let app = launch()
+        app.buttons["tab.我的"].tap(); tap("settings.import", app)
+        let picker = app.otherElements["DOC.browsingModeContainer"]
+        _ = picker.waitForExistence(timeout: 5)
+        let tree = XCTAttachment(string: app.debugDescription)
+        tree.name = "file-picker-accessibility"; tree.lifetime = .keepAlways; add(tree)
+        shot("15a-file-picker", app)
+        let cancel = app.buttons["取消"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5)); cancel.tap()
+        let after = XCTAttachment(string: app.debugDescription)
+        after.name = "file-picker-after-cancel"; after.lifetime = .keepAlways; add(after)
+        shot("15b-after-cancel", app)
+        let back = app.buttons["navigation.back"].firstMatch
+        let ready = expectation(for: NSPredicate(format: "exists == true AND hittable == true"), evaluatedWith: back)
+        wait(for: [ready], timeout: 5)
+        back.tap()
+        XCTAssertTrue(app.buttons["settings.import"].waitForExistence(timeout: 3))
+    }
     func testNamingAndDetailTabGeometry() {
         let app = launch(fixture: false)
         app.buttons["home.add"].tap(); XCTAssertTrue(app.textFields["prompt.text"].waitForExistence(timeout: 3))
