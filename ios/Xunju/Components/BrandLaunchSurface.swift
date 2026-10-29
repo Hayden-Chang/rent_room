@@ -11,7 +11,7 @@ struct BrandLaunchSurface: View {
             VStack(spacing: 0) {
                 Spacer(minLength: 24)
                 VStack(spacing: 0) {
-                    Image("xiaoda-idle")
+                    Image("xiaoda-greet")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 132, height: 132)
