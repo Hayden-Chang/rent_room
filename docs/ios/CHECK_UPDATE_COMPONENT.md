@@ -24,6 +24,12 @@
 
 最终候选复用同一映射，4 项定向单测和 3 项 UI，未运行全量测试。测试结果、截图与证据 SHA 在完成后补录。
 
+### 开发失败与修正
+
+首个有效测试批次 `rent-room-check-update-20261030-04` 在提交 `1f04717151abf169847e8c6a898eef517ef594f1` 上完成：4 UT 通过，3 UI 均在入口断言失败。导出的无障碍层级显示 `settings.checkUpdate` 位于 `Other` 容器，其内部真实 `Button` 无该标识；录屏确认卡片已实际呈现。移除 Button 上多余的 `.accessibilityElement(children: .ignore)`，让标签、值与标识直接属于原生按钮；保留原测试选择器与真实点击断言，重跑同一组用例。
+
+此前 `-02` 在依赖准备阶段因缺少 esbuild 停止；按 lockfile 安装后，`-03` 被全局 Git HTTPS→SSH 改写阻塞，于依赖下载阶段主动终止。`-04` 仅通过进程环境覆盖下载协议，未改变全局配置。上述准备失败不计为业务测试。
+
 ## 接入前置条件
 
 用户确认组件效果后，将卡片接到 `SettingsPage`，接入 Apple Lookup、数字分段版本比较、当前 storefront 和系统兼容性判断。只做手动检查，不引入 time_fragment 的自动检查及提醒冷却。

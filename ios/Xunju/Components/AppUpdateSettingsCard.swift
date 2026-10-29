@@ -62,7 +62,6 @@ struct AppUpdateSettingsCard: View {
                         }
                     }.font(.system(size: 14)).frame(minHeight: 50).contentShape(Rectangle())
                 }.buttonStyle(.plain).disabled(state == .checking)
-                    .accessibilityElement(children: .ignore)
                     .accessibilityLabel("检查更新")
                     .accessibilityValue(state.detail ?? "")
                     .accessibilityIdentifier("settings.checkUpdate")
