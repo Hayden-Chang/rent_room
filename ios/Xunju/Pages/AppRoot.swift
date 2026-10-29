@@ -46,7 +46,6 @@ private struct WorkspaceRoot: View {
     @State private var tab = "房源"
     @State private var wheels = WheelInputPresentation()
     var body: some View {
-        let _ = PerformanceLayoutTrace.body(Self.self)
         NavigationStack {
             Group {
                 if workspace.store.state["xiaoda"]["setup"].string != "done", !workspace.store.status.blocked {

@@ -26,12 +26,11 @@ struct NewHouseSurface: View {
         }.background(.white).miniNavigation("新建房源", background: .white)
     }
     private func save() {
-        PerformanceLayoutTrace.event("create pressed busy=\(busy) name=\(name)")
         guard !busy else { return }
         let value = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !value.isEmpty else { error = "请填写房源名称。"; return }
         busy = true
         defer { busy = false }
-        do { try create(value); PerformanceLayoutTrace.event("create succeeded, dismissing"); dismiss() } catch { PerformanceLayoutTrace.event("create failed \(error)"); self.error = error.localizedDescription }
+        do { try create(value); dismiss() } catch { self.error = error.localizedDescription }
     }
 }

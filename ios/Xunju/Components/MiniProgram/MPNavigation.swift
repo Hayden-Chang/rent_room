@@ -10,7 +10,6 @@ private struct MPNavigation: ViewModifier {
     var back: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     func body(content: Content) -> some View {
-        let _ = PerformanceLayoutTrace.modifier("MPNavigation:" + title)
         content.foregroundStyle(XJTheme.ink).toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
                 ZStack(alignment: leadingTitle ? .leading : .center) {

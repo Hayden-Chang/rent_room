@@ -15,7 +15,6 @@ struct HomePage: View {
     @State private var homeMessage = ""
     @State private var thankYou = false
     var body: some View {
-        let _ = PerformanceLayoutTrace.body(Self.self)
         ScrollView {
             VStack(spacing: 16) {
                 SaveBanner(workspace: workspace)
@@ -31,9 +30,9 @@ struct HomePage: View {
                 else {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                         ForEach(workspace.store.activeHouses) { house in
-                            HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { PerformanceLayoutTrace.event("house button \(house.id)"); path.append(house.id) }
+                            HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { path.append(house.id) }
                                 .accessibilityIdentifier("house.\(house.name)")
-                                .modifier(MPPressActions(tap: { PerformanceLayoutTrace.event("house gesture \(house.id)"); path.append(house.id) }, hold: { managed = house }))
+                                .modifier(MPPressActions(tap: { path.append(house.id) }, hold: { managed = house }))
                         }
                     }
                 }
