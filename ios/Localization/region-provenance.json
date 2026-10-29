@@ -1,0 +1,8 @@
+{
+  "generator": "agy -p",
+  "model": "gemini-3.8-flash-high",
+  "entryCount": 190,
+  "promptSHA256": "95a7c0114018fc4ba10967c7e4bae90d591cd9bb4ea553bd83176a0dd8c8e02b",
+  "rawResponseSHA256": "39c748d25179fad0f503854ebdc6e24e1a914483ebe0c490eb24573ed3ec9406",
+  "validation": "Exact key set and placeholder parity; English values copied without manual rewriting."
+}
