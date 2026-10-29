@@ -7,7 +7,7 @@ enum CapacityBusinessFixture {
     static func mode(arguments: [String] = ProcessInfo.processInfo.arguments) -> String? {
         guard let test = arguments.firstIndex(of: "--business-test"), arguments.indices.contains(test + 1), UUID(uuidString: arguments[test + 1]) != nil,
               let index = arguments.firstIndex(of: "--capacity-business-fixture"), arguments.indices.contains(index + 1),
-              ["pending", "refund", "unavailable", "zero"].contains(arguments[index + 1]) else { return nil }
+              ["pending", "refund", "unavailable", "zero", "success"].contains(arguments[index + 1]) else { return nil }
         return arguments[index + 1]
     }
     @MainActor static func workspace(root: URL, mode: String) throws -> AppWorkspace {
@@ -47,7 +47,7 @@ private actor CapacityFixtureHTTP: AuthTransport {
         case "context":
             value = ["available": mode != "unavailable", "productId": "fixture.capacity.10", "packSize": 10, "appAccountToken": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"]
         case "verify":
-            if !state.failed { state.failed = true; status = 503; value = ["detail": ["message": "购买记录暂时无法确认，请稍后重试"]] }
+            if mode != "success", !state.failed { state.failed = true; status = 503; value = ["detail": ["message": "购买记录暂时无法确认，请稍后重试"]] }
             else {
                 let payload = try JSONDecoder().decode([String: String].self, from: request.httpBody!)
                 let id = payload["transactionId"]!

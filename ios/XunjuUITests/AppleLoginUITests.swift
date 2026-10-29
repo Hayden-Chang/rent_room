@@ -49,9 +49,8 @@ import XCTest
         app.buttons["coach.next"].tap()
         let back = app.navigationBackButton
         XCTAssertTrue(back.waitForExistence(timeout: 3)); back.tap()
-        let feedback = app.buttons["关闭反馈"]
-        XCTAssertTrue(feedback.waitForExistence(timeout: 4)); feedback.tap()
         XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 3)); app.buttons["tab.我的"].tap()
+        XCTAssertFalse(app.buttons["关闭反馈"].exists)
         let error = app.staticTexts["login.apple.error"]
         XCTAssertTrue(error.waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["login.apple"].isEnabled)

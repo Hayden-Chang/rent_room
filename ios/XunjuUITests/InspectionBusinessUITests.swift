@@ -77,11 +77,10 @@ import XCTest
         field.typeText(text); app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
     }
-    private func homeAndSkipFeedback(_ app: XCUIApplication) {
+    private func returnHomeWithoutFeedback(_ app: XCUIApplication) {
         app.navigationBackButton.tap()
-        let close = app.buttons["关闭反馈"]
-        XCTAssertTrue(close.waitForExistence(timeout: 4)); close.tap()
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["关闭反馈"].exists)
     }
     func testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity() {
         let app = launch()
@@ -113,10 +112,17 @@ import XCTest
         XCTAssertFalse(app.buttons["coach.next"].exists); search("生活配套", app)
         XCTAssertTrue(no.isSelected); XCTAssertTrue(app.buttons["附近没有菜市场"].exists)
         app.navigationBackButton.tap()
+        XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 4))
+        XCTAssertFalse(app.buttons["关闭反馈"].exists)
+        app.buttons["tab.我的"].tap()
+        let feedback = app.buttons["settings.feedback"]; reveal(feedback, app); feedback.tap()
         let ease = app.buttons["feedback.ease.方便"]; XCTAssertTrue(ease.waitForExistence(timeout: 4)); ease.tap()
         capture("business-07-feedback-draft", app); app.terminate(); app.launch()
-        XCTAssertTrue(ease.waitForExistence(timeout: 10)); XCTAssertTrue(ease.isSelected)
-        app.buttons["关闭反馈"].tap(); app.homeAddButton.tap()
+        XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 10))
+        XCTAssertFalse(ease.exists)
+        app.buttons["tab.我的"].tap(); reveal(feedback, app); feedback.tap()
+        XCTAssertTrue(ease.waitForExistence(timeout: 4)); XCTAssertTrue(ease.isSelected)
+        app.buttons["关闭反馈"].tap(); app.buttons["tab.房源"].tap(); app.homeAddButton.tap()
         XCTAssertTrue(app.buttons["capacity.continue"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)
         XCTAssertEqual(app.staticTexts["capacity.total"].label, "1 / 1 套")
@@ -171,7 +177,7 @@ import XCTest
         XCTAssertEqual(rentFree.value as? String, "90.5"); XCTAssertTrue(app.buttons["协商90.5天"].exists)
         capture("business-rent-free-issue-restored", app)
         app.buttons["tab.清单"].tap()
-        homeAndSkipFeedback(app)
+        returnHomeWithoutFeedback(app)
         app.buttons["tab.我的"].tap(); let templates = app.buttons["settings.templates"]; reveal(templates, app); templates.tap()
         XCTAssertTrue(app.buttons["setup.mode.detailed"].isSelected)
         let simple = app.buttons["setup.mode.simple"]; reveal(simple, app); simple.tap()

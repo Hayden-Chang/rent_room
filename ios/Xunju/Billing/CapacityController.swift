@@ -25,7 +25,7 @@ import Observation
             do {
                 if self.context == nil { try await self.prepare(session, loadProduct: false) }
                 guard self.matches(transaction) else { return }
-                try await self.confirm(transaction, session: session)
+                try await self.confirm(transaction, session: session, requestReview: self.awaitingApproval)
                 if self.current(session) { self.pending = false; self.awaitingApproval = false; if !self.activity.busy { self.activity = .idle }; self.error = "" }
             } catch { if self.current(session) { self.pending = true; self.error = error.localizedDescription; if !self.activity.busy { self.activity = .pending } } }
         }
@@ -55,7 +55,7 @@ import Observation
             case .verified(let transaction):
                 guard current(session) else { return }
                 pending = true
-                try await confirm(transaction, session: session)
+                try await confirm(transaction, session: session, requestReview: true)
                 if current(session) { pending = awaitingApproval }
             }
         } catch { if current(session) { self.error = error.localizedDescription } }
@@ -98,7 +98,7 @@ import Observation
         guard let context else { return false }
         return transaction.productID == context.productID && transaction.accountToken == context.appAccountToken && transaction.environment == context.balance.environment
     }
-    private func confirm(_ transaction: CapacityTransaction, session: LocalSession) async throws {
+    private func confirm(_ transaction: CapacityTransaction, session: LocalSession, requestReview: Bool = false) async throws {
         guard current(session), matches(transaction) else { throw CoreFailure(message: "请登录购买时使用的账号后恢复容量") }
         let key = session.account + ":" + session.token + ":" + transaction.id
         let task: Task<CapacityConfirmation, Error>
@@ -111,6 +111,10 @@ import Observation
         let value = try await task.value
         guard value.transactionID == transaction.id, ["verified", "revoked"].contains(value.status) else { throw CoreFailure(message: "购买记录暂时无法确认") }
         try apply(value.balance, session: session)
+        if requestReview, value.status == "verified" {
+            // Rating bookkeeping must never turn a completed purchase into an error.
+            _ = try? workspace?.store.call("reviewPurchaseConfirmed")
+        }
         guard !finished.contains(transaction.environment + ":" + transaction.id) else { return }
         finished.insert(transaction.environment + ":" + transaction.id)
         await storefront.finish(transaction)
