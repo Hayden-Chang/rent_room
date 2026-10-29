@@ -14,19 +14,21 @@ import XCTest
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
     private func assertNoDelayedReview(_ app: XCUIApplication) {
-        let unexpected = expectation(for: NSPredicate(format: "exists == true"), evaluatedWith: app.alerts.firstMatch)
+        let unexpected = expectation(for: NSPredicate(format: "exists == true"), evaluatedWith: app.staticTexts["喜欢“寻居”吗？"])
         unexpected.isInverted = true
         // Observe longer than the production 2-second scheduling delay.
         wait(for: [unexpected], timeout: 3)
     }
     private func dismissSystemReview(_ app: XCUIApplication, name: String) {
-        // StoreKit owns this alert; no app-created rating surface is accepted.
-        let alert = app.alerts.firstMatch
-        XCTAssertTrue(alert.waitForExistence(timeout: 10), app.debugDescription)
+        // StoreKit exposes its content as ordinary elements, not XCUIElementTypeAlert.
+        let title = app.staticTexts["喜欢“寻居”吗？"]
+        XCTAssertTrue(title.waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "App", "评分")).firstMatch.exists)
+        XCTAssertEqual(app.otherElements["评分"].value as? String, "零颗星")
         capture(name)
-        let later = alert.buttons.matching(NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "以后", "Not Now")).firstMatch
-        XCTAssertTrue(later.exists, alert.debugDescription); later.tap()
-        XCTAssertTrue(alert.waitForNonExistence(timeout: 3))
+        let later = app.buttons["以后"]
+        XCTAssertTrue(later.exists); later.tap()
+        XCTAssertTrue(title.waitForNonExistence(timeout: 3))
     }
     func testThirdCreationRequestsSystemReviewOnceAndKeepsManualFeedback() {
         let app = launch()
@@ -36,7 +38,7 @@ import XCTest
             XCTAssertTrue(name.waitForExistence(timeout: 3)); name.replacePromptText("评分房源\(n)")
             app.buttons["prompt.confirm"].tap()
             XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
-            XCTAssertFalse(app.alerts.firstMatch.exists)
+            XCTAssertFalse(app.staticTexts["喜欢“寻居”吗？"].exists)
             app.navigationBackButton.tap()
             let house = app.buttons["house.评分房源\(n)"]
             XCTAssertTrue(house.waitForExistence(timeout: 4))
