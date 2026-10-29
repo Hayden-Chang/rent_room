@@ -39,8 +39,11 @@ Apple 控制最终显示：[RequestReviewAction](https://developer.apple.com/doc
 ## 当前证据
 
 - Node 24.19.0：6 项核心测试、5 项小程序相关测试通过；其余 15 个无关用例由精确过滤排除。
-- Swift 语法检查与 `git diff --check` 通过；工程真源仍是 `ios/project.yml`，没有修改或提交生成的 Xcode 工程。
-- 待验证代码以本次冻结提交及 runner 工作区快照为准。
-- 共享 runner：`rent-room-rating-dev-20261030-e`，22 UT / 5 UI；日志 `/private/tmp/rent-room-rating-20261030/development-e.log`。计划已冻结，尚无模拟器通过或截图结论。
-- 先前 `a`、`b` 运行均在获得设备前取消，分别修正测试前置条件和补齐延迟购买资格；不是测试失败或通过。`c` 在取得执行机会时因排队期间新增本文档导致工作区快照变化而停止，未执行测试；`d` 在依赖解析时受全局 Git SSH 重写影响退出 74，未执行测试。已验证 HTTPS 可读取 ZIPFoundation 0.9.20，`e` 通过进程级 `GIT_CONFIG_GLOBAL=/dev/null` 避免重写，并补上待批准订单的购买时间匹配边界。
-- 主 agent 已审查最终代码差异；无 PR GitHub Actions 运行记录。UI 和最终 head 验收仍待结果，不可合入。
+- XcodeGen 工程编译通过；工程真源仍是 `ios/project.yml`。
+- 代码 `885472c59d403be215536f86b846050272a3b580` 的 `development-e.xcresult`：iOS 26.5，21 UT 通过，1 StoreKit UT 因未启用本地商品配置失败；5 UI 中 Apple 登录通过，其余 4 项失败。
+- StoreKit 精确补验 `storekit-f.xcresult`：现有 `XunjuStoreKitTests` scheme，iOS 18.3.1，1 UT 通过，实际本地 StoreKit 交易保留购买时间。环境与 scheme 均和 e 不同，不混为同一次运行。
+- 26.5 的第三创建实际状态 `created=3, requested=true`，storekitd 已收到 requestReview 并生成 token；录像最后仍为房源页，没有可见评分内容。独立 `purchase-g.xcresult` 已点击购买并确认 `0 / 11 套`，仍没有评分弹窗。不能把这些结果当作原生界面通过。
+- 首次反馈回归的失败是切换 tab 后立即使用分支查询误选 `home.first`，改成等待确定的 `home.add`；详细清单的数字键盘 AX 有数字键但录像没有软件键盘，改用聚焦字段的标准 `typeText` 输入，保留小数键类型及持久化值断言。
+- 对照计划 `ios18-plan-h.json`：21 UT / 4 UI，仍用共享 runner、相同 poolRoot 和 3 并发上限，仅在临时配置中将设备前缀收窄为池内现有 iOS 18 兼容设备。没有改共享基础设施或强占其他设备。当前结果待补。
+- 全部日志、计划、录像和 `.xcresult` 在 `/private/tmp/rent-room-rating-20261030/`。主 agent 审查已完成，尚未通过 UI 验收，不可合入。
+- 历次预执行记录：a/b 排队前取消修正测试前置条件及延迟购买资格；c 因排队期间新增文档触发快照校验而退出；d 在依赖解析时受全局 Git SSH 重写影响退出 74。后续进程级 `GIT_CONFIG_GLOBAL=/dev/null` 已解决依赖读取。
