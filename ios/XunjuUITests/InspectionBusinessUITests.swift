@@ -183,6 +183,7 @@ import XCTest
         let simple = app.buttons["setup.mode.simple"]; reveal(simple, app); simple.tap()
         app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["templates.stay"].waitForExistence(timeout: 3)); app.buttons["templates.stay"].tap()
+        XCTAssertTrue(app.buttons["templates.stay"].waitForNonExistence(timeout: 3))
         let edit = app.buttons["templates.edit.simple"]; reveal(edit, app); edit.tap()
         let toggle = app.buttons["setup.toggle.周边与小区"]; XCTAssertTrue(toggle.waitForExistence(timeout: 3)); toggle.tap()
         app.buttons["template.save"].tap(); app.buttons["templates.confirm"].tap()
