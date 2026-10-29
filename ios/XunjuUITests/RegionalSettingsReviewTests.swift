@@ -104,6 +104,8 @@ import XCTest
         XCTAssertTrue(app.buttons["currency.CNY"].waitForExistence(timeout: 3))
         app.buttons["currency.CNY"].tap()
         XCTAssertTrue(app.buttons["currency.CNY"].isSelected)
+        XCTAssertTrue(app.buttons["currency.automatic"].label.contains("USD"),
+                      "Manual selection must not relabel the detected currency.")
         capture("12-currency-manual-cny-zh", app)
         app.buttons["regional.back"].tap()
         XCTAssertTrue(app.buttons["settings.currency"].waitForExistence(timeout: 3))

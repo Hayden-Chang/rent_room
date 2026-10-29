@@ -95,7 +95,7 @@ struct CurrencySelectionSurface: View {
                     if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         XJCard {
                             RegionalChoiceRow(title: copy("currency.automatic"),
-                                subtitle: copy("currency.automaticHelp") + " · " + preferences.currencyCode,
+                                subtitle: copy("currency.automaticHelp") + " · " + preferences.automaticCurrency,
                                 selected: preferences.currencySelection == .automatic, identifier: "currency.automatic") { select(nil) }
                         }
                         Text(copy("currency.help")).font(.system(size: 13)).foregroundStyle(XJTheme.muted).padding(.horizontal, 4)
