@@ -58,3 +58,19 @@
 ## 执行记录
 
 首次 run `xunju-privacy-review-20261030-01` 在源码 `66917f6` 上编译通过，实际 App Bundle 同时包含 App 清单及 ZIPFoundation 清单。编译后等候测试槽位时，本任务新增此文档，runner 因工作区快照变化拒绝继续，退出 2，未执行测试。保留 `/Volumes/mac2/codex-builds/xunju-privacy-review-20261030-01.build.xcresult` 及 `/private/tmp/xunju-offline-privacy-20261030/run-01.log`，不计作通过或失败的测试用例。提交文档后使用新 run ID，在冻结工作区上复验相同的 3 项单测及 2 项 UI 测试。
+
+第二次 run `xunju-privacy-review-20261030-02` 在干净源码 `4cfae1e3dc509fc6a0263788a6c6a615f4250bad` 上完成：**3 UT + 2 UI 全部通过，0 失败、0 跳过，runner 退出 0**。本任务队列、设备租约和 run slot 已释放。使用共享 runner、项目自有 `run-xcodebuild.sh` 和固定 XcodeGen 2.45.4，无裸 xcodebuild 或手动抢设备。
+
+| 证据 | 位置 |
+| --- | --- |
+| 计划和命令 | `/private/tmp/xunju-offline-privacy-20261030/plan-02.json`、`run-02.sh` |
+| 完整日志 | `/private/tmp/xunju-offline-privacy-20261030/run-02.log` |
+| 结果包 | `/Volumes/mac2/codex-builds/xunju-privacy-review-20261030-02.xcresult` |
+| 原始附件 | `/private/tmp/xunju-offline-privacy-20261030/attachments-02/` |
+| 截图及来源清单 | `/Users/pc/.codex/visualizations/2026/10/29/01a18886-1bc3-7922-9396-c73515b59cbf/ios-offline-privacy/` 中的 PNG、`provenance.json` 及去除令牌的 `runner-receipt.json` |
+
+三项 UT 为 `LegalResourcesTests` 的公开 URL、实际包内清单和显式调试路由校验。两项 UI 为 `LocalSettingsReviewTests` 的设置控件/隐私支持链接回调，以及扩容待确认/恢复网络错误显示。没有执行完整应用回归或真实 Apple 交易测试。
+
+主 agent 已逐张查看并在会话展示 5 张未经修改的 XCUITest 截图。设备为 iPhone 16 / iOS 26.5，UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56`，每张 1178×2556。设置菜单对齐、法律入口和扩容文案清晰；待确认按钮禁用，错误提示出现后显示容量仍为 1/1。¥1.99 与 1/1 为测试数据；设置页底部“房源容量”为 DEBUG 宿主的动作回显。待确认及错误状态的底部法律链接需要滚动查看。本批没有验证其他屏幕尺寸或动态字体。
+
+组件状态为 **REVIEW_READY**，已向用户请求明确批准，尚未获得。正文后续只追加验证结果，未改动 Swift、资源、配置或测试，截图继续归属 `4cfae1e`，不冒称来自文档提交后的 HEAD。PR 创建后已由主 agent 另行复核差异、范围和证据；GitHub check-runs/statuses 为空，不能称云端 CI 通过。
