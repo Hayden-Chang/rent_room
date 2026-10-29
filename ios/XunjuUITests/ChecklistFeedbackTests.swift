@@ -92,11 +92,13 @@ import XCTest
         XCTAssertTrue(issue.waitForExistence(timeout: 3))
         let parent = app.staticTexts["mp.field.title.parent"]
         parent.tap()
-        XCTAssertFalse(issue.exists); XCTAssertTrue(yes.exists)
+        XCTAssertTrue(issue.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(yes.exists)
         counts(app, selection: 0, disclosure: 0)
 
         app.buttons["feedback.readonly"].tap()
-        XCTAssertFalse(choice.isEnabled)
+        let disabled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == false"), object: choice)
+        XCTAssertEqual(XCTWaiter.wait(for: [disabled], timeout: 3), .completed)
         choice.tap()
         XCTAssertFalse(choice.isSelected)
         counts(app, selection: 0, disclosure: 0)
