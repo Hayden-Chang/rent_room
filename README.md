@@ -1,12 +1,14 @@
 # 寻居 · 看房手记
 
-微信小程序及必要的产品设计文档。HTML / Web 原型和设计导出资料仅保留本地，不纳入 Git。
+微信小程序、原生 iOS 开发及必要的产品设计文档。HTML / Web 原型和设计导出资料仅保留本地，不纳入 Git。
 
 ## 目录
 
 | 路径 | 用途 |
 | --- | --- |
 | [apps/wechat](apps/wechat/README.md) | 微信小程序源码、测试、构建脚本与清单源数据 |
+| [ios](docs/ios/PARITY.md) | SwiftUI 原生工程与功能对照；已接入本机业务页面，仍在开发与验收，尚非完整应用 |
+| [iOS 组件证据](docs/ios/COMPONENT_REVIEW.md) | 真实模拟器截图、定向测试、未完成项和待批准范围 |
 | [docs/wechat](docs/wechat/VALIDATION.md) | 小程序验证记录、Figma 核对与交互审计 |
 | [后端与服务器说明](docs/wechat/BACKEND.md) | 登录与容量实现、服务器、服务配置、代码仓和维护入口 |
 | [docs/product](docs/product/产品设计.md) | 产品设计文档 |

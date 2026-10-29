@@ -1,0 +1,998 @@
+{
+  "schemaVersion": 1,
+  "status": "CHANGES_REQUESTED",
+  "pixelEqualityClaim": false,
+  "mergeReady": false,
+  "workspace": "/Users/pc/.codex/worktrees/ios-parity-update-20261025/rent_room",
+  "sessionId": "01a1721f-22ca-7ce3-9baf-ac15f055d0d5",
+  "sourceHead": "7dcb060b5aa8fbdaecc120c7ce08abb3996e5058",
+  "baseSHA": "a262e7d6b58dce14c8ed8bcb3af2f84a24661bee",
+  "batchStartSHA": "4fc8c4a08517c17bb9f6d03360dc52b10427e664",
+  "deliveryOnlyDocumentationAfterSourceHead": true,
+  "device": {
+    "udid": "759E28A9-21EB-4AA1-9F4F-EF1850989C56",
+    "model": "iPhone 16",
+    "runtime": "iOS 26.5",
+    "logicalSize": [
+      393,
+      852
+    ],
+    "pngSize": [
+      1178,
+      2556
+    ],
+    "verification": "xcresult get test-results summary plus CoreSimulator device.plist"
+  },
+  "gallery": {
+    "path": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/index.html",
+    "manifest": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/manifest.json",
+    "pairedStates": 19,
+    "additionalIOSImages": 12,
+    "originalImages": 50,
+    "browserRerenderVerified": false,
+    "localLinksAndPNGFormatsVerified": true
+  },
+  "candidateRegression": {
+    "phase": "final-pr-head-evidence-assembly",
+    "execution": "Reuse completed exact-source or equivalent-source results; no redundant rerun",
+    "scope": "Incremental pixel-alignment candidate, not a full historical PR suite",
+    "unitTests": [
+      {
+        "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+        "result": "passed",
+        "seconds": 0.405
+      },
+      {
+        "selector": "XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords",
+        "result": "passed",
+        "seconds": 0.337
+      },
+      {
+        "selector": "XunjuTests/LocalAccountProfileTests/testInvalidProfileAndFailedAvatarWriteNeverEscapeOrLeaveNewFiles",
+        "result": "passed",
+        "seconds": 0.004
+      },
+      {
+        "selector": "XunjuTests/LocalAccountProfileTests/testProfilePersistsWithoutSharingAnotherAccountOrHouseState",
+        "result": "passed",
+        "seconds": 0.003
+      },
+      {
+        "selector": "XunjuTests/MiniProgramComponentTests/testImportRequiresExplicitConflictChoiceOnlyForSelectedHouses",
+        "result": "passed",
+        "seconds": 0.001
+      }
+    ],
+    "unitEvidenceRun": "xunju-pixel-parity-20261028-20",
+    "unitEvidenceSHA": "cdd44380f8fbe5fdfe13b98973ebed5f9e07d3ca",
+    "selectedUITests": [
+      {
+        "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+        "result": "passed",
+        "seconds": 53.997,
+        "reason": "Page navigation and automatic Files cancellation across the changed surfaces",
+        "runId": "xunju-pixel-parity-20261028-19",
+        "evidenceSHA": "cdd44380f8fbe5fdfe13b98973ebed5f9e07d3ca",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-19.xcresult"
+      },
+      {
+        "selector": "XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore",
+        "result": "passed",
+        "seconds": 43.749,
+        "reason": "Whole-row hit testing and capacity guards after the changed restore menu",
+        "runId": "xunju-pixel-parity-20261028-19",
+        "evidenceSHA": "cdd44380f8fbe5fdfe13b98973ebed5f9e07d3ca",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-19.xcresult"
+      },
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+        "result": "passed",
+        "seconds": 123.672,
+        "reason": "Observed note-input failure; strict complete input, real decimal keyboard, relaunch, template and archive preservation",
+        "runId": "xunju-pixel-parity-20261028-21",
+        "evidenceSHA": "7dcb060b5aa8fbdaecc120c7ce08abb3996e5058",
+        "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-21.xcresult"
+      }
+    ],
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "uiLimit": 3,
+    "equivalence": "cdd4438..7dcb060 changes only InspectionBusinessUITests note readiness assertions. Production code, unit tests, assets, generated inputs and configuration are identical. Run 19 page/capacity evidence and run 20 units remain equivalent; the changed note method is independently rerun in 21. Subsequent delivery files are documentation only."
+  },
+  "otherDevelopmentUIEvidence": {
+    "accountProfileAndPickerCancellation": "19: passed; nickname saved and restored, avatar selection cancelled (no real photo write)",
+    "houseActionMenuAndRename": "18: passed",
+    "archiveReadonlyRestore": "18: passed",
+    "mediaSourceAnd52PointGeometry": "18: passed",
+    "mapAndWheelReadonlyContinuation": "20: passed using existing network fixtures, not real routes",
+    "summaryInputRelaunch": "15: passed; SummaryInput unchanged afterwards",
+    "exportPreparedZIP": "16: passed; BackupPage unchanged afterwards",
+    "appleLogoutRetry": "16: passed; authentication code unchanged afterwards"
+  },
+  "externalRouteDiagnostic": {
+    "status": "failed",
+    "iosRun": "xunju-pixel-parity-20261028-21",
+    "iosTest": "XunjuTests/MapCoreTests/testLiveNativeRouteProviderReturnsUsablePublicRoute",
+    "wechatRun": "5b9cfc55297a488eb85077481b9eb5da",
+    "wechatBusinessResult": {
+      "status": "failed",
+      "message": "路线查询失败，请重试或返回手动填写",
+      "elapsedMs": 12031
+    },
+    "runnerPassDoesNotMeanBusinessPass": true,
+    "boundary": "Public Shanghai coordinate area only. WeChat uses shared GCJ conversion; native provider test passes WGS84 directly. Both currently fail around their request deadlines. Root cause remains unconfirmed; no credentials or proxy configuration changed."
+  },
+  "residuals": [
+    "Same-viewport pixel diff not established: WeChat SDK uses 390pt and excludes native system/tab regions; iOS AX uses 393pt",
+    "WeChat native action-sheet capture omitted modal; no invalid menu screenshot used",
+    "Native Maps/Apple login/StoreKit/Photos/Files interfaces differ by platform",
+    "Extra persistent feedback/share entries remain in iOS settings",
+    "Real Files provider displayed unavailable content; actual ZIP selection to successful home-navigation not yet UI-verified",
+    "Real Apple authorization, avatar photo selection/save, purchases, GPS and camera remain separate device gates"
+  ],
+  "runs": [
+    {
+      "runId": "unknown",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-01.log",
+      "plan": null,
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 0,
+      "failed": 0,
+      "executedTests": [],
+      "xcresult": "/Volumes/mac2/codex-builds/unknown.xcresult",
+      "receipt": null
+    },
+    {
+      "runId": "unknown",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-02.log",
+      "plan": null,
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 2,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCreateAnswerSummaryAndRelaunchPersistence",
+          "result": "passed",
+          "seconds": 70.189
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 24.393
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "failed",
+          "seconds": 57.342
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/unknown.xcresult",
+      "receipt": null
+    },
+    {
+      "runId": "unknown",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-03.log",
+      "plan": null,
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 2,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCreateAnswerSummaryAndRelaunchPersistence",
+          "result": "passed",
+          "seconds": 54.425
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 16.345
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "failed",
+          "seconds": 48.064
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/unknown.xcresult",
+      "receipt": null
+    },
+    {
+      "runId": "unknown",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-04.log",
+      "plan": null,
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 0,
+      "failed": 0,
+      "executedTests": [],
+      "xcresult": "/Volumes/mac2/codex-builds/unknown.xcresult",
+      "receipt": null
+    },
+    {
+      "runId": "unknown",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-04b.log",
+      "plan": null,
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 0,
+      "failed": 0,
+      "executedTests": [],
+      "xcresult": "/Volumes/mac2/codex-builds/unknown.xcresult",
+      "receipt": null
+    },
+    {
+      "runId": "unknown",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-05.log",
+      "plan": null,
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 2,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCreateAnswerSummaryAndRelaunchPersistence",
+          "result": "failed",
+          "seconds": 34.996
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 16.53
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 53.138
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/unknown.xcresult",
+      "receipt": null
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-06",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-06.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-06.json",
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 17,
+      "failed": 11,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/AnswerReviewTests/testDecisionCanClearAndNoteKeepsInput",
+          "result": "failed",
+          "seconds": 17.662
+        },
+        {
+          "selector": "XunjuUITests/AppleLoginUITests/testLogoutShowsAppleOnlyAndChallengeRetryKeepsGuestRecords",
+          "result": "failed",
+          "seconds": 19.779
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testAutomaticIssueInlineEditingRelatedFilesAndRelaunch",
+          "result": "passed",
+          "seconds": 82.791
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testAutomaticNumericZeroAndArchiveReadOnly",
+          "result": "passed",
+          "seconds": 48.119
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCapacityInterruptionKeepsExistingHouse",
+          "result": "passed",
+          "seconds": 22.567
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCompareThenArchiveReadOnlyAndRestore",
+          "result": "passed",
+          "seconds": 62.204
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCreateAnswerSummaryAndRelaunchPersistence",
+          "result": "passed",
+          "seconds": 44.965
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testExportSelectedHousePreparesRealZIPBeforeShare",
+          "result": "passed",
+          "seconds": 16.986
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails",
+          "result": "failed",
+          "seconds": 31.192
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+          "result": "failed",
+          "seconds": 17.786
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testManualIssueSaveResolveAndRelaunch",
+          "result": "passed",
+          "seconds": 32.859
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints",
+          "result": "failed",
+          "seconds": 22.622
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testCancellationRefundAndUnavailableProductPreserveOverCapacityHouses",
+          "result": "passed",
+          "seconds": 28.332
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testConfirmedRestoreContinuesInterruptedCreateWithoutAutoCreatingHouse",
+          "result": "failed",
+          "seconds": 27.497
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testGuestCapacityOpensAppleOnlyLogin",
+          "result": "passed",
+          "seconds": 14.128
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testPendingPurchaseDoesNotGrantAndRestoresOnceAcrossProcessRelaunch",
+          "result": "passed",
+          "seconds": 28.953
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore",
+          "result": "failed",
+          "seconds": 36.561
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "result": "failed",
+          "seconds": 16.671
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity",
+          "result": "failed",
+          "seconds": 41.686
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition",
+          "result": "failed",
+          "seconds": 11.078
+        },
+        {
+          "selector": "XunjuUITests/MediaComponentReviewTests/testIssuePhotosInlineVideoRemovalAndReadOnly",
+          "result": "passed",
+          "seconds": 23.014
+        },
+        {
+          "selector": "XunjuUITests/MediaComponentReviewTests/testIssueValidationSaveFailureAndDiscardRetainDraft",
+          "result": "passed",
+          "seconds": 30.606
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 16.924
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 52.73
+        },
+        {
+          "selector": "XunjuUITests/UtilityBusinessTests/testHouseMapReentryFocusAndAddressPersistAfterRelaunch",
+          "result": "passed",
+          "seconds": 47.357
+        },
+        {
+          "selector": "XunjuUITests/UtilityBusinessTests/testLiveSystemPlaceSearchSelectionAndRelaunch",
+          "result": "failed",
+          "seconds": 83.547
+        },
+        {
+          "selector": "XunjuUITests/UtilityBusinessTests/testPlaceWorkplaceAndCommutePersistAfterRelaunch",
+          "result": "passed",
+          "seconds": 71.881
+        },
+        {
+          "selector": "XunjuUITests/WheelBusinessUITests/testMonthsIssueEditingAndArchiveReadonly",
+          "result": "passed",
+          "seconds": 62.683
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-06.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-06.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-07",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-07.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-07.json",
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 12,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/AnswerReviewTests/testDecisionCanClearAndNoteKeepsInput",
+          "result": "passed",
+          "seconds": 9.738
+        },
+        {
+          "selector": "XunjuUITests/AppleLoginUITests/testLogoutShowsAppleOnlyAndChallengeRetryKeepsGuestRecords",
+          "result": "passed",
+          "seconds": 36.341
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails",
+          "result": "passed",
+          "seconds": 55.615
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+          "result": "passed",
+          "seconds": 99.641
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testMediaSourceMenuMatchesMiniProgramFromAllEntryPoints",
+          "result": "passed",
+          "seconds": 31.898
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testConfirmedRestoreContinuesInterruptedCreateWithoutAutoCreatingHouse",
+          "result": "passed",
+          "seconds": 27.138
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testGuestCapacityOpensAppleOnlyLogin",
+          "result": "passed",
+          "seconds": 11.938
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore",
+          "result": "passed",
+          "seconds": 52.746
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "result": "failed",
+          "seconds": 54.414
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity",
+          "result": "passed",
+          "seconds": 133.191
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition",
+          "result": "passed",
+          "seconds": 52.397
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 22.329
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 71.505
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-07.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-07.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-08-red",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-08.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-08.json",
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 0,
+      "failed": 2,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "result": "failed",
+          "seconds": 63.275
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "failed",
+          "seconds": 14.156
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-08-red.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-08.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-09",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-09.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-09.json",
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 3,
+      "failed": 2,
+      "executedTests": [
+        {
+          "selector": "XunjuTests/MapCoreTests/testLiveNativeRouteProviderReturnsUsablePublicRoute",
+          "result": "failed",
+          "seconds": 13.363
+        },
+        {
+          "selector": "XunjuTests/MiniProgramComponentTests/testImportRequiresExplicitConflictChoiceOnlyForSelectedHouses",
+          "result": "passed",
+          "seconds": 0.003
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails",
+          "result": "passed",
+          "seconds": 46.226
+        },
+        {
+          "selector": "XunjuUITests/InspectionTeachingReviewTests/testGuardedSwipeTeachingAndRentFreeNumberKeyboard",
+          "result": "failed",
+          "seconds": 16.432
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 52.832
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-09.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-09.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-10",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-10.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-10.json",
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 2,
+      "failed": 2,
+      "executedTests": [
+        {
+          "selector": "XunjuTests/BackupTests/testCancelledExportAndChangedFileNeverCommitOrOverwrite",
+          "result": "passed",
+          "seconds": 0.211
+        },
+        {
+          "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+          "result": "failed",
+          "seconds": 0.127
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "result": "failed",
+          "seconds": 50.738
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 55.01
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-10.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-10.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-11-camera-diagnostic",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-11.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-11.json",
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 5,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+          "result": "passed",
+          "seconds": 0.857
+        },
+        {
+          "selector": "XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords",
+          "result": "passed",
+          "seconds": 0.424
+        },
+        {
+          "selector": "XunjuTests/MapCoreTests/testLiveNativeRouteProviderReturnsUsablePublicRoute",
+          "result": "failed",
+          "seconds": 15.161
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails",
+          "result": "passed",
+          "seconds": 55.914
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "result": "passed",
+          "seconds": 123.901
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 60.857
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-11-camera-diagnostic.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-11.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-12",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-12.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-12.json",
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 0,
+      "failed": 0,
+      "executedTests": [],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-12.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-12.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-13",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-13.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-13.json",
+      "sourceSHA": "4fc8c4a + uncommitted development changes",
+      "passed": 4,
+      "failed": 0,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testHeadingSwipeNotesAbsenceAndRelaunchPreserveDetails",
+          "result": "passed",
+          "seconds": 61.238
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 16.382
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 57.483
+        },
+        {
+          "selector": "XunjuUITests/UtilityBusinessTests/testManualWorkplaceSaveAndClearSurviveRelaunch",
+          "result": "passed",
+          "seconds": 41.256
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-13.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-13.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261027-14-final",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-14.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-14.json",
+      "sourceSHA": "a570ca6c8dcee3e90e70cb8df3862ecd4a75f69f",
+      "passed": 6,
+      "failed": 0,
+      "executedTests": [
+        {
+          "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+          "result": "passed",
+          "seconds": 0.74
+        },
+        {
+          "selector": "XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords",
+          "result": "passed",
+          "seconds": 0.636
+        },
+        {
+          "selector": "XunjuTests/MiniProgramComponentTests/testImportRequiresExplicitConflictChoiceOnlyForSelectedHouses",
+          "result": "passed",
+          "seconds": 0.001
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition",
+          "result": "passed",
+          "seconds": 45.896
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 16.146
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 56.91
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261027-14-final.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-14.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261028-15-final",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-15-plan-validation.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-15.json",
+      "sourceSHA": "6556ccd3b0d2b077c40278875e27dc9e6a068d55",
+      "passed": 0,
+      "failed": 0,
+      "executedTests": [],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-15-final.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-15.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261028-15-final",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-15.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-15.json",
+      "sourceSHA": "6556ccd3b0d2b077c40278875e27dc9e6a068d55",
+      "passed": 5,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+          "result": "passed",
+          "seconds": 0.613
+        },
+        {
+          "selector": "XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords",
+          "result": "passed",
+          "seconds": 0.447
+        },
+        {
+          "selector": "XunjuTests/MiniProgramComponentTests/testImportRequiresExplicitConflictChoiceOnlyForSelectedHouses",
+          "result": "passed",
+          "seconds": 0.001
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCreateAnswerSummaryAndRelaunchPersistence",
+          "result": "passed",
+          "seconds": 59.742
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "failed",
+          "seconds": 13.961
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 54.458
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-15-final.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-15.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261028-16",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-16.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-16.json",
+      "sourceSHA": "1588f5801e8013ad424bcfe06abdb50e2c6fbcc8",
+      "passed": 9,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+          "result": "passed",
+          "seconds": 0.654
+        },
+        {
+          "selector": "XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords",
+          "result": "passed",
+          "seconds": 0.446
+        },
+        {
+          "selector": "XunjuTests/LocalAccountProfileTests/testInvalidProfileAndFailedAvatarWriteNeverEscapeOrLeaveNewFiles",
+          "result": "passed",
+          "seconds": 0.004
+        },
+        {
+          "selector": "XunjuTests/LocalAccountProfileTests/testProfilePersistsWithoutSharingAnotherAccountOrHouseState",
+          "result": "passed",
+          "seconds": 0.004
+        },
+        {
+          "selector": "XunjuTests/MiniProgramComponentTests/testImportRequiresExplicitConflictChoiceOnlyForSelectedHouses",
+          "result": "passed",
+          "seconds": 0.001
+        },
+        {
+          "selector": "XunjuUITests/AccountProfileUITests/testNicknameAndAvatarPickerCancellationPreserveAccountProfileAfterRelaunch",
+          "result": "passed",
+          "seconds": 33.695
+        },
+        {
+          "selector": "XunjuUITests/AppleLoginUITests/testLogoutShowsAppleOnlyAndChallengeRetryKeepsGuestRecords",
+          "result": "passed",
+          "seconds": 41.227
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testExportSelectedHousePreparesRealZIPBeforeShare",
+          "result": "passed",
+          "seconds": 17.304
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 18.775
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "failed",
+          "seconds": 46.535
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-16.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-16.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261028-17",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-17.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-17.json",
+      "sourceSHA": "137bea23730e24bbbaadcfa1eafcbb65964e62bf",
+      "passed": 1,
+      "failed": 4,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCompareThenArchiveReadOnlyAndRestore",
+          "result": "failed",
+          "seconds": 2875.525
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testHouseActionMenuRenameAndArchiveCancellation",
+          "result": "passed",
+          "seconds": 994.655
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore",
+          "result": "failed",
+          "seconds": 23.279
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "failed",
+          "seconds": 927.635
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "failed",
+          "seconds": 1433.951
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-17.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-17.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261028-18",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-18.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-18.json",
+      "sourceSHA": "e99df23efa09f544c0009e76e92cf34f5f9cd906",
+      "passed": 4,
+      "failed": 2,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/AccountProfileUITests/testNicknameAndAvatarPickerCancellationPreserveAccountProfileAfterRelaunch",
+          "result": "passed",
+          "seconds": 34.123
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testCompareThenArchiveReadOnlyAndRestore",
+          "result": "passed",
+          "seconds": 52.431
+        },
+        {
+          "selector": "XunjuUITests/BusinessFlowTests/testHouseActionMenuRenameAndArchiveCancellation",
+          "result": "passed",
+          "seconds": 32.625
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore",
+          "result": "failed",
+          "seconds": 14.33
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testImportPickerCancellationReturnsToSettings",
+          "result": "failed",
+          "seconds": 21.69
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testNamingAndDetailTabGeometry",
+          "result": "passed",
+          "seconds": 24.182
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-18.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-18.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261028-19",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-19.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-19.json",
+      "sourceSHA": "cdd44380f8fbe5fdfe13b98973ebed5f9e07d3ca",
+      "passed": 4,
+      "failed": 0,
+      "executedTests": [
+        {
+          "selector": "XunjuUITests/AccountProfileUITests/testNicknameAndAvatarPickerCancellationPreserveAccountProfileAfterRelaunch",
+          "result": "passed",
+          "seconds": 26.503
+        },
+        {
+          "selector": "XunjuUITests/CapacityBusinessUITests/testZeroPolicyKeepsExistingHouseEditableAndBlocksCreateAndRestore",
+          "result": "passed",
+          "seconds": 43.749
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testImportPickerCancellationReturnsToSettings",
+          "result": "passed",
+          "seconds": 20.438
+        },
+        {
+          "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+          "result": "passed",
+          "seconds": 53.997
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-19.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-19.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261028-20",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-20.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-20.json",
+      "sourceSHA": "cdd44380f8fbe5fdfe13b98973ebed5f9e07d3ca",
+      "passed": 7,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+          "result": "passed",
+          "seconds": 0.405
+        },
+        {
+          "selector": "XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords",
+          "result": "passed",
+          "seconds": 0.337
+        },
+        {
+          "selector": "XunjuTests/LocalAccountProfileTests/testInvalidProfileAndFailedAvatarWriteNeverEscapeOrLeaveNewFiles",
+          "result": "passed",
+          "seconds": 0.004
+        },
+        {
+          "selector": "XunjuTests/LocalAccountProfileTests/testProfilePersistsWithoutSharingAnotherAccountOrHouseState",
+          "result": "passed",
+          "seconds": 0.003
+        },
+        {
+          "selector": "XunjuTests/MiniProgramComponentTests/testImportRequiresExplicitConflictChoiceOnlyForSelectedHouses",
+          "result": "passed",
+          "seconds": 0.001
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "result": "failed",
+          "seconds": 68.188
+        },
+        {
+          "selector": "XunjuUITests/UtilityBusinessTests/testPlaceWorkplaceAndCommutePersistAfterRelaunch",
+          "result": "passed",
+          "seconds": 67.787
+        },
+        {
+          "selector": "XunjuUITests/WheelBusinessUITests/testMonthsIssueEditingAndArchiveReadonly",
+          "result": "passed",
+          "seconds": 61.325
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-20.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-20.json"
+    },
+    {
+      "runId": "xunju-pixel-parity-20261028-21",
+      "log": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-run-21.log",
+      "plan": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/pixel-plan-21.json",
+      "sourceSHA": "7dcb060b5aa8fbdaecc120c7ce08abb3996e5058",
+      "passed": 1,
+      "failed": 1,
+      "executedTests": [
+        {
+          "selector": "XunjuTests/MapCoreTests/testLiveNativeRouteProviderReturnsUsablePublicRoute",
+          "result": "failed",
+          "seconds": 13.688
+        },
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "result": "passed",
+          "seconds": 123.672
+        }
+      ],
+      "xcresult": "/Volumes/mac2/codex-builds/xunju-pixel-parity-20261028-21.xcresult",
+      "receipt": "/Users/pc/.codex/visualizations/2026/10/25/01a1721f-22ca-7ce3-9baf-ac15f055d0d5/ios-pixel-audit-20261027/evidence/receipt-21.json"
+    }
+  ],
+  "manualReview": "Current Codex inspected production diff, original screenshots, failure recording and AX hierarchy; primary checkout untouched; no worker or subagent. No generated Xcode project, credentials or user data committed."
+}

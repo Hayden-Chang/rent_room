@@ -1,0 +1,90 @@
+name: Xunju
+options:
+  bundleIdPrefix: com.keeline.xunju
+  deploymentTarget:
+    iOS: "17.0"
+  developmentLanguage: zh-Hans
+  xcodeVersion: "26.6"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+packages:
+  ZIPFoundation:
+    url: https://github.com/weichsel/ZIPFoundation.git
+    exactVersion: 0.9.20
+targets:
+  Xunju:
+    type: application
+    platform: iOS
+    sources:
+      - Xunju
+      - path: ../apps/wechat/src/lib/wheel-fields.json
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.keeline.xunju.ios
+        ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_FILE: Xunju/Info.plist
+        INFOPLIST_KEY_CFBundleDisplayName: 寻居
+        INFOPLIST_KEY_NSCameraUsageDescription: 拍摄看房照片和视频，保存在本机房源记录中
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: 录制看房视频时收录现场声音
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 获取当前位置，选择房源或上班地点
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.lifestyle
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+    dependencies:
+      - package: ZIPFoundation
+    entitlements:
+      path: Xunju/Xunju.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
+  XunjuTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - XunjuTests
+    dependencies:
+      - target: Xunju
+      - package: ZIPFoundation
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+  XunjuUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - XunjuUITests
+    dependencies:
+      - target: Xunju
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+schemes:
+  Xunju:
+    build:
+      targets:
+        Xunju: all
+    test:
+      gatherCoverageData: false
+      targets:
+        - XunjuTests
+        - XunjuUITests
+  XunjuStoreKitTests:
+    build:
+      targets:
+        Xunju: all
+    run:
+      storeKitConfiguration: XunjuTests/Fixtures/Capacity.storekit
+    test:
+      gatherCoverageData: false
+      targets:
+        - XunjuTests

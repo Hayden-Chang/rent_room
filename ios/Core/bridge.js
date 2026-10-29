@@ -1,0 +1,202 @@
+import {createStore} from '../../apps/wechat/src/lib/store.js';
+import * as model from '../../apps/wechat/src/lib/model.js';
+import {writeIssue, mediaWithIssues} from '../../apps/wechat/src/lib/issues.js';
+import {createPlaces, point, applyPlace} from '../../apps/wechat/src/lib/places.js';
+import {toMap, fromMap} from '../../apps/wechat/src/lib/coordinates.js';
+import {createCommute, commuteEndpoints, endpointKey} from '../../apps/wechat/src/lib/commute.js';
+import {commuteMode} from '../../apps/wechat/src/lib/commute-fields.js';
+import {SPEED_FIELD_ID} from '../../apps/wechat/src/lib/speed-test.js';
+import {updateWorkplace, selectWorkplace, clearWorkplace} from '../../apps/wechat/src/lib/workplace.js';
+import {coachSteps, coachTarget} from '../../apps/wechat/src/lib/onboarding.js';
+import {inspectionActions} from './inspection.js';
+
+let store, sessionPacks = 0, claimPacks = null, freeLimit = 1;
+export function initialize(raw, packs = 0, free = 1) {
+  sessionPacks = packs; freeLimit = free;
+  store = createStore({
+    read: () => raw,
+    previous() {
+      const result = JSON.parse(nativePrevious());
+      if (result.error) throw Error(result.error);
+      return result.value;
+    },
+    preserveCorrupt() {
+      const error = nativePreserveCorrupt();
+      if (error) throw Error(error);
+    },
+    write(text, options) {
+      const error = nativeWrite(text, !!options?.keepPrevious);
+      if (error) throw Error(error);
+    }
+  }, {getPacks: () => claimPacks ?? sessionPacks, getFreeLimit: () => freeLimit});
+  return dispatch('{"operation":"snapshot"}');
+}
+
+function house(id) {
+  const h = store.house(id);
+  if (!h) throw Error('房源不存在');
+  return h;
+}
+function appendMedia(h, value) {
+  if (!value || !['image','video'].includes(value.type) || !value.id || !value.path) throw Error('影像数据无效');
+  if (h.media.some(m => m.id === value.id)) throw Error('影像编号重复');
+  if (value.fieldId && !model.checklistTargets(h).some(f => f.id === value.fieldId)) throw Error('检查项不存在');
+  h.media.push(value);
+}
+function execute({operation, id, name, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds}) {
+  if (Object.hasOwn(inspectionActions, operation)) return inspectionActions[operation](store, {id,name,property,value});
+  switch (operation) {
+    case 'snapshot': return null;
+    case 'setPacks': {
+      if (!Number.isSafeInteger(value) || value < 0 || !Number.isSafeInteger(freeLimit + 10 * value)) throw new Error('容量无效');
+      sessionPacks = value;
+      return null;
+    }
+    case 'setFreeLimit': {
+      if (!Number.isSafeInteger(value) || value < 0 || !Number.isSafeInteger(value + 10 * sessionPacks)) throw Error('房源额度信息无效');
+      freeLimit = value; return null;
+    }
+    case 'catalog': return {fields: model.fields, categories: model.categories, count: model.fields.length};
+    case 'add': return store.add(value);
+    case 'rename': {
+      const name = String(value).trim();
+      if (!name || name.length > 100) throw Error('房源名称需为 1 至 100 字');
+      return store.edit(id, h => {h.name = name;}, true);
+    }
+    case 'answer': return store.answer(id, field, property, value);
+    case 'choose': {
+      const h = house(id), f = model.checklistTargets(h).find(f => f.id === field);
+      if (!f || !model.rules.choiceOptions(f).includes(value)) throw Error('选项不存在');
+      return store.answer(id, field, 'value', model.rules.toggleChoiceValue(f, h.answers[field], value));
+    }
+    case 'group': return store.group(id, group, property, value);
+    case 'addCost': return store.edit(id, h => model.addCostField(h, group, value), true);
+    case 'archive': return store.archive(id, value);
+    case 'remove': return store.remove(id);
+    case 'recover': return store.recover();
+    case 'save': return store.save();
+    case 'form': return model.formView(house(id), view, folds);
+    case 'targets': return model.checklistTargets(house(id));
+    case 'coordinate': {
+      const p = point(value);
+      if (!p || !['toMap', 'fromMap'].includes(property)) throw Error('坐标无效');
+      return property === 'toMap' ? toMap(p) : fromMap(p);
+    }
+    case 'place': return store.edit(id, h => applyPlace(h, value, model.MAP_ID), true);
+    case 'workplacePlace': return store.change(s => selectWorkplace(s.settings, value), true);
+    case 'clearWorkplace': return store.change(s => clearWorkplace(s.settings), true);
+    case 'endpoints': {
+      const endpoints = commuteEndpoints(house(id), store.get().settings);
+      return {...endpoints, stamp: endpointKey(endpoints)};
+    }
+    case 'computed': {
+      if (!value || typeof value.amount !== 'number' || !Number.isFinite(value.amount) || value.amount <= 0 ||
+          !Object.prototype.hasOwnProperty.call(value, 'previous') || (!commuteMode(field) && field !== SPEED_FIELD_ID)) throw Error('测量结果无效');
+      return store.edit(id, h => {
+        if (commuteMode(field) && value.stamp !== endpointKey(commuteEndpoints(h, store.get().settings))) throw Error('地点已变化，请重新查询');
+        if (JSON.stringify(h.answers[field]?.value ?? null) !== JSON.stringify(value.previous)) throw Error('原数值已修改，未覆盖，请重新查询');
+        model.updateAnswer(h, field, 'value', String(value.amount));
+      }, true);
+    }
+    case 'coach': return {steps: coachSteps.map(step => ({...step,body:step.text})), target: coachTarget(house(id))};
+    case 'coachFinish': return value ? store.change(s => {s.settings.onboarding = false;}, true) : null;
+    case 'summary':
+      if (!['summary', 'decision'].includes(property)) throw Error('不支持的修改');
+      if (typeof value !== 'string' || value.length > 10000) throw Error('文字内容过长');
+      if (property === 'decision' && !['', '考虑租住', '继续比较', '放弃'].includes(value)) throw Error('意向无效');
+      return store.edit(id, h => {h[property] = value;});
+    case 'settings':
+      if (!['workplace', 'onboarding'].includes(property)) throw Error('不支持的设置');
+      if (property === 'onboarding' ? typeof value !== 'boolean' : typeof value !== 'string') throw Error('设置数据无效');
+      return store.change(s => {if (property === 'workplace') updateWorkplace(s.settings, value); else {s.xiaoda.enabled = value; s.settings[property] = value;}});
+    case 'issues': {
+      const h = house(id);
+      return {automatic: model.issueEntries(h).map(e => ({...model.fieldView(h, e.field), category: e.topic.category})), manual: h.issues || []};
+    }
+    case 'writeIssue': return store.edit(id, h => writeIssue(h, issueId, draft, isNew), true);
+    case 'resolveIssue': return store.edit(id, h => {
+      const item = h.issues.find(i => i.id === issueId);
+      if (!item) throw Error('问题已不存在，请返回查看');
+      item.resolved = !item.resolved;
+    });
+    case 'media': return mediaWithIssues(house(id));
+    case 'addMedia': return store.edit(id, h => appendMedia(h,value), true);
+    case 'addMediaBatch': {
+      if (!Array.isArray(value) || value.length < 1 || value.length > 9) throw Error('每次请选择 1 至 9 项影像');
+      return store.edit(id, h => value.forEach(item => appendMedia(h,item)), true);
+    }
+    case 'editMedia': return store.edit(id, h => {
+      const m = h.media.find(m => m.id === field);
+      if (!m) throw Error('影像不存在');
+      if (!['caption', 'fieldId'].includes(property)) throw Error('不支持的修改');
+      if (typeof value !== 'string' || value.length > 10000) throw Error('影像备注无效');
+      if (property === 'fieldId') {
+        if (value && !model.checklistTargets(h).some(f => f.id === value)) throw Error('检查项不存在');
+        delete m.issueId;
+      }
+      m[property] = value;
+    }, true);
+    case 'removeMedia': return store.edit(id, h => {h.media = h.media.filter(m => m.id !== field);}, true);
+    case 'compare': {
+      if (!Array.isArray(ids) || new Set(ids).size !== ids.length) throw Error('请选择不同房源');
+      const selected = ids.map(house);
+      if (selected.some(h => h.archived)) throw Error('归档房源不可对比');
+      return model.comparison(selected, differences);
+    }
+    case 'claimGuest': {
+      if (!/^h[a-f0-9]{32}$/.test(id)) throw Error('未登录记录目录无效');
+      if (store.get().guestClaims?.includes(id)) return null;
+      const incoming = model.validateState(model.clone(value));
+      // Association must preserve every record, even when combined usage exceeds capacity.
+      claimPacks = Math.max(sessionPacks, Math.ceil(Math.max(0, [...store.get().houses, ...incoming.houses].filter(h => !h.archived).length - freeLimit) / 10));
+      try {
+        return store.change(state => {
+          const existing = new Set(state.houses.map(h => h.id));
+          for (const h of incoming.houses) {
+            if (existing.has(h.id)) h.id = model.uid();
+            existing.add(h.id); state.houses.push(h);
+          }
+          if (isNew) { state.settings = model.clone(incoming.settings || state.settings); if (incoming.xiaoda) state.xiaoda = model.clone(incoming.xiaoda); }
+          state.guestClaims = [...(state.guestClaims || []), id];
+          model.validateState(state);
+        }, true);
+      } finally { claimPacks = null; }
+    }
+    case 'prepareImport': return model.prepareImport(value);
+    case 'import': return store.import(houses, replaceIds);
+    default: throw Error('不支持的操作');
+  }
+}
+
+export function dispatch(json) {
+  let value = null, error = '';
+  try {value = execute(JSON.parse(json)) ?? null;} catch (e) {error = e.message || String(e);}
+  const state = store.get();
+  // Views receive the original state unchanged; summaries are derived only.
+  const summaries = state.houses.map(h => ({id: h.id, name: h.name, archived: !!h.archived,
+    rent: String(h.answers.f1_6?.value ?? ''), area: String(h.answers.f1_3?.value ?? '—'),
+    address: h.address || '', decision: h.decision || '', stats: model.stats(h),
+    cover: h.media?.find(m => m.type === 'image')?.path || ''}));
+  return JSON.stringify({ok: !error, error, value, state, status: store.status(), capacity: store.capacity(), summaries});
+}
+
+
+// Network-facing work is read-only; UI callers verify their scope and view epoch
+// before using a response. All parsing and route validation stays canonical.
+export async function dispatchAsync(json, complete) {
+  try {
+    const request = JSON.parse(json);
+    const api = (_name, options) => new Promise((resolve, reject) => nativeMapRequest(JSON.stringify(options),
+      text => { try {resolve(JSON.parse(text));} catch {reject(Error('地点查询结果无效'));} },
+      message => reject(Error(message || '网络连接失败，请重试'))));
+    const places = createPlaces(api, request.key || '');
+    let value;
+    switch (request.operation) {
+      case 'searchPlaces': value = await places.search(request.query || '', request.center || null); break;
+      case 'nearbyPlaces': value = await places.nearby(request.center); break;
+      case 'commuteRoutes': value = await createCommute(api, request.key || '').query(request.mode, request.origin, request.destination); break;
+      default: throw Error('不支持的查询');
+    }
+    complete(JSON.stringify({ok: true, error: '', value}));
+  } catch (error) { complete(JSON.stringify({ok: false, error: error.message || String(error), value: null})); }
+}

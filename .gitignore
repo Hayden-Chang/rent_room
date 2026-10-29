@@ -59,3 +59,11 @@ Thumbs.db
 /prototypes/
 /design/*
 !/design/README.md
+
+# Native iOS project generated from ios/project.yml
+/ios/Xunju.xcodeproj/
+/ios/Config/Local.xcconfig
+*.xcresult/
+
+# Generated local iOS map configuration; never commit service keys.
+/ios/Xunju/Resources/NativeConfiguration.json
