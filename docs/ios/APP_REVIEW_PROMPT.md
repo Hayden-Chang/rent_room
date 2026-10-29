@@ -44,6 +44,24 @@ Apple 控制最终显示：[RequestReviewAction](https://developer.apple.com/doc
 - StoreKit 精确补验 `storekit-f.xcresult`：现有 `XunjuStoreKitTests` scheme，iOS 18.3.1，1 UT 通过，实际本地 StoreKit 交易保留购买时间。环境与 scheme 均和 e 不同，不混为同一次运行。
 - 26.5 的第三创建实际状态 `created=3, requested=true`，storekitd 已收到 requestReview 并生成 token；录像最后仍为房源页，没有可见评分内容。独立 `purchase-g.xcresult` 已点击购买并确认 `0 / 11 套`，仍没有评分弹窗。不能把这些结果当作原生界面通过。
 - 首次反馈回归的失败是切换 tab 后立即使用分支查询误选 `home.first`，改成等待确定的 `home.add`；详细清单的数字键盘 AX 有数字键但录像没有软件键盘，改用聚焦字段的标准 `typeText` 输入，保留小数键类型及持久化值断言。
-- 对照计划 `ios18-plan-h.json`：21 UT / 4 UI，仍用共享 runner、相同 poolRoot 和 3 并发上限，仅在临时配置中将设备前缀收窄为池内现有 iOS 18 兼容设备。没有改共享基础设施或强占其他设备。当前结果待补。
-- 全部日志、计划、录像和 `.xcresult` 在 `/private/tmp/rent-room-rating-20261030/`。主 agent 审查已完成，尚未通过 UI 验收，不可合入。
+- 对照运行 h（`c427cb6`）：iOS 18.3.1，21 UT 通过；首次使用/手动反馈 UI 通过，两个评分 UI 的真实系统弹窗已出现，但旧查询错误地将其当作 `Alert`，导致断言失败。按实际 AX 的标题、评分星级和“以后”按钮修正查询，未改变产品代码。
+- 最终运行 i（`9d465c93a0d30d3be354a5e0684b13e454ec9fc2`）：iPhone 14 Pro / iOS 18.3.1（22D8075），21 UT + 3 UI 全部通过，0 失败/跳过。两条评分入口均验证真实 StoreKit 界面、关闭后不重复；创建路径额外验证重启幂等和手动反馈。购买 UI 使用业务 fixture 模拟到账，不能当作线上真实支付通过。
+- i 仍用共享 runner、相同 poolRoot 和 3 并发上限，仅在临时配置中将设备前缀收窄为池内现有 iOS 18 兼容设备。没有改共享基础设施或强占其他设备。[精确计划](evidence/app-review-20261030/final-plan.json)与[退出 0 的执行回执](evidence/app-review-20261030/final-receipt.json)已保留。
+- 证据复用：`885472c` 至最终测试 head 的产品代码未变，f 的 StoreKit 方法及配置未变，e 的 Apple 登录方法未变；Node 核心及小程序源码自 Node 通过后未变。i 后提交仅补文档和原始截图，不改变构建输入中的产品/测试源码。不是全套测试通过。
+- **未通过项保留**：h 的详细清单/模板/归档 UI 在 `templates.edit.simple` 后仍停留于模板列表，失败于 `setup.toggle.周边与小区`；后续模板修改及旧房源归档断言未执行。该模板产品源码相对基线无改动，另一独立性能任务也复现同一导航失败，但本 PR 不据此把该用例标记通过。全部 5 个新增/修改 UI 方法已执行，其中该长流程仍未通过，因此 PR 保持草稿，不可称为全部回归完成。
+- 全部日志、计划、录像和 `.xcresult` 在 `/private/tmp/rent-room-rating-20261030/`。主 agent 已复核最终产品和测试差异；未合并、安装真机、提交审核或发布。
 - 历次预执行记录：a/b 排队前取消修正测试前置条件及延迟购买资格；c 因排队期间新增文档触发快照校验而退出；d 在依赖解析时受全局 Git SSH 重写影响退出 74。后续进程级 `GIT_CONFIG_GLOBAL=/dev/null` 已解决依赖读取。
+
+## 原生界面证据
+
+以下为运行 i 的原始 XCUITest 截图，非自绘评分框。开发模拟器的系统弹窗显示占位图标；不代表 App Store 正式图标验收。
+
+第三次成功创建后（此前两套已归档，证明使用累计创建数）：
+
+![第三次创建后的系统评分](evidence/app-review-20261030/after-third-creation.png)
+
+购买确认、感谢状态结束后：
+
+![购买后的系统评分](evidence/app-review-20261030/after-verified-purchase.png)
+
+[仍可从设置主动打开反馈](evidence/app-review-20261030/manual-feedback-retained.png)。
