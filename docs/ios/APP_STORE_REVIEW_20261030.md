@@ -1,6 +1,6 @@
 # App Store 评价入口组件验收
 
-状态：`REVIEW_READY`。入口组件已实现并通过定向验证；尚未取得用户 UI 批准、真实 App Store ID，尚未接入 `SettingsPage`，不能合并或称为功能交付完成。
+状态：`UI_APPROVED_WAITING_APP_ID`。用户已明确回复“确认通过”，批准入口和打开失败提示。设置页集成与实际页面测试补丁已准备，尚未应用；等待正式 App ID 后一次性接入和验证，避免让正式入口使用无效 ID。
 
 ## 实现与边界
 
@@ -11,7 +11,7 @@
 - DEBUG 评审入口 `--component-review app-store-review` 使用合成 ID `1234567890`，拦截所有 URL 打开操作。画面中的 URL 和次数仅为测试观察。评审 host 和路由均受 `#if DEBUG` 隔离。
 - 不修改房源、账号或备份数据；本次没有真机安装、上传构建、提审或发布。
 
-## Apple 后台实际阻碍
+## Apple 后台记录
 
 2026-10-30 通过现有 App Store Connect 账号查询 `com.keeline.xunju.ios`，没有应用记录；完整应用列表也没有看房搭子/寻居。用户随后明确授权创建应用。
 
@@ -19,9 +19,9 @@
 
 `asc bundle-ids list --identifier com.keeline.xunju.ios --output json --fields name,identifier,platform` 返回 `PLA Update available`，明确要求账号持有人接受新版 Program License Agreement。网页也显示同一提示。未执行创建提交，未代用户接受法律协议。
 
-下一步由用户处理该协议后重新读取 Bundle ID 状态，必要时注册正式 ID，完成 App 创建并通过 API 核对 Apple ID；公开评价页面要等 App 上架后才能实测。
+用户随后回复“已接受”，协议限制已解除。另一用户会话“调整 iOS 房源会员额度”同时创建同一应用，已登记正式 Bundle ID `com.keeline.xunju.ios`（资源 ID `UA8HA4N4K4`）。本会话只读取创建结果，避免重复创建；主语言采用该会话中用户明确指定的 English (U.S.)。公开评价页面要等 App 上架后才能实测。
 
-## 验证证据
+## 初次组件验证证据
 
 - 代码证据 SHA：`05084214406a0fbab47617ea538a0e010b602aac`。
 - worktree：`/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/ios-app-store-review-20261030`。
@@ -43,7 +43,7 @@
 | 系统拒绝后的提示、关闭、再次点击 | `XunjuUITests/AppStoreReviewUITests/testOpenFailureShowsDismissibleErrorAndAllowsRetry` |
 | 缺少 App ID 时提示且不调用 URL opener | `XunjuUITests/AppStoreReviewUITests/testMissingAppIDShowsErrorWithoutOpeningURL` |
 
-UI 选择覆盖独立的成功、系统拒绝和配置缺失边界，精确 3 个方法。尚未接入设置页，因此现有业务页测试不受影响；集成时重新计算影响范围和最终门禁。
+初次组件验证精确运行 3 个 UI 方法。待应用补丁将前两个方法改为从实际 `AppRoot` 的“我的”Tab 导航至 `SettingsPage`，使用 UUID 独立业务数据目录；点击真实入口后仅在 DEBUG 测试 host 拦截外部 URL，以核对正式 App ID 和每次点击行为。配置缺失边界继续由隔离组件覆盖。生产 `openURL` 环境不被覆盖。补丁保存在 `artifacts/app-store-review-20261030/settings-integration-pending.patch`，配套 `plan-03.json` 已通过 runner validate-only，但未启动集成测试；真实 ID 必须先填入实现及测试断言。
 
 首次 run `rent-room-app-store-review-20261030-01` 因本机 Git 把 GitHub HTTPS 地址改写为不可认证的 SSH，ZIPFoundation 解析失败，退出 74，未执行测试。保留 `test.log`、`runner-receipt-01.json` 和 `/private/tmp/rent-room-app-store-review-20261030-01/review.build.xcresult`。第二次仅修复该进程环境，源码未变。
 
@@ -55,4 +55,8 @@ PR #88 创建后单独读取远程 diff，并核对范围、最终代码 SHA 和
 
 四张原始截图均已检查：入口文案完整、箭头对齐、分隔线正常；两种失败均显示可关闭提示；成功截图记录两次相同评价 URL。截图和请求拦截证明组件行为，不证明真实 App Store 跳转、商店可用性或评价提交。无真实设备或额外尺寸验证。
 
-本记录是测试后的纯文档补充，不改变已验证源码、测试、配置或测试选择。合并仍等待 UI 明确批准、真实应用身份接入、设置页集成证据和用户合并授权。
+初次组件证据只适用于对应源码 SHA。用户已明确批准 UI；集成后须补充最终证据。合并仍需用户授权。
+
+## 当前创建结果
+
+另一会话已将表单改为正式 Bundle ID 与英语（美国），点击“创建”超时；API 再次查询仍无应用记录。`asc-app-create-ui` 明确禁止失败后自动重复点击，因此已请用户在可见 Chrome 表单手动点击创建。未绕过此限制、未重复创建、未使用其他应用的 ID。待创建成功后通过 `asc apps list --bundle-id com.keeline.xunju.ios --output json` 核实真实 Apple ID，再应用补丁与集成验证。当前提交仅更新状态文档，已通过的组件源码与测试未变。
