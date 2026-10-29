@@ -22,13 +22,28 @@
 | 最新、无结果、失败与重试 | `XunjuUITests/AppUpdateComponentUITests/testCurrentUnavailableAndNetworkFailureCanRetry` | 新增；错误结果不能误报最新；附件 06–08 |
 | 系统要求、商店不可用 | `XunjuUITests/AppUpdateComponentUITests/testSystemRequirementAndMissingStorefrontDoNotOfferUpdate` | 新增；不提示不可执行的更新；附件 09–10 |
 
-最终候选复用同一映射，4 项定向单测和 3 项 UI，未运行全量测试。测试结果、截图与证据 SHA 在完成后补录。
+最终候选复用同一映射，4 项定向单测和 3 项 UI，未运行全量测试。
+
+### 最终验证与截图
+
+- 状态：`REVIEW_READY`，等待用户确认组件后再接入完整设置页和真实商店查询。
+- 证据提交：`7d502ef1af77ecfd2370167893a83408401c1339`。
+- 批次：`rent-room-check-update-20261030-06`；构建通过，7 项测试通过（4 UT / 3 UI），0 失败、0 跳过。
+- 设备：iPhone 14 Pro，iOS Simulator 18.3.1，arm64；截图 1178 × 2556 px，逻辑视口 393 × 852 pt。
+- 结果包：`/Volumes/mac2/codex-builds/rent-room-check-update-20261030-06.xcresult`。
+- 日志和收据：`/Volumes/mac2/projects/git_repo/run_self/rent_room/outputs/ios-check-update-20261030/development-06.log`、同目录 `receipt-06.json`、`summary-06.json`。
+- 原始附件：同目录 `attachments-06/`；10 张按状态命名的无修改截图在 `screenshots/`，文件与来源哈希在 `screenshots.json`；用户评审图集为 `REVIEW.md`。
+- 已逐张查看 10 张附件：版本行和更新行对齐，状态文案未截断，新版弹窗使用系统按钮，检查中禁用入口；稍后、更新回调、失败后重试均有实际 UI 点击断言。
+- 证据后的提交仅补充本文档，不改变组件、依赖、测试宿主、测试或构建配置，截图与测试证据继续等价；不能将这些截图称为后续文档提交新生成的证据。
+- 当前只在本地 `codex/ios-check-update` 分支。自动审批拒绝向 `Hayden-Chang/rent_room` 推送，等待用户对该仓库和分支的明确推送授权，尚未创建 PR。
 
 ### 开发失败与修正
 
 首个有效测试批次 `rent-room-check-update-20261030-04` 在提交 `1f04717151abf169847e8c6a898eef517ef594f1` 上完成：4 UT 通过，3 UI 均在入口断言失败。导出的无障碍层级显示 `settings.checkUpdate` 位于 `Other` 容器，其内部真实 `Button` 无该标识；录屏确认卡片已实际呈现。移除 Button 上多余的 `.accessibilityElement(children: .ignore)`，让标签、值与标识直接属于原生按钮；保留原测试选择器与真实点击断言，重跑同一组用例。
 
 此前 `-02` 在依赖准备阶段因缺少 esbuild 停止；按 lockfile 安装后，`-03` 被全局 Git HTTPS→SSH 改写阻塞，于依赖下载阶段主动终止。`-04` 仅通过进程环境覆盖下载协议，未改变全局配置。上述准备失败不计为业务测试。
+
+`-05` 在修复后的提交上构建通过，但共享模拟器运行器枚举设备失败，尚未进入测试。只读复查设备枚举恢复后，`-06` 使用相同选择器全部通过；`-05` 日志、收据与构建结果保留，不计为业务测试失败。
 
 ## 接入前置条件
 
