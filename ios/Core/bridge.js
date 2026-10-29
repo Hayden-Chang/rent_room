@@ -13,11 +13,13 @@ import {localDay} from '../../apps/wechat/src/lib/xiaoda-state.js';
 
 let store, sessionPacks = 0, claimPacks = null, freeLimit = 1;
 let deliveredState, summaryState, cachedSummaries;
+let deliveredHouses = new Map();
 const readOperations = new Set(['form', 'targets', 'issues', 'media', 'compare', 'inspectionGuide', 'templates', 'setupState']);
 let readState, readDay, readBytes = 0;
 const readCache = new Map();
 export function initialize(raw, packs = 0, free = 1) {
   deliveredState = summaryState = cachedSummaries = undefined;
+  deliveredHouses = new Map();
   readState = readDay = undefined; readBytes = 0; readCache.clear();
   sessionPacks = packs; freeLimit = free;
   store = createStore({
@@ -215,14 +217,30 @@ export function dispatch(json, incremental = false) {
   const reply = {ok: !error, error, value: valueIsState ? null : value, status: store.status(), capacity: store.capacity()};
   if (valueIsState) reply.valueIsState = true;
   if (snapshot) {
+    let changed = [], nextHouses = deliveredHouses;
     if (summaryState !== state) {
-      cachedSummaries = state.houses.map(h => ({id: h.id, name: h.name, archived: !!h.archived,
-        rent: String(h.answers.f1_6?.value ?? ''), area: String(h.answers.f1_3?.value ?? '—'),
-        address: h.address || '', decision: h.decision || '', stats: model.stats(h),
-        cover: h.media?.find(m => m.type === 'image')?.path || ''}));
+      nextHouses = new Map();
+      cachedSummaries = state.houses.map(h => {
+        // Store transactions clone all houses. Compare complete serialized records
+        // so unchanged houses need neither statistics nor another native decode.
+        const text = JSON.stringify(h), old = deliveredHouses.get(h.id);
+        const entry = old?.text === text ? old : {text, summary: {
+          id: h.id, name: h.name, archived: !!h.archived,
+          rent: String(h.answers.f1_6?.value ?? ''), area: String(h.answers.f1_3?.value ?? '—'),
+          address: h.address || '', decision: h.decision || '', stats: model.stats(h),
+          cover: h.media?.find(m => m.type === 'image')?.path || ''}};
+        if (entry !== old) changed.push(h);
+        nextHouses.set(h.id, entry);
+        return entry.summary;
+      });
       summaryState = state;
     }
-    reply.state = state; reply.summaries = cachedSummaries;
+    if (incremental && deliveredState && operation !== 'snapshot') {
+      const {houses, ...metadata} = state;
+      reply.stateDelta = {metadata, order: houses.map(h => h.id), houses: changed};
+    } else reply.state = state;
+    reply.summaries = cachedSummaries;
+    deliveredHouses = nextHouses;
   }
   const result = JSON.stringify(reply);
   deliveredState = state;

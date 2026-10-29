@@ -40,7 +40,7 @@ test('mutations transfer state once and keep legacy result semantics via valueIs
   const {call, id} = fixture();
   const reply = call('answer', {id, field: 'f1_6', property: 'value', value: '2500'});
   assert.equal(reply.ok, true);
-  assert.equal(reply.state.houses[0].answers.f1_6.value, '2500');
+  assert.equal(reply.stateDelta.houses[0].answers.f1_6.value, '2500');
   assert.equal(reply.summaries[0].rent, '2500');
   assert.equal(reply.value, null);
   assert.equal(reply.valueIsState, true);
@@ -59,8 +59,8 @@ test('save failures report fresh status without replacing a rolled-back snapshot
   assert.equal(Object.hasOwn(rolledBack, 'state'), false);
   const retained = f.call('answer', {id: f.id, field: 'f1_6', property: 'value', value: '2800'});
   assert.equal(retained.ok, true);
-  assert.equal(retained.state.houses[0].answers.f1_6.value, '2800');
-  assert.equal(retained.state.houses[0].name, '性能房源');
+  assert.equal(retained.stateDelta.houses[0].answers.f1_6.value, '2800');
+  assert.equal(retained.stateDelta.houses[0].name, '性能房源');
   f.fail(false);
   const saved = f.call('save');
   assert.equal(saved.status.error, '');
@@ -112,4 +112,40 @@ test('cached guidance expires when the local day changes', () => {
   assert.equal(call('inspectionGuide', {id}).value.enabled, false);
   clock.now = new Date(2026, 9, 31, 12).getTime();
   assert.equal(call('inspectionGuide', {id}).value.enabled, true);
+});
+
+test('house deltas reconstruct the full snapshot across edits, removals, rollback and reinitialization', () => {
+  const f = fixture();
+  let state = f.call('snapshot').state;
+  const apply = reply => {
+    if (reply.state) state = reply.state;
+    if (reply.stateDelta) {
+      const {metadata, order, houses} = reply.stateDelta;
+      const records = new Map([...state.houses, ...houses].map(h => [h.id, h]));
+      state = {...metadata, houses: order.map(id => records.get(id))};
+    }
+    assert.deepEqual(state, f.call('snapshot').state);
+    return reply;
+  };
+  const other = apply(f.call('add', {value: '不变房源'})).value;
+  for (const value of ['是', '否', '否']) {
+    const reply = apply(f.call('choose', {id: f.id, field: 'f1_top', value}));
+    assert.deepEqual(reply.stateDelta.houses.map(h => h.id), [f.id]);
+    assert.equal(Object.hasOwn(reply, 'state'), false);
+  }
+  const settings = apply(f.call('settings', {property: 'workplace', value: '工作地点'}));
+  assert.deepEqual(settings.stateDelta.houses, []);
+  assert.equal(state.settings.workplace, '工作地点');
+  f.fail(true);
+  const failed = apply(f.call('rename', {id: f.id, value: '回滚'}));
+  assert.equal(failed.ok, false); assert.equal(failed.stateDelta, undefined);
+  apply(f.call('choose', {id: f.id, field: 'f1_top', value: '是'}));
+  f.fail(false); apply(f.call('save'));
+  apply(f.call('archive', {id: other, value: true}));
+  const removed = apply(f.call('remove', {id: other}));
+  assert.deepEqual(removed.stateDelta.order, [f.id]);
+  assert.deepEqual(removed.stateDelta.houses, []);
+  const reset = JSON.parse(f.core.initialize(JSON.stringify(state), 0, 30));
+  assert.deepEqual(reset.state, state); assert.equal(reset.stateDelta, undefined);
+  apply(f.call('group', {id: f.id, group: 'topic_62', property: 'result', value: '没有'}));
 });

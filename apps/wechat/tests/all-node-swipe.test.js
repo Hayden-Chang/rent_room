@@ -42,7 +42,8 @@ it('a heading tap folds once, its answer tap only selects, and its swipe never f
  const touch=x=>({touches:[{clientX:x,clientY:50}],changedTouches:[{clientX:x,clientY:50}]});
  c.start(touch(200));c.end(touch(200));c.tapHead();expect(events).toEqual([{n:'fold',d:{id:'group-a',expanded:false}}]);
  events.length=0;c.start(touch(200));c.end(touch(200));c.choose({currentTarget:{dataset:{value:'否'}}});expect(events).toEqual([{n:'group',d:{id:'group-a',op:'value',value:'否'}}]);
- events.length=0;c.start(touch(200));c.move(touch(160));c.end(touch(160));c.tapHead();expect(c.data.actions).toBe(true);expect(events).toEqual([]);
+ events.length=0;c.start(touch(200));c.move(touch(160));c.end(touch(160));c.tapHead();expect(c.data.actions).toBe(true);
+ expect(events).toEqual([{n:'swipeopen',d:{id:'node:group:group-a'}}]);
 });
 
 it('page actions save and reopen parent notes and media, independently of group controls',async()=>{

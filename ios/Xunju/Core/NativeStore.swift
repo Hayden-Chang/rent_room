@@ -150,7 +150,10 @@ final class NativeStore {
         }
         // Decode the large, heterogeneous payload once without repeatedly probing
         // Codable types; retain strict typed validation for the small metadata.
-        let snapshot = try envelope.removeValue(forKey: "state").map(JSONValue.init(jsonObject:))
+        var snapshot = try envelope.removeValue(forKey: "state").map(JSONValue.init(jsonObject:))
+        if let rawDelta = envelope.removeValue(forKey: "stateDelta") {
+            snapshot = try StateDelta.apply(JSONValue(jsonObject: rawDelta), to: state)
+        }
         let value = try JSONValue(jsonObject: envelope.removeValue(forKey: "value") ?? NSNull())
         let reply = try JSONDecoder().decode(CoreReply.self, from: JSONSerialization.data(withJSONObject: envelope))
         if let snapshot, state != snapshot { state = snapshot }
