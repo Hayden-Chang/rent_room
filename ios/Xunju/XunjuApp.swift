@@ -5,7 +5,10 @@ struct XunjuApp: App {
     var body: some Scene {
         WindowGroup {
             #if DEBUG
-            if let route = MPReviewRoute.parse(ProcessInfo.processInfo.arguments) {
+            if let route = LocalSettingsReviewRoute.parse(ProcessInfo.processInfo.arguments) {
+                LocalSettingsReviewHost(route: route)
+                    .environment(\.locale, Locale(identifier: "zh_CN"))
+            } else if let route = MPReviewRoute.parse(ProcessInfo.processInfo.arguments) {
                 MPReviewHost(route: route, state: MPReviewRoute.state(ProcessInfo.processInfo.arguments))
                     .environment(\.locale, Locale(identifier: "zh_CN"))
                     .preferredColorScheme(.light)
