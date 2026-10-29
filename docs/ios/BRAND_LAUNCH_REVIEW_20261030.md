@@ -33,4 +33,36 @@ Apple 参考：[Launching](https://developer.apple.com/design/human-interface-gu
 
 ## 证据
 
-计划与日志位于当前 worktree 的 `artifacts/launch-page-20261030/`。第一次运行在排队结束时因新增说明文档触发冻结保护，未执行测试；第二次运行因素材复核后的主动调整而中断，保留原始日志。最终运行使用新的编号和结果路径。测试、截图检查及视觉批准结果将在完成后记录。
+状态：`REVIEW_READY`，待用户明确确认视觉。未接入启动业务、未合并、未部署真机。
+
+- 证据代码 SHA：`94f5ad5670b9e7b6a430d64190ac22a5e40e6539`；基线 `eb75079b3e46726e5742cc4c861dc7a278d9dd31`。
+- 最终运行：`xunju-brand-launch-20261030-05`，1 条单测 + 2 条 UI 测试，3 passed / 0 failed / 0 skipped。未运行全量测试。
+- 设备：iPhone 14 Pro，iOS 18.3.1，arm64；UDID `8F178971-C203-4690-A83B-253046EACBB1`。
+- 实际导出的两张 PNG 均为 **1178 × 2556 px**，393 × 852 pt 设备。保留原始截图尺寸，不缩放或裁切。
+- XcodeGen **2.45.4** 两次生成一致。未修改 `project.yml`，未提交生成工程。
+- 构建缓存由共享 runner 管理，实际路径为 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-959ce06771d8a1a80f238b26-simulator`；旧前缀是基础设施命名，实际工程、scheme 和 targets 均为 Xunju。
+- runner 退出码 0，设备租约和执行槽位均已释放。最终运行设置每条用例 120 秒上限，没有自动重试。
+
+所有路径相对于本任务 worktree `/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/ios-launch-page-20261030`：
+
+| 产物 | 路径 |
+| --- | --- |
+| 完整测试结果 | `artifacts/launch-page-20261030/review-05.xcresult` |
+| 原始日志 | `artifacts/launch-page-20261030/runner-05.log` |
+| 精确计划与可复现命令 | `artifacts/launch-page-20261030/plan-05.json`、`run-05.sh` |
+| 结果摘要、截图哈希及附件映射 | `artifacts/launch-page-20261030/evidence-05.json` |
+| 原始导出清单 | `artifacts/launch-page-20261030/attachments-05/manifest.json` |
+| 默认字号截图 | `artifacts/launch-page-20261030/brand-launch-default.png` |
+| 最大辅助字号截图 | `artifacts/launch-page-20261030/brand-launch-accessibility.png` |
+
+主 agent 已检查两张实际截图：默认版标识与文字居中，浅灰白背景连续覆盖安全区；最大辅助字号下标题、副标题完整，底部文案分为两行，均不重叠、不越界。截图来自 Debug 原生组件宿主，不是设计合成图，也不证明正式冷启动时长或切页效果。
+
+已单独复核最终 PR 的组件、Debug 入口、测试和验证范围，未发现阻断代码问题。后续证据记录只修改本文，不改变源码、测试、资源、配置或验证命令，因此可复用上述 SHA 的证据；不将其称为文档提交生成的截图。PR 保持 Draft，视觉批准与后续启动接入尚未发生。
+
+### 前序运行及限制
+
+第一次运行在排队结束时因新增说明文档触发冻结保护，未执行测试；第二次运行因素材复核调整而主动中断。第三次构建成功，但 `simctl list devices -j` 在测试启动前失败。第四次单测和默认截图用例通过，随后 iOS 26.5 / iPhone 16 的辅助字号查询与诊断截图通道挂起；该轮取消后结果包未完整收尾，只保留其日志和恢复出的原始 PNG 作诊断，不将其当作最终完整通过证据。
+
+最终第五次由共享池分配到 iOS 18.3.1 / iPhone 14 Pro，完整通过并导出两张附件。不同运行、设备与结果包不混称；iOS 26.5 的辅助字号测试通道问题未被本次组件设计修复。
+
+本轮未验收小屏、iPad 横屏、VoiceOver 实际朗读、系统深色外观和真实冷启动切换。组件没有动画；当前 App 固定浅色，未引入新的深色模式约定。Figma 尚未同步。
