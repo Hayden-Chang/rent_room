@@ -83,6 +83,8 @@ actor CapacityTestAPI: CapacityServicing {
         XCTAssertEqual(reopened.store.house(id)["answers"]["f1_6"]["value"].string, "0")
         XCTAssertEqual(reopened.session?.expiresAt, expiry)
         XCTAssertEqual(keychain.read()?.packs, 1)
+        // This completes the new purchase from before relaunch, not an old restore.
+        XCTAssertTrue(try reopened.store.call("reviewRequest").bool)
         XCTAssertFalse(try reopened.store.call("reviewRequest").bool)
     }
     func testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct() async throws {

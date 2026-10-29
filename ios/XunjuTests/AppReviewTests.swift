@@ -49,6 +49,21 @@ import XCTest
         await storefront.receive?(storefront.transaction)
         XCTAssertFalse(try workspace.store.call("reviewRequest").bool)
     }
+    func testPendingApprovalAndFailedVerificationSurviveRelaunch() async throws {
+        for approval in [false, true] {
+            let (workspace, api, storefront, sessions) = try fixture()
+            if approval { storefront.result = .pending } else { await api.configure(failVerification: true) }
+            await workspace.billing.load(); await workspace.billing.purchase()
+            XCTAssertFalse(try workspace.store.call("reviewRequest").bool)
+            let reopened = try AppWorkspace(root: workspace.scopes.root, keychain: sessions, capacityAPI: api, storefront: storefront)
+            await api.configure(); storefront.outstanding = [storefront.transaction]
+            await reopened.billing.load()
+            XCTAssertEqual(reopened.store.capacity.packs, 1)
+            XCTAssertTrue(try reopened.store.call("reviewRequest").bool)
+            await reopened.billing.restore()
+            XCTAssertFalse(try reopened.store.call("reviewRequest").bool)
+        }
+    }
     func testReviewPersistenceFailureDoesNotFailConfirmedPurchase() async throws {
         let (workspace, api, storefront, _) = try fixture()
         await workspace.billing.load()

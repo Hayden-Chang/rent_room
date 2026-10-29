@@ -25,7 +25,7 @@ import Observation
             do {
                 if self.context == nil { try await self.prepare(session, loadProduct: false) }
                 guard self.matches(transaction) else { return }
-                try await self.confirm(transaction, session: session, requestReview: self.awaitingApproval)
+                try await self.confirm(transaction, session: session)
                 if self.current(session) { self.pending = false; self.awaitingApproval = false; if !self.activity.busy { self.activity = .idle }; self.error = "" }
             } catch { if self.current(session) { self.pending = true; self.error = error.localizedDescription; if !self.activity.busy { self.activity = .pending } } }
         }
@@ -51,10 +51,15 @@ import Observation
             guard let product = self.product, let context = self.context, context.available else { throw CoreFailure(message: "房源包暂未开放购买，请稍后再试") }
             switch try await storefront.purchase(product, accountToken: context.appAccountToken) {
             case .cancelled: break
-            case .pending: if current(session) { pending = true; awaitingApproval = true }
+            case .pending:
+                if current(session) {
+                    pending = true; awaitingApproval = true
+                    _ = try? workspace?.store.call("reviewPurchasePending", ["value": .string("approval")])
+                }
             case .verified(let transaction):
                 guard current(session) else { return }
                 pending = true
+                _ = try? workspace?.store.call("reviewPurchasePending", ["value": .string(transaction.id)])
                 try await confirm(transaction, session: session, requestReview: true)
                 if current(session) { pending = awaitingApproval }
             }
@@ -111,7 +116,8 @@ import Observation
         let value = try await task.value
         guard value.transactionID == transaction.id, ["verified", "revoked"].contains(value.status) else { throw CoreFailure(message: "购买记录暂时无法确认") }
         try apply(value.balance, session: session)
-        if requestReview, value.status == "verified" {
+        let pendingReview = workspace?.store.state["iosReview"]["pendingPurchase"].string ?? ""
+        if value.status == "verified", requestReview || pendingReview == transaction.id || pendingReview == "approval" {
             // Rating bookkeeping must never turn a completed purchase into an error.
             _ = try? workspace?.store.call("reviewPurchaseConfirmed")
         }

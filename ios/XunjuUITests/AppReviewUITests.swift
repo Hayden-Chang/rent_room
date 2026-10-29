@@ -13,6 +13,12 @@ import XCTest
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
+    private func assertNoDelayedReview(_ app: XCUIApplication) {
+        let unexpected = expectation(for: NSPredicate(format: "exists == true"), evaluatedWith: app.alerts.firstMatch)
+        unexpected.isInverted = true
+        // Observe longer than the production 2-second scheduling delay.
+        wait(for: [unexpected], timeout: 3)
+    }
     private func dismissSystemReview(_ app: XCUIApplication, name: String) {
         // StoreKit owns this alert; no app-created rating surface is accepted.
         let alert = app.alerts.firstMatch
@@ -36,7 +42,7 @@ import XCTest
             XCTAssertTrue(house.waitForExistence(timeout: 4))
             XCTAssertFalse(app.buttons["关闭反馈"].exists)
             if n < 3 {
-                XCTAssertFalse(app.alerts.firstMatch.exists)
+                assertNoDelayedReview(app)
                 house.press(forDuration: 1); app.confirmArchiveFromHouseMenu()
                 XCTAssertTrue(house.waitForNonExistence(timeout: 3))
             }
@@ -44,6 +50,7 @@ import XCTest
         dismissSystemReview(app, name: "review-after-third-creation")
         app.terminate(); app.launch()
         XCTAssertTrue(app.buttons["house.评分房源3"].waitForExistence(timeout: 10))
+        assertNoDelayedReview(app)
         app.buttons["tab.我的"].tap()
         let feedback = app.buttons["settings.feedback"]
         for _ in 0..<4 { if feedback.isHittable { break }; app.swipeUp() }
@@ -51,7 +58,7 @@ import XCTest
         capture("review-manual-feedback-retained")
         app.buttons["关闭反馈"].tap(); app.buttons["tab.房源"].tap()
         XCTAssertTrue(app.buttons["house.评分房源3"].waitForExistence(timeout: 3))
-        XCTAssertFalse(app.alerts.firstMatch.exists)
+        assertNoDelayedReview(app)
     }
     func testVerifiedPurchaseRequestsSystemReviewAfterThankYou() {
         let app = launch(purchase: true)
@@ -65,6 +72,6 @@ import XCTest
         XCTAssertFalse(app.buttons["关闭反馈"].exists)
         app.navigationBackButton.tap(); app.buttons["tab.房源"].tap()
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 3))
-        XCTAssertFalse(app.alerts.firstMatch.exists)
+        assertNoDelayedReview(app)
     }
 }

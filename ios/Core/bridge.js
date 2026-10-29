@@ -46,7 +46,7 @@ function appendMedia(h, value) {
 }
 function execute({operation, id, name, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds}) {
   if (Object.hasOwn(inspectionActions, operation)) return inspectionActions[operation](store, {id,name,property,value});
-  if (Object.hasOwn(reviewActions, operation)) return reviewActions[operation](store);
+  if (Object.hasOwn(reviewActions, operation)) return reviewActions[operation](store, {value});
   switch (operation) {
     case 'snapshot': return null;
     case 'setPacks': {
