@@ -21,9 +21,17 @@ final class TouchTrailReviewTests: XCTestCase {
         add(attachment)
     }
 
+    private func tapSwitch(_ toggle: XCUIElement) {
+        XCTAssertTrue(toggle.isHittable)
+        // MPSwitchStyle exposes the entire row as a switch, but its actual
+        // 51pt button is at the trailing edge. The default AX tap hits the label.
+        toggle.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))
+            .withOffset(CGVector(dx: -25.5, dy: 0)).tap()
+    }
+
     private func openGestures(_ app: XCUIApplication) {
         let toggle = app.switches["settings.touch-trails"]
-        toggle.tap()
+        tapSwitch(toggle)
         XCTAssertEqual(toggle.value as? String, "1")
         app.buttons["review.gestures"].tap()
         XCTAssertTrue(app.buttons["mp.field.choice.touch-review.是"].waitForExistence(timeout: 3))
@@ -33,16 +41,16 @@ final class TouchTrailReviewTests: XCTestCase {
         let app = launch()
         let toggle = app.switches["settings.touch-trails"]
         XCTAssertEqual(toggle.value as? String, "0")
-        XCTAssertLessThan(toggle.frame.maxY, app.otherElements["review.version"].firstMatch.frame.maxY)
+        XCTAssertLessThan(toggle.frame.maxY, app.staticTexts["版本"].frame.minY)
         capture("touch-trails-01-footer-off")
-        toggle.tap()
+        tapSwitch(toggle)
         XCTAssertEqual(toggle.value as? String, "1")
         capture("touch-trails-02-footer-on")
         app.terminate()
         app.launch()
         XCTAssertTrue(toggle.waitForExistence(timeout: 10))
         XCTAssertEqual(toggle.value as? String, "1")
-        toggle.tap()
+        tapSwitch(toggle)
         XCTAssertEqual(toggle.value as? String, "0")
         app.terminate()
         app.launch()
