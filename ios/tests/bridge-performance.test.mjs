@@ -94,6 +94,7 @@ test('cached queries preserve filter and house parameters and invalidate on ever
   const original = call('form', params).value;
   assert.ok(original.flatMap(section => section.rows).some(row => row.id === 'f1_6'));
   assert.deepEqual(call('form', params).value, original);
+  assert.deepEqual(call('form', {folds: {}, view: {filters: [], query: '租金', phase: '全部'}, id}).value, original);
   assert.deepEqual(call('form', {...params, id: other}).value, call('form', {...params, id: other}, false).value);
   assert.deepEqual(call('form', {...params, view: {...params.view, query: 'does-not-exist'}}).value, []);
   call('answer', {id, field: 'f1_6', property: 'value', value: '3000'});

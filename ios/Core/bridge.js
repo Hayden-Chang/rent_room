@@ -175,18 +175,21 @@ function execute({operation, id, name, field, property, value, group, view, fold
   }
 }
 
-function executeRead(request, key) {
+function executeRead(request) {
   // Guidance has a local-day boundary. Everything else here is a pure query of
   // the current immutable store snapshot and the complete request parameters.
   const state = store.get(), day = localDay();
   if (state !== readState || day !== readDay) {
     readCache.clear(); readBytes = 0; readState = state; readDay = day;
   }
+  // Swift dictionaries can encode equivalent requests in different key orders.
+  const key = JSON.stringify(request, (_key, value) => value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, value[key]])) : value);
   if (readCache.has(key)) {
     const cached = readCache.get(key); readCache.delete(key); readCache.set(key, cached);
     return cached.value;
   }
-  const value = execute(request) ?? null, bytes = JSON.stringify(value).length * 2;
+  const value = execute(request) ?? null, bytes = (key.length + JSON.stringify(value).length) * 2;
   if (bytes <= 256 * 1024) {
     while (readCache.size >= 8 || readBytes + bytes > 1024 * 1024) {
       const oldest = readCache.keys().next().value;
@@ -201,7 +204,7 @@ export function dispatch(json, incremental = false) {
   let value = null, error = '', operation;
   try {
     const request = JSON.parse(json); operation = request.operation;
-    value = incremental && readOperations.has(operation) ? executeRead(request, json) : execute(request) ?? null;
+    value = incremental && readOperations.has(operation) ? executeRead(request) : execute(request) ?? null;
   } catch (e) {error = e.message || String(e);}
   const state = store.get();
   if (readState !== state) { readCache.clear(); readBytes = 0; readState = state; }

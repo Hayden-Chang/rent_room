@@ -49,6 +49,24 @@ import UIKit
         let url = try LocalMediaFiles.file(item["path"].string, in: store.records.directory)
         XCTAssertNotNil(UIImage(contentsOfFile: url.path))
     }
+    func testCancellingAnInFlightPhotoImportLeavesNoFile() async throws {
+        let store = try NativeStore(directory: directory()), photo = image(width: 4000)
+        var operation: Task<JSONValue, Error>?
+        var began = false
+        operation = Task { @MainActor in
+            try await NativeMediaImport.stage(image: photo, video: nil, store: store, isCurrent: {
+                if !began {
+                    began = true
+                    Task { @MainActor in operation?.cancel() }
+                }
+                return true
+            })
+        }
+        do { _ = try await operation!.value; XCTFail("Cancellation during encoding must not accept the file") }
+        catch { XCTAssertTrue(error is CancellationError) }
+        XCTAssertTrue(began)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: store.records.directory.appendingPathComponent("media").path).count, 0)
+    }
     func testIncrementalReadsAndMutationReturnValuesKeepStoreCurrent() throws {
         let store = try NativeStore(directory: directory(), freeLimit: 2)
         let id = try store.add("数据保留")
