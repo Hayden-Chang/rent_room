@@ -23,11 +23,10 @@ struct HouseCapacity: Decodable, Equatable { let used: Int; let limit: Int; let 
 private struct CoreReply: Decodable {
     let ok: Bool
     let error: String
-    let value: JSONValue
-    let state: JSONValue
+    let valueIsState: Bool?
     let status: SaveStatus
     let capacity: HouseCapacity
-    let summaries: [HouseSummary]
+    let summaries: [HouseSummary]?
 }
 
 @MainActor @Observable
@@ -94,7 +93,7 @@ final class NativeStore {
         let data = try JSONEncoder().encode(JSONValue.object(request))
         guard let json = String(data: data, encoding: .utf8) else { throw CoreFailure(message: "操作数据编码失败") }
         context.exception = nil
-        return try consume(context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("dispatch", withArguments: [json]))
+        return try consume(context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("dispatch", withArguments: [json, true]))
     }
 
     @discardableResult
@@ -146,13 +145,20 @@ final class NativeStore {
         guard let json = result?.toString(), let data = json.data(using: .utf8) else {
             throw CoreFailure(message: "清单规则未返回有效结果")
         }
-        let reply = try JSONDecoder().decode(CoreReply.self, from: data)
-        if state != reply.state { state = reply.state }
-        if houses != reply.summaries { houses = reply.summaries }
+        guard var envelope = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw CoreFailure(message: "清单规则未返回有效结果")
+        }
+        // Decode the large, heterogeneous payload once without repeatedly probing
+        // Codable types; retain strict typed validation for the small metadata.
+        let snapshot = try envelope.removeValue(forKey: "state").map(JSONValue.init(jsonObject:))
+        let value = try JSONValue(jsonObject: envelope.removeValue(forKey: "value") ?? NSNull())
+        let reply = try JSONDecoder().decode(CoreReply.self, from: JSONSerialization.data(withJSONObject: envelope))
+        if let snapshot, state != snapshot { state = snapshot }
+        if let summaries = reply.summaries, houses != summaries { houses = summaries }
         if status != reply.status { status = reply.status }
         if capacity != reply.capacity { capacity = reply.capacity }
         guard reply.ok else { throw CoreFailure(message: reply.error) }
-        return reply.value
+        return reply.valueIsState == true ? state : value
     }
 }
 

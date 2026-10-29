@@ -4,13 +4,17 @@ import vm from 'node:vm';
 import test from 'node:test';
 
 const source = readFileSync(process.env.XUNJU_CORE || new URL('../Xunju/Resources/XunjuCore.js', import.meta.url), 'utf8');
-function fixture() {
+function fixture(clock = null) {
   let current = '', previous = '', fail = false;
   const context = vm.createContext({nativePrevious: () => JSON.stringify({value: previous, error: ''}),
     nativePreserveCorrupt: () => '', nativeWrite: text => {
       if (fail) return 'disk full';
       previous = current; current = text; return '';
     }});
+  if (clock) context.Date = class extends Date {
+    constructor(...args) { super(...(args.length ? args : [clock.now])); }
+    static now() { return clock.now; }
+  };
   vm.runInContext(source, context);
   const core = context.XunjuCore;
   const initial = JSON.parse(core.initialize('', 0, 30));
@@ -82,4 +86,29 @@ test('initialization resets snapshot tracking and durable removal updates summar
   assert.deepEqual(reset.state.houses, []);
   assert.deepEqual(reset.summaries, []);
   assert.equal(reset.capacity.limit, 1);
+});
+
+test('cached queries preserve filter and house parameters and invalidate on every mutation', () => {
+  const {call, id} = fixture(), other = call('add', {value: '另一套'}).value;
+  const params = {id, view: {phase: '全部', query: '租金', filters: []}, folds: {}};
+  const original = call('form', params).value;
+  assert.ok(original.flatMap(section => section.rows).some(row => row.id === 'f1_6'));
+  assert.deepEqual(call('form', params).value, original);
+  assert.deepEqual(call('form', {...params, id: other}).value, call('form', {...params, id: other}, false).value);
+  assert.deepEqual(call('form', {...params, view: {...params.view, query: 'does-not-exist'}}).value, []);
+  call('answer', {id, field: 'f1_6', property: 'value', value: '3000'});
+  const updated = call('form', params).value;
+  assert.notDeepEqual(updated, original);
+  assert.deepEqual(updated, call('form', params, false).value);
+  call('archive', {id, value: true}); call('remove', {id});
+  assert.equal(call('form', params).ok, false, 'deleted house must not survive in the query cache');
+});
+
+test('cached guidance expires when the local day changes', () => {
+  const clock = {now: new Date(2026, 9, 30, 12).getTime()};
+  const {call, id} = fixture(clock);
+  call('guideAction', {id, value: 'day'});
+  assert.equal(call('inspectionGuide', {id}).value.enabled, false);
+  clock.now = new Date(2026, 9, 31, 12).getTime();
+  assert.equal(call('inspectionGuide', {id}).value.enabled, true);
 });
