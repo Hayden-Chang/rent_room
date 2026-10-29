@@ -8,7 +8,8 @@ const provenance = JSON.parse(await readFile(new URL('../Localization/region-pro
 const zh = JSON.parse(await readFile(source, 'utf8'));
 const en = JSON.parse(await readFile(translated, 'utf8'));
 const hash = data => createHash('sha256').update(data).digest('hex');
-if (hash(await readFile(prompt)) !== provenance.promptSHA256 || hash(await readFile(translated)) !== provenance.englishSHA256) {
+if (hash(await readFile(prompt)) !== provenance.promptSHA256 || hash(await readFile(translated)) !== provenance.englishSHA256 ||
+    hash(await readFile(source)) !== provenance.sourceSHA256) {
   throw Error('Translation provenance changed. Regenerate English through agy -p and update its receipt.');
 }
 const keys = Object.keys(zh).sort();

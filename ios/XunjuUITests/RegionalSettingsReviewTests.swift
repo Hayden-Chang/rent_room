@@ -31,7 +31,7 @@ import XCTest
         capture("02-language-follow-system-zh", app)
         app.buttons["language.english"].tap()
         XCTAssertTrue(app.buttons["language.english"].isSelected)
-        XCTAssertTrue(app.buttons["language.system"].exists)
+        XCTAssertEqual(app.buttons["language.system"].label, "System Default") // Exact agy output.
         capture("03-language-english-selected", app)
         app.buttons["regional.back"].tap()
         XCTAssertTrue(app.buttons["settings.language"].waitForExistence(timeout: 3))
@@ -41,14 +41,17 @@ import XCTest
         app.buttons["settings.language"].tap()
         XCTAssertTrue(app.buttons["language.english"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["language.english"].isSelected)
+        XCTAssertEqual(app.buttons["language.system"].label, "System Default")
         app.buttons["language.system"].tap()
         XCTAssertTrue(app.buttons["language.system"].isSelected)
+        XCTAssertEqual(app.buttons["language.system"].label, "跟随系统")
         capture("05-language-return-to-system-zh", app)
     }
 
     func testCurrencySearchManualSelectionAndAutomaticCountryChange() {
         let app = application(language: "en")
         launch(app)
+        XCTAssertTrue(app.buttons["settings.currency"].label.hasPrefix("Currency")) // Exact agy output.
         app.buttons["settings.currency"].tap()
         XCTAssertTrue(app.buttons["currency.automatic"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["currency.automatic"].isSelected)

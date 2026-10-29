@@ -38,6 +38,7 @@ struct RegionalSettingsReviewHost: View {
             }.frame(maxHeight: .infinity)
         }.background(XJTheme.background).foregroundStyle(XJTheme.ink)
             .accessibilityHidden(prompt)
+            .allowsHitTesting(!prompt)
             .overlay {
                 if prompt {
                     CurrencyLocationPrompt(automatic: {
@@ -65,7 +66,7 @@ struct RegionalSettingsReviewHost: View {
                     Spacer()
                 }
             }
-        }.frame(height: 44).accessibilityIdentifier("regional.header")
+        }.frame(height: 44).accessibilityElement(children: .contain).accessibilityIdentifier("regional.header")
     }
 
     private func copy(_ key: String) -> String { RegionalCopy.text(key, language: model.language) }
