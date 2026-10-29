@@ -53,7 +53,7 @@ import XCTest
         let (workspace, api, storefront, _) = try fixture()
         await workspace.billing.load()
         let current = workspace.store.records.directory.appending(path: "state.json")
-        try FileManager.default.removeItem(at: current)
+        if FileManager.default.fileExists(atPath: current.path) { try FileManager.default.removeItem(at: current) }
         try FileManager.default.createDirectory(at: current, withIntermediateDirectories: false)
         await workspace.billing.purchase()
         XCTAssertEqual(workspace.store.capacity.packs, 1)
