@@ -64,6 +64,19 @@ import XCTest
             XCTAssertFalse(try reopened.store.call("reviewRequest").bool)
         }
     }
+    func testPendingApprovalDoesNotTreatRestoredHistoryAsNewPurchase() async throws {
+        let (workspace, api, storefront, sessions) = try fixture()
+        await workspace.billing.load()
+        storefront.result = .pending; await workspace.billing.purchase()
+        let reopened = try AppWorkspace(root: workspace.scopes.root, keychain: sessions, capacityAPI: api, storefront: storefront)
+        storefront.outstanding = [CapacityTransaction(id: "old", productID: "test.capacity.10", accountToken: storefront.accountToken, environment: "Sandbox", purchaseDate: .distantPast)]
+        await reopened.billing.restore()
+        XCTAssertFalse(try reopened.store.call("reviewRequest").bool)
+        XCTAssertTrue(reopened.store.state["iosReview"]["pendingPurchase"].string.hasPrefix("approval:"))
+        reopened.billing.start()
+        await storefront.receive?(storefront.transaction)
+        XCTAssertTrue(try reopened.store.call("reviewRequest").bool)
+    }
     func testReviewPersistenceFailureDoesNotFailConfirmedPurchase() async throws {
         let (workspace, api, storefront, _) = try fixture()
         await workspace.billing.load()

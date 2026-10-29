@@ -2,7 +2,14 @@ import Foundation
 import StoreKit
 
 struct CapacityProduct: Sendable { let id: String; let displayPrice: String }
-struct CapacityTransaction: Sendable { let id: String; let productID: String; let accountToken: UUID?; let environment: String }
+struct CapacityTransaction: Sendable {
+    let id: String; let productID: String; let accountToken: UUID?; let environment: String
+    let purchaseDate: Date?
+    init(id: String, productID: String, accountToken: UUID?, environment: String, purchaseDate: Date? = nil) {
+        self.id = id; self.productID = productID; self.accountToken = accountToken
+        self.environment = environment; self.purchaseDate = purchaseDate
+    }
+}
 enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(CapacityTransaction) }
 @MainActor protocol CapacityStorefront: AnyObject {
     func product(_ id: String) async throws -> CapacityProduct
@@ -64,7 +71,7 @@ enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(Capaci
     }
     private func remember(_ result: VerificationResult<StoreKit.Transaction>) throws -> CapacityTransaction {
         guard case .verified(let value) = result else { throw CoreFailure(message: "购买凭证未通过校验，请稍后恢复容量") }
-        let record = CapacityTransaction(id: String(value.id), productID: value.productID, accountToken: value.appAccountToken, environment: value.environment.rawValue)
+        let record = CapacityTransaction(id: String(value.id), productID: value.productID, accountToken: value.appAccountToken, environment: value.environment.rawValue, purchaseDate: value.purchaseDate)
         verified[record.id] = value
         return record
     }

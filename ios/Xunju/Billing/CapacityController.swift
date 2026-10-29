@@ -49,12 +49,13 @@ import Observation
             guard session.expiresAt > Date() else { throw CoreFailure(message: "登录已过期，请重新登录后购买扩容") }
             try await prepare(session, loadProduct: true)
             guard let product = self.product, let context = self.context, context.available else { throw CoreFailure(message: "房源包暂未开放购买，请稍后再试") }
+            let purchaseStartedAt = Date().timeIntervalSince1970
             switch try await storefront.purchase(product, accountToken: context.appAccountToken) {
             case .cancelled: break
             case .pending:
                 if current(session) {
                     pending = true; awaitingApproval = true
-                    _ = try? workspace?.store.call("reviewPurchasePending", ["value": .string("approval")])
+                    _ = try? workspace?.store.call("reviewPurchasePending", ["value": .string("approval:\(purchaseStartedAt)")])
                 }
             case .verified(let transaction):
                 guard current(session) else { return }
@@ -117,7 +118,11 @@ import Observation
         guard value.transactionID == transaction.id, ["verified", "revoked"].contains(value.status) else { throw CoreFailure(message: "购买记录暂时无法确认") }
         try apply(value.balance, session: session)
         let pendingReview = workspace?.store.state["iosReview"]["pendingPurchase"].string ?? ""
-        if value.status == "verified", requestReview || pendingReview == transaction.id || pendingReview == "approval" {
+        let approvalStartedAt = pendingReview.hasPrefix("approval:") ? Double(pendingReview.dropFirst(9)) : nil
+        let approvedNewPurchase = approvalStartedAt.map { startedAt in
+            transaction.purchaseDate.map { $0.timeIntervalSince1970 >= startedAt } ?? false
+        } ?? false
+        if value.status == "verified", requestReview || pendingReview == transaction.id || approvedNewPurchase {
             // Rating bookkeeping must never turn a completed purchase into an error.
             _ = try? workspace?.store.call("reviewPurchaseConfirmed")
         }

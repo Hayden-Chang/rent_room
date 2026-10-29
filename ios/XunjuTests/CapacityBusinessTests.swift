@@ -41,7 +41,7 @@ actor CapacityTestAPI: CapacityServicing {
     var syncs = 0, purchases = 0
     var productFails = false
     var receive: (@MainActor (CapacityTransaction) async -> Void)?
-    var transaction: CapacityTransaction { CapacityTransaction(id: "10001", productID: "test.capacity.10", accountToken: accountToken, environment: "Sandbox") }
+    var transaction: CapacityTransaction { CapacityTransaction(id: "10001", productID: "test.capacity.10", accountToken: accountToken, environment: "Sandbox", purchaseDate: Date()) }
     func product(_ id: String) throws -> CapacityProduct {
         if productFails { throw CoreFailure(message: "商品暂不可用") }
         return CapacityProduct(id: id, displayPrice: "$0.99")

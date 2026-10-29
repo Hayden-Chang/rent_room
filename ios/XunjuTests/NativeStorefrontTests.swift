@@ -20,6 +20,7 @@ import StoreKitTest
         XCTAssertFalse(product.displayPrice.isEmpty)
         guard case .verified(let first) = try await storefront.purchase(product, accountToken: account) else { return XCTFail("Local purchase did not verify") }
         XCTAssertEqual(first.accountToken, account); XCTAssertEqual(first.environment, "Xcode")
+        XCTAssertNotNil(first.purchaseDate)
         let outstanding = try await storefront.transactions(synchronize: false)
         XCTAssertTrue(outstanding.contains { $0.id == first.id })
         await storefront.finish(first)
