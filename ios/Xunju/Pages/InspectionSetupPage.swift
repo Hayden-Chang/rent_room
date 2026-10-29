@@ -40,12 +40,13 @@ struct InspectionTemplatesPage: View {
     @State private var leaving = false
     @Environment(\.dismiss) private var dismiss
     var body: some View {
+        let _ = PerformanceLayoutTrace.body(Self.self)
         ScrollView {
             MPCard {
                 VStack(spacing: 0) {
                     ForEach(InspectionMode.allCases, id: \.self) { mode in
                         HStack(spacing: 8) {
-                            Button { editing = mode } label: {
+                            Button { PerformanceLayoutTrace.event("edit template \(mode)"); editing = mode } label: {
                                 Text(mode.title).font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.ink)
                                     .frame(maxWidth: .infinity, minHeight: 72, alignment: .leading).contentShape(Rectangle())
                             }.buttonStyle(.plain).accessibilityIdentifier("templates.edit.\(mode.rawValue)")

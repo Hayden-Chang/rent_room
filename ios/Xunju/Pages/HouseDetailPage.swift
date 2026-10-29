@@ -9,6 +9,7 @@ struct HouseDetailPage: View {
     @State private var showCoach = false
     @State private var appeared = false
     var body: some View {
+        let _ = PerformanceLayoutTrace.body(Self.self)
         VStack(spacing: 0) {
             if workspace.store.house(id)["archived"].bool {
                 Text("归档房源 · 只读查看，在归档列表中可还原")
@@ -87,6 +88,7 @@ struct ChecklistPage: View {
     private var prompt: JSONValue { canPresentGuide ? visiblePrompt : .null }
 
     var body: some View {
+        let _ = PerformanceLayoutTrace.body(Self.self)
         MPChecklistSurface(done: stats?.done ?? 0, total: stats?.total ?? 0, issues: stats?.issues ?? 0,
             phase: $phase, query: $query, filters: $filters, showFilters: $showFilters, readonly: readonly,
             coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollLocked: showCoach && coachStep == 3, floatingActionsVisible: editingField == nil, scrollPosition: scrollPosition,
