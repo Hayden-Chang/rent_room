@@ -1,0 +1,5 @@
+<view class="page">
+ <property-credits remaining="{{remaining}}" migrated="{{migrated}}" authenticated="{{authenticated}}" busy="{{busy}}" pending="{{pending}}" error="{{error}}" bindpurchase="purchase" bindrestore="restore"/>
+ <view class="caption">组件预览 · 测试余额 · 购买回调 {{purchases}} 次 · 刷新回调 {{restores}} 次</view>
+ <view class="states"><button size="mini" bindtap="ready">已登录</button><button size="mini" bindtap="guest">游客</button><button size="mini" bindtap="empty">点数用完</button><button size="mini" bindtap="waiting">等待支付</button><button size="mini" bindtap="failure">刷新失败</button></view>
+</view>

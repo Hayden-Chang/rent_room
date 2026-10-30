@@ -1,0 +1,10 @@
+Page({
+ data:{remaining:7,migrated:7,authenticated:true,busy:false,pending:false,error:'',purchases:0,restores:0},
+ purchase(){this.setData({purchases:this.data.purchases+1,busy:true});},
+ restore(){this.setData({restores:this.data.restores+1,busy:true});},
+ ready(){this.setData({remaining:7,migrated:7,authenticated:true,busy:false,pending:false,error:''});},
+ guest(){this.ready();this.setData({authenticated:false});},
+ empty(){this.ready();this.setData({remaining:0,migrated:-1});},
+ waiting(){this.ready();this.setData({pending:true});},
+ failure(){this.ready();this.setData({error:'购买记录暂时无法确认，请稍后重试'});}
+});
