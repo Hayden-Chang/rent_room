@@ -23,6 +23,35 @@ import CoreLocation
     private func chooseCurrency(_ code: String, _ app: XCUIApplication) {
         tap("settings.currency", app); tap("currency." + code, app); app.navigationBackButton.tap()
     }
+    func testChineseYuanRentLabelUsesYuanAndKeepsAmountAfterRelaunch() {
+        let app = launch(returning: true)
+        tap("currency.prompt.decline", app)
+        openSettings(app); chooseCurrency("CNY", app); tap("tab.房源", app)
+        app.homeAddButton.tap()
+        let name = app.textFields["prompt.text"]
+        XCTAssertTrue(name.waitForExistence(timeout: 5))
+        name.replacePromptText("人民币房源"); tap("prompt.confirm", app)
+        let search = app.textFields["mp.checklist.search"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.tap(); search.typeText("租金"); app.dismissKeyboardFromHeader()
+        let rent = app.textFields["mp.field.input.f1_6"]
+        XCTAssertTrue(rent.waitForExistence(timeout: 5))
+        rent.tap(); rent.typeText("2000"); app.dismissKeyboardFromHeader()
+        capture("cny-form-chinese-rent-unit", app)
+        let title = app.staticTexts["mp.field.title.f1_6"].label
+        XCTAssertTrue(title.contains("元")); XCTAssertFalse(title.contains("CNY")); XCTAssertFalse(title.contains("RMB"))
+        app.terminate(); app.launch()
+        let house = app.buttons["house.人民币房源"]
+        XCTAssertTrue(house.waitForExistence(timeout: 10))
+        XCTAssertTrue(house.label.contains("CNY 2000"), "Display units must not convert the stored amount or currency")
+        house.tap()
+        let reopenedSearch = app.textFields["mp.checklist.search"]
+        XCTAssertTrue(reopenedSearch.waitForExistence(timeout: 5))
+        reopenedSearch.tap(); reopenedSearch.typeText("租金"); app.dismissKeyboardFromHeader()
+        XCTAssertEqual(app.textFields["mp.field.input.f1_6"].value as? String, "2000")
+        XCTAssertTrue(app.staticTexts["mp.field.title.f1_6"].label.contains("元"))
+        capture("cny-form-chinese-rent-persisted", app)
+    }
     func testFirstChecklistPromptsOnceAndLiveCountryDetectionUsesGBP() {
         let prior = XCUIDevice.shared.location
         addTeardownBlock { @MainActor in XCUIDevice.shared.location = prior }

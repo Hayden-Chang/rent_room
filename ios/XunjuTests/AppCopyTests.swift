@@ -2,6 +2,23 @@ import XCTest
 @testable import Xunju
 
 @MainActor final class AppCopyTests: XCTestCase {
+    func testChineseYuanFormUnitsPreserveRatesCustomNamesAndOtherCurrencies() {
+        let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
+        defer { AppLanguage.shared.value = prior }
+        for source in ["月租金（元/月）", "电费（元/度）", "水费（元/吨）"] {
+            XCTAssertEqual(AppCopy.moneyLabel(source, currency: "CNY"), source)
+        }
+        XCTAssertEqual(AppCopy.moneyLabel("物业费", currency: "CNY"), "物业费（元）")
+        XCTAssertEqual(AppCopy.moneyLabel("单元清洁", currency: "CNY", verbatim: true), "单元清洁（元）")
+        XCTAssertEqual(AppCopy.moneyLabel("电费（元/度）", currency: "USD"), "电费（USD/度）")
+        XCTAssertEqual(AppCopy.moneyLabel("单元清洁", currency: "EUR", verbatim: true), "单元清洁（EUR）")
+        AppLanguage.shared.value = .english
+        XCTAssertEqual(AppCopy.moneyLabel("电费（元/度）", currency: "CNY"), AppCopy.text("电费（元/度）"))
+        XCTAssertEqual(AppCopy.moneyLabel("单元清洁", currency: "CNY", verbatim: true), "单元清洁（CNY）")
+        AppLanguage.shared.value = .chinese
+        XCTAssertEqual(AppCopy.moneyLabel("物业费", currency: "CNY"), "物业费（元）")
+    }
+
     func testPackagedEnglishCatalogPermissionsAndMoneyUnits() throws {
         XCTAssertEqual(AppCopy.translations.count, 1322)
         for (source, english) in AppCopy.translations {
