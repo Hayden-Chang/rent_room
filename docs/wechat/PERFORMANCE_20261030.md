@@ -25,7 +25,7 @@ Node 24，构建后的真实 Page 业务逻辑，VM 中的同步 JSON setData �
 
 ## 回归与验证
 
-新增回归在未修改基线失败：详情 patch 为 89,063 字节，超过 4,096 字节阈值；无变化 refresh 仍更新完整对象；30 房源卡片为 2,170,872 字节，超过 20,000 阈值。完整原始详情失败日志保留在 `/private/tmp/wechat-performance-20261030/before-tests.log`（包含大型 fixture diff）；首页失败日志已附。
+新增回归在未修改基线失败：详情 patch 为 89,063 字节，超过 4,096 字节阈值；无变化 refresh 仍更新完整对象；30 房源卡片为 2,170,872 字节，超过 20,000 阈值。完整原始详情失败日志保留在 `/private/tmp/wechat-performance-20261030/before-tests.log`（包含大型 fixture diff）；首页失败日志保留于同一本地目录的 home-before.log。
 
 新测试覆盖 patch 大小、无变化回调、完整快照一致性、重复选择/筛选/条件组/删除、保存失败与重试、备注/媒体/问题保留、持久化重载、首页导航与原记录不变。
 
@@ -60,7 +60,7 @@ Node 24，构建后的真实 Page 业务逻辑，VM 中的同步 JSON setData �
 - 槽位 1：54abdbacee8244d782c0625dd6351478
 - 槽位 2：49cc3919ad9944e394d1650e2c297b9a
 
-两次均为 App service health timeout；没有产品点击或截图验收证据。完整 receipts 与 snapshot 仍在 `/Volumes/mac2/codex-builds/wechat-instance-pool/runs/<run-id>/`，health-before.log 附于此目录。没有通过关闭别人的工具或修改共享运行时绕过失败。
+两次均为 App service health timeout；没有产品点击或截图验收证据。完整 receipts 与 snapshot 仍在 `/Volumes/mac2/codex-builds/wechat-instance-pool/runs/<run-id>/`，health-before.log 也保留于本地证据目录。没有通过关闭别人的工具或修改共享运行时绕过失败。
 
 所需 UI 测试仍未执行，PR 不可声明 merge-ready。开发者工具健康恢复后应在隔离数据根重新运行这一个流程，再取得用户视觉验收。当前 main 已推进到 5a08dc0c1000217aff38c9a0c3ea9985465413c4；本报告不宣称已完成该新基线的集成等价性验证，正式合入前需重新检查。
 
@@ -68,7 +68,7 @@ Node 24，构建后的真实 Page 业务逻辑，VM 中的同步 JSON setData �
 
 当前 agent 对发布的 PR 差异完成独立复读：生产改动仅详情增量 patch 和首页字段投影；核对了模板引用、集合替换/字段删除、回调、标题、持久化与导航消费者，未发现需要修改的产品缺陷。原生 UI 脚本未经执行，因此不能据此给 UI 审查结论。
 
-证据：[evidence/performance-20261030](evidence/performance-20261030)。原始失败及重试都保留，证据追加不修改执行内容。
+已提交的原始测量与测试 JSON：[evidence/performance-20261030](evidence/performance-20261030)。文本日志仅保存在本地 `/private/tmp/wechat-performance-20261030` 及隔离 worktree 的同名证据目录，未推送；共享实例的健康日志位置见上文。原始失败及重试都保留，证据追加不修改执行内容。
 
 ### 可复制的精确文件选择
 
