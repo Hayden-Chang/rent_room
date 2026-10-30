@@ -253,23 +253,49 @@ import Vision
         XCTAssertTrue(app.scrollViews["mp.checklist.scroll"].buttons["xiaoda.accept"].firstMatch.waitForExistence(timeout: 5))
         return app
     }
-    func testLaterFillingGuideRestoresReadingPosition() {
-        let app = launchFilling(mode: "simple")
+    func testSimpleSamePhaseCompletionKeepsReadingPosition() {
+        assertQuietCompletion(mode: "simple", category: "室内环境", choices: [
+            ("simple_11", "是"), ("simple_12", "是"), ("simple_13", "是"), ("simple_49", "是")
+        ])
+    }
+    func testDetailedSamePhaseCompletionKeepsReadingPosition() {
+        assertQuietCompletion(mode: "detailed", category: "通风与采光", choices: [
+            ("f21_0", "是"), ("f21_1", "上午"), ("f24_0", "是"), ("f23_0", "是"),
+            ("f23_1", "是"), ("f23_2", "是"), ("f23_3", "是"), ("f23_4", "是")
+        ])
+    }
+    private func assertQuietCompletion(mode: String, category: String, choices: [(String, String)]) {
+        let app = launchFilling(mode: mode)
+        capture("quiet-\(mode)-intro-retained", app)
         app.buttons["xiaoda.accept"].tap()
-        search("室内环境", app)
-        for id in ["simple_11", "simple_12", "simple_13"] {
-            let yes = app.buttons["mp.field.choice." + id + ".是"]; reveal(yes, app); yes.tap()
+        XCTAssertTrue(app.buttons["xiaoda.accept"].waitForNonExistence(timeout: 3))
+        search(category, app)
+        for (id, value) in choices.dropLast() {
+            let choice = app.buttons["mp.field.choice." + id + "." + value]
+            reveal(choice, app); choice.tap()
         }
-        let lastYes = app.buttons["mp.field.choice.simple_49.是"]; reveal(lastYes, app)
-        let label = app.staticTexts["mp.field.title.simple_49"], before = label.frame.minY
-        lastYes.tap()
-        let later = app.buttons["xiaoda.later"]; XCTAssertTrue(later.waitForExistence(timeout: 5))
-        capture("filling-completion-guide", app); later.tap()
-        XCTAssertTrue(later.waitForNonExistence(timeout: 3))
-        let position = expectation(for: NSPredicate { _, _ in abs(label.frame.minY - before) < 2 }, evaluatedWith: label)
-        wait(for: [position], timeout: 3)
-        XCTAssertTrue(lastYes.isSelected)
-        capture("filling-later-restores-position", app)
+        let (id, value) = choices.last!
+        let lastChoice = app.buttons["mp.field.choice." + id + "." + value]; reveal(lastChoice, app)
+        let label = app.staticTexts["mp.field.title." + id], before = label.frame.minY
+        lastChoice.tap()
+        let selected = expectation(for: NSPredicate(format: "isSelected == true"), evaluatedWith: lastChoice)
+        wait(for: [selected], timeout: 3)
+        // Observe beyond the existing 500 ms guidance delay, without a fixed sleep.
+        XCTAssertFalse(app.buttons["xiaoda.later"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["xiaoda.accept"].exists)
+        XCTAssertEqual(label.frame.minY, before, accuracy: 2)
+        capture("quiet-\(mode)-completed-without-jump", app)
+        app.terminate(); app.launch()
+        let house = app.buttons["house.首次填写"].firstMatch
+        XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
+        XCTAssertTrue(app.scrollViews["mp.checklist.scroll"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["xiaoda.accept"].waitForExistence(timeout: 2))
+        search(category, app)
+        for (id, value) in choices {
+            let choice = app.buttons["mp.field.choice." + id + "." + value]
+            reveal(choice, app); XCTAssertTrue(choice.isSelected)
+        }
+        capture("quiet-\(mode)-reopened-answers", app)
     }
     func testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity() {
         let app = launch()
@@ -393,7 +419,7 @@ import Vision
         XCTAssertTrue(app.buttons["协商90.5天"].exists)
         capture("business-rent-free-archive-retained", app)
     }
-    func testTemplateEdgeScrollAndCompletionLaterRestoresReadingPosition() {
+    func testTemplateEdgeScrollAndSamePhaseCompletionKeepsReadingPosition() {
         let app = launch(), scroll = app.scrollViews.firstMatch
         let first = app.descendants(matching: .any).matching(identifier: "setup.drag.房源基本信息").firstMatch
         let start = first.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
@@ -402,7 +428,7 @@ import Vision
         let moved = app.staticTexts["setup.title.房源基本信息"], last = app.staticTexts["setup.title.身份与合同"]
         XCTAssertTrue(last.isHittable); XCTAssertGreaterThan(moved.frame.minY, last.frame.minY)
         capture("business-12-template-edge-scroll", app)
-        finishSetup(app, mode: "simple"); addAndLearn(app, simple: true)
+        finishSetup(app, mode: "simple"); chooseGuidanceCurrency(app); addAndLearn(app, simple: true)
         search("室内环境", app)
         for id in ["simple_11", "simple_12", "simple_13"] {
             let yes = app.buttons["mp.field.choice." + id + ".是"]; reveal(yes, app); yes.tap()
@@ -410,12 +436,11 @@ import Vision
         let lastYes = app.buttons["mp.field.choice.simple_49.是"]; reveal(lastYes, app)
         let label = app.staticTexts["mp.field.title.simple_49"], before = label.frame.minY
         lastYes.tap()
-        let later = app.buttons["xiaoda.later"]; XCTAssertTrue(later.waitForExistence(timeout: 5))
-        capture("business-13-completion-guidance", app); later.tap()
-        XCTAssertTrue(later.waitForNonExistence(timeout: 3))
-        let position = expectation(for: NSPredicate { _, _ in abs(label.frame.minY - before) < 2 }, evaluatedWith: label)
-        wait(for: [position], timeout: 3)
-        capture("business-14-later-keeps-position", app)
+        XCTAssertFalse(app.buttons["xiaoda.later"].waitForExistence(timeout: 2))
+        XCTAssertFalse(app.buttons["xiaoda.accept"].exists)
+        XCTAssertTrue(lastYes.isSelected)
+        XCTAssertEqual(label.frame.minY, before, accuracy: 2)
+        capture("business-13-quiet-completion-keeps-position", app)
         lastYes.tap(); lastYes.tap()
         XCTAssertFalse(app.buttons["xiaoda.later"].exists)
     }

@@ -202,17 +202,21 @@ import XCTest
             XCTAssertEqual(try NativeStore(directory: store.records.directory).house(id)["answers"]["f5_3"]["value"].string, "120")
         }
     }
-    func testCompletionOnlyGuidesForwardAndDoesNotRepeatAfterClearing() throws {
+    func testSamePhaseCompletionStaysQuietAfterClearingAndReopening() throws {
         let store = try makeStore(); try store.call("setupFinish", ["value": .string("simple")])
         let id = try store.add("前进引导"); try finishTutorial(store,id)
         try store.call("guideAction", ["id": .string(id), "value": .string("accept")])
         let fields = store.house(id)["templateTopics"].array.filter { $0["category"].string == "室内环境" }.flatMap { $0["fields"].array }
         for field in fields { try store.answer(id, field: field.id, value: .string("是")) }
         let prompt = try store.call("inspectionGuide", ["id": .string(id)])["prompt"]
-        XCTAssertEqual(prompt["completed"].string, "室内环境")
-        XCTAssertEqual(prompt["target"].string, "墙面地面与门窗")
+        XCTAssertEqual(prompt, .null)
+        let saved = store.house(id), stale = saved["xiaoda"]["prompt"]
+        XCTAssertEqual(stale["target"].string, "墙面地面与门窗")
+        let reopened = try NativeStore(directory: store.records.directory)
+        XCTAssertEqual(try reopened.call("inspectionGuide", ["id": .string(id)])["prompt"], .null)
+        XCTAssertEqual(try reopened.call("guideAction", ["id": .string(id), "value": .string("accept"), "property": stale["id"]]), .null)
+        XCTAssertEqual(reopened.house(id), saved)
         XCTAssertFalse(store.house(id)["xiaoda"]["seenCompleted"].array.contains(.string("房源基本信息")))
-        try store.call("guideAction", ["id": .string(id), "value": .string("later"), "property": prompt["id"]])
         try store.answer(id, field: fields[0].id, value: .string("")); try store.answer(id, field: fields[0].id, value: .string("是"))
         XCTAssertEqual(try store.call("inspectionGuide", ["id": .string(id)])["prompt"], .null)
     }
