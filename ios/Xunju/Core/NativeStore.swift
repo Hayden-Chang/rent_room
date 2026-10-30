@@ -41,7 +41,7 @@ final class NativeStore {
     @ObservationIgnored private let context: JSContext
     @ObservationIgnored private let mapQueryTimeout: Duration
 
-    init(directory: URL, packs: Int = 0, freeLimit: Int = 1, network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15)) throws {
+    init(directory: URL, packs: Int = 0, freeLimit: Int = 1, network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15), firstVisit: Bool = false) throws {
         records = try LocalRecords(directory: directory)
         guard let context = JSContext(), let source = Bundle.main.url(forResource: "XunjuCore", withExtension: "js") else {
             throw CoreFailure(message: "清单规则资源缺失")
@@ -78,8 +78,12 @@ final class NativeStore {
         context.setObject(request, forKeyedSubscript: "nativeMapRequest" as NSString)
         context.evaluateScript(try String(contentsOf: source, encoding: .utf8), withSourceURL: source)
         try checkException()
+        let missing = !FileManager.default.fileExists(atPath: directory.appending(path: "state.json").path)
+        let hasPrevious = FileManager.default.fileExists(atPath: directory.appending(path: "state.previous.json").path)
+        let raw: Any
+        if missing { raw = NSNull() } else { raw = try records.read() }
         let result = context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("initialize", withArguments: [
-            try records.read(), packs, freeLimit
+            raw, packs, freeLimit, firstVisit && !hasPrevious
         ])
         _ = try consume(result)
     }

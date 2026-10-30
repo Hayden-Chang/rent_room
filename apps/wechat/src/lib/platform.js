@@ -10,7 +10,7 @@ import {createBilling} from './billing.js';
 import {dataRoot} from './account-storage.js';
 import {createAccountProfile} from './account-profile.js';
 
-export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{}}={}) {
+export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{},firstVisit=false}={}) {
   const fs=wx.getFileSystemManager(),current=root+'/state.json',previous=root+'/previous.json';
   try{fs.mkdirSync(root,true);}catch{}
   try{fs.mkdirSync(root+'/media',true);}catch{}
@@ -41,7 +41,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
       return true;
     }
   });
-  rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit});const store={};
+  rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit,firstVisit:firstVisit&&!exists(previous)});const store={};
   for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
   const profile={};
   for(const [name,fn] of Object.entries(createAccountProfile(fs,root)))profile[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};

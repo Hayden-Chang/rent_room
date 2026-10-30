@@ -8,6 +8,8 @@ import {apiUrl} from './api-config.mjs';
 const mapKey=await loadMapKey();
 const serviceUrl=apiUrl(process.env.WECHAT_API_URL);
 const testRoot=process.env.WECHAT_TEST_DATA_ROOT||'';
+const reviewExamples=process.env.WECHAT_REVIEW_EXAMPLES==='1';
+if(reviewExamples&&!testRoot)throw Error('Example review requires an isolated test data root');
 if(testRoot&&!/^xunju-test-[a-z0-9-]+$/.test(testRoot))throw Error('Invalid isolated test data root');
 const source=JSON.parse(await fs.readFile('data/source-tree.json','utf8'));
 if(!validTree(source.tree))throw Error('Invalid source tree');
@@ -26,7 +28,7 @@ const files=await walk('src');
 const bundledData=new Set(['src/lib/topics.json','src/lib/simple-topics.json']);
 for(const file of files.filter(f=>!f.endsWith('.js')&&!bundledData.has(f))){const dest=file.replace(/^src/,'dist');await fs.mkdir(path.dirname(dest),{recursive:true});await fs.copyFile(file,dest);}
 const entries=files.filter(f=>f==='src/app.js'||/\/pages\/.*\/index.js$|\/components\/.*\/index.js$/.test(f));
-await build({entryPoints:entries,outdir:'dist',outbase:'src',bundle:true,format:'iife',platform:'browser',target:'es2018',minify:true,define:{__TEST_DATA_ROOT__:JSON.stringify(testRoot||'xunju'),__TIANDITU_KEY__:JSON.stringify(mapKey),__WECHAT_API_URL__:JSON.stringify(serviceUrl)}});
+await build({entryPoints:entries,outdir:'dist',outbase:'src',bundle:true,format:'iife',platform:'browser',target:'es2018',minify:true,define:{__REVIEW_EXAMPLES__:JSON.stringify(reviewExamples),__TEST_DATA_ROOT__:JSON.stringify(testRoot||'xunju'),__TIANDITU_KEY__:JSON.stringify(mapKey),__WECHAT_API_URL__:JSON.stringify(serviceUrl)}});
 // app owns the singleton store; page bundles must use getApp().service.
 const config={appid:'wxf43c7f280c98efca',projectname:'寻居-看房手记',compileType:'miniprogram',miniprogramRoot:'./',libVersion:'3.17.3',setting:{es6:true,minified:true,urlCheck:true,enhance:true,postcss:true},packOptions:{ignore:[]}};
 await fs.writeFile('dist/project.config.json',JSON.stringify(config,null,2));

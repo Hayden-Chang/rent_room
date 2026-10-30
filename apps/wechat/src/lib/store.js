@@ -2,16 +2,20 @@ import {migrateXiaoda} from './xiaoda-state.js';
 import {updateGuidance} from './xiaoda-flow.js';
 import {emptyState,clone,validateState,freshHouse,updateAnswer,updateGroup,mergeElectricity,migrateTopFloor,syncElevatorPresence} from './model.js';
 import {capacityInfo,assertCapacity,activeHouseCount} from './capacity.js';
+import {exampleHouses} from './example-houses.js';
 
-export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1,onHouseCreated=()=>{}}={}) {
-  let state=emptyState(),blocked=false,error='',revision=0;const listeners=new Set();
+export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1,onHouseCreated=()=>{},firstVisit=false}={}) {
+  let state=emptyState(),blocked=false,error='',revision=0,seeded=false;const listeners=new Set();
   const migrate=h=>syncElevatorPresence(mergeElectricity(migrateTopFloor(h)));
-  try {const raw=adapter.read();if(raw){state=migrateXiaoda(validateState(JSON.parse(raw)));state.houses.forEach(migrate);state.version=2;state.settings={...emptyState().settings,...state.settings};}}
+  // firstVisit must come from installation history, never from the house count.
+  // Only null means a missing file; an existing empty/corrupt file is not new use.
+  try {const raw=adapter.read();if(raw){state=migrateXiaoda(validateState(JSON.parse(raw)));state.houses.forEach(migrate);state.version=2;state.settings={...emptyState().settings,...state.settings};}else if(firstVisit&&raw===null){state.houses=exampleHouses();seeded=true;}}
   catch(e){blocked=true;error='已有记录读取失败，未覆盖原文件。请前往设置尝试恢复。';}
   function emit(){for(const f of listeners)f({error,blocked,revision});}
   function save(options){if(blocked){emit();return false;}try{adapter.write(JSON.stringify(state),options);error='';emit();return true;}catch(e){error='保存失败，输入仍保留在本次会话。请重试或立即导出备份。';emit();return false;}}
   function change(fn,mustSave=false){if(blocked)throw Error(error);const prior=state,draft=clone(state);fn(draft);updateGuidance(state,draft);const additional=activeHouseCount(draft.houses)-activeHouseCount(state.houses);if(additional>0)assertCapacity(state.houses,getPacks(),additional,getFreeLimit());draft.updatedAt=new Date().toISOString();state=draft;revision++;if(!save()&&mustSave){state=prior;emit();throw Error('保存失败，操作未生效，请稍后重试');}return state;}
   function edit(id,fn,mustSave=false){return change(s=>{const h=s.houses.find(h=>h.id===id);if(!h)throw Error('房源不存在');if(h.archived)throw Error('归档房源只读，请先还原');fn(h);},mustSave);}
+  if(seeded)save();
   return {
     get:()=>state,status:()=>({error,blocked,revision}),subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},save,change,edit,
     house:id=>state.houses.find(h=>h.id===id),

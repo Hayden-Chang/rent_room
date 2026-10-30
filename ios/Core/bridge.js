@@ -19,7 +19,7 @@ let deliveredHouses = new Map();
 const readOperations = new Set(['form', 'targets', 'issues', 'media', 'compare', 'inspectionGuide', 'templates', 'setupState']);
 let readState, readDay, readBytes = 0;
 const readCache = new Map();
-export function initialize(raw, packs = 0, free = 1) {
+export function initialize(raw, packs = 0, free = 1, firstVisit = false) {
   deliveredState = summaryState = cachedSummaries = undefined;
   deliveredHouses = new Map();
   readState = readDay = undefined; readBytes = 0; readCache.clear();
@@ -39,7 +39,7 @@ export function initialize(raw, packs = 0, free = 1) {
       const error = nativeWrite(text, !!options?.keepPrevious);
       if (error) throw Error(error);
     }
-  }, {getPacks: () => claimPacks ?? sessionPacks, getFreeLimit: () => freeLimit, onHouseCreated: recordHouseCreated});
+  }, {getPacks: () => claimPacks ?? sessionPacks, getFreeLimit: () => freeLimit, onHouseCreated: recordHouseCreated, firstVisit});
   return dispatch('{"operation":"snapshot"}');
 }
 
