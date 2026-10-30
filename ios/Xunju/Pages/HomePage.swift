@@ -19,9 +19,9 @@ struct HomePage: View {
                 if workspace.store.activeHouses.isEmpty {
                     if !homeMessage.isEmpty {
                         VStack(spacing: 0) {
-                            Text("把看过的房子记下来").font(.system(size: 24, weight: .bold)).foregroundStyle(Color(red: 38/255, green: 48/255, blue: 71/255)).frame(height: 33.6).padding(.top, 8).padding(.bottom, 28)
+                            AppText("把看过的房子记下来").font(.system(size: 24, weight: .bold)).foregroundStyle(Color(red: 38/255, green: 48/255, blue: 71/255)).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true).frame(minHeight: 33.6).padding(.top, 8).padding(.bottom, 28)
                             XiaodaMessage(text: homeMessage, pose: "greet", compact: false, hero: true) { EmptyView() }
-                            Button("新建房源", action: add).buttonStyle(SetupButtonStyle()).padding(.top, 28).accessibilityIdentifier("home.first")
+                            Button(AppCopy.text("新建房源"), action: add).buttonStyle(SetupButtonStyle()).padding(.top, 28).accessibilityIdentifier("home.first")
                         }.padding(.horizontal, 4).padding(.top, 24).padding(.bottom, 20)
                     } else { EmptyHouseState(add: add) }
                 }
@@ -37,13 +37,13 @@ struct HomePage: View {
                 if !workspace.store.activeHouses.isEmpty && !homeMessage.isEmpty {
                     XiaodaMessage(text: homeMessage, pose: "point-down-right") {
                         HStack {
-                            Button("再等等") { workspace.perform { try workspace.store.call("waitSecondHouse") }; refreshGuide() }
-                            Button("去添加", action: add).buttonStyle(XJButtonStyle(primary: true))
+                            Button(AppCopy.text("再等等")) { workspace.perform { try workspace.store.call("waitSecondHouse") }; refreshGuide() }
+                            Button(AppCopy.text("去添加"), action: add).buttonStyle(XJButtonStyle(primary: true))
                         }
                     }
                 }
             }.padding(16)
-        }.miniNavigation("我的房源", showsBack: false)
+        }.miniNavigation(AppCopy.text("我的房源"), showsBack: false)
             .overlay(alignment: .bottomTrailing) {
                 if !workspace.store.activeHouses.isEmpty {
                     MPFloatingButton(icon: "plus", label: "新建房源", action: add)
@@ -59,7 +59,7 @@ struct HomePage: View {
                 if capacityAfterName { capacityAfterName = false; capacity = true }
                 else if path.isEmpty { workspace.perform { try workspace.store.call("cancelHouseAction") } }
             }) {
-                NavigationStack { NewHouseSurface(name: workspace.store.state["xiaoda"]["intent"]["name"].string.isEmpty ? "第\(workspace.store.activeHouses.count + 1)套" : workspace.store.state["xiaoda"]["intent"]["name"].string) { value in
+                NavigationStack { NewHouseSurface(name: workspace.store.state["xiaoda"]["intent"]["name"].string.isEmpty ? AppCopy.text("第\(workspace.store.activeHouses.count + 1)套") : workspace.store.state["xiaoda"]["intent"]["name"].string) { value in
                     if workspace.store.capacity.remaining == 0 {
                         try workspace.store.call("beginHouseAction", ["value": .string("create"), "name": .string(value)])
                         capacityAfterName = true; return
@@ -115,7 +115,7 @@ struct ArchivePage: View {
             VStack(spacing: 12) {
                 SaveBanner(workspace: workspace)
                 if workspace.store.archivedHouses.isEmpty {
-                    Text("还没有归档房源").foregroundStyle(XJTheme.muted).padding(.top, 56)
+                    AppText("还没有归档房源").foregroundStyle(XJTheme.muted).padding(.top, 56)
                 }
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                     ForEach(workspace.store.archivedHouses) { house in
@@ -125,10 +125,10 @@ struct ArchivePage: View {
                     }
                 }
                 if !workspace.store.archivedHouses.isEmpty {
-                    Text("长按房源可还原或删除").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading)
+                    AppText("长按房源可还原或删除").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading)
                 }
             }.padding(16)
-        }.background(XJTheme.background).miniNavigation("归档房源")
+        }.background(XJTheme.background).miniNavigation(AppCopy.text("归档房源"))
             .navigationDestination(item: $openedHouse) { id in HouseDetailPage(workspace: workspace, id: id) }
             .fullScreenCover(isPresented: $capacity) { NavigationStack { CapacityPage(workspace: workspace, continued: { _ in }) } }
             .fullScreenCover(item: $managed, onDismiss: {
@@ -173,9 +173,9 @@ private struct HouseActionSheet: View {
                 }
             }
         }.foregroundStyle(XJTheme.ink)
-            .alert("操作失败", isPresented: Binding(get: { !error.isEmpty && mode != "rename" }, set: { if !$0 { error = "" } })) {
-                Button("知道了") { error = "" }
-            } message: { Text(error) }
+            .alert(AppCopy.text("操作失败"), isPresented: Binding(get: { !error.isEmpty && mode != "rename" }, set: { if !$0 { error = "" } })) {
+                Button(AppCopy.text("知道了")) { error = "" }
+            } message: { AppText(error) }
     }
     private func perform(_ action: () throws -> Void) {
         do { try action(); close() } catch { self.error = error.localizedDescription }

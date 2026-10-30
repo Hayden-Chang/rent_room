@@ -11,7 +11,7 @@ struct HouseDetailPage: View {
     var body: some View {
         VStack(spacing: 0) {
             if workspace.store.house(id)["archived"].bool {
-                Text("归档房源 · 只读查看，在归档列表中可还原")
+                AppText("归档房源 · 只读查看，在归档列表中可还原")
                     .font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(10)
                     .frame(maxWidth: .infinity).background(XJTheme.soft).accessibilityIdentifier("house.readonly")
             }
@@ -113,7 +113,7 @@ struct ChecklistPage: View {
                         }
                     }.padding(.horizontal, 16).background(.white).clipShape(RoundedRectangle(cornerRadius: 16)).id(section["title"].string)
                 }
-                if sections.isEmpty { Text("没有符合条件的检查项").font(.system(size: 14)).foregroundStyle(XJTheme.muted).padding(32) }
+                if sections.isEmpty { AppText("没有符合条件的检查项").font(.system(size: 14)).foregroundStyle(XJTheme.muted).padding(32) }
             }
         }.overlayPreferenceValue(CoachAnchors.self) { anchors in
             if showCoach {
@@ -137,7 +137,7 @@ struct ChecklistPage: View {
             .toolbar { ToolbarItemGroup(placement: .keyboard) {
                 if isActive && note == nil && cost == nil {
                 Spacer()
-                Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                Button(AppCopy.text("完成")) { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
                     .accessibilityIdentifier("checklist.keyboard.done")
                 }
             } }
@@ -181,10 +181,10 @@ struct ChecklistPage: View {
     }
     @ViewBuilder private func checklistRow(_ row: JSONValue, hideDivider: Bool) -> some View {
         if row["kind"].string == "add-cost" {
-            Button("＋") { if !coordinator.consumeTap() { costText = ""; costError = ""; cost = row } }
+            Button(AppCopy.text("＋")) { if !coordinator.consumeTap() { costText = ""; costError = ""; cost = row } }
                 .font(.system(size: 24)).foregroundStyle(Color(red: 141/255, green: 149/255, blue: 163/255))
                 .frame(width: 44, height: 44).frame(maxWidth: .infinity).buttonStyle(.plain).disabled(readonly)
-                .accessibilityLabel("添加" + row["title"].string).accessibilityIdentifier("checklist.cost.\(row.id)")
+                .accessibilityLabel(AppCopy.text("添加" + row["title"].string)).accessibilityIdentifier("checklist.cost.\(row.id)")
         } else if row["kind"].string == "group" {
             VStack(spacing: 0) {
                 heading(row["swipe"], foldKey: row.id, groupRow: row)
@@ -320,12 +320,12 @@ struct NoteEditor: View {
                 TextEditor(text: $text).font(.system(size: 14)).disabled(readonly)
                     .accessibilityIdentifier("note.text")
                     .onChange(of: text) { _, value in if value.count > 10000 { text = String(value.prefix(10000)) } }
-                if !error.isEmpty { Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger) }
-            }.padding(16).navigationTitle(title).navigationBarTitleDisplayMode(.inline)
+                if !error.isEmpty { AppText(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger) }
+            }.padding(16).navigationTitle(AppCopy.text(title)).navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button(readonly ? "关闭" : "取消") { dismiss() } }
+                    ToolbarItem(placement: .cancellationAction) { Button(AppCopy.text(readonly ? "关闭" : "取消")) { dismiss() } }
                     if !readonly { ToolbarItem(placement: .confirmationAction) {
-                        Button("保存备注") { do { try save(text); dismiss() } catch { self.error = error.localizedDescription } }
+                        Button(AppCopy.text("保存备注")) { do { try save(text); dismiss() } catch { self.error = error.localizedDescription } }
                     } }
                 }
         }.presentationDetents([.medium, .large])

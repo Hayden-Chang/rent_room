@@ -9,6 +9,7 @@ import {SPEED_FIELD_ID} from '../../apps/wechat/src/lib/speed-test.js';
 import {updateWorkplace, selectWorkplace, clearWorkplace} from '../../apps/wechat/src/lib/workplace.js';
 import {coachSteps, coachTarget} from '../../apps/wechat/src/lib/onboarding.js';
 import {inspectionActions} from './inspection.js';
+import {currencyState,normalizeCurrency,addCurrencyHouse,currencyComparison} from './currency.js';
 import {recordHouseCreated, mergeReviewProgress, reviewActions} from './app-review.js';
 import {localDay} from '../../apps/wechat/src/lib/xiaoda-state.js';
 
@@ -24,11 +25,11 @@ export function initialize(raw, packs = 0, free = 1) {
   readState = readDay = undefined; readBytes = 0; readCache.clear();
   sessionPacks = packs; freeLimit = free;
   store = createStore({
-    read: () => raw,
+    read: () => currencyState(raw),
     previous() {
       const result = JSON.parse(nativePrevious());
       if (result.error) throw Error(result.error);
-      return result.value;
+      return currencyState(result.value);
     },
     preserveCorrupt() {
       const error = nativePreserveCorrupt();
@@ -53,7 +54,7 @@ function appendMedia(h, value) {
   if (value.fieldId && !model.checklistTargets(h).some(f => f.id === value.fieldId)) throw Error('检查项不存在');
   h.media.push(value);
 }
-function execute({operation, id, name, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds}) {
+function execute({operation, id, name, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds, currencyCode}) {
   if (Object.hasOwn(inspectionActions, operation)) return inspectionActions[operation](store, {id,name,property,value});
   if (Object.hasOwn(reviewActions, operation)) return reviewActions[operation](store, {value});
   switch (operation) {
@@ -68,7 +69,7 @@ function execute({operation, id, name, field, property, value, group, view, fold
       freeLimit = value; return null;
     }
     case 'catalog': return {fields: model.fields, categories: model.categories, count: model.fields.length};
-    case 'add': return store.add(value);
+    case 'add': return addCurrencyHouse(store,value,currencyCode||'USD');
     case 'rename': {
       const name = String(value).trim();
       if (!name || name.length > 100) throw Error('房源名称需为 1 至 100 字');
@@ -152,12 +153,13 @@ function execute({operation, id, name, field, property, value, group, view, fold
       if (!Array.isArray(ids) || new Set(ids).size !== ids.length) throw Error('请选择不同房源');
       const selected = ids.map(house);
       if (selected.some(h => h.archived)) throw Error('归档房源不可对比');
-      return model.comparison(selected, differences);
+      return currencyComparison(selected, differences);
     }
     case 'claimGuest': {
       if (!/^h[a-f0-9]{32}$/.test(id)) throw Error('未登录记录目录无效');
       if (store.get().guestClaims?.includes(id)) return null;
       const incoming = model.validateState(model.clone(value));
+      incoming.houses.forEach(normalizeCurrency);
       // Association must preserve every record, even when combined usage exceeds capacity.
       claimPacks = Math.max(sessionPacks, Math.ceil(Math.max(0, [...store.get().houses, ...incoming.houses].filter(h => !h.archived).length - freeLimit) / 10));
       try {
@@ -174,8 +176,8 @@ function execute({operation, id, name, field, property, value, group, view, fold
         }, true);
       } finally { claimPacks = null; }
     }
-    case 'prepareImport': return model.prepareImport(value);
-    case 'import': return store.import(houses, replaceIds);
+    case 'prepareImport': return model.prepareImport(value).map(normalizeCurrency);
+    case 'import': return store.import(model.clone(houses).map(normalizeCurrency), replaceIds);
     default: throw Error('不支持的操作');
   }
 }
@@ -228,7 +230,7 @@ export function dispatch(json, incremental = false) {
         // so unchanged houses need neither statistics nor another native decode.
         const text = JSON.stringify(h), old = deliveredHouses.get(h.id);
         const entry = old?.text === text ? old : {text, summary: {
-          id: h.id, name: h.name, archived: !!h.archived,
+          id: h.id, name: h.name, archived: !!h.archived, currencyCode: h.currencyCode || 'CNY',
           rent: String(h.answers.f1_6?.value ?? ''), area: String(h.answers.f1_3?.value ?? '—'),
           address: h.address || '', decision: h.decision || '', stats: model.stats(h),
           cover: h.media?.find(m => m.type === 'image')?.path || ''}};

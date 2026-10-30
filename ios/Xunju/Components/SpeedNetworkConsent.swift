@@ -33,10 +33,10 @@ struct SpeedNetworkConsent: UIViewControllerRepresentable {
             guard isViewLoaded, view.window != nil, current == nil, presentedViewController == nil, let request = desired else { return }
             current = request.id
             let mobile = request.kind == .mobile
-            let alert = UIAlertController(title: mobile ? "使用当前网络测速？" : "是否已连接 WiFi",
-                                          message: mobile ? "本次最多下载约 64 MiB 数据，可能消耗移动流量。建议连接房源 Wi-Fi 后测试。" : nil, preferredStyle: .alert)
+            let alert = UIAlertController(title: AppCopy.text(mobile ? "使用当前网络测速？" : "是否已连接 WiFi"),
+                                          message: mobile ? AppCopy.text("本次最多下载约 64 MiB 数据，可能消耗移动流量。建议连接房源 Wi-Fi 后测试。") : nil, preferredStyle: .alert)
             func action(_ title: String, style: UIAlertAction.Style, accepted: Bool) -> UIAlertAction {
-                UIAlertAction(title: title, style: style) { [weak self, weak alert] _ in
+                UIAlertAction(title: AppCopy.text(title), style: style) { [weak self, weak alert] _ in
                     guard let self else { return }
                     let finish: () -> Void = { [weak self] in self?.finish(request.id, accepted: accepted) }
                     if let alert { alert.dismiss(animated: true, completion: finish) } else { finish() }

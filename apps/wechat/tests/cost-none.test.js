@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -60,9 +61,9 @@ it('rejects invalid none updates, unrelated inputs and archived changes',()=>{
 it('binds the trailing none control and refreshes the saved page state on each toggle',()=>{
  let page,spec,disk='';const store=createStore({read:()=>disk,write:v=>{disk=v;}}),id=store.add('费用组件');
  vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page:p=>page=p,getApp:()=>({service:{store}}),wx:{setNavigationBarTitle(){},showToast(){}},console,setTimeout,clearTimeout}));
- page.data=structuredClone(page.data);page.setData=function(p){Object.assign(this.data,p);};page.onLoad({id});page.search({detail:{value:'一次性费用'}});
+ page.data=structuredClone(page.data);page.setData=function(p){applyPageData(this.data,p);};page.onLoad({id});page.search({detail:{value:'一次性费用'}});
  vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date});
- const c={...spec.methods,data:{...structuredClone(spec.data),field:page.data.sections.flatMap(s=>s.rows).find(r=>r.id==='f95_6')},setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){expect(name).toBe('answer');page.answer({detail});this.data.field=page.data.sections.flatMap(s=>s.rows).find(r=>r.id==='f95_6');}};
+ const c={...spec.methods,data:{...structuredClone(spec.data),field:page.data.sections.flatMap(s=>s.rows).find(r=>r.id==='f95_6')},setData(p){applyPageData(this.data,p);},triggerEvent(name,detail){expect(name).toBe('answer');page.answer({detail});this.data.field=page.data.sections.flatMap(s=>s.rows).find(r=>r.id==='f95_6');}};
  const markup=fs.readFileSync('dist/components/field-row/index.wxml','utf8'),tag=markup.match(/<button[^>]*class="[^"]*cost-none[^>]*>/)?.[0];expect(tag).toBeTruthy();
  expect(markup).toMatch(/class="cost-entry"[\s\S]*<input[^>]*disabled="\{\{readonly\|\|field.noneSelected\}\}"[\s\S]*class="control choice cost-none/);
  const handler=tag.match(/catchtap="([^"]+)"/)[1];

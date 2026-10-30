@@ -23,7 +23,7 @@ struct InspectionFieldRow: View {
             if field["map"].bool {
                 HousePlaceField(workspace: workspace, id: houseID)
             } else {
-                MPFieldRow(item: ChecklistPresentation.item(field, hideDivider: hideDivider),
+                MPFieldRow(item: ChecklistPresentation.item(field, hideDivider: hideDivider, currency: workspace.store.house(houseID)["currencyCode"].string),
                     state: Binding(get: { ChecklistPresentation.state(field) }, set: { value in
                         interaction(field.id, nil)
                         workspace.perform { try ChecklistPresentation.write(value, from: field, houseID: houseID, store: workspace.store) }
@@ -37,7 +37,7 @@ struct InspectionFieldRow: View {
             }
             FieldRelatedMedia(workspace: workspace, houseID: houseID, fieldID: field.id)
         }.fullScreenCover(isPresented: $editingNote) {
-            MPNoteSheet(title: field["label"].string + " · 备注", text: $noteText, readonly: readonly, error: noteError,
+            MPNoteSheet(title: AppCopy.fieldLabel(field["label"].string, id: field.id) + " · " + AppCopy.text("备注"), rawTitle: true, text: $noteText, readonly: readonly, error: noteError,
                 close: { editingNote = false }, save: {
                     do {
                         try workspace.store.answer(houseID, field: field.id, property: "note", value: .string(String(noteText.prefix(10000))))

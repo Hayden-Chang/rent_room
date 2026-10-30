@@ -99,6 +99,7 @@ struct MPFieldItem {
     var progress: Double? = nil
     var issueCount = 0
     var collapsible = true
+    var currency: String? = nil
     var heading: Bool { kind == .category || kind == .group }
 }
 
@@ -140,12 +141,12 @@ struct MPFieldRow: View {
                 }
                 HStack(spacing: 8) {
                     HStack(spacing: 8) {
-                        Text(item.title + (item.multiple ? " · 多选" : ""))
+                        Text(verbatim: (item.currency.map { AppCopy.moneyLabel(item.title, currency: $0, verbatim: item.id.hasPrefix("cost_")) } ?? AppCopy.text(item.title)) + (item.multiple ? AppCopy.text(" · 多选") : ""))
                             .font(.system(size: item.heading ? 14 : 13, weight: item.heading ? .semibold : .regular))
                             .foregroundStyle(problemInk).multilineTextAlignment(.leading)
                             .accessibilityIdentifier("mp.field.title.\(item.id)")
-                            .accessibilityValue(item.heading && item.collapsible ? (state.expanded ? "已展开" : "已折叠") : "")
-                        if item.heading && item.collapsible { Text(state.expanded ? "⌃" : "⌄").font(.system(size: 11)).foregroundStyle(XJTheme.muted).accessibilityHidden(true) }
+                            .accessibilityValue(AppCopy.text(item.heading && item.collapsible ? (state.expanded ? "已展开" : "已折叠") : ""))
+                        if item.heading && item.collapsible { AppText(state.expanded ? "⌃" : "⌄").font(.system(size: 11)).foregroundStyle(XJTheme.muted).accessibilityHidden(true) }
                     }.frame(maxWidth: item.kind == .text ? 104 : .infinity, minHeight: height, alignment: .leading)
                         .contentShape(Rectangle()).onTapGesture {
                             if !coordinator.consumeTap(), item.heading && item.collapsible {
@@ -160,23 +161,23 @@ struct MPFieldRow: View {
             }.clipped().contentShape(Rectangle())
             if !item.inline && !item.heading { answer.padding(.top, 6).allowsHitTesting(offset == 0) }
             if !item.description.isEmpty {
-                Text(item.description).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                AppText(item.description).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8)
                     .accessibilityIdentifier("mp.field.description.\(item.id)")
             }
             if state.selected.contains("其他") {
-                TextField(focused ? "" : "请填写其他内容", text: $state.otherText).focused($focused).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 44)
+                TextField(AppCopy.text(focused ? "" : "请填写其他内容"), text: $state.otherText).focused($focused).font(.system(size: 13)).padding(.horizontal, 12).frame(height: 44)
                     .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).padding(.top, 8).disabled(readonly)
                     .onChange(of: state.otherText) { state.otherText = String(state.otherText.prefix(2000)) }
                     .accessibilityIdentifier("mp.field.other.\(item.id)")
             }
             if !state.note.isEmpty {
                 Button { if !coordinator.consumeTap() { note() } } label: {
-                    Text(state.note).font(.system(size: 12)).foregroundStyle(XJTheme.primary).multilineTextAlignment(.leading)
+                    Text(verbatim: state.note).font(.system(size: 12)).foregroundStyle(XJTheme.primary).multilineTextAlignment(.leading)
                         .lineLimit(item.heading ? nil : 2).frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(.plain).padding(.top, 8)
             }
-            if !item.photoRef.isEmpty { Text("原照片编号：" + item.photoRef).font(.system(size: 11)).foregroundStyle(XJTheme.muted).padding(.top, 4) }
+            if !item.photoRef.isEmpty { AppText("原照片编号：" + item.photoRef).font(.system(size: 11)).foregroundStyle(XJTheme.muted).padding(.top, 4) }
         }.padding(.vertical, item.inline ? 2 : item.heading ? 4 : 12).padding(.top, item.kind == .group ? 8 : 0)
             .background(state.flagged ? XJTheme.dangerBackground : .clear)
             .clipShape(RoundedRectangle(cornerRadius: state.flagged ? 8 : 0))
@@ -189,7 +190,7 @@ struct MPFieldRow: View {
                 if !readonly { withAnimation(.easeOut(duration: 0.18)) { coordinator.reveal(item.id) } }
             })
             .accessibilityElement(children: .contain).accessibilityIdentifier("mp.field.\(item.id)")
-            .accessibilityValue((coordinator.active == item.id ? "操作已展开" : "操作已收起") + coordinator.diagnostic)
+            .accessibilityValue(AppCopy.text((coordinator.active == item.id ? "操作已展开" : "操作已收起") + coordinator.diagnostic))
             .sheet(isPresented: $datePicker) { DateInputSheet(value: $state.text).presentationDetents([.medium]) }
     }
     @ViewBuilder private var answer: some View {
@@ -197,29 +198,29 @@ struct MPFieldRow: View {
             HStack(spacing: 8) {
                 Button { if !coordinator.consumeTap() { wheel?() } } label: {
                     HStack(spacing: 8) {
-                        Text(spec.choices(preserving: state.text).first { spec.key($0.value) == spec.key(state.text) }?.label ?? state.text).lineLimit(1)
+                        Text(verbatim: spec.display(state.text)).lineLimit(1)
                         Image(systemName: "chevron.down").font(.system(size: 10))
                     }.font(.system(size: 13)).foregroundStyle(state.text.isEmpty ? XJTheme.muted : XJTheme.ink)
                         .padding(.horizontal, 12).frame(minWidth: measurement == nil ? 96 : Self.measurementWheelMinimumWidth, minHeight: 44)
                         .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                 }.buttonStyle(.plain).disabled(readonly || state.noneSelected).accessibilityIdentifier("mp.field.wheel.\(item.id)")
-                    .accessibilityValue(state.text.isEmpty ? "未填写" : state.text)
+                    .accessibilityValue(spec.display(state.text))
                 if item.allowsNone { noneOption }
                 if let measurement {
-                    Button("查询") { if !coordinator.consumeTap() { measurement.perform() } }
+                    Button(AppCopy.text("查询")) { if !coordinator.consumeTap() { measurement.perform() } }
                         .font(.system(size: 13)).padding(.horizontal, 10).frame(height: 44).foregroundStyle(XJTheme.primary)
                         .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 8)).buttonStyle(.plain)
                         .disabled(readonly).accessibilityIdentifier("measurement.\(item.id)")
                 }
             }
         } else if item.kind == .date {
-            Button(state.text.isEmpty ? "选择日期" : state.text) { if !coordinator.consumeTap() { datePicker = true } }
+            Button(AppCopy.text(state.text.isEmpty ? "选择日期" : state.text)) { if !coordinator.consumeTap() { datePicker = true } }
                 .font(.system(size: 13)).padding(.horizontal, 12).frame(minHeight: 44)
                 .background(.white).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                 .buttonStyle(.plain).disabled(readonly).accessibilityIdentifier("mp.field.input.\(item.id)")
         } else if item.kind == .text || item.kind == .number {
             HStack(spacing: measurement?.kind == .speed ? 6 : 8) {
-            TextField(focused ? "" : measurement.map { $0.kind == .speed ? "网速" : "分钟" } ?? (item.kind == .number ? "填写数值" : "填写信息"), text: $state.text)
+            TextField(AppCopy.text(focused ? "" : measurement.map { $0.kind == .speed ? "网速" : "分钟" } ?? (item.kind == .number ? "填写数值" : "填写信息")), text: $state.text)
                 .font(.system(size: 13)).keyboardType(item.kind == .number ? (item.numberPad ? .numberPad : .decimalPad) : .default).focused($focused)
                 .multilineTextAlignment(item.kind == .number ? .trailing : .leading)
                 .padding(.horizontal, measurement == nil ? 12 : 8).frame(width: item.kind == .number ? (measurement == nil ? 96 : 76) : nil, height: 44)
@@ -228,8 +229,8 @@ struct MPFieldRow: View {
                 .onChange(of: state.text) { state.text = String(state.text.prefix(2000)) }.accessibilityIdentifier("mp.field.input.\(item.id)")
                 if item.allowsNone { noneOption }
                 if let measurement {
-                    if measurement.kind == .speed { Text("Mbps").font(.system(size: 11)).foregroundStyle(XJTheme.muted) }
-                    Button(measurement.kind == .speed ? "测试" : "查询") { if !coordinator.consumeTap() { measurement.perform() } }
+                    if measurement.kind == .speed { AppText("Mbps").font(.system(size: 11)).foregroundStyle(XJTheme.muted) }
+                    Button(AppCopy.text(measurement.kind == .speed ? "测试" : "查询")) { if !coordinator.consumeTap() { measurement.perform() } }
                         .font(.system(size: 13)).padding(.horizontal, 10).frame(height: 44).foregroundStyle(XJTheme.primary)
                         .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 8)).buttonStyle(.plain)
                         .disabled(readonly).accessibilityIdentifier("measurement.\(item.id)")
@@ -240,15 +241,15 @@ struct MPFieldRow: View {
                 if !item.stats.isEmpty {
                     if let progress = item.progress {
                         HStack(spacing: 8) {
-                            if item.issueCount > 0 { Text("\(item.issueCount) 个问题").foregroundStyle(XJTheme.danger) }
+                            if item.issueCount > 0 { AppText("\(item.issueCount) 个问题").foregroundStyle(XJTheme.danger) }
                             GeometryReader { geometry in
                                 Capsule().fill(XJTheme.soft)
                                 Capsule().fill(progress == 1 ? Color(red: 22/255, green: 163/255, blue: 74/255) : XJTheme.primary)
                                     .frame(width: geometry.size.width * max(0, min(1, progress)))
                             }.frame(width: 48, height: 4)
-                            Text(item.stats).monospacedDigit().foregroundStyle(XJTheme.muted).frame(minWidth: 40, alignment: .trailing)
+                            AppText(item.stats).monospacedDigit().foregroundStyle(XJTheme.muted).frame(minWidth: 40, alignment: .trailing)
                         }.font(.system(size: 12)).accessibilityElement(children: .combine)
-                    } else { Text(item.stats).font(.system(size: 12)).foregroundStyle(XJTheme.muted).fixedSize() }
+                    } else { AppText(item.stats).font(.system(size: 12)).foregroundStyle(XJTheme.muted).fixedSize() }
                 }
                 if item.skippable { option("不涉及", selected: state.skipped, isSkip: true) { state.skipped.toggle() } }
                 if !state.skipped {
@@ -272,7 +273,7 @@ struct MPFieldRow: View {
                 feedback(.selection)
             }
         } label: {
-            Text(title).font(.system(size: isSkip ? 12 : 13, weight: item.heading && !isSkip ? .semibold : .regular))
+            AppText(title).font(.system(size: isSkip ? 12 : 13, weight: item.heading && !isSkip ? .semibold : .regular))
                 .fixedSize(horizontal: true, vertical: false).padding(.horizontal, item.inline ? 10 : 14).frame(minWidth: 44, minHeight: 44)
                 .foregroundStyle(selected ? XJTheme.primary : XJTheme.ink).background(selected ? XJTheme.soft : XJTheme.background)
                 .clipShape(RoundedRectangle(cornerRadius: 6))
@@ -286,7 +287,7 @@ struct MPFieldRow: View {
     }
     private func tray(_ title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
         Button { coordinator.close(); action() } label: { XJIcon(name: icon).frame(width: 44, height: 44).background(color) }
-            .buttonStyle(.plain).accessibilityLabel(title).accessibilityIdentifier("mp.field.action.\(item.id).\(title)")
+            .buttonStyle(.plain).accessibilityLabel(AppCopy.text(title)).accessibilityIdentifier("mp.field.action.\(item.id).\(title)")
     }
 }
 
@@ -315,12 +316,12 @@ struct MPChecklistSurface<Content: View>: View {
                     Color.clear.frame(height: 28).id("top").background { if let scrollPosition { NativeScrollProbe(position: scrollPosition) } }
                     MPCard {
                         VStack(spacing: 0) {
-                            HStack { Text("总进度").font(.system(size: 17, weight: .semibold)).frame(height: 25.5); Spacer(); Text("\(done) / \(total)").font(.system(size: 14)) }
+                            HStack { AppText("总进度").font(.system(size: 17, weight: .semibold)).frame(height: 25.5); Spacer(); AppText("\(done) / \(total)").font(.system(size: 14)) }
                             GeometryReader { geometry in
                                 Capsule().fill(XJTheme.soft)
                                 Capsule().fill(XJTheme.primary).frame(width: geometry.size.width * CGFloat(done) / CGFloat(max(1, total)))
                             }.frame(height: 5).padding(.top, 14).padding(.bottom, 10)
-                            HStack { Spacer(); Text("\(issues) 项有问题").foregroundStyle(XJTheme.danger) }.font(.system(size: 12)).frame(height: 18)
+                            HStack { Spacer(); AppText("\(issues) 项有问题").foregroundStyle(XJTheme.danger) }.font(.system(size: 12)).frame(height: 18)
                         }
                     }
                     if guidance != .null { XiaodaGuidanceCard(prompt: guidance, action: guidanceAction).padding(.top, 12).id("xiaoda.guide") }
@@ -328,7 +329,7 @@ struct MPChecklistSurface<Content: View>: View {
                         HStack(spacing: 8) {
                             ForEach(["全部", "房源", "现场", "询问签约"], id: \.self) { value in
                                 Button { if !coordinator.consumeTap() { phase = value } } label: {
-                                    Text(["房源":"基本情况", "现场":"现场检查", "询问签约":"费用与合同"][value] ?? value)
+                                    AppText(["房源":"基本情况", "现场":"现场检查", "询问签约":"费用与合同"][value] ?? value)
                                         .font(.system(size: 13, weight: .medium))
                                         .frame(width: max(0, geometry.size.width - 24) / 4.25 * (value == "询问签约" ? 1.25 : 1), height: 44)
                                         .background(phase == value ? XJTheme.soft : .white).clipShape(Capsule())
@@ -337,14 +338,14 @@ struct MPChecklistSurface<Content: View>: View {
                         }
                     }.frame(height: 44).padding(.vertical, 14).anchorPreference(key: CoachAnchors.self, value: .bounds) { [1:$0] }
                     HStack(spacing: 8) {
-                        TextField("搜索检查项、结果或备注", text: $query, prompt: Text("搜索检查项、结果或备注").foregroundStyle(Color(white: 0.5))).font(.system(size: 14)).padding(.horizontal, 12).frame(height: 44).background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
+                        TextField(AppCopy.text("搜索检查项、结果或备注"), text: $query, prompt: AppText("搜索检查项、结果或备注").foregroundStyle(Color(white: 0.5))).font(.system(size: 14)).padding(.horizontal, 12).frame(height: 44).background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).accessibilityIdentifier("mp.checklist.search")
                         Button { if !coordinator.consumeTap() { showFilters.toggle() } } label: {
                             HStack(spacing: 8) {
-                                Text("筛选" + (filters.isEmpty ? "" : " \(filters.count)"))
+                                AppText("筛选" + (filters.isEmpty ? "" : " \(filters.count)"))
                                 Image(systemName: showFilters ? "chevron.up" : "chevron.down").font(.system(size: 10, weight: .semibold))
                             }
-                        }.buttonStyle(MPButtonStyle(kind: .soft)).frame(width: filters.isEmpty ? 71 : 88).accessibilityLabel("筛选" + (filters.isEmpty ? "" : " \(filters.count)"))
+                        }.buttonStyle(MPButtonStyle(kind: .soft)).frame(width: filters.isEmpty ? 71 : 88).accessibilityLabel(AppCopy.text("筛选" + (filters.isEmpty ? "" : " \(filters.count)")))
                     }
                     if showFilters {
                         ChoiceFlow {
@@ -353,7 +354,7 @@ struct MPChecklistSurface<Content: View>: View {
                                     guard !coordinator.consumeTap() else { return }
                                     if value == "全部" { filters = [] } else if !filters.insert(value).inserted { filters.remove(value) }
                                 } label: {
-                                    Text(value).font(.system(size: 13)).padding(.horizontal, 14).frame(minHeight: 44)
+                                    AppText(value).font(.system(size: 13)).padding(.horizontal, 14).frame(minHeight: 44)
                                         .foregroundStyle((value == "全部" ? filters.isEmpty : filters.contains(value)) ? XJTheme.primary : XJTheme.ink)
                                         .background((value == "全部" ? filters.isEmpty : filters.contains(value)) ? XJTheme.soft : .white).clipShape(Capsule())
                                 }.buttonStyle(.plain)
@@ -420,7 +421,7 @@ private struct MPFieldSwipe: ViewModifier {
 // Reject vertical pans before recognition so the parent ScrollView keeps scrolling.
 // SwiftUI's simultaneousGesture no longer implies simultaneous ancestor gestures on iOS 26.
 @available(iOS 18, *)
-private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
+struct MPHorizontalPan: UIGestureRecognizerRepresentable {
     let enabled: Bool
     let changed: (CGSize, Double) -> Void, ended: (CGSize, Double, CGFloat) -> Void, cancelled: () -> Void
     let trace: (String) -> Void
@@ -456,7 +457,16 @@ private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
             return abs(velocity.x) > abs(velocity.y) * 1.2
         }
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
-            other is UIPanGestureRecognizer
+            // A diagonal horizontal swipe must not move the enclosing list too.
+            false
+        }
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy other: UIGestureRecognizer) -> Bool {
+            guard let scroll = other.view as? UIScrollView,
+                  other === scroll.panGestureRecognizer,
+                  let view = gestureRecognizer.view else { return false }
+            // Let the row decide its direction first. A vertical pan fails in
+            // shouldBegin and immediately leaves scrolling to the parent.
+            return view.isDescendant(of: scroll)
         }
     }
 }

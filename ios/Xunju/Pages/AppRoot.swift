@@ -10,18 +10,27 @@ struct AppRoot: View {
             if let workspace { WorkspaceRoot(workspace: workspace) }
             else if !launchError.isEmpty {
                 VStack(spacing: 16) {
-                    Text("本机记录暂时无法打开").font(.headline)
-                    Text(launchError).font(.subheadline)
-                    Button("重试", action: load).buttonStyle(XJButtonStyle(primary: true))
+                    AppText("本机记录暂时无法打开").font(.headline)
+                    AppText(launchError).font(.subheadline)
+                    Button(AppCopy.text("重试"), action: load).buttonStyle(XJButtonStyle(primary: true))
                 }.padding(24)
-            } else { ProgressView("正在读取本机记录…") }
+            } else { ProgressView(AppCopy.text("正在读取本机记录…")) }
         }.frame(maxWidth: .infinity, maxHeight: .infinity).background(XJTheme.background)
             .task { if workspace == nil { load() } }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { workspace?.save() }
-                else if !AppWorkspace.isBusinessTest { Task { await workspace?.refreshPolicy(); await workspace?.billing.load() } }
+                if phase == .background { workspace?.currencyLocation.enterBackground() }
+                if phase == .active {
+                    workspace?.regional.updateSystemLanguages(Locale.preferredLanguages)
+                    workspace?.currencyLocation.refreshOnForeground()
+                }
             }
-            .environment(\.locale, Locale(identifier: "zh_CN")).preferredColorScheme(.light)
+            .environment(\.locale, workspace?.regional.language.locale ?? LanguageSelection.system.resolve(Locale.preferredLanguages).locale)
+            .environment(\.regionalLanguage, workspace?.regional.language ?? LanguageSelection.system.resolve(Locale.preferredLanguages))
+            .onChange(of: workspace?.regional.language, initial: true) { _, language in
+                AppLanguage.shared.value = language ?? LanguageSelection.system.resolve(Locale.preferredLanguages)
+            }
+            .preferredColorScheme(.light)
             .overlay { TouchTrailPresentation() }
             .defaultAppStorage(touchTrailDefaults)
     }
@@ -75,13 +84,36 @@ private struct WorkspaceRoot: View {
                 }
             }
             .onChange(of: workspace.identityRevision) { wheels.target = nil }
+            .onChange(of: workspace.store.state["xiaoda"]["setup"].string, initial: true) { _, value in
+                workspace.currencyLocation.afterChecklist(value == "done" && !workspace.store.status.blocked)
+            }
             .task(id: workspace.identityRevision) {
-                if !AppWorkspace.isBusinessTest { workspace.billing.start(); await workspace.refreshPolicy(); await workspace.billing.load() }
+                workspace.currencyLocation.refreshOnForeground()
             }
             .toolbarBackground(XJTheme.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
-            .alert("提示", isPresented: Binding(get: { !workspace.error.isEmpty }, set: { if !$0 { workspace.error = "" } })) {
-                Button("知道了", role: .cancel) { workspace.error = "" }
-            } message: { Text(workspace.error) }
+            .alert(AppCopy.text("提示"), isPresented: Binding(get: { !workspace.error.isEmpty }, set: { if !$0 { workspace.error = "" } })) {
+                Button(AppCopy.text("知道了"), role: .cancel) { workspace.error = "" }
+            } message: { AppText(workspace.error) }
+            .accessibilityHidden(workspace.currencyLocation.showsPrompt)
+            .allowsHitTesting(!workspace.currencyLocation.showsPrompt)
+            .overlay {
+                if workspace.currencyLocation.showsPrompt {
+                    CurrencyLocationPrompt(busy: workspace.currencyLocation.busy,
+                        automatic: workspace.currencyLocation.request,
+                        manual: workspace.currencyLocation.chooseManual,
+                        decline: workspace.currencyLocation.decline)
+                }
+            }
+            .sheet(isPresented: Binding(get: { workspace.currencyLocation.showsManualSelection }, set: { workspace.currencyLocation.showsManualSelection = $0 })) {
+                NavigationStack {
+                    CurrencySelectionSurface(preferences: workspace.regional.preferences, select: workspace.currencyLocation.chooseCurrency)
+                        .navigationTitle(AppCopy.text(RegionalCopy.text("settings.currency", language: workspace.regional.language)))
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar { ToolbarItem(placement: .confirmationAction) {
+                            Button(AppCopy.text("完成")) { workspace.currencyLocation.showsManualSelection = false }
+                        } }
+                }
+            }
     }
 }
 
@@ -96,7 +128,7 @@ struct XJTabBar: View {
                 Button { selection = name } label: {
                     VStack(spacing: items.count == 4 ? 1 : 3) {
                         XJIcon(name: icon + (selection == name ? "-selected" : "-default"))
-                        Text(name + (items.count == 4 && name == "影像" ? " \(mediaCount)" : items.count == 4 && name == "问题" ? " \(issueCount)" : "")).font(.system(size: items.count == 4 ? 13 : 10, weight: items.count == 4 ? .medium : .regular))
+                        AppText(name + (items.count == 4 && name == "影像" ? " \(mediaCount)" : items.count == 4 && name == "问题" ? " \(issueCount)" : "")).font(.system(size: items.count == 4 ? 13 : 10, weight: items.count == 4 ? .medium : .regular))
                     }.frame(maxWidth: .infinity, minHeight: items.count == 4 ? 48 : 50).contentShape(Rectangle())
                         .foregroundStyle(selection == name ? XJTheme.primary : Color(red: 141 / 255, green: 149 / 255, blue: 163 / 255))
                 }.buttonStyle(MPStaticButtonStyle()).accessibilityIdentifier("tab.\(name)")
@@ -112,8 +144,8 @@ struct SaveBanner: View {
     var body: some View {
         if !workspace.store.status.error.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
-                Text(workspace.store.status.error).font(.system(size: 13))
-                Button(workspace.store.status.blocked ? "尝试恢复本机记录" : "重试保存") {
+                AppText(workspace.store.status.error).font(.system(size: 13))
+                Button(AppCopy.text(workspace.store.status.blocked ? "尝试恢复本机记录" : "重试保存")) {
                     workspace.perform { try workspace.store.call(workspace.store.status.blocked ? "recover" : "save") }
                 }.buttonStyle(XJButtonStyle(primary: false))
             }.padding(12).foregroundStyle(XJTheme.danger).background(XJTheme.dangerBackground)
@@ -134,19 +166,19 @@ struct TextPrompt: View {
     var body: some View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 16) {
-                TextField(placeholder, text: $text).textFieldStyle(.roundedBorder)
+                TextField(AppCopy.text(placeholder), text: $text).textFieldStyle(.roundedBorder)
                     .accessibilityIdentifier("prompt.text").focused($focused)
                     .onChange(of: text) { _, value in if value.count > maxLength { text = String(value.prefix(maxLength)) } }
                 if !error.isEmpty {
-                    Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger)
+                    AppText(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger)
                         .accessibilityIdentifier("prompt.error")
                 }
                 Spacer()
-            }.padding(20).background(XJTheme.background).navigationTitle(title).navigationBarTitleDisplayMode(.inline)
+            }.padding(20).background(XJTheme.background).navigationTitle(AppCopy.text(title)).navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
+                    ToolbarItem(placement: .cancellationAction) { Button(AppCopy.text("取消")) { dismiss() } }
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("确定") {
+                        Button(AppCopy.text("确定")) {
                             do { try save(text.trimmingCharacters(in: .whitespacesAndNewlines)); dismiss() }
                             catch { self.error = error.localizedDescription }
                         }

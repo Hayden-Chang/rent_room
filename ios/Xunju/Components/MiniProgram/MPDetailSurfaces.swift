@@ -22,7 +22,7 @@ struct MPDetailSurface<Checklist: View, Media: View, Issues: View, Summary: View
     var body: some View {
         VStack(spacing: 0) {
             if readonly {
-                Text("房源已归档，当前为只读查看").font(.system(size: 12)).foregroundStyle(XJTheme.primary)
+                AppText("房源已归档，当前为只读查看").font(.system(size: 12)).foregroundStyle(XJTheme.primary)
                     .padding(10).frame(maxWidth: .infinity, alignment: .leading).background(XJTheme.soft)
             }
             ZStack {
@@ -44,11 +44,11 @@ struct MPIssuesSurface<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("需要关注 · \(count)").font(.system(size: 16, weight: .semibold))
+                AppText("需要关注 · \(count)").font(.system(size: 16, weight: .semibold))
                 if count == 0 {
                     VStack(spacing: 12) {
-                        Text("目前没有标记的问题").font(.system(size: 17, weight: .semibold))
-                        Text("未检查的项目仍需继续查看。").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
+                        AppText("目前没有标记的问题").font(.system(size: 17, weight: .semibold))
+                        AppText("未检查的项目仍需继续查看。").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                     }.frame(maxWidth: .infinity).padding(.top, 40)
                 }
                 content
@@ -74,17 +74,17 @@ struct MPComparisonResults: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         HStack {
-                            Text("隐藏相同属性").font(.system(size: 14, weight: .semibold))
+                            AppText("隐藏相同属性").font(.system(size: 14, weight: .semibold))
                             Spacer()
                             MPSwitch(value: $differences, label: "隐藏相同属性").accessibilityIdentifier("mp.compare.differences")
                         }.padding(.horizontal, 12).frame(height: 48).background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).padding(.top, 8)
                         table(width: max(0, geometry.size.width - 32))
                         if rows.filter({ !differences || $0.different }).isEmpty {
-                            Text("所选房源没有已显示的差异").font(.system(size: 14)).foregroundStyle(XJTheme.muted)
+                            AppText("所选房源没有已显示的差异").font(.system(size: 14)).foregroundStyle(XJTheme.muted)
                         }
                     }.padding(16)
                 }
-                Button("返回选择房源", action: back).font(.system(size: 14, weight: .medium))
+                Button(AppCopy.text("返回选择房源"), action: back).font(.system(size: 14, weight: .medium))
                     .frame(maxWidth: .infinity, minHeight: 52).foregroundStyle(.white).background(XJTheme.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 12)).buttonStyle(.plain)
                     .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 22)
@@ -107,7 +107,7 @@ struct MPComparisonResults: View {
         }.clipShape(RoundedRectangle(cornerRadius: 14))
     }
     private func cell(_ text: String, width: CGFloat, label: Bool = false, header: Bool = false) -> some View {
-        Text(text).font(.system(size: label ? 12 : 13, weight: header ? .semibold : .regular))
+        AppText(text).font(.system(size: label ? 12 : 13, weight: header ? .semibold : .regular))
             .foregroundStyle(label || text == "未填写" ? XJTheme.muted : XJTheme.ink)
             .multilineTextAlignment(label ? .leading : .center).padding(.vertical, 16).padding(.horizontal, label ? 12 : 6)
             .frame(width: width).frame(minHeight: header ? 74 : 56, alignment: label ? .leading : .center)
@@ -124,13 +124,13 @@ struct MPConfirmation: View {
         ZStack {
             XJTheme.ink.opacity(0.38).ignoresSafeArea()
             VStack(spacing: 0) {
-                Text(title).font(.system(size: 17, weight: .semibold)).padding(.top, 24)
-                Text(message).font(.system(size: 14)).foregroundStyle(XJTheme.muted).multilineTextAlignment(.center).padding(24)
+                AppText(title).font(.system(size: 17, weight: .semibold)).padding(.top, 24)
+                AppText(message).font(.system(size: 14)).foregroundStyle(XJTheme.muted).multilineTextAlignment(.center).padding(24)
                 HStack(spacing: 0) {
-                    Button(action: cancel) { Text(cancelTitle).frame(maxWidth: .infinity, minHeight: 52).contentShape(Rectangle()) }
+                    Button(action: cancel) { AppText(cancelTitle).frame(maxWidth: .infinity, minHeight: 52).contentShape(Rectangle()) }
                         .foregroundStyle(XJTheme.muted).accessibilityIdentifier("mp.confirm.cancel")
                     XJTheme.line.frame(width: 1, height: 52)
-                    Button(confirmTitle, action: confirm).frame(maxWidth: .infinity, minHeight: 52).foregroundStyle(destructive ? XJTheme.danger : XJTheme.primary)
+                    Button(AppCopy.text(confirmTitle), action: confirm).frame(maxWidth: .infinity, minHeight: 52).foregroundStyle(destructive ? XJTheme.danger : XJTheme.primary)
                         .accessibilityIdentifier("mp.confirm")
                 }.font(.system(size: 16, weight: .medium)).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
             }.background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).padding(.horizontal, 40)
@@ -155,7 +155,7 @@ struct MPPressActions: ViewModifier {
 struct MPToast: View {
     let text: String
     var body: some View {
-        Text(text).font(.system(size: 14)).foregroundStyle(.white).multilineTextAlignment(.center)
+        AppText(text).font(.system(size: 14)).foregroundStyle(.white).multilineTextAlignment(.center)
             .padding(.horizontal, 24).padding(.vertical, 16).background(.black.opacity(0.72))
             .clipShape(RoundedRectangle(cornerRadius: 10)).padding(40).allowsHitTesting(false)
             .accessibilityIdentifier("mp.toast")

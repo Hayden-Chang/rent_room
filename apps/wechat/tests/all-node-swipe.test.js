@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
@@ -38,7 +39,7 @@ it('all checklist header kinds use the same gesture component instead of separat
 });
 it('a heading tap folds once, its answer tap only selects, and its swipe never folds',()=>{
  let spec;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date});
- const events=[],c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'node:group:group-a',heading:'group',foldId:'group-a',expanded:false}},setData(v){Object.assign(this.data,v);},triggerEvent(n,d){events.push({n,d});}};
+ const events=[],c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'node:group:group-a',heading:'group',foldId:'group-a',expanded:false}},setData(v){applyPageData(this.data,v);},triggerEvent(n,d){events.push({n,d});}};
  const touch=x=>({touches:[{clientX:x,clientY:50}],changedTouches:[{clientX:x,clientY:50}]});
  c.start(touch(200));c.end(touch(200));c.tapHead();expect(events).toEqual([{n:'fold',d:{id:'group-a',expanded:false}}]);
  events.length=0;c.start(touch(200));c.end(touch(200));c.choose({currentTarget:{dataset:{value:'否'}}});expect(events).toEqual([{n:'group',d:{id:'group-a',op:'value',value:'否'}}]);
@@ -50,7 +51,7 @@ it('page actions save and reopen parent notes and media, independently of group 
  const {store,id,io}=make();let page;const mediaCalls=[];
  const service={store,chooseMedia:async(...args)=>mediaCalls.push(args)};
  vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page:p=>page=p,getApp:()=>({service}),wx:{setNavigationBarTitle(){},showToast(){}},console,setTimeout,clearTimeout}));
- page.data=structuredClone(page.data);page.setData=function(v){Object.assign(this.data,v);};page.onLoad({id});
+ page.data=structuredClone(page.data);page.setData=function(v){applyPageData(this.data,v);};page.onLoad({id});
  const category=page.data.sections[0];page.fold({detail:{id:category.title,expanded:false}});expect(page.data.sections[0].expanded).toBe(true);
  const target=category.header.id;
  page.action({detail:{id:target,action:'note'}});expect(page.data.noteTitle).toBe(category.title);

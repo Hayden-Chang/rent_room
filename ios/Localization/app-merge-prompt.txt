@@ -1,0 +1,7 @@
+Translate these new iOS rental viewing app labels into concise natural English. 显示触摸轨迹 is a settings toggle showing visual touch trails. The money template contains a currency code, amount and per-month suffix; preserve {v0} and {v1}. Other strings are data validation errors. Return ONLY JSON, exact keys. No tools or file access.
+{
+  "s1302": "{v0} {v1} / 月",
+  "s1303": "房源更新数据无效",
+  "s1304": "显示触摸轨迹",
+  "s1305": "清单数据类型无效"
+}
