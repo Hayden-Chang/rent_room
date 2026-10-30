@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-examples-en-20261031-a",
+  "phase": "development",
+  "taskName": "英文示例房源内容与双语照片卡片、对比、重启验收",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/private/tmp/rent-room-first-launch-examples-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange",
+      "reason": "初始化语言透传、旧数据保护与示例媒体持久化",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart",
+      "reason": "初始化语言透传、旧数据保护与示例媒体持久化",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyInstallationAndOldHouseAreNeverSeeded",
+      "reason": "初始化语言透传、旧数据保护与示例媒体持久化",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyFileAndRecoveryCopyAreNeverSeeded",
+      "reason": "初始化语言透传、旧数据保护与示例媒体持久化",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExamplePhotosSurviveBackupExportAndImport",
+      "reason": "初始化语言透传、旧数据保护与示例媒体持久化",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testCanonicalComparisonAndWheelUnitsPreserveCustomValues",
+      "reason": "英文示例沿用原始选项的显示翻译及自定义值原文保护",
+      "source": "affected-existing"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/ExampleHousesReviewTests/testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch",
+      "reason": "首页和对比选择页照片卡片保持间距与屏幕边距，真实对比和重启",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuUITests/ExampleHousesReviewTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText",
+      "reason": "英文环境首页、双列照片卡片、真实对比与重启",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/ExampleHousesReviewTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText"
+  ]
+}
