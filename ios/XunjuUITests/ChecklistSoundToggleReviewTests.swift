@@ -42,6 +42,10 @@ final class ChecklistSoundToggleReviewTests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+        let header = XCTAttachment(screenshot: app.otherElements["navigation.header"].screenshot())
+        header.name = name + "-header"
+        header.lifetime = .keepAlways
+        add(header)
     }
 }
 

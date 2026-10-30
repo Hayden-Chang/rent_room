@@ -27,7 +27,6 @@ struct ChecklistSoundToggleReviewHost: View {
         .miniNavigation("阳光小区 · 1号房", back: { backCount += 1 }) {
             ChecklistSoundToggle(enabled: $enabled)
         }
-        .accessibilityIdentifier("sound-toggle.review")
     }
 }
 #endif
