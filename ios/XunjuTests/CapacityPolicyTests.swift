@@ -8,9 +8,6 @@ private actor PolicyTransport: AuthTransport {
     func send(_ request: URLRequest) -> HTTPPayload { self.request = request; return HTTPPayload(data: Data(body.utf8), status: 200) }
     func captured() -> URLRequest? { request }
 }
-private struct OfflinePolicy: CapacityPolicyServicing {
-    func fetch() throws -> CapacityPolicy? { throw CoreFailure(message: "offline") }
-}
 final class CapacityPolicyTests: XCTestCase {
     func testPolicyAcceptsZeroAndValidatesTotalsWithoutInferringLegacyFreeQuota() throws {
         let zero = CapacityPolicy(version: 2, freeLimit: 0)
@@ -21,24 +18,14 @@ final class CapacityPolicyTests: XCTestCase {
         XCTAssertNoThrow(try CapacityPolicy.validate(packs: 1, limit: 12, policy: nil))
         XCTAssertEqual(CapacityPolicy.initial.freeLimit, 1)
     }
-    func testPublicPolicyUsesVersionHeaderWithoutIdentity() async throws {
-        let transport = PolicyTransport("{\"capacity\":{\"version\":2,\"freeLimit\":0}}")
-        let result = try await CapacityPolicyAPI(transport: transport).fetch()
-        XCTAssertEqual(result?.freeLimit, 0)
-        let request = await transport.captured()
-        XCTAssertEqual(request?.value(forHTTPHeaderField: "x-rent-room-capacity-version"), "2")
-        XCTAssertNil(request?.value(forHTTPHeaderField: "Authorization"))
-    }
-    @MainActor func testPublicPolicyCacheSurvivesOfflineAndDoesNotExportIdentity() async throws {
+    @MainActor func testLocalPolicyCacheSurvivesRestartAndDoesNotExportIdentity() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: "policy-test-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
-        let workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), policyAPI: OfflinePolicy())
+        let workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage())
         let id = try workspace.store.add("旧房源")
         try workspace.acceptPolicy(CapacityPolicy(version: 2, freeLimit: 0))
-        let restored = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), policyAPI: OfflinePolicy())
-        await restored.refreshPolicy()
+        let restored = try AppWorkspace(root: root, keychain: VolatileSessionStorage())
         XCTAssertEqual(restored.store.capacity.limit, 0)
-        XCTAssertFalse(restored.policyError.isEmpty)
         try restored.store.answer(id, field: "f1_6", value: .string("1000"))
         XCTAssertThrowsError(try restored.store.add("超出"))
         XCTAssertEqual(restored.store.state["capacity"], .null)

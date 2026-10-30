@@ -1,9 +1,8 @@
 import XCTest
 @testable import Xunju
 
-private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
+private actor OfflineCallCounter: MapTransport {
     var count = 0
-    func fetch() -> CapacityPolicy? { count += 1; return nil }
     func request(_ options: String) async throws -> String { count += 1; throw CoreFailure(message: "offline") }
 }
 @MainActor final class OfflineWorkspaceTests: XCTestCase {
@@ -13,11 +12,11 @@ private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
         return root
     }
     func testGuestRecordsAndAnswersSurviveOfflineRestartWithoutServiceCalls() async throws {
-        let root = root(), counter = OfflineCallCounter(), storefront = CapacityTestStorefront(), api = CapacityTestAPI()
-        let first = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: counter, capacityAPI: api, storefront: storefront, policyAPI: counter)
+        let root = root(), counter = OfflineCallCounter(), storefront = CapacityTestStorefront()
+        let first = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: counter, storefront: storefront)
         let id = try first.store.add("离线记录")
         try first.store.answer(id, field: "f1_6", value: .string("1800")); first.save()
-        let second = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: counter, capacityAPI: api, storefront: storefront, policyAPI: counter)
+        let second = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: counter, storefront: storefront)
         XCTAssertEqual(first.store.records.directory, second.store.records.directory)
         XCTAssertEqual(second.store.house(id)["answers"]["f1_6"]["value"].string, "1800")
         XCTAssertNil(second.session); XCTAssertNil(storefront.receive)

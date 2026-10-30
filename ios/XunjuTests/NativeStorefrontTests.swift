@@ -16,16 +16,16 @@ import StoreKitTest
         session.disableDialogs = true; session.clearTransactions()
         defer { session.clearTransactions() }
         let storefront = NativeStorefront(), account = UUID()
-        let product = try await storefront.product("test.capacity.10")
+        let product = try await storefront.product("com.keeline.xunju.ios.capacity10")
         XCTAssertFalse(product.displayPrice.isEmpty)
         guard case .verified(let first) = try await storefront.purchase(product, accountToken: account) else { return XCTFail("Local purchase did not verify") }
         XCTAssertEqual(first.accountToken, account); XCTAssertEqual(first.environment, "Xcode")
-        XCTAssertNotNil(first.purchaseDate)
+        XCTAssertNotNil(first.purchaseDate); XCTAssertEqual(first.quantity, 1)
         let outstanding = try await storefront.transactions(synchronize: false)
         XCTAssertTrue(outstanding.contains { $0.id == first.id })
         await storefront.finish(first)
         let completed = try await storefront.transactions(synchronize: false)
-        XCTAssertFalse(completed.contains { $0.id == first.id })
+        XCTAssertTrue(completed.contains { $0.id == first.id }, "Finished consumables must remain restorable on iOS 18")
         guard case .verified(let second) = try await storefront.purchase(product, accountToken: account) else { return XCTFail("Consumable cannot be bought twice") }
         XCTAssertNotEqual(first.id, second.id); XCTAssertEqual(second.accountToken, account)
         await storefront.finish(second)

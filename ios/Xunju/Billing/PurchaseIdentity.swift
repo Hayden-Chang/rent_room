@@ -2,7 +2,7 @@ import Foundation
 import CryptoKit
 
 /// Apple-signed app acquisition, independent of the app's former login/session.
-/// The signed proof stays in memory and is sent only to the purchase service.
+/// The signed proof stays in memory and is never sent to our services.
 struct PurchaseIdentity: Sendable, Equatable {
     let appTransactionID: String
     let bundleID: String
@@ -11,6 +11,11 @@ struct PurchaseIdentity: Sendable, Equatable {
     var account: String {
         SHA256.hash(data: Data("rent-room-app-store-v1:\(bundleID):\(environment):\(appTransactionID)".utf8))
             .map { String(format: "%02x", $0) }.joined()
+    }
+    var accountToken: UUID {
+        let value = Array(account.prefix(32))
+        let parts = [0..<8, 8..<12, 12..<16, 16..<20, 20..<32].map { String(value[$0]) }
+        return UUID(uuidString: parts.joined(separator: "-"))!
     }
     func validated() throws -> Self {
         guard appTransactionID.range(of: "\\A[0-9]{1,32}\\z", options: .regularExpression) != nil,

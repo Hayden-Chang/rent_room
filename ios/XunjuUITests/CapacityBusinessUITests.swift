@@ -24,14 +24,14 @@ import XCTest
     }
     func testPendingPurchaseDoesNotGrantAndRestoresOnceAcrossProcessRelaunch() {
         let id = UUID().uuidString, app = launch(id, mode: "pending")
-        idle(app); XCTAssertEqual(app.buttons["capacity.purchase"].label, "¥1.99 购买小饼干")
+        idle(app); XCTAssertEqual(app.buttons["capacity.purchase"].label, "¥9.90 购买小饼干")
         app.buttons["capacity.purchase"].tap()
         XCTAssertTrue(app.staticTexts["capacity.pending"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["capacity.purchase"].isEnabled); waitTotal("0 / 1 套", app)
         capture("95-capacity-unconfirmed-no-grant", app)
         app.buttons["capacity.restore"].tap(); waitTotal("0 / 11 套", app); idle(app)
         XCTAssertFalse(app.staticTexts["capacity.pending"].exists)
-        capture("96-capacity-server-confirmed", app)
+        capture("96-capacity-locally-confirmed", app)
         app.terminate()
         let reopened = launch(id, mode: "pending"); idle(reopened); waitTotal("0 / 11 套", reopened)
         reopened.buttons["capacity.restore"].tap(); idle(reopened); waitTotal("0 / 11 套", reopened)
