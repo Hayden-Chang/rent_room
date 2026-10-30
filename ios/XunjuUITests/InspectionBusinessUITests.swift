@@ -99,16 +99,15 @@ import XCTest
         capture("first-\(mode)-filling-guide", app)
         app.buttons["xiaoda.accept"].tap()
         XCTAssertTrue(app.buttons["xiaoda.accept"].waitForNonExistence(timeout: 3))
-        let heading = app.staticTexts.matching(NSPredicate(format: "label == %@", "房源基本信息")).firstMatch
-        let header = app.navigationHeader
+        let heading = app.staticTexts["mp.field.title.node:category:房源基本信息"].firstMatch
+        XCTAssertTrue(heading.waitForExistence(timeout: 5))
+        let top = heading.frame.minY, headerBottom = app.navigationHeader.frame.maxY
         capture("first-\(mode)-expanded-section", app)
-        let atTop = expectation(for: NSPredicate { _, _ in
-            guard heading.exists, heading.isHittable else { return false }
-            let gap = heading.frame.minY - header.frame.maxY
-            return gap >= 0 && gap <= 44
-        }, evaluatedWith: heading)
-        wait(for: [atTop], timeout: 3)
-        XCTAssertTrue(app.staticTexts["mp.field.title.f1_1"].isHittable,
+        print("FILLING \(mode): headingTop=\(top), headerBottom=\(headerBottom)")
+        XCTAssertTrue(heading.isHittable)
+        XCTAssertGreaterThanOrEqual(top, headerBottom)
+        XCTAssertLessThanOrEqual(top, headerBottom + 44)
+        XCTAssertTrue(app.staticTexts["mp.field.title.f1_1"].firstMatch.isHittable,
                       "去填写必须露出新展开分类的第一个填写项")
     }
     private func launchFilling(mode: String) -> XCUIApplication {
@@ -116,9 +115,9 @@ import XCTest
         app.launchArguments = ["--business-test", UUID().uuidString, "--filling-guide-fixture", mode,
                                "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
-        let house = app.buttons["house.首次填写"]
+        let house = app.buttons["house.首次填写"].firstMatch
         XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
-        XCTAssertTrue(app.buttons["xiaoda.accept"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.scrollViews["mp.checklist.scroll"].buttons["xiaoda.accept"].firstMatch.waitForExistence(timeout: 5))
         return app
     }
     func testLaterFillingGuideRestoresReadingPosition() {
