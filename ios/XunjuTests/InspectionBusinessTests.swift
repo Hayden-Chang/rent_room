@@ -16,6 +16,33 @@ import XCTest
         XCTAssertFalse(ReturningBusinessFixture.enabled(["--returning-business-fixture", "--business-test", "invalid"]))
         XCTAssertTrue(ReturningBusinessFixture.enabled(["--returning-business-fixture", "--business-test", UUID().uuidString]))
     }
+    func testFillingFixtureRequiresExplicitModeAndIsolatedDirectory() {
+        let isolated = ["--business-test", UUID().uuidString]
+        XCTAssertNil(FillingGuideFixture.mode([]))
+        XCTAssertNil(FillingGuideFixture.mode(isolated))
+        XCTAssertNil(FillingGuideFixture.mode(["--filling-guide-fixture", "simple"]))
+        XCTAssertNil(FillingGuideFixture.mode(["--business-test", "invalid", "--filling-guide-fixture", "simple"]))
+        XCTAssertNil(FillingGuideFixture.mode(isolated + ["--filling-guide-fixture"]))
+        XCTAssertNil(FillingGuideFixture.mode(isolated + ["--filling-guide-fixture", "unknown"]))
+        for mode in ["simple", "detailed"] {
+            XCTAssertEqual(FillingGuideFixture.mode(isolated + ["--filling-guide-fixture", mode]), mode)
+        }
+    }
+    func testFillingFixtureKeepsAnswersEmptyAndFirstGuidePending() throws {
+        for mode in ["simple", "detailed"] {
+            let store = try makeStore()
+            try FillingGuideFixture.prepare(store, mode: mode)
+            let id = try XCTUnwrap(store.houses.first?.id), before = store.state
+            XCTAssertEqual(store.house(id)["checklistMode"].string, mode)
+            XCTAssertEqual(store.house(id)["answers"], .object([:]))
+            XCTAssertEqual(store.state["xiaoda"]["tutorialStep"].int, 0)
+            let guide = try store.call("inspectionGuide", ["id": .string(id)])
+            XCTAssertEqual(guide["prompt"]["kind"].string, "intro")
+            XCTAssertEqual(guide["prompt"]["target"].string, "房源基本信息")
+            try FillingGuideFixture.prepare(store, mode: mode)
+            XCTAssertEqual(store.state, before)
+        }
+    }
     func testSetupDraftStepAndSelectionSurviveRelaunch() throws {
         let store = try makeStore()
         var draft = InspectionTemplateDraft(try store.call("setupState")["config"])
