@@ -79,6 +79,10 @@ import CoreLocation
         tap("settings.language", app); tap("language.english", app); app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["settings.language"].label.contains("English"))
         capture("regional-business-12-english-settings", app)
+        let trails = app.switches["settings.touch-trails"]
+        for _ in 0..<3 where !trails.isHittable { app.scrollViews.firstMatch.swipeUp() }
+        XCTAssertTrue(trails.isHittable); XCTAssertFalse(trails.label.contains("触摸轨迹"))
+        capture("regional-business-16-english-settings-footer", app)
         tap("tab.房源", app)
         XCTAssertTrue(app.buttons["house.放弃"].exists)
         app.homeAddButton.tap()

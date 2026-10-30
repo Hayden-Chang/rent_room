@@ -14,7 +14,6 @@ struct InspectionFieldRow: View {
     @State private var noteError = ""
     @State private var editingNote = false
     @State private var picking = false
-    @State private var commute = false
     @State private var speed = false
     @State private var speedVisit = UUID()
     private var readonly: Bool { workspace.store.house(houseID)["archived"].bool }
@@ -47,16 +46,12 @@ struct InspectionFieldRow: View {
                     } catch { noteError = error.localizedDescription }
                 }).ignoresSafeArea(.container, edges: .bottom).presentationBackground(.clear)
         }.sheet(isPresented: $picking) { MediaPickerSheet(workspace: workspace, houseID: houseID, fieldID: field.id) }
-            .navigationDestination(isPresented: $commute) { [workspace, houseID, fieldID = field.id] in
-                CommutePage(workspace: workspace, houseID: houseID, fieldID: fieldID)
-            }
             // Keep destination closures limited to stable navigation inputs.
             .navigationDestination(isPresented: $speed) { [workspace, houseID, speedVisit] in
                 SpeedPage(workspace: workspace, houseID: houseID).id(speedVisit)
             }
     }
     private var measurement: MeasurementAction? {
-        if UtilityField.mode(field.id) != nil { return MeasurementAction(kind: .commute) { interaction(field.id, nil); commute = true } }
         if field.id == UtilityField.speed { return MeasurementAction(kind: .speed) { interaction(field.id, nil); speedVisit = UUID(); speed = true } }
         return nil
     }

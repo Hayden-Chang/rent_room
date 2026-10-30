@@ -1,0 +1,1413 @@
+{
+  "schemaVersion": 2,
+  "date": "2026-10-30",
+  "timezone": "Asia/Shanghai",
+  "pr": "https://github.com/Hayden-Chang/rent_room/pull/87",
+  "productionBase": "eb75079b3e46726e5742cc4c861dc7a278d9dd31",
+  "finalCodeHead": "7c51cacefc1213621df75dfbe474ca35f0dbf10b",
+  "performanceComparison": {
+    "baseline": {
+      "sourceSha": "68c07258cd61ffcfbffbf1b51caa719fde0e6b47",
+      "productionBase": "eb75079b3e46726e5742cc4c861dc7a278d9dd31",
+      "configuration": "Debug, SWIFT_OPTIMIZATION_LEVEL=-O, ARCHS=arm64",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-performance-before-20261030-04.xcresult",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 2,
+            "passedTests": 4,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 2,
+        "finishTime": 1793291585.04,
+        "passedTests": 4,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1793291410.853,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertTrue failed - Photo import must release the main actor for queued UI work",
+            "targetName": "XunjuTests",
+            "testIdentifier": 2,
+            "testIdentifierString": "PerformanceRegressionTests/testPhotoImportAllowsMainActorProgress()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuTests/PerformanceRegressionTests/testPhotoImportAllowsMainActorProgress",
+            "testName": "testPhotoImportAllowsMainActorProgress()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed - UI refresh must reuse the decoded thumbnail",
+            "targetName": "XunjuTests",
+            "testIdentifier": 3,
+            "testIdentifierString": "PerformanceRegressionTests/testRepeatedThumbnailReadsReuseDecodedImage()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuTests/PerformanceRegressionTests/testRepeatedThumbnailReadsReuseDecodedImage",
+            "testName": "testRepeatedThumbnailReadsReuseDecodedImage()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 6
+      },
+      "metrics": {
+        "storeInitializationMs": 1194.8590278625488,
+        "readMedianMs": 2733.5479259490967,
+        "readSamplesMs": [
+          2962.191104888916,
+          2871.698021888733,
+          3104.8399209976196,
+          3110.3609800338745,
+          2612.336039543152,
+          2709.481954574585,
+          2446.655035018921,
+          2717.979907989502,
+          2733.5479259490967,
+          2621.898055076599
+        ],
+        "thumbnailMedianMs": 3.1789541244506836,
+        "thumbnailSamplesMs": [
+          3.1859874725341797,
+          3.3980607986450195,
+          3.219008445739746,
+          3.1599998474121094,
+          3.3010244369506836,
+          3.159046173095703,
+          3.4329891204833984,
+          3.3370256423950195,
+          3.1489133834838867,
+          3.102898597717285,
+          3.1070709228515625,
+          3.2089948654174805,
+          3.18300724029541,
+          3.123044967651367,
+          3.1480789184570312,
+          3.1480789184570312,
+          3.127932548522949,
+          3.219008445739746,
+          3.1789541244506836,
+          3.1599998474121094
+        ]
+      }
+    },
+    "candidate": "3493385fb894c0a8210937275985ec3e238c77d9",
+    "payload": {
+      "beforeBytes": 6506747,
+      "afterBytes": 12131,
+      "reductionPercent": 99.813562752632
+    },
+    "scope": "Measured store initialization and repeated calls; not end-to-end app launch, frame rate, energy or device peak memory.",
+    "afterMetrics": {
+      "storeInitializationMs": 329.73504066467285,
+      "readMedianMs": 0.7179975509643555,
+      "readSamplesMs": [
+        88.73093128204346,
+        0.7179975509643555,
+        0.6229877471923828,
+        18.47100257873535,
+        0.8599758148193359,
+        0.6570816040039062,
+        0.6959438323974609,
+        0.5930662155151367,
+        0.6320476531982422,
+        0.8870363235473633
+      ],
+      "thumbnailMedianMs": 0.16295909881591797,
+      "thumbnailSamplesMs": [
+        0.2930164337158203,
+        0.186920166015625,
+        0.17392635345458984,
+        0.1729726791381836,
+        0.16307830810546875,
+        0.16498565673828125,
+        0.16295909881591797,
+        0.16105175018310547,
+        0.1659393310546875,
+        0.16295909881591797,
+        0.16200542449951172,
+        0.16105175018310547,
+        0.15795230865478516,
+        0.1609325408935547,
+        0.17201900482177734,
+        0.15497207641601562,
+        0.1569986343383789,
+        0.15592575073242188,
+        0.1609325408935547,
+        0.1569986343383789
+      ]
+    },
+    "reductionPercent": {
+      "storeInitializationMs": 72.40385409695342,
+      "readMedianMs": 99.97373385905736,
+      "thumbnailMedianMs": 94.87381407732404
+    }
+  },
+  "measurementSourceEquivalence": {
+    "measurementHead": "3493385fb894c0a8210937275985ec3e238c77d9",
+    "finalCodeHead": "7c51cacefc1213621df75dfbe474ca35f0dbf10b",
+    "hashes": {
+      "ios/Core/bridge.js": "ddafafb04b90652fe9fafce5e598f226dc5f390e9ed071a3e164980247408f75",
+      "ios/Xunju/Core/JSONValue.swift": "3942504cf831dd65699887f5c732c22280284b4f4956b6f510f8f8d0f5e1fc3a",
+      "ios/Xunju/Core/NativeMediaImport.swift": "19c9e9a301d9d74ca3e36226623afc51c58b8fb7ba91237284d19e484374d8c4",
+      "ios/Xunju/Core/NativeStore.swift": "c5633c7077d458d2b58c8c7bd16d2f321125095ce869f4f420a2fa06b6accba7",
+      "ios/Xunju/Core/ThumbnailCache.swift": "c80b8e932650ea46308c82a2601436fcf97440b8b28f2e87582ca791dbb7b67d",
+      "ios/Xunju/Pages/HouseMediaPage.swift": "0ea8cd00cc8585321b3053e933136c7f79d30b48672be175fddb42129cbca8c7",
+      "ios/Xunju/Resources/XunjuCore.js": "01d5495497ae97adce7558d7b214cb37fffc79a36cd7868cb4ad6cf0e09cbae8",
+      "ios/project.yml": "d06c546942ec80a9b36439e2d5d590482f01a5839b2cc9a7675ffe1bfc081dc2"
+    },
+    "equal": {
+      "ios/Core/bridge.js": true,
+      "ios/Xunju/Core/JSONValue.swift": true,
+      "ios/Xunju/Core/NativeMediaImport.swift": true,
+      "ios/Xunju/Core/NativeStore.swift": true,
+      "ios/Xunju/Core/ThumbnailCache.swift": true,
+      "ios/Xunju/Pages/HouseMediaPage.swift": true,
+      "ios/Xunju/Resources/XunjuCore.js": true,
+      "ios/project.yml": true
+    }
+  },
+  "baselineSelection": {
+    "schemaVersion": 1,
+    "runId": "xunju-performance-before-20261030-04",
+    "phase": "development",
+    "taskName": "iOS performance baseline",
+    "sessionId": "01a1886e-e64e-7e32-b1e9-ee161b317039",
+    "workspace": "/Users/pc/.codex/worktrees/ios-performance-20261030/rent_room",
+    "unitTestTarget": "XunjuTests",
+    "uiTestTarget": "XunjuUITests",
+    "unitTests": [
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testRepeatedThumbnailReadsReuseDecodedImage",
+        "reason": "Performance regression and before/after measurement",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testThumbnailReplacementDeletionAndIdentityIsolation",
+        "reason": "Performance regression and before/after measurement",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testPhotoImportAllowsMainActorProgress",
+        "reason": "Performance regression and before/after measurement",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testIncrementalReadsAndMutationReturnValuesKeepStoreCurrent",
+        "reason": "Performance regression and before/after measurement",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testThirtyHouseReadBenchmark",
+        "reason": "Performance regression and before/after measurement",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testWarmThumbnailBenchmark",
+        "reason": "Performance regression and before/after measurement",
+        "source": "new-or-modified"
+      }
+    ],
+    "uiTests": [],
+    "changedUITests": []
+  },
+  "baselineCommand": "#!/bin/bash\nset -o pipefail\nnode '/Volumes/mac2/projects/git_repo/run_self/Simulator Management/bin/sim-test-run.mjs' --plan /private/tmp/rent-room-ios-performance-20261030/before-plan.json -- /Users/pc/.codex/worktrees/ios-performance-20261030/rent_room/scripts/run-xcodebuild.sh -project /Users/pc/.codex/worktrees/ios-performance-20261030/rent_room/ios/Xunju.xcodeproj -scheme Xunju -configuration Debug -destination 'platform=iOS Simulator,id=__SIM_UDID__' -derivedDataPath /Volumes/mac2/codex-builds/xunju-performance-before-20261030-04-__SIM_UDID__ -resultBundlePath /Volumes/mac2/codex-builds/xunju-performance-before-20261030-04.xcresult -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO ARCHS=arm64 SWIFT_OPTIMIZATION_LEVEL=-O test -only-testing:XunjuTests/PerformanceRegressionTests/testRepeatedThumbnailReadsReuseDecodedImage -only-testing:XunjuTests/PerformanceRegressionTests/testThumbnailReplacementDeletionAndIdentityIsolation -only-testing:XunjuTests/PerformanceRegressionTests/testPhotoImportAllowsMainActorProgress -only-testing:XunjuTests/PerformanceRegressionTests/testIncrementalReadsAndMutationReturnValuesKeepStoreCurrent -only-testing:XunjuTests/PerformanceRegressionTests/testThirtyHouseReadBenchmark -only-testing:XunjuTests/PerformanceRegressionTests/testWarmThumbnailBenchmark > /private/tmp/rent-room-ios-performance-20261030/before-04.log 2>&1\n",
+  "invocationEnvironment": {
+    "GIT_CONFIG_COUNT": "1",
+    "GIT_CONFIG_KEY_0": "url.https://github.com/weichsel/.insteadOf",
+    "GIT_CONFIG_VALUE_0": "https://github.com/weichsel/"
+  },
+  "unitImpactMap": [
+    {
+      "boundary": "CoreReply/JSONValue/NativeStore and JS dispatch",
+      "consumers": "NativeStore, InspectionBusiness, IdentityScope, BusinessIntegration, CapacityBusiness/Policy, IssueDraft, WheelBusiness, RelatedMediaIntegration, selected Backup and MapCore methods"
+    },
+    {
+      "boundary": "NativeMediaImport",
+      "consumers": "NativeMediaImportTests, PerformanceRegressionTests, IssueDraft import/cleanup cases"
+    },
+    {
+      "boundary": "thumbnail cache",
+      "consumers": "ThumbnailCacheTests, thumbnail cases in PerformanceRegressionTests, media UI flow"
+    }
+  ],
+  "residualRisks": [
+    "Uncached thumbnail decoding and full-size preview reading are still synchronous.",
+    "No physical-device launch/FPS/energy/process-peak-memory measurement.",
+    "No real camera, GPS provider or StoreKit Sandbox validation.",
+    "UI fixtures exercise production flows with isolated data and do not prove device permissions.",
+    "Only 3 mapped existing XCUITest methods; no full UI or unit suite.",
+    "Query cache budget estimates serialized bytes, not actual JS heap. Thumbnail budget covers cache-owned decoded pixels only."
+  ],
+  "coachContract": [
+    {
+      "source": "/private/tmp/rent-room-ios-performance-20261030/baseline-core.js",
+      "titles": [
+        "看房的三个阶段",
+        "找到你想看的内容",
+        "向左滑，试试看",
+        "随手记下房屋细节"
+      ]
+    },
+    {
+      "source": "ios/Xunju/Resources/XunjuCore.js",
+      "titles": [
+        "看房的三个阶段",
+        "找到你想看的内容",
+        "向左滑，试试看",
+        "随手记下房屋细节"
+      ]
+    }
+  ],
+  "bridge": {
+    "command": "node --test ios/tests/bridge-performance.test.mjs",
+    "baselineCommand": "XUNJU_CORE=/private/tmp/rent-room-ios-performance-20261030/baseline-core.js node --test ios/tests/bridge-performance.test.mjs",
+    "baselineNote": "Baseline test file was commit 68c0725 with 5 cases; 4 expected-behavior assertion failures, 1 pass. Final file has 7 cases.",
+    "finalResult": {
+      "passed": 7,
+      "failed": 0
+    },
+    "finalLog": "/private/tmp/rent-room-ios-performance-20261030/bridge-final-3493385.log",
+    "baselineLog": "/private/tmp/rent-room-ios-performance-20261030/bridge-before.log"
+  },
+  "payloadMeasurement": {
+    "baseline": {
+      "runtime": "v25.9.0",
+      "houses": 30,
+      "operations": [
+        "form",
+        "inspectionGuide",
+        "media"
+      ],
+      "bytesPerCycle": 6506747,
+      "medianMs": 883.6163749999996,
+      "samplesMs": [
+        883.6163749999996,
+        1435.3859580000008,
+        688.043083999999,
+        687.7402499999989,
+        1473.6472919999997,
+        900.5881659999995,
+        909.988707999999,
+        564.9022499999992,
+        526.2623330000006,
+        553.053167
+      ]
+    },
+    "candidate": {
+      "runtime": "v25.9.0",
+      "houses": 30,
+      "operations": [
+        "form",
+        "inspectionGuide",
+        "media"
+      ],
+      "bytesPerCycle": 12131,
+      "medianMs": 0.23412499999994907,
+      "samplesMs": [
+        0.17916600000000926,
+        0.419083999999998,
+        0.11199999999996635,
+        0.37074999999992997,
+        0.22575000000006185,
+        0.20545799999990777,
+        0.9265419999999267,
+        0.5942919999999958,
+        0.10691700000006676,
+        0.23412499999994907
+      ]
+    },
+    "method": "import {readFileSync, writeFileSync} from 'node:fs';\nimport vm from 'node:vm';\nimport {performance} from 'node:perf_hooks';\nconst source=readFileSync(process.argv[2], 'utf8');\nconst ctx=vm.createContext({nativePrevious:()=>JSON.stringify({value:'',error:''}),nativePreserveCorrupt:()=>'',nativeWrite:()=>''});\nvm.runInContext(source,ctx);\nconst core=ctx.XunjuCore;\ncore.initialize('',0,30);\nconst created=JSON.parse(core.dispatch(JSON.stringify({operation:'add',value:'性能样本'})));\nconst state=created.state, h=state.houses[0];\nstate.houses=Array.from({length:30},(_,i)=>({...structuredClone(h),id:'perf-'+i}));\ncore.initialize(JSON.stringify(state),0,30);\nconst ops=[{operation:'form',id:'perf-0',view:{phase:'全部',query:'',filters:[]},folds:{}},{operation:'inspectionGuide',id:'perf-0'},{operation:'media',id:'perf-0'}];\nconst samples=[];let bytes=0;\nfor(let i=0;i<12;i++) {\n let size=0;const start=performance.now();\n for(const op of ops){const json=core.dispatch(JSON.stringify(op),true);const v=JSON.parse(json);if(!v.ok)throw Error(v.error);size+=Buffer.byteLength(json);}\n const elapsed=performance.now()-start;\n if(i>1)samples.push(elapsed);bytes=size;\n}\nconst result={runtime:process.version,houses:30,operations:ops.map(x=>x.operation),bytesPerCycle:bytes,medianMs:samples.toSorted((a,b)=>a-b)[5],samplesMs:samples};\nconsole.log(JSON.stringify(result,null,2));\nif(process.argv[3])writeFileSync(process.argv[3],JSON.stringify(result,null,2));\n",
+    "note": "Node v25 timings are exploratory only. The report uses byte count from Node and elapsed measurements from iOS XCTest."
+  },
+  "testInfrastructure": {
+    "sourceSha": "14b23ad",
+    "nodeTests": {
+      "total": 11,
+      "passed": 11,
+      "failed": 0,
+      "log": "/private/tmp/rent-room-ios-performance-20261030/node-14b23ad.log"
+    },
+    "zeroTestRun": {
+      "runId": "xunju-template-hang-before-20261030-01",
+      "exitCode": 0,
+      "actualTestCount": 0,
+      "acceptedAsPass": false,
+      "diagnosis": "XCTest loaded obsolete runner bundle in CoreSimulator Dead container, missing the newly compiled test selector; verified old and new binary symbols."
+    },
+    "refreshBoundary": "Only com.keeline.xunju.XunjuUITests.xctrunner is terminated/uninstalled before UI test stage; active lease runId and UDID must match. Xunju app/data, other apps, ordinary builds and unit-only runs are retained.",
+    "focusedFreshRunner": {
+      "sourceSha": "14b23ad",
+      "runId": "xunju-template-hang-before-20261030-03",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 1,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793296264.19,
+        "passedTests": 1,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1793296099.348,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 1
+      },
+      "productionNavigationModified": false,
+      "note": "Passed direct settings navigation; does not yet resolve failures after visiting other pages."
+    }
+  },
+  "earlyAttempts": [
+    {
+      "run": "before-01",
+      "classification": "dependency resolution",
+      "log": "/private/tmp/rent-room-ios-performance-20261030/before.log",
+      "result": "Git SSH URL rewrite prevented ZIPFoundation fetch. Scoped HTTPS mapping used afterward."
+    },
+    {
+      "run": "before-02",
+      "classification": "build configuration",
+      "log": "/private/tmp/rent-room-ios-performance-20261030/before-02.log",
+      "result": "Release test target cannot import app with existing test configuration. Baseline and final both use Debug -O."
+    },
+    {
+      "run": "before-03",
+      "classification": "test implementation compile error",
+      "log": "/private/tmp/rent-room-ios-performance-20261030/before-03.log",
+      "result": "UIImage jpegData is non-open extension and cannot be overridden. Replaced probe with real image import and main-actor progress assertion."
+    },
+    {
+      "run": "before-04",
+      "classification": "valid baseline",
+      "log": "/private/tmp/rent-room-ios-performance-20261030/before-04.log",
+      "result": "4 passed, 2 behavioral regression assertions failed."
+    },
+    {
+      "run": "bridge-cache-development",
+      "classification": "incorrect test prerequisite",
+      "log": "/private/tmp/rent-room-ios-performance-20261030/bridge-after.log",
+      "result": "Query 月租金 did not match canonical 租金 field. Fixed setup to assert f1_6 exists before testing invalidation."
+    },
+    {
+      "run": "final-01",
+      "head": "898b707cce91f748fc4b8fde7079733fcb023894",
+      "classification": "obsolete assertion and new performance finding",
+      "log": "/private/tmp/rent-room-ios-performance-20261030/final-01.log",
+      "result": "78/79 unit tests passed. Old coach titles conflicted with baseline canonical bundle. UI campaign interrupted with exit 130 before completion; no UI pass claimed. Stable request key fix and cancellation coverage require complete recalculated campaign."
+    }
+  ],
+  "localArtifactsRoot": "/Volumes/mac2/codex-builds/xunju-performance-evidence-20261030",
+  "validation": {
+    "ios18": {
+      "plan": {
+        "schemaVersion": 1,
+        "runId": "xunju-performance-final-20261030-04",
+        "phase": "final-pr-head",
+        "headSha": "7c51cacefc1213621df75dfbe474ca35f0dbf10b",
+        "taskName": "PR 87 final code validation on iOS 18.3.1",
+        "sessionId": "01a1886e-e64e-7e32-b1e9-ee161b317039",
+        "workspace": "/Users/pc/.codex/worktrees/ios-performance-20261030/rent_room",
+        "unitTestTarget": "XunjuTests",
+        "uiTestTarget": "XunjuUITests",
+        "unitTests": [
+          {
+            "selector": "XunjuTests/PerformanceRegressionTests/testRepeatedThumbnailReadsReuseDecodedImage",
+            "reason": "新增回归及同数据性能对比",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/PerformanceRegressionTests/testThumbnailReplacementDeletionAndIdentityIsolation",
+            "reason": "新增回归及同数据性能对比",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/PerformanceRegressionTests/testPhotoImportAllowsMainActorProgress",
+            "reason": "新增回归及同数据性能对比",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/PerformanceRegressionTests/testCancellingAnInFlightPhotoImportLeavesNoFile",
+            "reason": "异步照片编码进行中取消仍必须清理文件",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/PerformanceRegressionTests/testIncrementalReadsAndMutationReturnValuesKeepStoreCurrent",
+            "reason": "新增回归及同数据性能对比",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/PerformanceRegressionTests/testThirtyHouseReadBenchmark",
+            "reason": "新增回归及同数据性能对比",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/PerformanceRegressionTests/testWarmThumbnailBenchmark",
+            "reason": "新增回归及同数据性能对比",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/BridgeJSONTests/testFoundationConversionMatchesCodableForNestedSchema",
+            "reason": "新解析器保留数字布尔空值与未知字段",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/BridgeJSONTests/testScalarAndEmptyPayloadsRemainLossless",
+            "reason": "新解析器保留数字布尔空值与未知字段",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/ThumbnailCacheTests/testByteBudgetEvictsAndMemoryWarningClearsCache",
+            "reason": "缩略图预算失效方向与内存压力",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/ThumbnailCacheTests/testDownsamplingPreservesEXIFOrientationAndRejectsInvalidImage",
+            "reason": "缩略图预算失效方向与内存压力",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/NativeStoreTests/testCanonicalCatalogAndRoundTripRetainAnswersAndZero",
+            "reason": "桥接所有读写保存失败与恢复边界",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection",
+            "reason": "桥接所有读写保存失败与恢复边界",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeStoreTests/testConditionalGroupKeepsHiddenAnswersNotesAndProblemFlag",
+            "reason": "桥接所有读写保存失败与恢复边界",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeStoreTests/testIndependentIssueFlagFilteringAndCollapsedFormDoNotMutate",
+            "reason": "桥接所有读写保存失败与恢复边界",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeStoreTests/testManualIssueAndSummaryComparisonPersist",
+            "reason": "桥接所有读写保存失败与恢复边界",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeStoreTests/testImportIsAtomicAndPreservesGlobalSettings",
+            "reason": "桥接所有读写保存失败与恢复边界",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeStoreTests/testCorruptFileBlocksWritesAndRecoveryPreservesOriginal",
+            "reason": "桥接所有读写保存失败与恢复边界",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession",
+            "reason": "桥接所有读写保存失败与恢复边界",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testSetupDraftStepAndSelectionSurviveRelaunch",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testTemplateChangesApplyOnlyToNewHouseSnapshots",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testLegacySaveSkipsSetupAndRetainsDetailedSnapshot",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testSimpleDescriptionResultsAndNotesCountOnce",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testTutorialRequiresActualSwipeAndResumesStoredStep",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testSetupFailureKeepsDraftAndCanRetry",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testTutorialSaveFailureRollsBackAndDuplicateSwipeCannotSkipStepFour",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testRentFreeNumberPreservesHistoricalValuesMetadataAndArchive",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testCompletionOnlyGuidesForwardAndDoesNotRepeatAfterClearing",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testOtherHousesShowsReturnGuideBeforeLeavingAndStaleActionsDoNotDismissIt",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testGuideCloseScopesAndFeedbackRequestAreDurable",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testNonePreservesHiddenValueAndCountsAsRecorded",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testZeroCapacityKeepsOldRecordsAndRejectsNetNewImportOrRestore",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testCreateIntentRetainsEnteredNameAcrossCapacityChangeAndRelaunch",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/InspectionBusinessTests/testNineMediaBatchPreservesOrderAndRejectsPartialWrites",
+            "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/RelatedMediaIntegrationTests/testAutomaticAndChecklistShareOrderedFieldMediaNotesAndIndependentFlag",
+            "reason": "影像关联与备注的增量快照更新",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/RelatedMediaIntegrationTests/testParentAnnotationsKeepMediaAndNeverBecomeEditableChildValues",
+            "reason": "影像关联与备注的增量快照更新",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/RelatedMediaIntegrationTests/testRelatedMediaCaptionWriteFailurePreservesOriginalAndRetryDoesNotDuplicate",
+            "reason": "影像关联与备注的增量快照更新",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IdentityScopeTests/testGuestClaimIsIdempotentAndLogoutStartsFreshGuest",
+            "reason": "账号隔离与 guest 认领快照",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IdentityScopeTests/testClaimPreservesOverCapacityRecordsWithoutGrantingCapacity",
+            "reason": "账号隔离与 guest 认领快照",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IdentityScopeTests/testFirstClaimKeepsGuestSettingsAndCopiesMediaWithoutChangingOriginal",
+            "reason": "账号隔离与 guest 认领快照",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IdentityScopeTests/testFailedMediaClaimRetainsJournalAndCanResumeOnce",
+            "reason": "账号隔离与 guest 认领快照",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IdentityScopeTests/testDuplicateHouseIDsReceiveNewIDWithoutOverwritingAccount",
+            "reason": "账号隔离与 guest 认领快照",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IdentityScopeTests/testMalformedScopePointerAndMediaPathsNeverEscapeRoot",
+            "reason": "账号隔离与 guest 认领快照",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BusinessIntegrationTests/testGuestWorkspaceRelaunchRetainsRealRecordsAndScopes",
+            "reason": "登录重启导入与损坏账号恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BusinessIntegrationTests/testChoiceCommandRetainsMultipleValuesAndOtherDetailAcrossRelaunch",
+            "reason": "登录重启导入与损坏账号恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BusinessIntegrationTests/testVerifiedLoginClaimLogoutAndSameAccountResumeKeepGuestPrivate",
+            "reason": "登录重启导入与损坏账号恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BusinessIntegrationTests/testKeychainFailureDoesNotClaimGuestOrChangeCurrentStore",
+            "reason": "登录重启导入与损坏账号恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BusinessIntegrationTests/testImportCopyUsesNewIDKeepsOriginalAndFailsAtomicallyAtCapacity",
+            "reason": "登录重启导入与损坏账号恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BusinessIntegrationTests/testCorruptSignedInAccountStillOpensRecoveryAndRetainsOriginalFile",
+            "reason": "登录重启导入与损坏账号恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IssueDraftTests/testSaveCommitsTextAndOrderedMediaOnceAndRelaunches",
+            "reason": "问题草稿及媒体保存回滚",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IssueDraftTests/testDiscardAndRemovalCleanOnlyNewDraftFiles",
+            "reason": "问题草稿及媒体保存回滚",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IssueDraftTests/testSaveFailureRetainsDraftFilesAndCanRetryWithoutDuplication",
+            "reason": "问题草稿及媒体保存回滚",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IssueDraftTests/testValidationMissingFileAndDuplicateNeverPartiallySave",
+            "reason": "问题草稿及媒体保存回滚",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IssueDraftTests/testArchiveOrAccountChangeRejectsDraftWriteAndImport",
+            "reason": "问题草稿及媒体保存回滚",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IssueDraftTests/testCleanupPreservesCurrentAndPreviousReferencesAndFailsClosed",
+            "reason": "问题草稿及媒体保存回滚",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IssueDraftTests/testGroupSkipRestorePreservesChildAnswerHeadingNotesFlagsAndMedia",
+            "reason": "问题草稿及媒体保存回滚",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/IssueDraftTests/testAliasCannotBeOwnedOrDeleteReferencedTarget",
+            "reason": "问题草稿及媒体保存回滚",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/WheelBusinessTests/testRemovedWheelsUseManualNumbersOrNativeChoices",
+            "reason": "清单缓存和答案变化失效",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/WheelBusinessTests/testRealFormRoutesNineWheelsAndKeepsMoneyManual",
+            "reason": "清单缓存和答案变化失效",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/WheelBusinessTests/testConfirmedAnswersReloadKeepAnnotationsOtherAndEmptyZero",
+            "reason": "清单缓存和答案变化失效",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/WheelBusinessTests/testCancelUntouchedLegacyAndReadonlyIdentityGuards",
+            "reason": "清单缓存和答案变化失效",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeMediaImportTests/testImageStagesValidJPEGWithoutMutatingHouseAndScopeFailuresCleanUp",
+            "reason": "照片编码异步化及取消账号变化清理",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeMediaImportTests/testVideoExportsRealMP4AndInvalidSourceDoesNotLeavePartialFiles",
+            "reason": "照片编码异步化及取消账号变化清理",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/NativeMediaImportTests/testCancellationAndInvalidPayloadCreateNoMedia",
+            "reason": "照片编码异步化及取消账号变化清理",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/CapacityBusinessTests/testUnconfirmedPurchaseRetainsRecordsAndRestoresExactlyOnceAfterRelaunch",
+            "reason": "容量元数据与无快照回复后的购买恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/CapacityBusinessTests/testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct",
+            "reason": "容量元数据与无快照回复后的购买恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/CapacityBusinessTests/testRefundAndOlderSnapshotsKeepAllHousesAndRejectInconsistentOrForeignBalances",
+            "reason": "容量元数据与无快照回复后的购买恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/CapacityBusinessTests/testDuplicateForegroundAndBackgroundVerificationSharesOneGrantAndFinish",
+            "reason": "容量元数据与无快照回复后的购买恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/CapacityBusinessTests/testKeychainFailureKeepsPurchaseUnfinishedUntilCapacityCacheCanBeSaved",
+            "reason": "容量元数据与无快照回复后的购买恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/CapacityBusinessTests/testIdentityChangeDuringServerConfirmationCannotGrantOrFinish",
+            "reason": "容量元数据与无快照回复后的购买恢复",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/CapacityPolicyTests/testPublicPolicyCacheSurvivesOfflineAndDoesNotExportIdentity",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BackupTests/testZIPRoundTripStreamsMediaAndKeepsSettingsAndAssociations",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BackupTests/testActualMiniProgramZIPImportsMediaAndIssueAssociations",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/BackupTests/testAccountChangeDuringImportDiscardsStaging",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/MapCoreTests/testPlaceSearchUsesCanonicalParsingAndCoordinateBoundaryWithoutMutation",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/MapCoreTests/testRouteQueryAndConfirmedWriteRetainNotesAndRejectChangedEndpointsOrValue",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          },
+          {
+            "selector": "XunjuTests/MapCoreTests/testCoachPreferenceAndTargetPreserveAnswersAndPersist",
+            "reason": "保留引导写入与重启检查，对齐基线已有的新版标题",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuTests/MapCoreTests/testComputedValueFailureRollsBackAndPreservesPreviousAnswer",
+            "reason": "桥接快照与导入容量坐标相关直接消费者",
+            "source": "affected-existing"
+          }
+        ],
+        "uiTests": [
+          {
+            "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+            "reason": "最高风险：真实清单输入筛选备注重启模板与归档保存",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+            "reason": "照片后台导入，缩略图与问题影像保存取消重启",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+            "reason": "保留原失败的完整页面路径，并入模板保存重进和两种模式隔离断言；不略过后续导出导入和容量检查",
+            "source": "new-or-modified"
+          }
+        ],
+        "changedUITests": [
+          "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+          "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState"
+        ]
+      },
+      "command": "#!/bin/bash\nset -o pipefail\nnode '/Volumes/mac2/projects/git_repo/run_self/Simulator Management/bin/sim-test-run.mjs' --plan /private/tmp/rent-room-ios-performance-20261030/final-04-plan.json --config /private/tmp/rent-room-ios-performance-20261030/runner-ios18.json -- /Users/pc/.codex/worktrees/ios-performance-20261030/rent_room/scripts/run-xcodebuild.sh -project /Users/pc/.codex/worktrees/ios-performance-20261030/rent_room/ios/Xunju.xcodeproj -scheme Xunju -configuration Debug -destination 'platform=iOS Simulator,id=__SIM_UDID__' -derivedDataPath /Volumes/mac2/codex-builds/xunju-performance-final-20261030-04-__SIM_UDID__ -resultBundlePath /Volumes/mac2/codex-builds/xunju-performance-final-20261030-04.xcresult -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO ARCHS=arm64 SWIFT_OPTIMIZATION_LEVEL=-O test -only-testing:XunjuTests/PerformanceRegressionTests/testRepeatedThumbnailReadsReuseDecodedImage -only-testing:XunjuTests/PerformanceRegressionTests/testThumbnailReplacementDeletionAndIdentityIsolation -only-testing:XunjuTests/PerformanceRegressionTests/testPhotoImportAllowsMainActorProgress -only-testing:XunjuTests/PerformanceRegressionTests/testCancellingAnInFlightPhotoImportLeavesNoFile -only-testing:XunjuTests/PerformanceRegressionTests/testIncrementalReadsAndMutationReturnValuesKeepStoreCurrent -only-testing:XunjuTests/PerformanceRegressionTests/testThirtyHouseReadBenchmark -only-testing:XunjuTests/PerformanceRegressionTests/testWarmThumbnailBenchmark -only-testing:XunjuTests/BridgeJSONTests/testFoundationConversionMatchesCodableForNestedSchema -only-testing:XunjuTests/BridgeJSONTests/testScalarAndEmptyPayloadsRemainLossless -only-testing:XunjuTests/ThumbnailCacheTests/testByteBudgetEvictsAndMemoryWarningClearsCache -only-testing:XunjuTests/ThumbnailCacheTests/testDownsamplingPreservesEXIFOrientationAndRejectsInvalidImage -only-testing:XunjuTests/NativeStoreTests/testCanonicalCatalogAndRoundTripRetainAnswersAndZero -only-testing:XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection -only-testing:XunjuTests/NativeStoreTests/testConditionalGroupKeepsHiddenAnswersNotesAndProblemFlag -only-testing:XunjuTests/NativeStoreTests/testIndependentIssueFlagFilteringAndCollapsedFormDoNotMutate -only-testing:XunjuTests/NativeStoreTests/testManualIssueAndSummaryComparisonPersist -only-testing:XunjuTests/NativeStoreTests/testImportIsAtomicAndPreservesGlobalSettings -only-testing:XunjuTests/NativeStoreTests/testCorruptFileBlocksWritesAndRecoveryPreservesOriginal -only-testing:XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession -only-testing:XunjuTests/InspectionBusinessTests/testSetupDraftStepAndSelectionSurviveRelaunch -only-testing:XunjuTests/InspectionBusinessTests/testTemplateChangesApplyOnlyToNewHouseSnapshots -only-testing:XunjuTests/InspectionBusinessTests/testLegacySaveSkipsSetupAndRetainsDetailedSnapshot -only-testing:XunjuTests/InspectionBusinessTests/testSimpleDescriptionResultsAndNotesCountOnce -only-testing:XunjuTests/InspectionBusinessTests/testTutorialRequiresActualSwipeAndResumesStoredStep -only-testing:XunjuTests/InspectionBusinessTests/testSetupFailureKeepsDraftAndCanRetry -only-testing:XunjuTests/InspectionBusinessTests/testTutorialSaveFailureRollsBackAndDuplicateSwipeCannotSkipStepFour -only-testing:XunjuTests/InspectionBusinessTests/testRentFreeNumberPreservesHistoricalValuesMetadataAndArchive -only-testing:XunjuTests/InspectionBusinessTests/testCompletionOnlyGuidesForwardAndDoesNotRepeatAfterClearing -only-testing:XunjuTests/InspectionBusinessTests/testOtherHousesShowsReturnGuideBeforeLeavingAndStaleActionsDoNotDismissIt -only-testing:XunjuTests/InspectionBusinessTests/testGuideCloseScopesAndFeedbackRequestAreDurable -only-testing:XunjuTests/InspectionBusinessTests/testNonePreservesHiddenValueAndCountsAsRecorded -only-testing:XunjuTests/InspectionBusinessTests/testZeroCapacityKeepsOldRecordsAndRejectsNetNewImportOrRestore -only-testing:XunjuTests/InspectionBusinessTests/testCreateIntentRetainsEnteredNameAcrossCapacityChangeAndRelaunch -only-testing:XunjuTests/InspectionBusinessTests/testNineMediaBatchPreservesOrderAndRejectsPartialWrites -only-testing:XunjuTests/RelatedMediaIntegrationTests/testAutomaticAndChecklistShareOrderedFieldMediaNotesAndIndependentFlag -only-testing:XunjuTests/RelatedMediaIntegrationTests/testParentAnnotationsKeepMediaAndNeverBecomeEditableChildValues -only-testing:XunjuTests/RelatedMediaIntegrationTests/testRelatedMediaCaptionWriteFailurePreservesOriginalAndRetryDoesNotDuplicate -only-testing:XunjuTests/IdentityScopeTests/testGuestClaimIsIdempotentAndLogoutStartsFreshGuest -only-testing:XunjuTests/IdentityScopeTests/testClaimPreservesOverCapacityRecordsWithoutGrantingCapacity -only-testing:XunjuTests/IdentityScopeTests/testFirstClaimKeepsGuestSettingsAndCopiesMediaWithoutChangingOriginal -only-testing:XunjuTests/IdentityScopeTests/testFailedMediaClaimRetainsJournalAndCanResumeOnce -only-testing:XunjuTests/IdentityScopeTests/testDuplicateHouseIDsReceiveNewIDWithoutOverwritingAccount -only-testing:XunjuTests/IdentityScopeTests/testMalformedScopePointerAndMediaPathsNeverEscapeRoot -only-testing:XunjuTests/BusinessIntegrationTests/testGuestWorkspaceRelaunchRetainsRealRecordsAndScopes -only-testing:XunjuTests/BusinessIntegrationTests/testChoiceCommandRetainsMultipleValuesAndOtherDetailAcrossRelaunch -only-testing:XunjuTests/BusinessIntegrationTests/testVerifiedLoginClaimLogoutAndSameAccountResumeKeepGuestPrivate -only-testing:XunjuTests/BusinessIntegrationTests/testKeychainFailureDoesNotClaimGuestOrChangeCurrentStore -only-testing:XunjuTests/BusinessIntegrationTests/testImportCopyUsesNewIDKeepsOriginalAndFailsAtomicallyAtCapacity -only-testing:XunjuTests/BusinessIntegrationTests/testCorruptSignedInAccountStillOpensRecoveryAndRetainsOriginalFile -only-testing:XunjuTests/IssueDraftTests/testSaveCommitsTextAndOrderedMediaOnceAndRelaunches -only-testing:XunjuTests/IssueDraftTests/testDiscardAndRemovalCleanOnlyNewDraftFiles -only-testing:XunjuTests/IssueDraftTests/testSaveFailureRetainsDraftFilesAndCanRetryWithoutDuplication -only-testing:XunjuTests/IssueDraftTests/testValidationMissingFileAndDuplicateNeverPartiallySave -only-testing:XunjuTests/IssueDraftTests/testArchiveOrAccountChangeRejectsDraftWriteAndImport -only-testing:XunjuTests/IssueDraftTests/testCleanupPreservesCurrentAndPreviousReferencesAndFailsClosed -only-testing:XunjuTests/IssueDraftTests/testGroupSkipRestorePreservesChildAnswerHeadingNotesFlagsAndMedia -only-testing:XunjuTests/IssueDraftTests/testAliasCannotBeOwnedOrDeleteReferencedTarget -only-testing:XunjuTests/WheelBusinessTests/testRemovedWheelsUseManualNumbersOrNativeChoices -only-testing:XunjuTests/WheelBusinessTests/testRealFormRoutesNineWheelsAndKeepsMoneyManual -only-testing:XunjuTests/WheelBusinessTests/testConfirmedAnswersReloadKeepAnnotationsOtherAndEmptyZero -only-testing:XunjuTests/WheelBusinessTests/testCancelUntouchedLegacyAndReadonlyIdentityGuards -only-testing:XunjuTests/NativeMediaImportTests/testImageStagesValidJPEGWithoutMutatingHouseAndScopeFailuresCleanUp -only-testing:XunjuTests/NativeMediaImportTests/testVideoExportsRealMP4AndInvalidSourceDoesNotLeavePartialFiles -only-testing:XunjuTests/NativeMediaImportTests/testCancellationAndInvalidPayloadCreateNoMedia -only-testing:XunjuTests/CapacityBusinessTests/testUnconfirmedPurchaseRetainsRecordsAndRestoresExactlyOnceAfterRelaunch -only-testing:XunjuTests/CapacityBusinessTests/testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct -only-testing:XunjuTests/CapacityBusinessTests/testRefundAndOlderSnapshotsKeepAllHousesAndRejectInconsistentOrForeignBalances -only-testing:XunjuTests/CapacityBusinessTests/testDuplicateForegroundAndBackgroundVerificationSharesOneGrantAndFinish -only-testing:XunjuTests/CapacityBusinessTests/testKeychainFailureKeepsPurchaseUnfinishedUntilCapacityCacheCanBeSaved -only-testing:XunjuTests/CapacityBusinessTests/testIdentityChangeDuringServerConfirmationCannotGrantOrFinish -only-testing:XunjuTests/CapacityPolicyTests/testPublicPolicyCacheSurvivesOfflineAndDoesNotExportIdentity -only-testing:XunjuTests/BackupTests/testZIPRoundTripStreamsMediaAndKeepsSettingsAndAssociations -only-testing:XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords -only-testing:XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings -only-testing:XunjuTests/BackupTests/testActualMiniProgramZIPImportsMediaAndIssueAssociations -only-testing:XunjuTests/BackupTests/testAccountChangeDuringImportDiscardsStaging -only-testing:XunjuTests/MapCoreTests/testPlaceSearchUsesCanonicalParsingAndCoordinateBoundaryWithoutMutation -only-testing:XunjuTests/MapCoreTests/testRouteQueryAndConfirmedWriteRetainNotesAndRejectChangedEndpointsOrValue -only-testing:XunjuTests/MapCoreTests/testCoachPreferenceAndTargetPreserveAnswersAndPersist -only-testing:XunjuTests/MapCoreTests/testComputedValueFailureRollsBackAndPreservesPreviousAnswer -only-testing:XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot -only-testing:XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch -only-testing:XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState > /private/tmp/rent-room-ios-performance-20261030/final-04.log 2>&1\n",
+      "status": "passed",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 83,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793299409.644,
+        "passedTests": 83,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1793299119.99,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [
+          {
+            "category": "Longest Test Runs",
+            "impact": "11% of duration",
+            "text": "2 longest test runs with outlier durations exceeding 0.45s (three standard deviations)"
+          }
+        ],
+        "totalTestCount": 83
+      },
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-performance-final-20261030-04.xcresult",
+      "log": "/private/tmp/rent-room-ios-performance-20261030/final-04.log",
+      "receipt": {
+        "runId": "xunju-performance-final-20261030-04",
+        "token": "570f8403-f65c-448f-8e35-a9684f658eff",
+        "resultBundlePath": "/Volumes/mac2/codex-builds/xunju-performance-final-20261030-04.xcresult",
+        "requestedAt": 1793299058071,
+        "cacheWaitSeconds": 0.005,
+        "queueSeconds": 0.912,
+        "buildResultBundlePath": "/Volumes/mac2/codex-builds/xunju-performance-final-20261030-04.build.xcresult",
+        "stages": {
+          "build": {
+            "queuedAt": 1793299058076,
+            "startedAt": 1793299058235,
+            "queueSeconds": 0.159,
+            "finishedAt": 1793299112391,
+            "exitCode": 0
+          },
+          "test": {
+            "queuedAt": 1793299112396,
+            "startedAt": 1793299113149,
+            "queueSeconds": 0.753,
+            "finishedAt": 1793299411847,
+            "exitCode": 0
+          }
+        },
+        "commandStartedAt": 1793299113149,
+        "finishedAt": 1793299411892,
+        "exitCode": 0
+      },
+      "performanceLogLines": [
+        "PERF thirty-house startup_ms=178.8100004196167 read_median_ms=0.5499124526977539 samples_ms=[47.60003089904785, 0.6150007247924805, 0.5680322647094727, 0.5599260330200195, 0.5379915237426758, 0.5350112915039062, 0.5499124526977539, 0.5340576171875, 0.5409717559814453, 0.5489587783813477]",
+        "PERF warm-thumbnail median_ms=0.14495849609375 samples_ms=[0.19598007202148438, 0.164031982421875, 0.15103816986083984, 0.15497207641601562, 0.1500844955444336, 0.14698505401611328, 0.1480579376220703, 0.14400482177734375, 0.1430511474609375, 0.14495849609375, 0.1430511474609375, 0.1430511474609375, 0.1430511474609375, 0.14698505401611328, 0.14495849609375, 0.14400482177734375, 0.14197826385498047, 0.14197826385498047, 0.14102458953857422, 0.14400482177734375]",
+        "PERF first-house-entry-seconds=1.658937931060791"
+      ],
+      "uiMethods": [
+        "Test Case '-[XunjuUITests.BusinessFlowTests testIssueMediaSaveDiscardCaptionAndRelaunch]' passed (84.905 seconds).",
+        "Test Case '-[XunjuUITests.InspectionBusinessUITests testDetailedNoneTemplateChangesAndArchivedSnapshot]' passed (107.763 seconds).",
+        "Test Case '-[XunjuUITests.PixelParityAuditTests testReferencePagesAndArchivedState]' passed (57.911 seconds)."
+      ],
+      "visualInspection": {
+        "method": "Read original exported PNG images from the actual completed test run",
+        "files": [
+          "86BBFA8D-7CBA-4E30-9CDA-AE17AD5B03EC.png",
+          "D6E38453-72BC-4BED-8D17-9E392B57BDE7.png",
+          "0C965585-BE2F-449A-A956-3BFC4CA72C11.png",
+          "E64414A7-094A-49C8-8F5B-7CFDB4830D41.png"
+        ],
+        "observed": "Reopened simple template retains disabled category; archived readonly house retains 90.5 and note; gallery shows photo and video; real video shows pause control and advancing timecode. No pixel-equivalence claim."
+      },
+      "ownLeaseReleased": true
+    },
+    "ios26": {
+      "plan": {
+        "schemaVersion": 1,
+        "runId": "xunju-performance-final-ios26-20261030-01",
+        "phase": "final-pr-head",
+        "headSha": "7c51cacefc1213621df75dfbe474ca35f0dbf10b",
+        "taskName": "PR 87 final code validation on iOS 26.5",
+        "sessionId": "01a1886e-e64e-7e32-b1e9-ee161b317039",
+        "workspace": "/Users/pc/.codex/worktrees/ios-performance-20261030/rent_room",
+        "unitTestTarget": "XunjuTests",
+        "uiTestTarget": "XunjuUITests",
+        "unitTests": [],
+        "uiTests": [
+          {
+            "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+            "reason": "最高风险：真实清单输入筛选备注重启模板与归档保存",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+            "reason": "照片后台导入，缩略图与问题影像保存取消重启",
+            "source": "new-or-modified"
+          },
+          {
+            "selector": "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+            "reason": "保留原失败的完整页面路径，并入模板保存重进和两种模式隔离断言；不略过后续导出导入和容量检查",
+            "source": "new-or-modified"
+          }
+        ],
+        "changedUITests": [
+          "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+          "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+          "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState"
+        ]
+      },
+      "command": "#!/bin/bash\nset -o pipefail\nnode '/Volumes/mac2/projects/git_repo/run_self/Simulator Management/bin/sim-test-run.mjs' --plan /private/tmp/rent-room-ios-performance-20261030/final-ios26-01-plan.json --config /private/tmp/rent-room-ios-performance-20261030/runner-ios26.json -- /Users/pc/.codex/worktrees/ios-performance-20261030/rent_room/scripts/run-xcodebuild.sh -project /Users/pc/.codex/worktrees/ios-performance-20261030/rent_room/ios/Xunju.xcodeproj -scheme Xunju -configuration Debug -destination 'platform=iOS Simulator,id=__SIM_UDID__' -derivedDataPath /Volumes/mac2/codex-builds/xunju-performance-final-ios26-20261030-01-__SIM_UDID__ -resultBundlePath /Volumes/mac2/codex-builds/xunju-performance-final-ios26-20261030-01.xcresult -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO ARCHS=arm64 SWIFT_OPTIMIZATION_LEVEL=-O test -only-testing:XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot -only-testing:XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch -only-testing:XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState > /private/tmp/rent-room-ios-performance-20261030/final-ios26-01.log 2>&1\n",
+      "status": "passed",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "759E28A9-21EB-4AA1-9F4F-EF1850989C56",
+              "deviceName": "todo-pool-camera-20260717110121",
+              "modelName": "iPhone 16",
+              "osBuildNumber": "23F77",
+              "osVersion": "26.5",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 3,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793299721.007,
+        "passedTests": 3,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1793299427.957,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 3
+      },
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-performance-final-ios26-20261030-01.xcresult",
+      "log": "/private/tmp/rent-room-ios-performance-20261030/final-ios26-01.log",
+      "receipt": {
+        "runId": "xunju-performance-final-ios26-20261030-01",
+        "token": "23fe46e8-591b-426d-840d-4828b2ca5ee0",
+        "resultBundlePath": "/Volumes/mac2/codex-builds/xunju-performance-final-ios26-20261030-01.xcresult",
+        "requestedAt": 1793299070569,
+        "cacheWaitSeconds": 341.386,
+        "queueSeconds": 0.794,
+        "buildResultBundlePath": "/Volumes/mac2/codex-builds/xunju-performance-final-ios26-20261030-01.build.xcresult",
+        "stages": {
+          "build": {
+            "queuedAt": 1793299411956,
+            "startedAt": 1793299412313,
+            "queueSeconds": 0.357,
+            "finishedAt": 1793299421314,
+            "exitCode": 0
+          },
+          "test": {
+            "queuedAt": 1793299421316,
+            "startedAt": 1793299421753,
+            "queueSeconds": 0.437,
+            "finishedAt": 1793299722640,
+            "exitCode": 0
+          }
+        },
+        "commandStartedAt": 1793299421753,
+        "finishedAt": 1793299722646,
+        "exitCode": 0
+      },
+      "uiMethods": [
+        "Test Case '-[XunjuUITests.BusinessFlowTests testIssueMediaSaveDiscardCaptionAndRelaunch]' passed (91.842 seconds).",
+        "Test Case '-[XunjuUITests.InspectionBusinessUITests testDetailedNoneTemplateChangesAndArchivedSnapshot]' passed (114.740 seconds).",
+        "Test Case '-[XunjuUITests.PixelParityAuditTests testReferencePagesAndArchivedState]' passed (59.133 seconds)."
+      ],
+      "performanceLogLines": [
+        "PERF first-house-entry-seconds=1.9653069972991943"
+      ],
+      "visualInspection": {
+        "files": [
+          "4EB995B6-2652-4BC3-8ED3-2E16E382C7ED.png",
+          "7CFD3945-9D54-456E-A547-BA2945462213.png"
+        ],
+        "observed": "Original screenshots confirm real playback with pause and elapsed time, and persisted disabled category after reopening template."
+      },
+      "ownLeaseReleased": true
+    }
+  },
+  "review": {
+    "agent": "current primary Codex agent",
+    "sourceReview": "Reviewed complete handwritten diff after PR existed; no actionable findings. Verified snapshot and day invalidation, rollback/status behavior, numeric/bool decoding, media identity/eviction/EXIF, background cancellation cleanup, explicit destination capture, lease-guarded runner refresh and retained UI business assertions.",
+    "ci": "No checks or statuses were reported for 7c51cacefc1213621df75dfbe474ca35f0dbf10b. This is not a CI pass.",
+    "temporaryDiagnosticsRemoved": true,
+    "noMergeOrPhysicalInstallOrRelease": true,
+    "status": "complete; no actionable findings",
+    "generatedResource": "node ios/scripts/build-core.mjs --check passed after diagnostic cleanup; generated bundle and 8 measured source/config hashes match measured candidate.",
+    "mergeableReadback": true,
+    "documentationOnlyFollowup": {
+      "validatedCodeHead": "7c51cacefc1213621df75dfbe474ca35f0dbf10b",
+      "allowedPaths": [
+        "docs/ios/PERFORMANCE_20261030.md",
+        "docs/ios/evidence/performance-20261030.json",
+        "docs/ios/evidence/performance-20261030/template-reopened-ios18.png",
+        "docs/ios/evidence/performance-20261030/video-playing-ios18.png"
+      ],
+      "productAndTestDiff": "empty"
+    }
+  },
+  "developmentRuns": [
+    {
+      "runId": "xunju-performance-final-20261030-03",
+      "sourceHead": "60c5ba5291ef928d6e399d480a7a6c0114520070",
+      "note": "80 unit pass; UI 1 pass/2 fail on iOS 26.5. Video controls were hidden; checklist had slow initial navigation and failed later creation. All failures retained.",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "759E28A9-21EB-4AA1-9F4F-EF1850989C56",
+              "deviceName": "todo-pool-camera-20260717110121",
+              "modelName": "iPhone 16",
+              "osBuildNumber": "23F77",
+              "osVersion": "26.5",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 2,
+            "passedTests": 81,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 2,
+        "finishTime": 1793297267.44,
+        "passedTests": 81,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1793296528.287,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 82,
+            "testIdentifierString": "InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+            "testName": "testDetailedNoneTemplateChangesAndArchivedSnapshot()"
+          },
+          {
+            "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\")",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 81,
+            "testIdentifierString": "BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+            "testName": "testIssueMediaSaveDiscardCaptionAndRelaunch()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [
+          {
+            "category": "Longest Test Runs",
+            "impact": "29% of duration",
+            "text": "2 longest test runs with outlier durations exceeding 2.39s (three standard deviations)"
+          }
+        ],
+        "totalTestCount": 83
+      },
+      "log": "/private/tmp/rent-room-ios-performance-20261030/final-03.log",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-performance-final-20261030-03.xcresult"
+    },
+    {
+      "runId": "xunju-performance-ios18-recheck-20261030-01",
+      "sourceHead": "60c5ba5291ef928d6e399d480a7a6c0114520070",
+      "note": "Two full UI flows failed on original iOS 18 device despite fresh XCTest runner.",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 2,
+            "passedTests": 0,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 2,
+        "finishTime": 1793297492.493,
+        "passedTests": 0,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1793297327.724,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 1,
+            "testIdentifierString": "InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+            "testName": "testDetailedNoneTemplateChangesAndArchivedSnapshot()"
+          },
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 2,
+            "testIdentifierString": "PixelParityAuditTests/testReferencePagesAndArchivedState()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+            "testName": "testReferencePagesAndArchivedState()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 2
+      },
+      "log": "/private/tmp/rent-room-ios-performance-20261030/ios18-recheck-01.log",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-performance-ios18-recheck-20261030-01.xcresult"
+    },
+    {
+      "runId": "xunju-performance-layout-trace-ios18-20261030-01",
+      "sourceHead": "923eb386cd112cb4d4e3fd3e8283233b606d232d",
+      "note": "Event traces confirmed missing edit event while dismissing sheet in Inspection flow, and continuous _dismiss updates after actual edit event in Pixel flow. Installed binary SHA matched compiled binary.",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 2,
+            "passedTests": 0,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 2,
+        "finishTime": 1793298251.313,
+        "passedTests": 0,
+        "result": "Failed",
+        "skippedTests": 0,
+        "startTime": 1793297956.57,
+        "statistics": [],
+        "testFailures": [
+          {
+            "failureText": "XCTAssertTrue failed",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 1,
+            "testIdentifierString": "InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+            "testName": "testDetailedNoneTemplateChangesAndArchivedSnapshot()"
+          },
+          {
+            "failureText": "Failed to get matching snapshots: Timed out while evaluating UI query.",
+            "targetName": "XunjuUITests",
+            "testIdentifier": 2,
+            "testIdentifierString": "PixelParityAuditTests/testReferencePagesAndArchivedState()",
+            "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+            "testName": "testReferencePagesAndArchivedState()"
+          }
+        ],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 2
+      },
+      "log": "/private/tmp/rent-room-ios-performance-20261030/layout-trace-ios18-01.log",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-performance-layout-trace-ios18-20261030-01.xcresult"
+    },
+    {
+      "runId": "xunju-performance-template-fix-ios18-20261030-01",
+      "sourceHead": "a277e9578dc1a353584f97ffcba7dc161d7c3699",
+      "note": "Both original full flows passed after explicit workspace capture and waiting for sheet disappearance. First entry 1.883567 s.",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+              "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+              "modelName": "iPhone 14 Pro",
+              "osBuildNumber": "22D8075",
+              "osVersion": "18.3.1",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 2,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793298756.202,
+        "passedTests": 2,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1793298556.3,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 2
+      },
+      "log": "/private/tmp/rent-room-ios-performance-20261030/template-fix-ios18-01.log",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-performance-template-fix-ios18-20261030-01.xcresult"
+    },
+    {
+      "runId": "xunju-performance-layout-trace-ios26-20261030-01",
+      "sourceHead": "a277e9578dc1a353584f97ffcba7dc161d7c3699",
+      "note": "Both complete media and checklist flows passed. First entry 1.680328 s. New house creation and archived snapshot completed. Earlier isolated long entry was not independently root-caused; preserved a 30 s assertion rather than claiming a distinct product fix.",
+      "summary": {
+        "devicesAndConfigurations": [
+          {
+            "device": {
+              "architecture": "arm64",
+              "deviceId": "759E28A9-21EB-4AA1-9F4F-EF1850989C56",
+              "deviceName": "todo-pool-camera-20260717110121",
+              "modelName": "iPhone 16",
+              "osBuildNumber": "23F77",
+              "osVersion": "26.5",
+              "platform": "iOS Simulator"
+            },
+            "expectedFailures": 0,
+            "failedTests": 0,
+            "passedTests": 2,
+            "skippedTests": 0,
+            "testPlanConfiguration": {
+              "configurationId": "1",
+              "configurationName": "Test Scheme Action"
+            }
+          }
+        ],
+        "environmentDescription": "Xunju · Built with macOS 26.2",
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "finishTime": 1793299010.262,
+        "passedTests": 2,
+        "result": "Passed",
+        "skippedTests": 0,
+        "startTime": 1793298777.963,
+        "statistics": [],
+        "testFailures": [],
+        "title": "Test - Xunju",
+        "topInsights": [],
+        "totalTestCount": 2
+      },
+      "log": "/private/tmp/rent-room-ios-performance-20261030/layout-trace-ios26-01.log",
+      "resultBundle": "/Volumes/mac2/codex-builds/xunju-performance-layout-trace-ios26-20261030-01.xcresult"
+    }
+  ],
+  "navigationDiagnosis": {
+    "rootCause": "Destination closure implicitly captured the parent view including its changing dismiss environment. Explicit workspace capture removes that dependency.",
+    "preFixTrace": "/private/tmp/rent-room-ios-performance-20261030/layout-trace-ios18-01-filtered.log",
+    "postFixTrace": "/private/tmp/rent-room-ios-performance-20261030/template-fix-ios18-01-filtered.log",
+    "cpuSample": "/private/tmp/rent-room-ios-performance-20261030/template-editor-hang.sample.txt",
+    "cpuPercentSnapshot": 98.7,
+    "installedBinaryVerification": {
+      "runId": "xunju-performance-layout-trace-ios18-20261030-01",
+      "path": "/Users/pc/Library/Developer/CoreSimulator/Devices/8F178971-C203-4690-A83B-253046EACBB1/data/Containers/Bundle/Application/0EBB4B08-1EEB-428A-969E-C8F5D44E9E8E/Xunju.app/Xunju",
+      "installedSHA256": "3fe880ece0774b58a3594c608d8e6e2351459b53ec499b11197ef05d23b0ab10",
+      "compiledSHA256": "3fe880ece0774b58a3594c608d8e6e2351459b53ec499b11197ef05d23b0ab10",
+      "matches": true
+    },
+    "references": [
+      "https://developer.apple.com/forums/thread/720096",
+      "docs/ios/BUSINESS_PARITY_20261025.md"
+    ],
+    "referencesAreDiagnosticCluesNotOfficialConfirmation": true
+  },
+  "nodeValidation": {
+    "sourceHead": "7c51cacefc1213621df75dfbe474ca35f0dbf10b",
+    "command": "node --test ios/tests/bridge-performance.test.mjs ios/tests/test-runner-preflight.test.mjs",
+    "passed": 11,
+    "failed": 0,
+    "log": "/private/tmp/rent-room-ios-performance-20261030/node-final-clean.log"
+  },
+  "committedScreenshots": {
+    "docs/ios/evidence/performance-20261030/template-reopened-ios18.png": "328bf71f23850a80700ac4187d4406f5f9f303cf10ba0577304da32f366ff17e",
+    "docs/ios/evidence/performance-20261030/video-playing-ios18.png": "770a534de1837cce341908fcdab2a87cbfc551e0aca9dc116ecd194166290dd5"
+  }
+}

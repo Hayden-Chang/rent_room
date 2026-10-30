@@ -2,7 +2,6 @@ import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers
 import AVKit
-import ImageIO
 
 struct HouseMediaPage: View {
     let workspace: AppWorkspace
@@ -43,11 +42,7 @@ struct HouseMediaPage: View {
               relation: !value["issueTitle"].string.isEmpty ? "问题 · " + value["issueTitle"].string : value["fieldId"].string.isEmpty ? "房源影像" : "已关联检查项")
 }
 
-func thumbnail(_ url: URL) -> UIImage? {
-    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil), let cg = CGImageSourceCreateThumbnailAtIndex(source, 0,
-        [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: 600, kCGImageSourceCreateThumbnailWithTransform: true] as CFDictionary) else { return nil }
-    return UIImage(cgImage: cg)
-}
+@MainActor func thumbnail(_ url: URL) -> UIImage? { ThumbnailCache.shared.image(at: url) }
 
 private struct ImportedVideo: Transferable, Sendable {
     let url: URL

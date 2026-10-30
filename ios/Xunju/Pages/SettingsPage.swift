@@ -116,6 +116,7 @@ struct SettingsPage: View {
                         }
                     }
                 }
+                XJCard { TouchTrailSettingsRow() }
                 XJCard { HStack { AppText("版本"); Spacer(); AppText("0.1.0").foregroundStyle(XJTheme.muted) }.font(.system(size: 14)).frame(minHeight: 50).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) } }
                 if workspace.session != nil {
                     Button(AppCopy.text("退出登录")) { loggingOut = true }.font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.danger)

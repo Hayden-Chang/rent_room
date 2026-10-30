@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor final class AppCopyTests: XCTestCase {
     func testPackagedEnglishCatalogPermissionsAndMoneyUnits() throws {
-        XCTAssertEqual(AppCopy.translations.count, 1301)
+        XCTAssertEqual(AppCopy.translations.count, 1305)
         for (source, english) in AppCopy.translations {
             XCTAssertNil(english.range(of: #"[\u3400-\u9fff]"#, options: .regularExpression), source)
         }

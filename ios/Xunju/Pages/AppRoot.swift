@@ -3,6 +3,7 @@ import SwiftUI
 struct AppRoot: View {
     @State private var workspace: AppWorkspace?
     @State private var launchError = ""
+    @State private var touchTrailDefaults = TouchTrailPreference.defaults()
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Group {
@@ -31,6 +32,8 @@ struct AppRoot: View {
                 AppLanguage.shared.value = language ?? LanguageSelection.system.resolve(Locale.preferredLanguages)
             }
             .preferredColorScheme(.light)
+            .overlay { TouchTrailPresentation() }
+            .defaultAppStorage(touchTrailDefaults)
     }
     private func load() {
         do {

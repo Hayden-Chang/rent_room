@@ -10,9 +10,18 @@ import {updateWorkplace, selectWorkplace, clearWorkplace} from '../../apps/wecha
 import {coachSteps, coachTarget} from '../../apps/wechat/src/lib/onboarding.js';
 import {inspectionActions} from './inspection.js';
 import {currencyState,normalizeCurrency,addCurrencyHouse,currencyComparison} from './currency.js';
+import {localDay} from '../../apps/wechat/src/lib/xiaoda-state.js';
 
 let store, sessionPacks = 0, claimPacks = null, freeLimit = 1;
+let deliveredState, summaryState, cachedSummaries;
+let deliveredHouses = new Map();
+const readOperations = new Set(['form', 'targets', 'issues', 'media', 'compare', 'inspectionGuide', 'templates', 'setupState']);
+let readState, readDay, readBytes = 0;
+const readCache = new Map();
 export function initialize(raw, packs = 0, free = 1) {
+  deliveredState = summaryState = cachedSummaries = undefined;
+  deliveredHouses = new Map();
+  readState = readDay = undefined; readBytes = 0; readCache.clear();
   sessionPacks = packs; freeLimit = free;
   store = createStore({
     read: () => currencyState(raw),
@@ -170,16 +179,74 @@ function execute({operation, id, name, field, property, value, group, view, fold
   }
 }
 
-export function dispatch(json) {
-  let value = null, error = '';
-  try {value = execute(JSON.parse(json)) ?? null;} catch (e) {error = e.message || String(e);}
+function executeRead(request) {
+  // Guidance has a local-day boundary. Everything else here is a pure query of
+  // the current immutable store snapshot and the complete request parameters.
+  const state = store.get(), day = localDay();
+  if (state !== readState || day !== readDay) {
+    readCache.clear(); readBytes = 0; readState = state; readDay = day;
+  }
+  // Swift dictionaries can encode equivalent requests in different key orders.
+  const key = JSON.stringify(request, (_key, value) => value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(Object.keys(value).sort().map(key => [key, value[key]])) : value);
+  if (readCache.has(key)) {
+    const cached = readCache.get(key); readCache.delete(key); readCache.set(key, cached);
+    return cached.value;
+  }
+  const value = execute(request) ?? null, bytes = (key.length + JSON.stringify(value).length) * 2;
+  if (bytes <= 256 * 1024) {
+    while (readCache.size >= 8 || readBytes + bytes > 1024 * 1024) {
+      const oldest = readCache.keys().next().value;
+      readBytes -= readCache.get(oldest).bytes; readCache.delete(oldest);
+    }
+    readCache.set(key, {value, bytes}); readBytes += bytes;
+  }
+  return value;
+}
+
+export function dispatch(json, incremental = false) {
+  let value = null, error = '', operation;
+  try {
+    const request = JSON.parse(json); operation = request.operation;
+    value = incremental && readOperations.has(operation) ? executeRead(request) : execute(request) ?? null;
+  } catch (e) {error = e.message || String(e);}
   const state = store.get();
-  // Views receive the original state unchanged; summaries are derived only.
-  const summaries = state.houses.map(h => ({id: h.id, name: h.name, archived: !!h.archived,
-    currencyCode: h.currencyCode || 'CNY', rent: String(h.answers.f1_6?.value ?? ''), area: String(h.answers.f1_3?.value ?? '—'),
-    address: h.address || '', decision: h.decision || '', stats: model.stats(h),
-    cover: h.media?.find(m => m.type === 'image')?.path || ''}));
-  return JSON.stringify({ok: !error, error, value, state, status: store.status(), capacity: store.capacity(), summaries});
+  if (readState !== state) { readCache.clear(); readBytes = 0; readState = state; }
+  // The shared store replaces state on commit and restores its prior identity on
+  // rollback. Reads and capacity/status-only changes do not need another snapshot.
+  const snapshot = !incremental || operation === 'snapshot' || state !== deliveredState;
+  const valueIsState = incremental && value === state;
+  const reply = {ok: !error, error, value: valueIsState ? null : value, status: store.status(), capacity: store.capacity()};
+  if (valueIsState) reply.valueIsState = true;
+  if (snapshot) {
+    let changed = [], nextHouses = deliveredHouses;
+    if (summaryState !== state) {
+      nextHouses = new Map();
+      cachedSummaries = state.houses.map(h => {
+        // Store transactions clone all houses. Compare complete serialized records
+        // so unchanged houses need neither statistics nor another native decode.
+        const text = JSON.stringify(h), old = deliveredHouses.get(h.id);
+        const entry = old?.text === text ? old : {text, summary: {
+          id: h.id, name: h.name, archived: !!h.archived, currencyCode: h.currencyCode || 'CNY',
+          rent: String(h.answers.f1_6?.value ?? ''), area: String(h.answers.f1_3?.value ?? '—'),
+          address: h.address || '', decision: h.decision || '', stats: model.stats(h),
+          cover: h.media?.find(m => m.type === 'image')?.path || ''}};
+        if (entry !== old) changed.push(h);
+        nextHouses.set(h.id, entry);
+        return entry.summary;
+      });
+      summaryState = state;
+    }
+    if (incremental && deliveredState && operation !== 'snapshot') {
+      const {houses, ...metadata} = state;
+      reply.stateDelta = {metadata, order: houses.map(h => h.id), houses: changed};
+    } else reply.state = state;
+    reply.summaries = cachedSummaries;
+    deliveredHouses = nextHouses;
+  }
+  const result = JSON.stringify(reply);
+  deliveredState = state;
+  return result;
 }
 
 

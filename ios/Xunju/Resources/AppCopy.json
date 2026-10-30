@@ -1299,5 +1299,9 @@
   "驾车通勤": "Driving Commute",
   "＋ 添加照片 / 视频": "＋ Add Photos / Videos",
   "🍪 1 块小饼干 = 增加 10 套房源额度": "🍪 1 cookie = +10 home quota",
-  "通过 Apple 登录": "Sign in with Apple"
+  "通过 Apple 登录": "Sign in with Apple",
+  "{v0} {v1} / 月": "{v0} {v1} / month",
+  "房源更新数据无效": "Invalid listing update data",
+  "显示触摸轨迹": "Show Touch Trails",
+  "清单数据类型无效": "Invalid checklist data type"
 }
