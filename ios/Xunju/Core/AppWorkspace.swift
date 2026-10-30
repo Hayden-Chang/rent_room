@@ -50,6 +50,7 @@ final class AppWorkspace {
         billing = CapacityController(workspace: self, api: capacityAPI, storefront: storefront ?? NativeStorefront())
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
+        if let mode = FillingGuideFixture.mode(arguments) { try FillingGuideFixture.prepare(store, mode: mode) }
         if ReturningBusinessFixture.enabled(arguments) {
             if arguments.contains("--two-room-policy-fixture") { try acceptPolicy(CapacityPolicy(version: 2, freeLimit: 2)) }
             if store.state["xiaoda"]["setup"].string != "done" {
