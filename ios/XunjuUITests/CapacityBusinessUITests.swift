@@ -2,7 +2,7 @@ import XCTest
 
 @MainActor final class CapacityBusinessUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch(_ id: String, mode: String? = nil, firstLaunch: Bool = true) -> XCUIApplication {
+    private func launch(_ id: String, mode: String? = nil, firstLaunch: Bool = true, openCapacity: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--returning-business-fixture", "--business-test", id, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         if let mode { app.launchArguments += ["--capacity-business-fixture", mode, "--stub-system-review"] }
@@ -15,8 +15,10 @@ import XCTest
         }
         XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 10))
         XCTAssertFalse(currencyPrompt.exists, "Currency choice must persist across a process relaunch")
-        app.buttons["tab.我的"].tap(); app.buttons["local-settings.capacity"].tap()
-        XCTAssertTrue(app.buttons["credits.purchase"].waitForExistence(timeout: 5))
+        if openCapacity {
+            app.buttons["tab.我的"].tap(); app.buttons["local-settings.capacity"].tap()
+            XCTAssertTrue(app.buttons["credits.purchase"].waitForExistence(timeout: 5))
+        }
         return app
     }
     private func waitCredits(_ count: Int, _ app: XCUIApplication) {
@@ -29,6 +31,25 @@ import XCTest
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
+    }
+    func testNewPropertyAtZeroCreditsShowsPointPurchaseAndCanReturn() {
+        let app = launch(UUID().uuidString, mode: "zero", openCapacity: false)
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 5))
+        app.buttons["home.add"].tap()
+        let buy = app.buttons["credits.purchase"]
+        XCTAssertTrue(buy.waitForExistence(timeout: 5)); idle(app); waitCredits(0, app)
+        XCTAssertEqual(buy.label, "¥9.90 购买 10 点")
+        XCTAssertEqual(app.staticTexts["credits.rules"].label, "1 点 = 1 套新增房源")
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '小饼干' OR label CONTAINS '🍪' OR label CONTAINS '已转换'")).firstMatch.exists)
+        XCTAssertFalse(app.buttons["先等等"].exists)
+        XCTAssertFalse(app.textFields["prompt.text"].exists)
+        capture("new-property-zero-credits-purchase", app)
+        app.navigationBackButton.tap()
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["house.超额保留"].exists)
+        XCTAssertFalse(app.textFields["prompt.text"].exists)
+        app.buttons["home.add"].tap(); waitCredits(0, app)
+        XCTAssertEqual(buy.label, "¥9.90 购买 10 点")
     }
     func testPendingPurchaseDoesNotGrantAndRestoresOnceAcrossProcessRelaunch() {
         let id = UUID().uuidString, app = launch(id, mode: "pending")

@@ -25,18 +25,16 @@ struct LocalSettingsReviewHost: View {
                         LocalSettingsSurface(remaining: 0, archived: 2, workplace: "", version: "0.1.0",
                             onboarding: $onboarding, action: { event = $0.title }, openLegal: openLegal)
                     } else {
-                        Text("房源容量不够啦").font(.system(size: 24, weight: .bold))
-                        XiaodaMessage(text: "主人，可以投喂我一个小饼干🍪吗？", pose: "expect", compact: false, hero: true) { EmptyView() }
-                        AccountFreeCapacitySurface(used: 1, limit: 1, price: "¥1.99",
-                            activity: pending ? .pending : .idle, error: failed ? "网络不可用，已有容量和房源记录已保留，请联网后重试。" : "",
-                            purchase: { pending = true }, restore: { pending = false; failed = true }, cancel: { event = "已取消" }, openLegal: openLegal)
+                        AccountFreeCapacitySurface(remaining: 0, price: "¥9.90",
+                            activity: pending ? .pending : .idle, error: failed ? "网络不可用，请联网后重试。" : "",
+                            purchase: { pending = true }, restore: { pending = false; failed = true }, openLegal: openLegal)
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).accessibilityIdentifier("local-review.event")
                     }
                 }.padding(16)
-            }.background(XJTheme.background)
-                .miniNavigation(route == .settings ? "我的" : "房源容量")
+            }.background(route == .settings ? XJTheme.background : .white)
+                .miniNavigation(route == .settings ? "我的" : "房源点数")
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if route == .settings { XJTabBar(selection: .constant("我的"), items: [("房源", "home"), ("对比", "compare"), ("我的", "settings")]) }
                 }

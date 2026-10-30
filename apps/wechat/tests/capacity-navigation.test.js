@@ -67,3 +67,15 @@ it('leaves failed login on the existing page without losing the pending name or 
  expect(r.stack).toEqual(['/pages/home/index','/pages/capacity/index?intent=1']);expect(r.events).toEqual([]);
  expect(page.data.busy).toBe(false);expect(page.data.error).toContain('连接');expect(r.app.service.store.get()).toEqual(before);
 });
+
+it('routes exhausted new-property creation to the shared credits page and preserves back navigation',()=>{
+ const r=runtime(['/pages/home/index']);
+ r.app.service.store.add('原有房源一');r.app.service.store.add('原有房源二');
+ const before=r.app.service.store.get().houses;
+ r.page('home').add();
+ expect(r.stack).toEqual(['/pages/home/index','/pages/capacity/index?intent=1']);
+ expect(r.app.service.store.capacity().remaining).toBe(0);
+ expect(r.app.service.store.get().xiaoda.intent.kind).toBe('create');
+ expect(r.app.service.store.get().houses).toEqual(before);
+ r.wx.navigateBack();expect(r.stack).toEqual(['/pages/home/index']);
+});

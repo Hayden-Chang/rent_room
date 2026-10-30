@@ -77,20 +77,18 @@ struct LocalSettingsSurface: View {
 }
 
 struct AccountFreeCapacitySurface: View {
-    let used: Int
-    let limit: Int
+    let remaining: Int
     let price: String?
     let activity: CapacityActivity
     let error: String
     let purchase: () -> Void
     let restore: () -> Void
-    let cancel: () -> Void
     let openLegal: (LegalPage) -> Void
 
     var body: some View {
         VStack(spacing: 16) {
-            CapacitySurface(used: used, limit: limit, authenticated: true, price: price,
-                activity: activity, error: error, purchase: purchase, restore: restore, cancel: cancel)
+            PropertyCreditsSurface(remaining: remaining, price: price,
+                activity: activity, error: error, purchase: purchase, restore: restore)
             AppText("通过 App Store 购买，无需注册或登录看房搭子。购买与恢复需要联网，房源记录保存在本机。")
                 .font(.system(size: 13)).foregroundStyle(XJTheme.muted)
             HStack(spacing: 24) {
