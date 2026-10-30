@@ -1,4 +1,4 @@
-# 寻居品牌 Logo 启动屏 · 视觉评审
+# 寻居品牌 Logo 启动屏 · 接入与验证
 
 用户确认沿用小程序现有的蓝紫底、白色「房屋＋对勾」Logo，并继续要求没有文字、没有小搭。用户随后以「可以的」批准原生视觉；同一组件现接入 AppRoot 的本机记录读取阶段，并配置系统 LaunchScreen。
 
@@ -58,10 +58,48 @@ Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `
 
 组件证据后的文档提交不改变源码、资源、测试或配置，可复用上述 SHA 的组件截图。PR 未合并或部署。
 
-未覆盖小屏、iPad、VoiceOver 实际朗读、深色模式或真实冷启动。Figma 尚未同步。
+以上组件证据未覆盖小屏、iPad、VoiceOver 实际朗读、深色模式或真实冷启动。Figma 尚未同步。
 
 ### 首轮失败与修正验证
 
 `review-01.xcresult` 对应 SHA `5a5a17c748ed75f3ce8e2503228cbe05c4421901`：单测通过，UI 用例在 Logo 辅助功能横向中心断言失败（65.56 pt，预期 196.5 pt）。失败录屏里 Logo 视觉居中；该轮没有通过验收。原生录像和日志保留在 `attachments-01/` 与 `runner-01.log`，诊断视频抽帧不作为最终截图。
 
 依据 [Apple 的 accessibility content shape 文档](https://developer.apple.com/documentation/swiftui/contentshapekinds/accessibility)，为圆角 Logo 显式定义匹配的辅助功能区域，并保留原居中断言。截图采集提前至断言前，追加应用与 Logo 原始坐标附件。第三轮在同一台 iOS 26.5 设备 `759E28A9-21EB-4AA1-9F4F-EF1850989C56` 上完整通过，验证了本次边界修正。第二轮 iOS 18.3.1 设备为 `8F178971-C203-4690-A83B-253046EACBB1`。
+
+## 正式接入结果
+
+设计状态：`APPROVED`。接入代码已完成；冷启动视觉状态：`RUNTIME_VISUAL_PENDING`。不能将功能用例通过解释为系统启动画面已通过。
+
+- 接入代码 SHA：`11da2d40fc60a3a25a0c88de0fa871e31012b599`。
+- `AppRoot` 用 `BrandLaunchSurface` 替换读取文字；工作区构造、失败重试、首次设置和房源导航逻辑不变。
+- 系统启动页为 `Resources/LaunchScreen.storyboard`，通过 `UILaunchStoryboardName` 配置。原生导出的 336 × 336 px PNG 按 3x 展示为 112 pt，背景使用固定 `LaunchBackground` 色值。
+- `XunjuLaunch` 验证 scheme 保留成功用例录像；默认 `Xunju` scheme 不变。未提交生成工程。
+- 使用同一台 iPhone 16 / iOS 26.5，正式 Bundle ID `com.keeline.xunju.ios`，每条业务 UI 用例使用独立 UUID 数据目录。
+
+| 验证范围 | 精确用例 | 结果 |
+| --- | --- | --- |
+| 编译后的启动配置、资源和全屏布局 | `XunjuTests/LaunchScreenTests/testBuiltAppCanLoadCenteredLaunchScreen` | 通过 |
+| 既有购买及隐私配置 | `XunjuTests/NativeStorefrontTests/testFinishedConsumableHistoryAndExistingPrivacyKeysReachBuiltApp` | 通过 |
+| Debug 评审入口隔离 | `XunjuTests/ComponentLogicTests/testReviewHostRequiresExplicitKnownSurface` | 通过 |
+| Logo 居中、无文字、无按钮 | `XunjuUITests/BrandLaunchReviewTests/testBrandComposition` | 通过 |
+| 首次设置、选择持久化、进入房源页 | `XunjuUITests/LaunchIntegrationTests/testFirstLaunchReachesSetupAndRelaunchRetainsChoice` | 通过 |
+| 已有房源、后台返回、进程重启 | `XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage` | 通过 |
+
+`xunju-launch-integration-20261030-01`：3 UT + 3 UI，**6 passed / 0 failed / 0 skipped**，runner 退出 0。XcodeGen 2.45.4 确定性生成校验通过。完整结果位于本 worktree 的 `artifacts/launch-integration-20261030/integration-01.xcresult`，精确计划、命令、日志和截图清单分别为 `plan-01.json`、`run-01.sh`、`runner-01.log`、`attachments-01/manifest.json`。
+
+原生组件截图 `brand-launch-integrated.png` 已查看，保持批准的外观。正式启动录像为 `first-launch.mp4`、`returning-launch.mp4`；录像确实抵达设置页和房源页，但系统接管启动到 App 首帧之间出现黑屏。`first-launch.mp4` 最前面仍显示上一条评审用例的 Logo，不能把这几帧当作系统 LaunchScreen 成功证据。没有验证真实冷启动时长或无黑屏衔接。
+
+## 系统启动画面诊断及当前阻塞
+
+所有诊断保留同一源码 SHA，未据此修改批准的设计。
+
+- `integration-02.xcresult`：同设备、同正式标识，仅静态组件复查，1 UI 通过；在有效租约内收集上一轮系统日志。
+- `integration-03.xcresult`：临时 xcconfig 给各 target 原标识追加 `.launchprobe20261030`，保留原 App 数据；1 UT 通过，首次设置 UI 用例因 120 秒执行限额失败。该轮使用 `ARCHS=arm64`。导出的录屏附件是不可播放的文本占位，不能用作全新安装的视觉验收。额外 `native-capture-03.mov` 只覆盖结束阶段，也不能证明冷启动。
+- `system-launch-01.log`、`system-splashboard-01.log` 保留系统日志；部分 SplashBoard 消息为 `<compose failure [shared UUID]>`，不能从未解码内容推断具体根因。
+- `integration-04` 静态对照完成构建后长期等待设备，后续在未持有设备租约时取消，runner 退出 143；没有测试结果，不计为通过。
+- 普通原生采集使用共享基础设施导出的租约、心跳和释放 API，尝试对正式标识安装同一构建。设备列表查询出现 15 秒超时，取得租约后安装又出现 30 秒超时，未取得有效普通冷启动录像。记录见 `native-launch-evidence.json`。
+- 取消的 runner、采集等待进程均已结束。本任务队列、执行槽和设备租约最终核查为空；自身异步心跳与释放竞争留下的残留也已通过基础设施释放接口清理。未重启、清空或删除池设备，未卸载原 App。
+
+[Apple TN3118](https://developer.apple.com/documentation/technotes/tn3118-debugging-your-apps-launch-screen) 将旧启动快照列为排查方向之一；当前证据不足以确认缓存为本问题根因。下一步是在共享设备空闲且获准改变设备生命周期后恢复模拟器环境，再完成正式标识的普通启动录像验证。
+
+PR 保持 Draft，未合并、部署或安装到真机。后续仅证据文档的提交可复用上述代码 SHA 的功能结果，不应标记冷启动视觉验收完成。
