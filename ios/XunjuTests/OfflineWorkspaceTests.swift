@@ -40,7 +40,7 @@ private actor OfflineCallCounter: MapTransport {
         keychain.remove()
         let reopened = try AppWorkspace(root: root, keychain: keychain)
         XCTAssertEqual(reopened.store.records.directory, directory)
-        XCTAssertEqual(reopened.store.capacity.limit, 11)
+        XCTAssertEqual(reopened.store.capacity.limit, 12)
         XCTAssertEqual(reopened.store.house(id)["media"].array.first?["path"].string, "media/photo.jpg")
     }
     func testMalformedOfflinePointerNeverFallsBackToAnEmptyStore() throws {
@@ -72,11 +72,11 @@ private actor OfflineCallCounter: MapTransport {
         let store = workspace.store, id = try store.add("一直在本机")
         for appID in ["9001", "9002"] {
             let identity = PurchaseIdentity(appTransactionID: appID, bundleID: "test.xunju", environment: "Sandbox", signedAppTransaction: "proof")
-            try workspace.applyPurchaseCapacity(CapacityBalance(account: identity.account, environment: "Sandbox", packs: appID == "9001" ? 1 : 0, limit: appID == "9001" ? 11 : 1, revision: 1, capacity: .initial), identity: identity)
+            try workspace.applyPurchaseCapacity(CapacityBalance(account: identity.account, environment: "Sandbox", packs: appID == "9001" ? 1 : 0, limit: appID == "9001" ? 12 : 2, revision: 1, capacity: .initial), identity: identity)
             XCTAssertTrue(workspace.store === store); XCTAssertEqual(store.house(id)["name"].string, "一直在本机")
         }
         let reopened = try AppWorkspace(root: root, keychain: VolatileSessionStorage())
-        XCTAssertEqual(reopened.store.records.directory, store.records.directory); XCTAssertEqual(reopened.store.capacity.limit, 1)
+        XCTAssertEqual(reopened.store.records.directory, store.records.directory); XCTAssertEqual(reopened.store.capacity.limit, 2)
         XCTAssertEqual(reopened.store.houses.count, 1)
     }
 }

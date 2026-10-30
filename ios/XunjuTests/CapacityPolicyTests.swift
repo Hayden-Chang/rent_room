@@ -16,21 +16,23 @@ final class CapacityPolicyTests: XCTestCase {
         XCTAssertThrowsError(try CapacityPolicy(version: 1, freeLimit: 1).validated())
         XCTAssertThrowsError(try CapacityPolicy(version: 2, freeLimit: -1).validated())
         XCTAssertNoThrow(try CapacityPolicy.validate(packs: 1, limit: 12, policy: nil))
-        XCTAssertEqual(CapacityPolicy.initial.freeLimit, 1)
+        XCTAssertEqual(CapacityPolicy.initial.freeLimit, 2)
     }
-    @MainActor func testLocalPolicyCacheSurvivesRestartAndDoesNotExportIdentity() async throws {
-        let root = FileManager.default.temporaryDirectory.appending(path: "policy-test-\(UUID().uuidString)")
+    @MainActor func testBundledPolicyIgnoresLegacyRemoteQuotaCache() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "policy-test-\(UUID())")
         defer { try? FileManager.default.removeItem(at: root) }
         let workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage())
-        let id = try workspace.store.add("旧房源")
-        try workspace.acceptPolicy(CapacityPolicy(version: 2, freeLimit: 0))
+        let first = try workspace.store.add("第一套")
+        _ = try workspace.store.add("第二套")
+        XCTAssertThrowsError(try workspace.store.add("第三套"))
+        let oldPolicy = Data(#"{"url":"https://api.keeline.xyz/api/rent-room/catalog","capacity":{"version":2,"freeLimit":0}}"#.utf8)
+        try oldPolicy.write(to: root.appending(path: "capacity-policy.json"))
         let restored = try AppWorkspace(root: root, keychain: VolatileSessionStorage())
-        XCTAssertEqual(restored.store.capacity.limit, 0)
-        try restored.store.answer(id, field: "f1_6", value: .string("1000"))
-        XCTAssertThrowsError(try restored.store.add("超出"))
+        XCTAssertEqual(restored.store.capacity.limit, 2)
+        XCTAssertEqual(restored.store.houses.count, 2)
+        try restored.store.archive(first, archived: true)
+        XCTAssertNoThrow(try restored.store.add("归档释放名额"))
         XCTAssertEqual(restored.store.state["capacity"], .null)
-        let cache = try String(contentsOf: root.appending(path: "capacity-policy.json"), encoding: .utf8)
-        XCTAssertFalse(cache.contains("token")); XCTAssertFalse(cache.contains("account")); XCTAssertFalse(cache.contains("packs"))
     }
     func testLoginAndBalanceAcceptVersionTwoZeroPolicyAndRejectMismatch() throws {
         let policy = CapacityPolicy(version: 2, freeLimit: 0)

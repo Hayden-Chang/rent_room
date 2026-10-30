@@ -27,8 +27,8 @@ import Observation
             do {
                 try await self.confirm(transaction, identity: identity)
                 if self.current(identity) {
-                    self.pending = false; self.awaitingApproval = false; self.error = ""
-                    if !self.activity.busy { self.activity = .idle }
+                    self.pending = self.awaitingApproval; self.error = ""
+                    if !self.activity.busy { self.activity = self.pending ? .pending : .idle }
                 }
             } catch {
                 if self.current(identity) {

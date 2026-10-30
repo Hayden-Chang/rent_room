@@ -23,7 +23,6 @@ final class AppWorkspace {
     @ObservationIgnored private let mapTransport: any MapTransport
     private(set) var identityRevision = 0
     @ObservationIgnored private(set) var billing: CapacityController!
-    @ObservationIgnored private let policyCache: CapacityPolicyCache
     private(set) var capacityPolicy: CapacityPolicy
     @ObservationIgnored private var purchaseLedger: PurchaseLedger?
 
@@ -32,8 +31,7 @@ final class AppWorkspace {
         self.mapTransport = mapTransport; self.mapKey = mapKey
         self.places = places
         scopes = try LocalIdentityScopes(root: root)
-        policyCache = CapacityPolicyCache(root: scopes.root)
-        let initialPolicy = policyCache.read()
+        let initialPolicy = CapacityPolicy.initial
         capacityPolicy = initialPolicy
         let saved = FileManager.default.fileExists(atPath: scopes.root.appending(path: "local-current.json").path) ? nil : try keychain.read()
         if let saved { try saved.validateStored() }
@@ -46,7 +44,7 @@ final class AppWorkspace {
         }
         catch { purchaseLedger = nil; cached = try? purchaseCache.read(); self.error = error.localizedDescription }
         purchaseBalance = cached
-        let effectivePolicy = cached?.capacity ?? initialPolicy
+        let effectivePolicy = initialPolicy
         capacityPolicy = effectivePolicy
         let legacyPacks = try purchaseCache.legacyPacks(seed: saved?.packs)
         let directory = try scopes.offlineDirectory(legacy: saved)
@@ -156,7 +154,6 @@ final class AppWorkspace {
     func acceptPolicy(_ policy: CapacityPolicy) throws {
         _ = try policy.validated()
         try CapacityPolicy.validate(packs: store.capacity.packs, limit: policy.freeLimit + store.capacity.packs * 10, policy: policy)
-        try policyCache.write(policy)
         try store.call("setFreeLimit", ["value": .number(Double(policy.freeLimit))])
         capacityPolicy = policy
     }

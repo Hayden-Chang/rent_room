@@ -52,12 +52,12 @@ import XCTest
         var second = storefront.transaction; second = CapacityTransaction(id: "10002", productID: second.productID, accountToken: nil, environment: second.environment, appTransactionID: second.appTransactionID)
         storefront.result = .verified(second); await workspace.billing.purchase()
         await workspace.billing.restore(); await workspace.billing.restore()
-        XCTAssertEqual(workspace.store.capacity.limit, 21); XCTAssertEqual(storefront.finished, ["10001", "10002"])
+        XCTAssertEqual(workspace.store.capacity.limit, 22); XCTAssertEqual(storefront.finished, ["10001", "10002"])
         let root = FileManager.default.temporaryDirectory.appending(path: "ReinstallTests/\(UUID())")
         defer { try? FileManager.default.removeItem(at: root) }
         let installed = try AppWorkspace(root: root, keychain: keychain, storefront: storefront)
         await installed.billing.restore()
-        XCTAssertEqual(installed.store.capacity.limit, 21); XCTAssertNil(installed.session)
+        XCTAssertEqual(installed.store.capacity.limit, 22); XCTAssertNil(installed.session)
     }
     func testCacheFailureDoesNotFinishAndRecoversAfterProcessRelaunch() async throws {
         let (workspace, storefront, keychain) = try fixture()
@@ -71,23 +71,23 @@ import XCTest
         try FileManager.default.createDirectory(at: cache, withIntermediateDirectories: false)
         storefront.outstanding = [storefront.transaction]
         await storefront.receive?(storefront.transaction)
-        XCTAssertEqual(storefront.finished, []); XCTAssertEqual(workspace.store.capacity.limit, 1)
+        XCTAssertEqual(storefront.finished, []); XCTAssertEqual(workspace.store.capacity.limit, 2)
         XCTAssertEqual(workspace.billing.activity, .pending)
         try FileManager.default.removeItem(at: cache)
         let reopened = try AppWorkspace(root: workspace.scopes.root, keychain: keychain, storefront: storefront)
         await reopened.billing.restore()
-        XCTAssertEqual(reopened.store.capacity.limit, 11); XCTAssertEqual(storefront.finished, ["10001"])
+        XCTAssertEqual(reopened.store.capacity.limit, 12); XCTAssertEqual(storefront.finished, ["10001"])
         XCTAssertEqual(reopened.store.house(id)["answers"]["f1_6"]["value"].string, "1800")
     }
     func testCancelledPendingAndUnavailableProductNeverGrantButRestoreWorks() async throws {
         let (workspace, storefront, _) = try fixture()
         await workspace.billing.load(); storefront.result = .cancelled; await workspace.billing.purchase()
-        XCTAssertEqual(workspace.store.capacity.limit, 1)
+        XCTAssertEqual(workspace.store.capacity.limit, 2)
         storefront.result = .pending; await workspace.billing.purchase()
         XCTAssertEqual(workspace.billing.activity, .pending); XCTAssertEqual(storefront.finished, [])
         storefront.productFails = true; storefront.outstanding = [storefront.transaction]
         await workspace.billing.restore(); XCTAssertTrue(workspace.billing.error.isEmpty)
-        XCTAssertEqual(workspace.store.capacity.limit, 11)
+        XCTAssertEqual(workspace.store.capacity.limit, 12)
         await workspace.billing.load(); XCTAssertNil(workspace.billing.product)
     }
     func testRefundRejectsStaleUpdatesAndKeepsAllHousesOffline() async throws {
@@ -97,12 +97,12 @@ import XCTest
         var refunded = storefront.transaction; refunded.revocationDate = Date(); refunded.signedDate = Date()
         storefront.outstanding = [refunded]; await workspace.billing.restore()
         await storefront.receive?(storefront.transaction)
-        XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertEqual(workspace.store.houses.count, 3)
+        XCTAssertEqual(workspace.store.capacity.limit, 2); XCTAssertEqual(workspace.store.houses.count, 3)
         XCTAssertThrowsError(try workspace.store.add("超额"))
         storefront.identityFails = true
         let reopened = try AppWorkspace(root: workspace.scopes.root, keychain: keychain, storefront: storefront)
         await reopened.billing.load()
-        XCTAssertEqual(reopened.store.capacity.limit, 1); XCTAssertEqual(reopened.store.houses.count, 3)
+        XCTAssertEqual(reopened.store.capacity.limit, 2); XCTAssertEqual(reopened.store.houses.count, 3)
     }
     func testDuplicateUpdateDuringHistoryCannotBeLostOrCountedTwice() async throws {
         let (workspace, storefront, _) = try fixture()
@@ -114,19 +114,19 @@ import XCTest
         await storefront.receive?(storefront.transaction); await storefront.receive?(storefront.transaction)
         storefront.historyStarted = nil; storefront.historyGate?.resume(); storefront.historyGate = nil
         await restoring.value
-        XCTAssertEqual(workspace.store.capacity.limit, 11); XCTAssertEqual(storefront.finished, ["10001"])
+        XCTAssertEqual(workspace.store.capacity.limit, 12); XCTAssertEqual(storefront.finished, ["10001"])
     }
     func testInvalidHistoryPreservesCacheAndAccountChangeNeverMovesHouses() async throws {
         let (workspace, storefront, _) = try fixture()
         let id = try workspace.store.add("本机记录"), directory = workspace.store.records.directory
         await workspace.billing.load(); await workspace.billing.purchase()
         storefront.historyFails = true; await workspace.billing.restore()
-        XCTAssertEqual(workspace.store.capacity.limit, 11); XCTAssertFalse(workspace.billing.error.isEmpty)
+        XCTAssertEqual(workspace.store.capacity.limit, 12); XCTAssertFalse(workspace.billing.error.isEmpty)
         storefront.historyFails = false
         storefront.purchaseIdentity = PurchaseIdentity(appTransactionID: "9002", bundleID: "test.xunju", environment: "Sandbox", signedAppTransaction: "new-proof")
         // A mismatching history is not accepted for the new verified account.
         await workspace.billing.restore()
-        XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertFalse(workspace.billing.error.isEmpty)
+        XCTAssertEqual(workspace.store.capacity.limit, 2); XCTAssertFalse(workspace.billing.error.isEmpty)
         storefront.outstanding = []; await workspace.billing.restore()
         XCTAssertTrue(workspace.billing.error.isEmpty)
         XCTAssertEqual(workspace.store.records.directory, directory); XCTAssertEqual(workspace.store.house(id)["name"].string, "本机记录")
@@ -142,7 +142,17 @@ import XCTest
         workspace.billing.identityChanged()
         storefront.historyStarted = nil; storefront.historyGate?.resume(); storefront.historyGate = nil
         await restore.value
-        XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
+        XCTAssertEqual(workspace.store.capacity.limit, 2); XCTAssertEqual(storefront.finished, [])
+    }
+    func testOldRefundDoesNotClearPendingApproval() async throws {
+        let (workspace, storefront, _) = try fixture()
+        await workspace.billing.load(); workspace.billing.start()
+        storefront.result = .pending; await workspace.billing.purchase()
+        var refunded = storefront.transaction; refunded.purchaseDate = .distantPast; refunded.revocationDate = Date()
+        await storefront.receive?(refunded)
+        XCTAssertEqual(workspace.billing.activity, .pending)
+        let purchases = storefront.purchases; await workspace.billing.purchase()
+        XCTAssertEqual(storefront.purchases, purchases); XCTAssertEqual(workspace.store.capacity.limit, 2)
     }
     func testFixtureRequiresExplicitUUIDAndKnownMode() {
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: []))

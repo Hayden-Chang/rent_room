@@ -20,7 +20,7 @@ import XCTest
         XCTAssertEqual(rent.value as? String, "1800")
         app.navigationBackButton.tap(); app.buttons["tab.我的"].tap()
         XCTAssertTrue(app.buttons["local-settings.capacity"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["local-settings.capacity"].label.contains("1 / 1"))
+        XCTAssertTrue(app.buttons["local-settings.capacity"].label.contains("1 / 2"))
         XCTAssertFalse(app.buttons["login.apple"].exists); XCTAssertFalse(app.buttons["退出登录"].exists)
         XCTAssertFalse(app.textFields["settings.nickname"].exists)
         capture("offline-business-settings", app)
