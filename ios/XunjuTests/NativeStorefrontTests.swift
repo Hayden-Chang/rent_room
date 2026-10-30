@@ -5,7 +5,7 @@ import StoreKitTest
 @MainActor final class NativeStorefrontTests: XCTestCase {
     func testFinishedConsumableHistoryAndExistingPrivacyKeysReachBuiltApp() {
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "SKIncludeConsumableInAppPurchaseHistory") as? Bool, true)
-        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "寻居")
+        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "看房搭子")
         for key in ["NSCameraUsageDescription", "NSMicrophoneUsageDescription", "NSLocationWhenInUseUsageDescription"] {
             XCTAssertFalse((Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "").isEmpty)
         }

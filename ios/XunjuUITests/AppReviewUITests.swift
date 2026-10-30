@@ -14,14 +14,14 @@ import XCTest
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
     private func assertNoDelayedReview(_ app: XCUIApplication) {
-        let unexpected = expectation(for: NSPredicate(format: "exists == true"), evaluatedWith: app.staticTexts["喜欢“寻居”吗？"])
+        let unexpected = expectation(for: NSPredicate(format: "exists == true"), evaluatedWith: app.staticTexts["喜欢“看房搭子”吗？"])
         unexpected.isInverted = true
         // Observe longer than the production 2-second scheduling delay.
         wait(for: [unexpected], timeout: 3)
     }
     private func dismissSystemReview(_ app: XCUIApplication, name: String) {
         // StoreKit exposes its content as ordinary elements, not XCUIElementTypeAlert.
-        let title = app.staticTexts["喜欢“寻居”吗？"]
+        let title = app.staticTexts["喜欢“看房搭子”吗？"]
         XCTAssertTrue(title.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "App", "评分")).firstMatch.exists)
         XCTAssertEqual(app.otherElements["评分"].value as? String, "零颗星")
@@ -38,7 +38,7 @@ import XCTest
             XCTAssertTrue(name.waitForExistence(timeout: 3)); name.replacePromptText("评分房源\(n)")
             app.buttons["prompt.confirm"].tap()
             XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
-            XCTAssertFalse(app.staticTexts["喜欢“寻居”吗？"].exists)
+            XCTAssertFalse(app.staticTexts["喜欢“看房搭子”吗？"].exists)
             app.navigationBackButton.tap()
             let house = app.buttons["house.评分房源\(n)"]
             XCTAssertTrue(house.waitForExistence(timeout: 4))
