@@ -5,7 +5,7 @@ import CoreLocation
     override func setUpWithError() throws { continueAfterFailure = false }
     private func launch(returning: Bool = false, english: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "--regional-navigation-trace", "-AppleLanguages", english ? "(en)" : "(zh-Hans)", "-AppleLocale", english ? "en_GB" : "zh_CN"]
+        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", english ? "(en)" : "(zh-Hans)", "-AppleLocale", english ? "en_GB" : "zh_CN"]
         if returning { app.launchArguments += ["--returning-business-fixture", "--two-room-policy-fixture"] }
         app.resetAuthorizationStatus(for: .location)
         app.launch(); return app
@@ -111,10 +111,15 @@ import CoreLocation
         openSettings(app); XCTAssertTrue(app.buttons["settings.currency"].label.contains("EUR"))
         tap("settings.language", app); tap("language.english", app); app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["settings.language"].label.contains("English"))
+        XCTAssertFalse(app.buttons["local-settings.capacity"].label.contains("房源容量"))
+        XCTAssertFalse(app.buttons["settings.appStoreReview"].label.contains("评价"))
+        XCTAssertFalse(app.buttons["legal.privacy"].label.contains("隐私"))
         capture("regional-business-12-english-settings", app)
         let trails = app.switches["settings.touch-trails"]
         for _ in 0..<3 where !trails.isHittable { app.scrollViews.firstMatch.swipeUp() }
         XCTAssertTrue(trails.isHittable); XCTAssertFalse(trails.label.contains("触摸轨迹"))
+        XCTAssertTrue(app.buttons["legal.privacy"].exists)
+        XCTAssertTrue(app.buttons["legal.terms"].exists)
         capture("regional-business-16-english-settings-footer", app)
         tap("tab.房源", app)
         XCTAssertTrue(app.buttons["house.放弃"].exists)

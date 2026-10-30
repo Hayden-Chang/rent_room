@@ -34,12 +34,16 @@ import XCTest
         XCTAssertTrue(permissions.contains("USD")); XCTAssertFalse(permissions.contains("获取当前位置"))
     }
     func testMergedLocalSettingsAndPurchaseCopyAreLocalized() {
-        for source in [LocalSettingsAction.capacity.title, LocalSettingsAction.language.title,
-                       LocalSettingsAction.currency.title, LegalPage.privacy.title, LegalPage.terms.title,
+        for source in [LocalSettingsAction.capacity.title, LegalPage.privacy.title, LegalPage.terms.title,
                        LegalPage.support.title, "在 App Store 中评价", "无法打开 App Store",
                        "通过 App Store 购买，无需注册或登录看房搭子。购买与恢复需要联网，房源记录保存在本机。"] {
             XCTAssertNil(AppCopy.text(source, language: .english).range(of: #"[\u3400-\u9fff]"#, options: .regularExpression), source)
             XCTAssertEqual(AppCopy.text(source, language: .chinese), source)
+        }
+        for key in ["settings.language", "settings.currency"] {
+            let english = RegionalCopy.text(key, language: .english)
+            XCTAssertNotEqual(english, key)
+            XCTAssertNil(english.range(of: #"[\u3400-\u9fff]"#, options: .regularExpression))
         }
     }
     func testCanonicalComparisonAndWheelUnitsPreserveCustomValues() throws {
