@@ -393,7 +393,7 @@ private struct MPFieldSwipe: ViewModifier {
 // Reject vertical pans before recognition so the parent ScrollView keeps scrolling.
 // SwiftUI's simultaneousGesture no longer implies simultaneous ancestor gestures on iOS 26.
 @available(iOS 18, *)
-private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
+struct MPHorizontalPan: UIGestureRecognizerRepresentable {
     let enabled: Bool
     let changed: (CGSize, Double) -> Void, ended: (CGSize, Double, CGFloat) -> Void, cancelled: () -> Void
     let trace: (String) -> Void
@@ -429,7 +429,16 @@ private struct MPHorizontalPan: UIGestureRecognizerRepresentable {
             return abs(velocity.x) > abs(velocity.y) * 1.2
         }
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
-            other is UIPanGestureRecognizer
+            // A diagonal horizontal swipe must not move the enclosing list too.
+            false
+        }
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy other: UIGestureRecognizer) -> Bool {
+            guard let scroll = other.view as? UIScrollView,
+                  other === scroll.panGestureRecognizer,
+                  let view = gestureRecognizer.view else { return false }
+            // Let the row decide its direction first. A vertical pan fails in
+            // shouldBegin and immediately leaves scrolling to the parent.
+            return view.isDescendant(of: scroll)
         }
     }
 }
