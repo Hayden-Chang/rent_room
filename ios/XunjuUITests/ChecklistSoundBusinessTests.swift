@@ -5,10 +5,10 @@ import XCTest
 
     func testBellPersistsAcrossHousesAndRelaunchWithoutChangingAnswers() {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "--returning-business-fixture", "--pixel-parity-fixture",
+        app.launchArguments = ["--business-test", UUID().uuidString, "--returning-business-fixture", "--two-room-policy-fixture",
                                "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
-        openHouse("阳光小区", app)
+        addHouse("阳光小区", app)
         let bell = app.buttons["checklist.sound.toggle"]
         soundState("已开启", app)
         bell.tap(); soundState("已关闭", app)
@@ -21,7 +21,7 @@ import XCTest
         let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "selected == true"), object: no)
         XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 3), .completed)
         app.navigationBackButton.tap()
-        openHouse("新城公寓", app)
+        addHouse("新城公寓", app)
         soundState("已关闭", app)
         app.terminate(); app.launch()
         openHouse("阳光小区", app)
@@ -36,9 +36,19 @@ import XCTest
         soundState("已开启", app)
     }
 
+    private func addHouse(_ name: String, _ app: XCUIApplication) {
+        // Two real creations avoid the unrelated system review requested by the
+        // three-house pixel fixture. Keep normal navigation and persistence.
+        XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 10)); app.homeAddButton.tap()
+        let input = app.textFields["prompt.text"]
+        XCTAssertTrue(input.waitForExistence(timeout: 3)); input.replacePromptText(name)
+        app.buttons["prompt.confirm"].tap()
+        XCTAssertTrue(app.buttons["checklist.sound.toggle"].waitForExistence(timeout: 5))
+    }
+
     private func openHouse(_ name: String, _ app: XCUIApplication) {
         let house = app.buttons["house." + name]
-        XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
+        XCTAssertTrue(house.waitForExistence(timeout: 10)); XCTAssertTrue(house.isHittable); house.tap()
         XCTAssertTrue(app.buttons["checklist.sound.toggle"].waitForExistence(timeout: 3))
     }
     private func soundState(_ value: String, _ app: XCUIApplication) {

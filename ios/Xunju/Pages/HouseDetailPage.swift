@@ -31,9 +31,9 @@ struct HouseDetailPage: View {
                 } }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
         }.background(XJTheme.background)
-            .miniNavigation(workspace.store.house(id)["name"].string, showsBack: !showCoach) {
+            .miniNavigation(workspace.store.house(id)["name"].string, showsBack: !showCoach, trailing: {
                 ChecklistSoundControl()
-            }
+            })
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 XJTabBar(selection: $tab, items: [("清单", "checklist"), ("影像", "media"), ("问题", "issues"), ("总结", "summary")],
                     mediaCount: workspace.store.house(id)["media"].array.count,
