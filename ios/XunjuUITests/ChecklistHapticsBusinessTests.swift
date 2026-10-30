@@ -8,7 +8,10 @@ import XCTest
         app.launchArguments = ["--business-test", UUID().uuidString, "--returning-business-fixture",
                                "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
-        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 10)); currency.tap()
+        XCTAssertTrue(app.staticTexts["currency.prompt.title"].waitForNonExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 5))
         app.buttons["home.add"].tap()
         let input = app.textFields["prompt.text"]
         XCTAssertTrue(input.waitForExistence(timeout: 3)); input.replacePromptText("静音清单验收")
