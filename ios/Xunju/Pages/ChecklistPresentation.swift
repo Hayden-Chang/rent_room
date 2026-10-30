@@ -33,8 +33,9 @@ enum ChecklistPresentation {
         rows.indices.contains(index + 1) && rows[index + 1]["kind"].string == "group"
     }
 
-    @MainActor static func write(_ new: MPFieldState, from field: JSONValue, houseID: String, store: NativeStore) throws {
+    @MainActor @discardableResult static func write(_ new: MPFieldState, from field: JSONValue, houseID: String, store: NativeStore) throws -> ChecklistSound? {
         let old = state(field)
+        var sound: ChecklistSound?
         if new.noneSelected != old.noneSelected {
             try store.answer(houseID, field: field.id, property: field["cost"].bool ? "noCost" : "none", value: .bool(new.noneSelected))
         }
@@ -44,7 +45,14 @@ enum ChecklistPresentation {
         // Preserve canonical choice toggling, multi-selection order and group rules.
         for option in field["options"].array.map({ $0["value"].string }) where new.selected.contains(option) != old.selected.contains(option) {
             if !field["multiple"].bool, !new.selected.isEmpty, !new.selected.contains(option) { continue }
-            try store.call("choose", ["id": .string(houseID), "field": .string(field.id), "value": .string(option)])
+            let result = try store.call("chooseFeedback", ["id": .string(houseID), "field": .string(field.id), "value": .string(option)])
+            if let next = ChecklistSound(rawValue: result.string), sound != .problem { sound = next }
         }
+        return store.status.error.isEmpty ? sound : nil
+    }
+
+    @MainActor static func writeGroup(_ groupID: String, operation: String, value: String, houseID: String, store: NativeStore) throws -> ChecklistSound? {
+        let result = try store.call("groupFeedback", ["id": .string(houseID), "group": .string(groupID), "property": .string(operation), "value": .string(value)])
+        return store.status.error.isEmpty ? ChecklistSound(rawValue: result.string) : nil
     }
 }

@@ -212,7 +212,10 @@ struct ChecklistPage: View {
         } catch { costError = error.localizedDescription }
     }
     private func group(_ row: JSONValue, operation: String, value: String = "") {
-        if workspace.perform({ try workspace.store.call("group", ["id": .string(id), "group": .string(row.id), "property": .string(operation), "value": .string(value)]) }) {
+        if workspace.perform({
+            let sound = try ChecklistPresentation.writeGroup(row.id, operation: operation, value: value, houseID: id, store: workspace.store)
+            sound?.play()
+        }) {
             setFold(row.id, true)
         }
     }

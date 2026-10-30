@@ -43,6 +43,36 @@ function appendMedia(h, value) {
   if (value.fieldId && !model.checklistTargets(h).some(f => f.id === value.fieldId)) throw Error('检查项不存在');
   h.media.push(value);
 }
+// Observe the same automatic rules and visible issue entries used by the app.
+// A manually flagged item becoming visible must not masquerade as a new problem.
+function automaticIssueIds(h) {
+  const visible = new Set(model.issueEntries(h).map(e => e.field.id));
+  return new Set(model.activeEntries(h).filter(({field: f}) =>
+    model.rules.isProblem(f, model.answer(h, f)) && visible.has(
+      f.groupRole && f.groupRole !== 'permission' ? 'node:group:' + f.groupId : f.id
+    )).map(e => e.field.id));
+}
+function choiceFeedback(request) {
+  const {id, field, group, property, value} = request, h = house(id);
+  let isSelected;
+  if (request.operation === 'chooseFeedback') {
+    const f = model.checklistTargets(h).find(f => f.id === field);
+    if (!f || !model.rules.choiceOptions(f).includes(value)) throw Error('选项不存在');
+    isSelected = h => model.rules.choiceSelected(f, model.answer(h, f), value);
+  } else {
+    const g = model.rules.inspectionGroups(model.houseTopics(h)).get(group);
+    if (!g) throw Error('分组不存在');
+    const normalized = v => g.permissionFieldId ? v : ({'是':'正常', '否':'有问题'}[v] || v);
+    isSelected = h => property === 'result' && normalized(g.permissionFieldId ? model.rules.groupPermission(g, h) :
+      g.presence ? model.rules.groupResult(g, h) : model.rules.groupStatus(g, h)) === normalized(value);
+  }
+  const selected = !isSelected(h);
+  const before = selected ? automaticIssueIds(h) : new Set();
+  execute({...request, operation: request.operation === 'chooseFeedback' ? 'choose' : 'group'});
+  if (!selected || !isSelected(house(id)) || store.status().error) return '';
+  if ([...automaticIssueIds(house(id))].some(key => !before.has(key))) return 'problem';
+  return value.trim() && !['不涉及', '没有', '无'].includes(value) ? 'positive' : '';
+}
 function execute({operation, id, name, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds}) {
   if (Object.hasOwn(inspectionActions, operation)) return inspectionActions[operation](store, {id,name,property,value});
   switch (operation) {
@@ -64,6 +94,8 @@ function execute({operation, id, name, field, property, value, group, view, fold
       return store.edit(id, h => {h.name = name;}, true);
     }
     case 'answer': return store.answer(id, field, property, value);
+    case 'chooseFeedback':
+    case 'groupFeedback': return choiceFeedback({operation, id, field, group, property, value});
     case 'choose': {
       const h = house(id), f = model.checklistTargets(h).find(f => f.id === field);
       if (!f || !model.rules.choiceOptions(f).includes(value)) throw Error('选项不存在');

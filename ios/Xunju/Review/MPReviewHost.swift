@@ -123,7 +123,9 @@ struct MPReviewHost: View {
         case .editor:
             MPIssueReviewHost(state: state, close: { route = .detail })
         case .guide: EmptyView()
-        case .feedback: ChecklistFeedbackReviewHost()
+        case .feedback:
+            if state == "sound" { ChecklistSoundReviewHost() }
+            else { ChecklistFeedbackReviewHost() }
         case .speed:
             ScrollView {
                 SpeedStatusCard(state: state == "done" ? .done : state == "error" ? .saveError("结果未能保存，请重试；原答案保持不变") : .testing,
