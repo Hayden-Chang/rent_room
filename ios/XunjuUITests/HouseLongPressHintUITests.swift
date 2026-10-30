@@ -16,22 +16,36 @@ import XCTest
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
 
-    private func launchHome(seedHouses: Bool) -> XCUIApplication {
+    private func launchHome() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString,
                                "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
-        if seedHouses { app.launchArguments.append("--pixel-parity-fixture") }
         app.launch()
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 10))
+        currency.tap()
+        XCTAssertTrue(app.staticTexts["currency.prompt.title"].waitForNonExistence(timeout: 3))
         return app
     }
 
     func testDismissCollapsesSpaceAndStaysDismissedAfterRelaunch() {
-        let app = launchHome(seedHouses: true)
+        let app = launchHome()
         let dismiss = app.buttons["home.longPressHint.dismiss"]
+        XCTAssertFalse(dismiss.exists)
+        let add = app.buttons["home.add"]
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        capture("house-hint-home-empty", app)
+        add.tap()
+        let name = app.textFields["prompt.text"]
+        XCTAssertTrue(name.waitForExistence(timeout: 3))
+        name.replacePromptText("提示验收房源")
+        app.buttons["prompt.confirm"].tap()
+        XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
+        app.navigationBackButton.tap()
         XCTAssertTrue(dismiss.waitForExistence(timeout: 8))
         XCTAssertEqual(dismiss.label, "我知道了")
         XCTAssertEqual(app.staticTexts["home.longPressHint.message"].label, "长按支持更多操作")
-        let house = app.buttons["house.阳光小区"]
+        let house = app.buttons["house.提示验收房源"]
         let before = house.frame.minY
         let houseLabel = house.label
         capture("house-hint-home-before", app)
@@ -61,20 +75,14 @@ import XCTest
     }
 
     func testEmptyListWaitsUntilThereIsAHouse() {
-        let app = launchHome(seedHouses: false)
+        let app = launch(extra: ["--hint-review-empty"])
         let add = app.buttons["home.add"]
         XCTAssertTrue(add.waitForExistence(timeout: 8))
         XCTAssertFalse(app.buttons["home.longPressHint.dismiss"].exists)
-        capture("house-hint-home-empty", app)
+        capture("house-hint-empty", app)
         add.tap()
-        let name = app.textFields["prompt.text"]
-        XCTAssertTrue(name.waitForExistence(timeout: 3))
-        name.replacePromptText("提示验收房源")
-        app.buttons["prompt.confirm"].tap()
-        XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
-        app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["home.longPressHint.dismiss"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["house.提示验收房源"].exists)
+        XCTAssertTrue(app.buttons["hint.review.house"].exists)
     }
 
     func testEnglishLargeTextKeepsDismissAccessible() {
