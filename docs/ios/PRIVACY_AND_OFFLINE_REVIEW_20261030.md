@@ -1,5 +1,24 @@
 # iOS 公开页面、隐私清单与免登录组件（2026-10-30）
 
+## 最终定向验证结果
+
+**41 UT + 3 UI 分批通过**。生产源码为 `6c57f510f04db44c25a323042fdff23282a3ab5f`（已整合 main `b5a3b4d`）；复验提交为 `e29e58e951cdd6926ecb0f35c55149d5d3a6f920`。两者差异只有下面记录的一个 UI 方法增加滚动前提与文档，App 源码、资源、依赖、配置及其他测试不变。
+
+| 批次 | 精确结果 | 环境与复用依据 |
+| --- | --- | --- |
+| run-13 / `6c57f51` | 41 UT 通过；离线记录 UI 175.660 秒、购买恢复 UI 58.439 秒通过；评价 UI 失败，原结果保留 | iPhone 14 Pro / iOS 18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1` |
+| run-14 / `e29e58e` | 仅复跑评价 UI，30.127 秒通过，0 失败、0 跳过、runner 退出 0 | 同一池设备和系统。按单失败恢复规则与 run-13 通过项合并；未重新运行已通过项 |
+
+41 项单测映射：OfflineWorkspace 5（启动不联网、原目录、身份分离）；BusinessIntegration 4 + IdentityScope 2（既有调用方、迁移、损坏恢复和目录保护）；CapacityBusiness 7 + CapacityAPI 2 + CapacityPolicy 1（交易确认、签名证明、缓存和幂等）；AppReview 7 + TouchTrail 2（保留主线评分及本机偏好）；LegalResources 3（URL、包内清单和显式路由）；UtilityFlow 5（主动查询、手填地点及持久化）；AppStoreReview 2 + ComponentLogic 1（正式评价 URL、非法配置及调试路由）。精确 selector 均在计划文件，不以整个 target 或全量 suite 代替映射。
+
+最终三个 UI 方法为 OfflineBusinessUITests 的记录/设置/地址/法律入口、CapacityBusinessUITests 的待确认/到账/重启去重、AppStoreReviewUITests 的评价入口两次点击。首次定位修复和退款保留超额房源为先前独立证据；主线真实评分窗口展示有 run-08 证据。容量 UI 使用显式 DEBUG 交易/服务夹具，并隔离平台评分窗口，仅证明业务与持久化流程。未验证真实 Apple 付款、实体设备 GPS、飞行模式实机或地图瓦片内容。仅同步选择器的其他历史 UI 长流程未全量重跑，不能据此声称完整 UI 门禁或支付发布验收。
+
+原始计划、命令、日志、汇总和附件：`/private/tmp/xunju-offline-privacy-20261030/{plan,run,summary}-13.*`、同目录 `*-14.*` 与 `attachments-{13,14}/`。结果包：`/Volumes/mac2/codex-builds/xunju-offline-business-20261030-{13,14}.xcresult`。共享 runner 已退出并释放本任务资源。
+
+持久原图及逐图 SHA256/源码/设备来源：`/Users/pc/.codex/visualizations/2026/10/29/01a18886-1bc3-7922-9396-c73515b59cbf/ios-offline-final/`。主 agent 已查看当前设置、法律入口、购买重启恢复和评价两次打开截图。`settings-current.png`、`legal-links-current.png`、`purchase-restored-once.png` 来自 run-13；`settings-review-row.png`、`settings-review-url.png` 来自 run-14。评价 URL/次数为 DEBUG 宿主的可见回显，不是正式界面；¥1.99 与交易是夹具。目录还保留未修改的失败图、summary、去除令牌的 runner receipt、ASC 当前回读和历史定位/退款证据。
+
+最终生产差异已由主 agent 在 PR 创建及更新后复核：旧数据迁移不切空目录，购买证明不进入房源备份或日志，先持久化再 finish，沙盒与正式环境隔离，主线评价入口及隐私理由保留。后续提交仅更新本验收文档，不改变执行输入。没有云端 check-run/status 通过记录，不能把空检查列表称为 CI 通过。iOS #92 和后端 #98 继续保留草稿，未合并/部署；真实支付、商品资料与 App Privacy 标签为独立发布前事项。
+
 ## 最新评价入口整合与最终复验
 
 run-13（`6c57f510f04db44c25a323042fdff23282a3ab5f`、iPhone 14 Pro / iOS 18.3.1）41 UT 与离线记录、购买恢复两项 UI 通过，仅评价入口 UI 失败。原始截图 `6F3B907A-2082-43C0-B148-46A2F42557A6.png` 显示评价行尚在屏幕下方；AX hierarchy 给出评价行 y=810.3、高50，而 Tab 栏顶部 y=768；合成 tap 实际落在 (196.5, 835.33)。`isHittable` 错误地让测试跳过滚动，未真正点击评价行。修正只在该失败方法里先滚动并断言行底部位于 Tab 栏之上，保留两次点击、正式 URL 和计数断言，不改生产代码或延长超时。run-14 仅复跑这一个方法；41 UT 和另外两项 UI 按单失败恢复规则复用，原失败保留。
