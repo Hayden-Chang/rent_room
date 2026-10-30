@@ -11,6 +11,7 @@ struct BrandLaunchSurface: View {
                 .scaledToFit()
                 .frame(width: 112, height: 112)
                 .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                .contentShape(.accessibility, RoundedRectangle(cornerRadius: 26, style: .continuous))
                 .accessibilityLabel("寻居")
                 .accessibilityIdentifier("brandLaunch.icon")
         }

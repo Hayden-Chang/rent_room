@@ -7,6 +7,7 @@
 - 直接复用 `output/branding/看房搭子-小程序头像-v2.png`，逐字节复制为受 Git 跟踪的生产资源 `brand-launch-icon.imageset/mini-program-logo.png`。应用构建不依赖本地 output 目录。
 - 保持原图的蓝紫底、白色房屋与对勾，不重绘、不改色。以 112 × 112 pt 展示，使用 26 pt 连续圆角，无阴影或额外装饰。
 - Logo 在全屏水平、垂直居中；背景沿用 `XJTheme.background`（`#F5F7FB`），连续覆盖安全区。
+- 显式设置与圆角 Logo 一致的辅助功能形状，保持读屏边界与显示区域一致。
 - 不显示小搭、标题、副标题或底部文案。保留不可见的辅助功能名称「寻居」。
 - 静态、无按钮、无动画、无倒计时、无网络依赖；沿用 App 浅色约定。
 
@@ -33,3 +34,9 @@ Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `
 状态：`COMPONENT_BUILDING`。用户已同意采用现有小程序 Logo；替换后的原生截图待生成。上一版通用房屋图标截图不能作为此版证据。
 
 本轮产物保存在任务 worktree 下 `artifacts/launch-logo-20261030/`，不提交构建产物。
+
+### 首轮诊断
+
+`launch-logo-20261030/review-01.xcresult`：单测通过，UI 用例在 Logo 的辅助功能横向中心断言失败（65.56 pt，预期 196.5 pt）。失败录屏显示 Logo 视觉居中；首轮不能记为通过。原生录像和日志保留在 `attachments-01/` 与 `runner-01.log`。
+
+本轮依据 [Apple 的 accessibility content shape 文档](https://developer.apple.com/documentation/swiftui/contentshapekinds/accessibility) 显式定义圆角 Logo 的辅助功能区域，并保留原居中断言。截图采集提前至断言前，同时记录应用与 Logo 的原始坐标，供失败诊断。重新验证之前不宣称问题已修复。
