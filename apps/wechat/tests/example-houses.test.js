@@ -14,7 +14,8 @@ describe('first-visit example houses',()=>{
     expect(s.get().houses[0].templateTopics).not.toBe(s.get().houses[1].templateTopics);
     expect(validateState(JSON.parse(io.read())).houses).toEqual(s.get().houses);
     const rows=comparison(s.get().houses,true);
-    for(const [id,values] of Object.entries({f1_6:['2800','3600'],f1_3:['38','58'],simple_01:['是','否'],simple_11:['否','是'],simple_13:['否','是']}))expect(rows.find(r=>r.id===id)?.values).toEqual(values);
+    for(const [id,values] of Object.entries({f1_1:['示例地址·地铁站旁','示例地址·花园小区'],f1_2:['一室一厅','两室一厅'],f1_6:['2800','3600'],f1_3:['38','58'],simple_01:['是','否'],simple_11:['否','是'],simple_13:['否','是']}))expect(rows.find(r=>r.id===id)?.values).toEqual(values);
+    expect(s.get().houses.map(h=>h.address)).toEqual(['示例地址·地铁站旁','示例地址·花园小区']);
     expect(created).not.toHaveBeenCalled();
     expect(s.get().xiaoda.firstHouseId).toBe('');
     expect(s.get().xiaoda.setup).toBe('sort');

@@ -16,7 +16,11 @@ import XCTest
         capture("examples-ios-selected", app)
         app.buttons["compare.start"].tap()
         let differences = app.switches["隐藏相同属性"]
-        XCTAssertTrue(differences.waitForExistence(timeout: 3)); differences.tap()
+        XCTAssertTrue(differences.waitForExistence(timeout: 3))
+        // The custom switch's accessibility frame includes its label; hit its visible thumb.
+        differences.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        let enabled = expectation(for: NSPredicate(format: "value == %@", "1"), evaluatedWith: differences)
+        wait(for: [enabled], timeout: 3)
         XCTAssertTrue(app.otherElements["compare.row.simple_01"].waitForExistence(timeout: 3))
         capture("examples-ios-comparison", app)
         app.terminate(); app.launch()
