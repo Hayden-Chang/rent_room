@@ -57,12 +57,14 @@ private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
         let store = try NativeStore(directory: root(), network: counter)
         for location: JSONValue in [.null, .object(["latitude": .number(31.23), "longitude": .number(121.47)])] {
             let search = PlaceSearch(store: store, location: location, mapKey: "fixture", validScope: { true })
+            let prior = await counter.count
             search.start(address: "已保存的地址")
             XCTAssertFalse(search.busy); XCTAssertTrue(search.choices.isEmpty)
             let before = await counter.count
+            XCTAssertEqual(before, prior, "Appearance must not request saved addresses or nearby places")
             await search.submit()?.value
             let after = await counter.count
-            XCTAssertEqual(after, before + 1, "Only explicit submission may contact the map service")
+            XCTAssertGreaterThan(after, before, "An explicit submission may query both address and nearby places")
             search.cancel()
         }
     }
