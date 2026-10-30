@@ -108,7 +108,7 @@ struct XiaodaTutorialOverlay: View {
         GeometryReader { geometry in
             let rect = XiaodaTutorialLayout.spotlight(target, available: geometry.size)
             let top = XiaodaTutorialLayout.cardTop(target: rect, height: measuredHeight ?? 260, available: geometry.size.height)
-            let adjustment = step >= 3 ? XiaodaTutorialLayout.scrollAdjustment(target: target, cardHeight: measuredHeight, available: geometry.size.height) : 0
+            let adjustment = XiaodaTutorialLayout.scrollAdjustment(target: target, cardHeight: measuredHeight, available: geometry.size.height)
             ZStack(alignment: .topLeading) {
                 if let rect {
                     shade(width: geometry.size.width, height: max(0, rect.minY))
@@ -145,22 +145,16 @@ struct XiaodaTutorialOverlay: View {
                     .background(.white, in: RoundedRectangle(cornerRadius: 24))
                     .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(Color(red: 226/255, green: 229/255, blue: 236/255), lineWidth: 2))
                     .accessibilityElement(children: .contain).accessibilityIdentifier("coach.card")
-                    .background(GeometryReader { proxy in Color.clear.preference(key: XiaodaTutorialHeight.self, value: proxy.size.height) })
+                    .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { measuredHeight = $0 }
                     .offset(x: 12, y: top)
             }.frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
                 .clipped()
-                .onPreferenceChange(XiaodaTutorialHeight.self) { measuredHeight = $0 }
                 .task(id: adjustment) { if abs(adjustment) > 2 { adjustScroll(adjustment) } }
         }
     }
     private func shade(width: CGFloat, height: CGFloat) -> some View {
         Color(red: 27/255, green: 35/255, blue: 73/255).opacity(87/255).frame(width: width, height: height).contentShape(Rectangle()).onTapGesture {}
     }
-}
-
-private struct XiaodaTutorialHeight: PreferenceKey {
-    static let defaultValue: CGFloat = 330
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = nextValue() }
 }
 
 private struct XiaodaBubbleTail: Shape {
