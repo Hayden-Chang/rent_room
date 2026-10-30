@@ -1,0 +1,28 @@
+{
+  "runId": "rent-room-example-photos-20261031-d",
+  "token": "83cdce25-ee32-4cdc-809d-2e3e2981b0df",
+  "resultBundlePath": "/private/tmp/rent-room-example-photos-20261031/ios-d.xcresult",
+  "requestedAt": 1793377926919,
+  "cacheWaitSeconds": 0.021,
+  "queueSeconds": 1.01,
+  "buildResultBundlePath": "/private/tmp/rent-room-example-photos-20261031/ios-d.build.xcresult",
+  "stages": {
+    "build": {
+      "queuedAt": 1793377926940,
+      "startedAt": 1793377927121,
+      "queueSeconds": 0.181,
+      "finishedAt": 1793377941766,
+      "exitCode": 0
+    },
+    "test": {
+      "queuedAt": 1793377941775,
+      "startedAt": 1793377942604,
+      "queueSeconds": 0.829,
+      "finishedAt": 1793377987295,
+      "exitCode": 65
+    }
+  },
+  "commandStartedAt": 1793377942604,
+  "finishedAt": 1793377987318,
+  "exitCode": 65
+}

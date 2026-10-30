@@ -1,0 +1,17 @@
+✔ read-only bridge replies omit the unchanged snapshot but preserve query results (107.59025ms)
+✔ mutations transfer state once and keep legacy result semantics via valueIsState (37.908375ms)
+✔ save failures report fresh status without replacing a rolled-back snapshot (33.683417ms)
+✔ capacity-only updates and rejected reads never resend records (16.088375ms)
+✔ initialization resets snapshot tracking and durable removal updates summaries (29.650291ms)
+✔ cached queries preserve filter and house parameters and invalidate on every mutation (80.533625ms)
+✔ cached guidance expires when the local day changes (38.823833ms)
+✔ house deltas reconstruct the full snapshot across edits, removals, rollback and reinitialization (98.064583ms)
+✔ currency creation retains review progress atomically across failed saves and restart (146.627875ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 526.531375

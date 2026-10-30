@@ -1,0 +1,21 @@
+{
+  "runId": "77748a5b0c1844a0acdaf7ff39b18080",
+  "source": "/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/dist",
+  "started": 1793377420.774174,
+  "status": "failed",
+  "runnerPid": 21249,
+  "command": [
+    "/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/tests/e2e/example-houses.cjs"
+  ],
+  "mockBoundary": "callback-defined",
+  "lifecycle": "resident-v1",
+  "runnerHash": "24f8ecc62a0d05e378c9fef8823ff6ce8f0555651fd68256501d8decdbb1c373",
+  "heartbeat": 1793378021.142783,
+  "snapshotHash": "f1a552cbd6d850038eee6793d2ec133d9d09fc4396bb8c88ed673941aa5e546f",
+  "sourceHead": "e1df76ad5f05abae1757557b0aed8a1d547e79b3",
+  "sourceStatus": "",
+  "toolVersion": "2.01.2510290",
+  "error": "No free slot; active/orphan instances were not stopped",
+  "finished": 1793378021.142771
+}
