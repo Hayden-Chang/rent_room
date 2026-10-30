@@ -6,13 +6,21 @@ if(!process.env.WECHAT_WS_ENDPOINT||!process.env.WECHAT_ARTIFACT_DIR)throw Error
 const automator=require(process.env.WECHAT_AUTOMATOR_MODULE||'/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 const out=process.env.WECHAT_ARTIFACT_DIR;
 const evidence={passed:false,boundary:'Real home page and rendered dismiss tap; disposable local house, mocked catalog; no physical-device claim.'};
+async function step(name,run){
+  console.log('START '+name);let timer;
+  try{return await Promise.race([run(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Timed out: '+name)),15000);})]);}
+  finally{clearTimeout(timer);}
+}
 async function waitFor(page,predicate,message){
   const deadline=Date.now()+10000;
   while(Date.now()<deadline){if(await predicate())return;await page.waitFor(100);}
   throw Error(message);
 }
 (async()=>{
-  const mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
+  const mini=await step('connect',()=>automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT}));
+  for(const name of ['mockWxMethod','reLaunch','evaluate','screenshot','switchTab','currentPage']){
+    const original=mini[name].bind(mini);mini[name]=(...args)=>step(name,()=>original(...args));
+  }
   const shot=name=>mini.screenshot({path:path.join(out,name+'.png')});
   try{
     await mini.mockWxMethod('request',{statusCode:200,data:{available:false,capacity:{version:2,freeLimit:2}}});
@@ -23,7 +31,7 @@ async function waitFor(page,predicate,message){
       service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.enabled=false;});
     });
     page=await mini.reLaunch('/pages/home/index');
-    await page.waitFor('#new-house');
+    await step('empty add button',()=>page.waitFor('#new-house'));
     assert.equal(await page.$('#house-long-press-hint'),null);
     await shot('house-hint-empty');
     await mini.evaluate(()=>{
@@ -31,7 +39,7 @@ async function waitFor(page,predicate,message){
       store.edit(id,h=>{h.address='朝阳路18号';h.answers.f1_6={value:'2800'};h.answers.f1_3={value:'45'};});
     });
     page=await mini.reLaunch('/pages/home/index');
-    await page.waitFor('#dismiss-long-press-hint');
+    await step('dismiss button',()=>page.waitFor('#dismiss-long-press-hint'));
     const hint=await page.$('#house-long-press-hint'),button=await page.$('#dismiss-long-press-hint');
     assert.equal(await button.text(),'我知道了');
     evidence.before={house:await(await page.$('.house')).offset(),hint:await hint.size()};
