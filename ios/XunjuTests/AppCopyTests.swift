@@ -2,6 +2,12 @@ import XCTest
 @testable import Xunju
 
 @MainActor final class AppCopyTests: XCTestCase {
+    func testEnglishIssueCountUsesSingularOnlyForOne() {
+        XCTAssertEqual(AppCopy.text("1 个问题", language: .english), "1 Issue")
+        XCTAssertEqual(AppCopy.text("2 个问题", language: .english), "2 Issues")
+        XCTAssertEqual(AppCopy.text("11 个问题", language: .english), "11 Issues")
+        XCTAssertEqual(AppCopy.text("1 个问题", language: .chinese), "1 个问题")
+    }
     func testChineseYuanFormUnitsPreserveRatesCustomNamesAndOtherCurrencies() {
         let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
         defer { AppLanguage.shared.value = prior }

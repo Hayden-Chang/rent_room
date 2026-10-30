@@ -9,6 +9,8 @@ import XCTest
         XCTAssertTrue(app.buttons["house." + names[0]].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["house." + names[1]].exists)
         XCTAssertTrue(app.staticTexts["My Homes"].exists)
+        XCTAssertTrue(app.buttons["house." + names[1]].label.contains("1 Issue"))
+        XCTAssertFalse(app.buttons["house." + names[1]].label.contains("1 Issues"))
         assertEnglishCardsFit(app, prefix: "house.", names: names)
         capture("examples-ios-english-home", app)
         app.buttons["tab.对比"].tap()

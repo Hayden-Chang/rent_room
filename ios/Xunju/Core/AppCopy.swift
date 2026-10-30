@@ -39,6 +39,7 @@ import SwiftUI
 
     static func text(_ source: String, language: SupportedLanguage? = nil, translatingArguments: Bool = false) -> String {
         guard (language ?? AppLanguage.shared.value) == .english else { return source }
+        if source == "1 个问题" { return "1 Issue" }
         return translate(source, depth: 0, translatingArguments: translatingArguments)
     }
     private static func translate(_ source: String, depth: Int, translatingArguments: Bool = false) -> String {
