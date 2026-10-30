@@ -55,7 +55,12 @@ struct MPHouseCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     XJTheme.soft.overlay {
-                        if let image = item.cover { Image(uiImage: image).resizable().scaledToFill() }
+                        if let image = item.cover {
+                            GeometryReader { geometry in
+                                Image(uiImage: image).resizable().scaledToFill()
+                                    .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                            }
+                        }
                         else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
                     }.clipped()
                     AppText(archived ? "已归档" : item.card.decision.isEmpty ? "待检查" : item.card.decision)
@@ -116,7 +121,12 @@ struct MPComparisonSelection: View {
                                 VStack(alignment: .leading, spacing: 0) {
                                     ZStack(alignment: .bottomLeading) {
                                         XJTheme.soft.overlay {
-                                            if let image = house.cover { Image(uiImage: image).resizable().scaledToFill() }
+                                            if let image = house.cover {
+                                                GeometryReader { geometry in
+                                                    Image(uiImage: image).resizable().scaledToFill()
+                                                        .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                                                }
+                                            }
                                             else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
                                         }.clipped()
                                         AppText(selected.contains(house.id) ? "✓" : "").font(.system(size: 18)).foregroundStyle(.white)

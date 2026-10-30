@@ -96,7 +96,12 @@ private struct ComparisonHouseCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .bottomLeading) {
                     XJTheme.soft.overlay {
-                        if let cover { Image(uiImage: cover).resizable().scaledToFill() }
+                        if let cover {
+                            GeometryReader { geometry in
+                                Image(uiImage: cover).resizable().scaledToFill()
+                                    .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                            }
+                        }
                         else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
                     }.clipped()
                     AppText(selected ? "✓" : "").font(.system(size: 18)).foregroundStyle(.white).frame(width: 28, height: 28)

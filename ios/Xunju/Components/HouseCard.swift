@@ -22,7 +22,12 @@ struct HouseCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     XJTheme.soft.overlay {
-                        if let cover { Image(uiImage: cover).resizable().scaledToFill() }
+                        if let cover {
+                            GeometryReader { geometry in
+                                Image(uiImage: cover).resizable().scaledToFill()
+                                    .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                            }
+                        }
                         else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
                     }.clipped()
                     AppText(house.decision.isEmpty ? "待检查" : house.decision)
