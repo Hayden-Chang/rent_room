@@ -2,6 +2,20 @@
 
 状态：用户已以“可以”明确批准第 4 版布局，iOS UI 门禁为 `APPROVED`。两端正式页面已接入。2026-10-31 用户确认小程序登录后联网扣点，新增服务端兼容迁移；iOS 继续本机方案。最新兼容验证见下文。微信正式页已实际渲染并截图；自动化工具 Page 查询超时，真实购买/刷新点击仍为 `BLOCKED`。PR #105 保持草稿，未合并、部署、上传或发布。
 
+## 新建房源不足点数购买入口（2026-10-31）
+
+- 用户要求该入口也删除小饼干。源码核实：正式 `HomePage.home.add → CapacityPage → PropertyCreditsSurface` 已使用批准的第 4 版；小程序 `beginHouseAction → capacity?intent=1` 同样使用统一点数组件。本次未增加新布局或更改扣点、购买、恢复逻辑。
+- 删除废弃的 iOS 小饼干容量组件实现；旧 `capacity` 评审路由和无需账号的购买预览改为复用 `PropertyCreditsSurface`，移除投喂话术及人物区域。原显式 DEBUG 路由仍可访问，不进入正式用户流程。历史本地化字典不影响显示，已无调用方使用小饼干条目。
+- 代码证据 SHA `aff017bc48bfaa7cc6f0b5b1879a5eab15a82e10`；运行时工作树干净。共享 runner `rent-room-shortage-ui-20261031-01` 通过 **2 UT + 4 UI**，无失败、跳过。这是开发批次，执行了本次全部新增/修改的 UI 方法；未跑全套。
+- UT 精确选择 `LegalResourcesTests/testLocalReviewRequiresExplicitKnownRoute` 与 `ComponentLogicTests/testReviewHostRequiresExplicitKnownSurface`，验证原调试入口仍须显式启用。
+- 新增 `CapacityBusinessUITests/testNewPropertyAtZeroCreditsShowsPointPurchaseAndCanReturn` 实际点击首页新建：余额 0、购买按钮“¥9.90 购买 10 点”、规则、无小饼干/迁移提示/先等等；返回保留原记录且不创建房源，再次进入仍是 0 点。此用例增加既有正式流程的验收，未将原已正确的正式入口描述为新修复缺陷。
+- 修改并通过的 UI 用例为 `CapacityReviewTests/testPurchaseBusyAndCancellationKeepCreditsWithoutAccountControls`、`testUnavailablePendingRestoreFailureAndZeroCredits`、`LocalSettingsReviewTests/testAccountFreePurchasePendingAndNetworkFailurePreserveDisplayedCredits`，覆盖两条旧预览路由共用新组件后的购买中/取消、不可售、待确认、恢复失败、零余额，无账号要求。
+- iOS 最终选择按风险排序为上述正式入口、旧路由不可售/待确认、无需账号预览共 **3 个 UI 方法**；直接复用同 SHA 开发批次的通过结果，不重复启动最终测试。第四个开发方法保留为补充证据。前轮 21 UT、支付恢复/重启/原表单续接 UI 的业务输入仍等价：`cdcef579..aff017bc` 无支付、store、桥接、迁移、正式页面或 `PropertyCreditsSurface` 变化；仅预览组件替换与测试变动，旧业务测试的启动参数、动作和断言默认分支不变。
+- 微信新增 `capacity-navigation` 用例验证耗尽免费点数后新建进入同一购买页、保留记录和原生返回栈。组件回调与导航共 9 项最终通过：第一批 8 项通过，新增项最初因夹具写死免费 2 点（当前访客为 1 点）在前置创建处失败；改为读取实际初始点数后该精确用例通过，5 项未选择。保留失败日志，该失败不属于业务缺陷复现。首批其他 8 项输入未改变，因此复用结果。小程序正式源码与构建输入未改，前轮编译/渲染证据不受影响；真实购买/刷新点击仍待验收。
+- `.xcresult`：`/Volumes/mac2/codex-builds/rent-room-shortage-ui-20261031-01.xcresult`；设备 iPhone 14 Pro / iOS 18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`；6 张原始截图均为 1178×2556，主 agent 已逐张检查。正式入口无卡片外框、人物、迁移说明、调试字样；剩余点数、规则及购买按钮均可见。截图中的价格与余额使用隔离 fixture，不是真实支付证据。
+- 完整命令、计划、日志、附件清单及去令牌 receipt：`/Users/pc/.codex/visualizations/2026/10/30/01a18c24-c384-7503-aa95-42333779ae5e/property-credits/shortage-entry-20261031/`。正式入口原图为 `new-property-zero-credits-purchase.png`。runner PID 38589 正常结束，租约与 slot 已释放；receipt 记录排队 0.831 秒，构建约 28.4 秒，测试阶段约 56.2 秒。
+- 构建继续通过共享 runner 与仓库 wrapper；XcodeGen 2.45.4，`project.yml` 未改，未提交生成工程。远端 main 仍为 `1f26f8e04088fa8865431e5c590dd1179ab98c84`。后续只补文档，不改变测试输入。仍未合并或发布。
+
 ## 已确认的产品规则
 
 - 小程序 ¥1.99 / 10 个房源点数；iOS 中国大陆 ¥9.90 / 10 个，美国 $1.99 / 10 个。
