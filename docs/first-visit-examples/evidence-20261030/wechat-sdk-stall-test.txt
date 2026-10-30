@@ -1,0 +1,3 @@
+Connecting to the leased mini-program
+Connected
+Waiting for first-visit welcome

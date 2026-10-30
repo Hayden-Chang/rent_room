@@ -1,0 +1,29 @@
+NATIVE_READY: 等待首次欢迎页
+NATIVE_READY: 点击排好啦
+NATIVE_READY: 选择精简模式并点击选好啦
+NATIVE_READY: 点击底部对比
+NATIVE_READY: 依次点击两套示例卡片
+NATIVE_READY: 点击对比这 2 套房源
+NATIVE_READY: 点击隐藏相同属性开关
+Error: Uncaught TypeError: Function has non-object prototype 'undefined' in instanceof check
+    at Connection.onMessage (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/miniprogram-automator/out/Connection.js:1:985)
+    at Transport.emit (node:events:509:28)
+    at WebSocket.<anonymous> (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/miniprogram-automator/out/Transport.js:1:220)
+    at WebSocket.onMessage (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/event-target.js:120:16)
+    at WebSocket.emit (node:events:509:28)
+    at Receiver.receiverOnMessage (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/websocket.js:807:20)
+    at Receiver.emit (node:events:509:28)
+    at Receiver.dataMessage (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/receiver.js:448:14)
+    at Receiver.getData (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/receiver.js:377:17)
+    at Receiver.startLoop (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/receiver.js:158:22)
+Error: Uncaught TypeError: Function has non-object prototype 'undefined' in instanceof check
+    at Connection.onMessage (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/miniprogram-automator/out/Connection.js:1:985)
+    at Transport.emit (node:events:509:28)
+    at WebSocket.<anonymous> (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/miniprogram-automator/out/Transport.js:1:220)
+    at WebSocket.onMessage (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/event-target.js:120:16)
+    at WebSocket.emit (node:events:509:28)
+    at Receiver.receiverOnMessage (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/websocket.js:807:20)
+    at Receiver.emit (node:events:509:28)
+    at Receiver.dataMessage (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/receiver.js:448:14)
+    at Receiver.getData (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/receiver.js:377:17)
+    at Receiver.startLoop (/Volumes/mac2/codex-builds/wechat-instance-pool/runners/30bd8ec26460af9fe13099b0cfdaad29b189671c/node_modules/ws/lib/receiver.js:158:22)
