@@ -1,4 +1,5 @@
 import XCTest
+import Vision
 
 @MainActor final class InspectionBusinessUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
@@ -82,6 +83,135 @@ import XCTest
         if let value = field.value as? String, value != "搜索检查项" && !value.isEmpty { field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: value.count)) }
         field.typeText(text); app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
+    }
+    func testDetailedSwipeGuideTracksVisibleRow() {
+        verifySwipeGuideGeometry(mode: "detailed", fieldID: "f56_1")
+    }
+    func testSimpleSwipeGuideTracksVisibleRow() {
+        verifySwipeGuideGeometry(mode: "simple", fieldID: "simple_01")
+    }
+    private func chooseGuidanceCurrency(_ app: XCUIApplication) {
+        let manual = app.buttons["currency.prompt.manual"]
+        XCTAssertTrue(manual.waitForExistence(timeout: 5)); manual.tap()
+        let yuan = app.buttons["currency.CNY"]
+        XCTAssertTrue(yuan.waitForExistence(timeout: 3)); yuan.tap()
+        app.buttons["完成"].tap()
+        let ready = expectation(for: NSPredicate(format: "isHittable == true"), evaluatedWith: app.homeAddButton)
+        wait(for: [ready], timeout: 3)
+    }
+    func testXiaodaCloseMatchesMiniProgramAndDismissesGuidance() {
+        let app = launch()
+        finishSetup(app, mode: "simple")
+        chooseGuidanceCurrency(app)
+        app.homeAddButton.tap()
+        XCTAssertTrue(app.buttons["prompt.confirm"].waitForExistence(timeout: 3))
+        app.buttons["prompt.confirm"].tap()
+        let next = app.buttons["coach.next"]
+        XCTAssertTrue(next.waitForExistence(timeout: 5))
+        capture("xiaoda-close-prerequisite-phases", app)
+        next.tap()
+        let filterReady = expectation(for: NSPredicate(format: "label == %@", "找到你想看的内容"), evaluatedWith: app.staticTexts["coach.title"])
+        wait(for: [filterReady], timeout: 4)
+        capture("xiaoda-close-prerequisite-filters", app)
+        next.tap()
+        let target = app.otherElements["coach.swipeTarget"]
+        XCTAssertTrue(target.waitForExistence(timeout: 4)); target.swipeLeft()
+        XCTAssertTrue(next.waitForExistence(timeout: 4)); next.tap()
+
+        let close = app.buttons["xiaoda.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 4))
+        let bubble = app.otherElements["xiaoda.bubble"].firstMatch
+        capture("xiaoda-close-position", app)
+        print("XIAODA close=\(close.frame) bubble=\(bubble.frame)")
+        XCTAssertTrue(close.isHittable)
+        XCTAssertEqual(close.frame.width, 44, accuracy: 1)
+        XCTAssertEqual(close.frame.height, 44, accuracy: 1)
+        // Mini-program: right -10, top -12, 44 pt hit area, 24 pt top padding.
+        XCTAssertEqual(close.frame.midX, bubble.frame.maxX - 12, accuracy: 1)
+        XCTAssertEqual(close.frame.midY, bubble.frame.minY - 14, accuracy: 1)
+        XCTAssertEqual(close.frame.maxY - bubble.frame.minY, 8, accuracy: 1)
+        close.tap()
+        let dismissHouse = app.buttons["当前房源关闭"]
+        XCTAssertTrue(dismissHouse.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["今天关闭"].exists)
+        XCTAssertTrue(app.buttons["永久关闭"].exists)
+        capture("xiaoda-close-options", app)
+        dismissHouse.tap()
+        XCTAssertTrue(close.waitForNonExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["xiaoda.accept"].exists)
+        capture("xiaoda-closed-house", app)
+        app.navigationBackButton.tap()
+        let house = app.buttons["house.第1套"]
+        XCTAssertTrue(house.waitForExistence(timeout: 4)); house.tap()
+        XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 4))
+        XCTAssertFalse(close.exists)
+    }
+    private func verifySwipeGuideGeometry(mode: String, fieldID: String) {
+        let app = launch()
+        finishSetup(app, mode: mode)
+        chooseGuidanceCurrency(app)
+        app.homeAddButton.tap()
+        XCTAssertTrue(app.buttons["prompt.confirm"].waitForExistence(timeout: 3))
+        app.buttons["prompt.confirm"].tap()
+        let next = app.buttons["coach.next"]
+        XCTAssertTrue(next.waitForExistence(timeout: 5))
+        capture(mode + "-phase-guide", app)
+        XCTAssertTrue(app.buttons["mp.phase.全部"].isHittable)
+        XCTAssertTrue(app.buttons["mp.phase.询问签约"].isHittable)
+        next.tap()
+        capture(mode + "-filter-guide", app)
+        for option in ["未记录", "已记录", "有问题", "有备注", "有影像"] {
+            XCTAssertTrue(app.buttons[option].isHittable, "The guide must leave every filter option uncovered")
+        }
+        next.tap()
+        let target = app.otherElements["coach.swipeTarget"]
+        XCTAssertTrue(target.waitForExistence(timeout: 4))
+        let row = app.otherElements["mp.field." + fieldID].firstMatch
+        let header = app.otherElements["navigation.header"]
+        let tab = app.buttons["tab.清单"]
+        capture(mode + "-swipe-guide", app)
+        assertSwipeSpeechUsesBubbleWidth(app)
+        XCTAssertEqual(target.frame.minX, row.frame.minX - 4, accuracy: 1, "Highlight must exclude the row's indentation")
+        XCTAssertEqual(target.frame.width, row.frame.width + 8, accuracy: 1)
+        XCTAssertEqual(target.frame.minY, row.frame.minY - 4, accuracy: 1)
+        XCTAssertGreaterThanOrEqual(target.frame.minY, header.frame.maxY + 12, "Leave room above the highlighted row")
+        XCTAssertLessThan(target.frame.maxY, tab.frame.minY)
+        let card = app.otherElements["coach.card"]
+        XCTAssertEqual(card.frame.minX, 12, accuracy: 1)
+        XCTAssertEqual(card.frame.minY - target.frame.maxY, 16, accuracy: 1)
+        XCTAssertLessThanOrEqual(card.frame.maxY, tab.frame.minY - 12)
+        print("GUIDE \(mode) target=\(target.frame) row=\(row.frame) card=\(card.frame) header=\(header.frame) tab=\(tab.frame)")
+        target.tap(); target.swipeRight()
+        XCTAssertTrue(target.exists, "Only a left swipe completes teaching")
+        target.swipeLeft()
+        let title = app.staticTexts["coach.title"]
+        let advanced = expectation(for: NSPredicate(format: "label == %@", "随手记下房屋细节"), evaluatedWith: title)
+        wait(for: [advanced], timeout: 4)
+        let note = app.buttons["mp.field.action." + fieldID + ".备注"]
+        XCTAssertTrue(note.isHittable, "The revealed actions remain visible above the guide")
+        capture(mode + "-swipe-actions", app)
+        XCTAssertEqual(card.frame.minY - row.frame.maxY - 4, 16, accuracy: 1)
+        XCTAssertLessThanOrEqual(card.frame.maxY, tab.frame.minY - 12)
+        XCTAssertEqual(row.value as? String, "操作已展开")
+        print("GUIDE \(mode) actions row=\(row.frame) card=\(card.frame) tab=\(tab.frame)")
+    }
+    private func assertSwipeSpeechUsesBubbleWidth(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        let bubble = app.otherElements["xiaoda.bubble"].firstMatch
+        do {
+            let image = try XCTUnwrap(bubble.screenshot().image.cgImage)
+            let request = VNRecognizeTextRequest()
+            request.recognitionLevel = .accurate
+            request.recognitionLanguages = ["zh-Hans"]
+            request.usesLanguageCorrection = false
+            try VNImageRequestHandler(cgImage: image).perform([request])
+            let lines = (request.results ?? []).sorted { $0.boundingBox.midY > $1.boundingBox.midY }
+                .compactMap { $0.topCandidates(1).first?.string.replacingOccurrences(of: " ", with: "") }
+            print("SWIPE SPEECH bubble=\(bubble.frame) lines=\(lines)")
+            XCTAssertTrue(lines.first?.contains("在检查项上向左滑一下") == true,
+                          "The first line must use the available bubble width without splitting 向左滑一下: \(lines)", file: file, line: line)
+        } catch {
+            XCTFail("Unable to inspect rendered speech: \(error)", file: file, line: line)
+        }
     }
     private func returnHomeWithoutFeedback(_ app: XCUIApplication) {
         app.navigationBackButton.tap()

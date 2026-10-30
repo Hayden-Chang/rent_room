@@ -3,6 +3,49 @@ import UIKit
 @testable import Xunju
 
 final class XiaodaTeachingTests: XCTestCase {
+    @MainActor func testSpeechUsesAvailableWidthAndKeepsExplicitNewlines() {
+        let text = "在检查项上向左滑一下，试试看！"
+        func lines(_ text: String, width: CGFloat) -> [String] {
+            let value = XiaodaSpeech.attributed(text, highlights: [], icons: [:], fontSize: 15,
+                lineHeight: 24.75, centered: false, highlightColor: .brown)
+            let storage = NSTextStorage(attributedString: value), manager = NSLayoutManager()
+            let container = NSTextContainer(size: CGSize(width: width, height: .greatestFiniteMagnitude))
+            container.lineFragmentPadding = 0
+            storage.addLayoutManager(manager); manager.addTextContainer(container)
+            var result: [String] = []
+            manager.enumerateLineFragments(forGlyphRange: manager.glyphRange(for: container)) { _, used, _, range, _ in
+                XCTAssertLessThanOrEqual(used.width, width + 1)
+                let characters = manager.characterRange(forGlyphRange: range, actualGlyphRange: nil)
+                result.append((value.string as NSString).substring(with: characters))
+            }
+            return result
+        }
+        for width: CGFloat in [209, 171] {
+            let rendered = lines(text, width: width)
+            XCTAssertTrue(rendered.first?.contains("向左滑一下") == true, "\(width): \(rendered)")
+            XCTAssertEqual(rendered.joined(), text)
+        }
+        let narrow = lines(text, width: 90)
+        XCTAssertGreaterThan(narrow.count, 2)
+        XCTAssertEqual(narrow.joined(), text)
+        XCTAssertEqual(lines("第一行\n第二行🍪", width: 209), ["第一行\n", "第二行🍪"])
+    }
+    @MainActor func testAttributedSpeechKeepsEmphasisAndInlineActionImages() throws {
+        let value = XiaodaSpeech.attributed("写备注🖊，\n拍照📷", highlights: ["写备注"], icons: ["🖊": "note", "📷": "camera"],
+            fontSize: 15, lineHeight: 34, centered: false, highlightColor: .brown)
+        XCTAssertEqual(value.string, "写备注 \u{fffc} ，\n拍照 \u{fffc} ")
+        XCTAssertEqual(value.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? UIColor, .brown)
+        XCTAssertTrue(try XCTUnwrap(value.attribute(.font, at: 0, effectiveRange: nil) as? UIFont).fontDescriptor.symbolicTraits.contains(.traitBold))
+        var count = 0
+        value.enumerateAttribute(.attachment, in: NSRange(location: 0, length: value.length)) { attachment, _, _ in
+            if let attachment = attachment as? NSTextAttachment {
+                count += 1
+                XCTAssertEqual(attachment.bounds.size, CGSize(width: 21, height: 21))
+                XCTAssertNotNil(attachment.image)
+            }
+        }
+        XCTAssertEqual(count, 2)
+    }
     func testSpeechKeepsUnicodeLinesAndMapsActionIcons() {
         let text = "标记问题❗、\n写备注🖊，\n拍照📷和录视频。"
         let parts = XiaodaSpeech.parts(text, highlights: ["写备注"], icons: ["❗": "issue", "🖊": "note", "📷": "camera"])
@@ -40,6 +83,36 @@ final class XiaodaTeachingTests: XCTestCase {
         }
         XCTAssertNotNil(UIImage(named: "coach-hand"))
         XCTAssertNil(XiaodaSpeech.actionImage("unknown"))
+    }
+    func testTutorialSpotlightUsesFieldBoundsAndClipsOnlyAtViewportEdge() throws {
+        let viewport = CGSize(width: 393, height: 650)
+        let field = CGRect(x: 44, y: 350, width: 317, height: 48)
+        XCTAssertEqual(XiaodaTutorialLayout.spotlight(field, available: viewport), field.insetBy(dx: -4, dy: -4))
+        XCTAssertNil(XiaodaTutorialLayout.spotlight(field.offsetBy(dx: 0, dy: 500), available: viewport))
+        XCTAssertNil(XiaodaTutorialLayout.spotlight(nil, available: viewport))
+        let edge = try XCTUnwrap(XiaodaTutorialLayout.spotlight(CGRect(x: 2, y: 20, width: 389, height: 48), available: viewport))
+        XCTAssertEqual(edge.minX, 0); XCTAssertEqual(edge.maxX, 393)
+    }
+    func testTutorialScrollKeepsContextAndReservesMeasuredCardSpace() throws {
+        let field = CGRect(x: 44, y: 1800, width: 317, height: 48)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: field, cardHeight: nil, available: 650), 0)
+        let adjustment = XiaodaTutorialLayout.scrollAdjustment(target: field, cardHeight: 230, available: 650)
+        XCTAssertEqual(field.minY - adjustment, 336)
+        let visible = field.offsetBy(dx: 0, dy: -adjustment)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: visible, cardHeight: 230, available: 650), 0)
+        let anchor = try XCTUnwrap(XiaodaTutorialLayout.scrollAnchor(target: field, cardHeight: 230, available: 650))
+        XCTAssertEqual(anchor.y * (650 - field.height), visible.minY, accuracy: 0.001)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAnchor(target: visible, cardHeight: 230, available: 650), anchor)
+        let tallerCardAnchor = try XCTUnwrap(XiaodaTutorialLayout.scrollAnchor(target: visible, cardHeight: 330, available: 650))
+        XCTAssertEqual(tallerCardAnchor.y * (650 - field.height), 236, accuracy: 0.001)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: visible, cardHeight: 330, available: 650), 100)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: CGRect(x: 44, y: 0, width: 317, height: 48), cardHeight: 230, available: 650), -20)
+    }
+    func testTutorialCardStaysSeparatedFromHighlightOnBothSides() {
+        let target = CGRect(x: 40, y: 336, width: 325, height: 56)
+        XCTAssertEqual(XiaodaTutorialLayout.cardTop(target: target, height: 230, available: 650), 408)
+        XCTAssertEqual(XiaodaTutorialLayout.cardTop(target: target, height: 230, available: 568), 90)
+        XCTAssertEqual(XiaodaTutorialLayout.cardTop(target: nil, height: 230, available: 650), 210)
     }
     #if DEBUG
     func testTeachingReviewRequiresExplicitKnownRoute() {
