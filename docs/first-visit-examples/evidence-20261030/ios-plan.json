@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-examples-review-20261030-c",
+  "phase": "development",
+  "taskName": "两套精简示例与老用户数据保护",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/private/tmp/rent-room-first-launch-examples-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart",
+      "reason": "新用户两套精简示例、对比与删空不补回",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyInstallationAndOldHouseAreNeverSeeded",
+      "reason": "已有空目录和旧房源升级保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyFileAndRecoveryCopyAreNeverSeeded",
+      "reason": "空文件和恢复副本保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testCanonicalCatalogAndRoundTripRetainAnswersAndZero",
+      "reason": "共享 store 初始化保持原存档语义",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection",
+      "reason": "容量、归档和删除不变",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/OfflineWorkspaceTests/testGuestRecordsAndAnswersSurviveOfflineRestartWithoutServiceCalls",
+      "reason": "既有离线游客存档",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/OfflineWorkspaceTests/testExpiredLegacyAccountKeepsOriginalMediaDirectoryAndNeedsNoKeychainAfterMigration",
+      "reason": "老账号与媒体目录迁移保持",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/OfflineWorkspaceTests/testMalformedOfflinePointerNeverFallsBackToAnEmptyStore",
+      "reason": "损坏目录指针不误判新用户",
+      "source": "affected-existing"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/ExampleHousesReviewTests/testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch",
+      "reason": "实际点击两套示例并查看差异，重启不重复；隔离评审入口",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/ExampleHousesReviewTests/testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch"
+  ]
+}

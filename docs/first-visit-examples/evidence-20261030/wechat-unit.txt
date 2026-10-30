@@ -1,0 +1,27 @@
+
+ RUN  v5.0.3 /private/tmp/rent-room-first-launch-examples-20261030/apps/wechat
+
+ ❯ tests/account-runtime.test.js (31 tests | 1 failed) 30968ms
+   × does not put a login sheet in the initial home frame before determining its session 5236ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/account-runtime.test.js > does not put a login sheet in the initial home frame before determining its session
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/account-runtime.test.js:194:1
+    192| });
+    193|
+    194| it('does not put a login sheet in the initial home frame before determ…
+       | ^
+    195|   const h=harness(),home=h.page('home');expect(loginMaskVisible(home.d…
+    196|   home.onLoad();home.onShow();expect(loginMaskVisible(home.data)).toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  1 failed | 77 passed (78)
+   Start at  18:57:34
+   Duration  43.96s (tests 90%, import 5%, transform 4%)
+
