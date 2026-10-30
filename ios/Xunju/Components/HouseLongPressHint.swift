@@ -7,7 +7,7 @@ struct HouseLongPressHint: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var typeSize
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults? = nil) {
         _dismissed = AppStorage(wrappedValue: false, Self.preferenceKey, store: defaults)
     }
 
