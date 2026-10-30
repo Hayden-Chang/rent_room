@@ -21,6 +21,9 @@ enum CapacityBusinessFixture {
         }
         if mode == "refund", workspace.store.houses.isEmpty {
             for i in 1...3 { _ = try workspace.store.add("退款保留\(i)") }
+            // Seed historical houses with their prior rating opportunity consumed.
+            // The refund scenario must not open an unrelated StoreKit rating window.
+            _ = try workspace.store.call("reviewRequest")
         }
         if mode == "zero" {
             if workspace.store.houses.isEmpty {

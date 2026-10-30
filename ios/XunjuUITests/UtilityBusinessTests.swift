@@ -191,7 +191,9 @@ import CoreLocation
             button.tap()
         }
         let center = app.buttons["place.result.center"]
-        XCTAssertTrue(center.waitForExistence(timeout: 10)); capture("41-simulated-location-nearby", app); center.tap()
+        XCTAssertTrue(center.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["place.map"].waitForExistence(timeout: 3), "An explicit first location request must mount the map")
+        capture("41-simulated-location-nearby", app); center.tap()
         assertCandidatesStayDismissed(app)
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
         capture("42-simulated-location-selected", app)
