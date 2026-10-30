@@ -1,7 +1,7 @@
 <view wx:if="{{accountReady}}" class="page capacity-page">
- <view class="guide-title">{{thanking?'房源额度已增加':'房源容量不够啦'}}</view>
- <xiaoda layout="hero" wx:if="{{!busy || thanking}}" pose="{{thanking?'success':'expect'}}" text="{{thanking?'谢谢主人，您现在多了 10 套房源额度啦！':'主人，您的额度不够了啦，花 ¥1.99 就能增加 10 套房源额度！'}}" bindtyped="paidTyped"/>
+ <view class="guide-title">{{thanking?'谢谢你的小饼干！':'房源容量不够啦'}}</view>
+ <xiaoda layout="hero" wx:if="{{!busy || thanking}}" pose="{{thanking?'success':'expect'}}" text="{{thanking?'谢谢主人，您现在多了 10 套房源额度啦！':'主人，可以投喂我一个小饼干🍪吗？'}}" bindtyped="paidTyped"/>
  <block wx:if="{{!thanking}}"><view class="card capacity-summary"><view class="subtitle">房源额度</view><view class="capacity-number">{{used}}<text> / {{limit}} 套</text></view></view>
- <view class="card pack-card"><view class="subtitle">一次购买，增加 10 套房源额度</view><view wx:if="{{intent.kind==='restore'}}" class="muted">当前没有可用额度，额度足够后就能恢复这套房源啦。</view><view class="capacity-actions"><button class="guide-secondary" disabled="{{busy}}" bindtap="cancel">先等等</button><button class="primary guide-primary purchase-pack" hover-class="guide-pressed" loading="{{busy}}" disabled="{{busy}}" bindtap="purchase">{{authenticated?'¥1.99 增加额度':'微信登录后购买'}}</button></view></view>
+ <view class="card pack-card"><view class="subtitle">🍪 1 块小饼干 = 增加 10 套房源额度</view><view wx:if="{{intent.kind==='restore'}}" class="muted">当前没有可用额度，额度足够后就能恢复这套房源啦。</view><view class="capacity-actions"><button class="guide-secondary" disabled="{{busy}}" bindtap="cancel">先等等</button><button class="primary guide-primary purchase-pack" hover-class="guide-pressed" loading="{{busy}}" disabled="{{busy}}" bindtap="purchase">{{authenticated?'¥1.99 购买小饼干':'微信登录后购买'}}</button></view></view>
  <view wx:if="{{error}}" class="error">{{error}}</view><button class="link restore-purchases" disabled="{{busy}}" bindtap="restore">{{authenticated?'刷新容量':'微信登录并恢复容量'}}</button></block>
 </view>

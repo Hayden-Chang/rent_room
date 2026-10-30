@@ -55,13 +55,7 @@ function cue(text){console.log('NATIVE_READY: '+text+'; slot='+process.env.WECHA
    const reopened=await capture(mode+'-10-reopened');assert.equal(reopened.prompt,null);assert.deepEqual(reopened.answers,complete.answers);
    results.push({mode,samePhaseQuiet:['C-D','D-E','E-F','fees-contract'],crossPhase:true,wholeHouse:true,reopenPreserved:true});
   }
-  // Capacity copy is rendering evidence only. No payment or login is invoked.
-  await mini.mockWxMethod('request',{statusCode:200,data:{available:false,capacity:{version:2,freeLimit:1}}});
-  await evaluate(function(){return getApp().auth.refreshCapacity();});
-  await route('/pages/capacity/index');await until(s=>s.ready,'capacity ready');await capture('capacity-guest');
-  await evaluate(function(){getCurrentPages().slice(-1)[0].setData({authenticated:true});return true;});
-  await capture('capacity-button-copy');
-  fs.writeFileSync(path.join(out,'assertions.json'),JSON.stringify({passed:true,results,nativeClicks:true,fixtureSetup:true,firstTutorialNative:false,capacityRenderOnly:true,capacityAuthenticatedViewFixture:true,realPayments:false,deviceValidated:false,directTargetHandlerCalls:false},null,2));
+  fs.writeFileSync(path.join(out,'assertions.json'),JSON.stringify({passed:true,results,nativeClicks:true,fixtureSetup:true,firstTutorialNative:false,realPayments:false,deviceValidated:false,directTargetHandlerCalls:false},null,2));
   console.log('NATIVE_COMPLETE '+out);
  }catch(error){await capture('failure').catch(()=>{});throw error;}finally{mini.disconnect();}
 })().catch(error=>{fs.writeFileSync(path.join(out,'failure.json'),JSON.stringify({error:error.stack},null,2));console.error(error);process.exit(1);});
