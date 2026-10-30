@@ -3,9 +3,10 @@ import CoreLocation
 
 @MainActor final class UtilityBusinessTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch() -> XCUIApplication {
+    private func launch(resetLocationPermission: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "--utility-network-fixture", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if resetLocationPermission { app.resetAuthorizationStatus(for: .location) }
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
@@ -26,7 +27,7 @@ import CoreLocation
         XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists, "Using a place must collapse the real page map")
         XCTAssertEqual(app.buttons["place.mapToggle"].label, "展开地图")
     }
-    func testPlaceWorkplaceAndCommutePersistAfterRelaunch() {
+    func testPlaceWorkplaceAndManualCommutePersistAfterRelaunch() {
         let app = launch()
         app.buttons["home.add"].tap(); let name = app.textFields["prompt.text"]
         XCTAssertTrue(name.waitForExistence(timeout: 3)); name.replacePromptText("选点与通勤")
@@ -43,7 +44,7 @@ import CoreLocation
         app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3))
         app.buttons["tab.我的"].tap()
-        app.buttons["settings.workplace"].tap()
+        app.buttons["local-settings.workplace"].tap()
         let search = app.textFields["place.query"]; XCTAssertTrue(search.waitForExistence(timeout: 3)); search.tap(); search.typeText("办公楼\n")
         let office = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '办公楼'")).firstMatch
         XCTAssertTrue(office.waitForExistence(timeout: 4)); office.tap()
@@ -51,33 +52,44 @@ import CoreLocation
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("办公楼"))
         capture("33-business-workplace", app)
         app.navigationBackButton.tap(); app.buttons["tab.房源"].tap(); app.buttons["house.选点与通勤"].tap()
-        let query = app.textFields["mp.checklist.search"]; query.tap(); query.typeText("公交地铁")
-        app.buttons["checklist.keyboard.done"].tap()
-        app.buttons["measurement.21255282-3663-4abe-b7de-d91eeb3825ed"].tap()
-        let confirm = app.buttons["route.confirm"]; XCTAssertTrue(confirm.waitForExistence(timeout: 4))
-        let ready = expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: confirm)
-        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 4), .completed)
-        capture("34-business-route-confirm", app); confirm.tap()
-        let answer = app.textFields["mp.field.input.21255282-3663-4abe-b7de-d91eeb3825ed"]
-        XCTAssertTrue(answer.waitForExistence(timeout: 3)); XCTAssertEqual(answer.value as? String, "24")
-        XCTAssertGreaterThanOrEqual(answer.frame.width, 76)
-        XCTAssertLessThan(answer.frame.maxX, app.buttons["measurement.21255282-3663-4abe-b7de-d91eeb3825ed"].frame.minX)
+        let commutes = [("公交地铁", "21255282-3663-4abe-b7de-d91eeb3825ed", "24"),
+                        ("开车", "3c70cda2-7c6c-4fa6-b2db-b647af24ba72", "18")]
+        func showCommute(_ filter: String, _ field: String) -> XCUIElement {
+            let query = app.textFields["mp.checklist.search"]
+            query.replacePromptText(filter)
+            app.buttons["checklist.keyboard.done"].tap()
+            let answer = app.textFields["mp.field.input." + field]
+            XCTAssertTrue(answer.waitForExistence(timeout: 3))
+            XCTAssertFalse(app.buttons["measurement." + field].exists)
+            XCTAssertFalse(app.buttons["route.confirm"].exists)
+            return answer
+        }
+        for (filter, field, minutes) in commutes {
+            let answer = showCommute(filter, field)
+            answer.tap(); answer.typeText(minutes)
+            app.buttons["checklist.keyboard.done"].tap()
+            XCTAssertEqual(answer.value as? String, minutes)
+            capture("manual-commute-" + field, app)
+        }
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.选点与通勤"].waitForExistence(timeout: 10))
         app.buttons["house.选点与通勤"].tap(); XCTAssertFalse(app.buttons["coach.next"].exists)
-        let restored = app.textFields["mp.checklist.search"]; restored.tap(); restored.typeText("公交地铁")
-        app.buttons["checklist.keyboard.done"].tap(); XCTAssertEqual(answer.value as? String, "24")
-        capture("35-business-commute-restored", app)
+        for (filter, field, minutes) in commutes {
+            XCTAssertEqual(showCommute(filter, field).value as? String, minutes)
+        }
+        capture("35-business-manual-commutes-restored", app)
         app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["tab.清单"].waitForNonExistence(timeout: 3))
         app.buttons["house.选点与通勤"].press(forDuration: 1)
         app.confirmArchiveFromHouseMenu()
         app.buttons["tab.我的"].tap()
-        let archives = app.buttons["settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
+        let archives = app.buttons["local-settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
         let archived = app.buttons["archive.open.选点与通勤"]; XCTAssertTrue(archived.waitForExistence(timeout: 3)); archived.tap()
         XCTAssertTrue(app.staticTexts["house.readonly"].waitForExistence(timeout: 3))
         let archivedQuery = app.textFields["mp.checklist.search"]; archivedQuery.tap(); archivedQuery.typeText("地图")
         app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
+        app.buttons["place.mapToggle"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["place.map"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.textFields["place.query"].exists); XCTAssertFalse(app.buttons["place.locate"].exists)
         XCTAssertFalse(app.buttons["place.result.center"].exists)
@@ -129,7 +141,7 @@ import CoreLocation
         capture("house-map-06-text-address-focus", app)
     }
     func testManualWorkplaceSaveAndClearSurviveRelaunch() {
-        let app = launch(); app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        let app = launch(); app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
         let address = app.textFields["workplace.address"], query = app.textFields["place.query"]
         let map = app.descendants(matching: .any)["place.map"], toggle = app.buttons["place.mapToggle"]
         XCTAssertTrue(address.waitForExistence(timeout: 3))
@@ -149,7 +161,7 @@ import CoreLocation
         toggle.tap(); XCTAssertTrue(map.waitForExistence(timeout: 3), "The prior camera must survive the address invalidating its coordinates")
         capture("workplace-map-02-retained-camera", app)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
-        app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
         XCTAssertEqual(address.value as? String, editedAddress)
         XCTAssertFalse(map.exists, "A saved text-only workplace must reopen collapsed")
         capture("workplace-map-03-relaunched-collapsed", app)
@@ -161,7 +173,7 @@ import CoreLocation
         query.typeText("\n")
         app.buttons["workplace.clear"].tap(); XCTAssertFalse(app.buttons["workplace.clear"].exists)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
-        app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
         XCTAssertFalse(app.buttons["workplace.clear"].exists)
     }
 
@@ -169,7 +181,7 @@ import CoreLocation
         let prior = XCUIDevice.shared.location
         addTeardownBlock { @MainActor in XCUIDevice.shared.location = prior }
         XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 31.2304, longitude: 121.4737))
-        let app = launch(); app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        let app = launch(resetLocationPermission: true); app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
         let locate = app.buttons["place.locate"]; XCTAssertTrue(locate.waitForExistence(timeout: 3)); locate.tap()
         let system = XCUIApplication(bundleIdentifier: "com.apple.springboard"), alert = system.alerts.firstMatch
         if alert.waitForExistence(timeout: 2) {
@@ -180,7 +192,9 @@ import CoreLocation
             button.tap()
         }
         let center = app.buttons["place.result.center"]
-        XCTAssertTrue(center.waitForExistence(timeout: 10)); capture("41-simulated-location-nearby", app); center.tap()
+        XCTAssertTrue(center.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["place.map"].waitForExistence(timeout: 3), "An explicit first location request must mount the map")
+        capture("41-simulated-location-nearby", app); center.tap()
         assertCandidatesStayDismissed(app)
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
         capture("42-simulated-location-selected", app)
@@ -189,68 +203,8 @@ import CoreLocation
         center.tap(); assertCandidatesStayDismissed(app)
         capture("43-simulated-location-selected-again", app)
         app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
-        app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
+        app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
         XCTAssertTrue((app.textFields["workplace.address"].value as? String ?? "").contains("阳光小区"))
     }
 
-    // Supplementary live integration: UUID records, public landmarks, no
-    // network fixtures or physical/user location; not an offline CI gate.
-    func testLiveSystemPlaceSearchSelectionAndRelaunch() {
-        let app = XCUIApplication()
-        app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
-        app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
-        app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
-        let query = app.textFields["place.query"]; focus(query, in: app)
-        query.typeText("上海东方明珠广播电视塔\n")
-        let office = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '东方明珠'")).firstMatch
-        XCTAssertTrue(office.waitForExistence(timeout: 20), "Real Tianditu search must return the public landmark")
-        capture("live-map-01-search-results", app); office.tap(); assertCandidatesStayDismissed(app)
-        let address = app.textFields["workplace.address"], saved = address.value as? String ?? ""
-        XCTAssertTrue(saved.contains("东方明珠")); capture("live-map-02-selected-collapsed", app)
-        app.terminate(); app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
-        app.buttons["tab.我的"].tap(); app.buttons["settings.workplace"].tap()
-        XCTAssertEqual(address.value as? String, saved)
-        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
-        app.navigationBackButton.tap(); app.buttons["tab.房源"].tap(); app.buttons["home.add"].tap()
-        let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3)); focus(name, in: app)
-        name.replacePromptText("在线通勤回归"); app.buttons["prompt.confirm"].tap()
-
-        let basic = app.staticTexts["mp.field.title.node:category:房源基本信息"]
-        XCTAssertTrue(basic.waitForExistence(timeout: 3)); basic.tap(); focus(query, in: app)
-        query.typeText("上海人民广场\n")
-        let house = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.' AND label CONTAINS '人民广场'")).firstMatch
-        XCTAssertTrue(house.waitForExistence(timeout: 20)); house.tap(); assertCandidatesStayDismissed(app)
-        capture("live-map-03-house-selected", app)
-        let checklist = app.textFields["mp.checklist.search"]
-        var savedMinutes: [String: String] = [:]
-        for (filter, field, mode) in [("公交地铁", "21255282-3663-4abe-b7de-d91eeb3825ed", "transit"), ("开车", "3c70cda2-7c6c-4fa6-b2db-b647af24ba72", "driving")] {
-            focus(checklist, in: app)
-            let prior = checklist.value as? String ?? ""
-            if prior != "搜索检查项、结果或备注" { checklist.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: prior.count)) }
-            checklist.typeText(filter); XCTAssertEqual(checklist.value as? String, filter); app.buttons["checklist.keyboard.done"].tap()
-            let measurement = app.buttons["measurement." + field]; XCTAssertTrue(measurement.waitForExistence(timeout: 3)); measurement.tap()
-            let confirm = app.buttons["route.confirm"]; XCTAssertTrue(confirm.waitForExistence(timeout: 3))
-            let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: confirm)
-            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 20), .completed, "Real " + mode + " route did not complete")
-            let minutes = confirm.label.components(separatedBy: CharacterSet.decimalDigits.inverted).compactMap(Int.init).first ?? 0
-            XCTAssertGreaterThan(minutes, 0)
-            XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'route.option.'")).firstMatch.exists)
-            capture("live-map-04-" + mode + "-route", app)
-            let detail = XCTAttachment(string: "provider=Tianditu; fixture=false; public origin=上海人民广场; public destination=上海东方明珠广播电视塔; mode=\(mode); minutes=\(minutes)")
-            detail.name = "live-" + mode + "-result"; detail.lifetime = .keepAlways; add(detail)
-            confirm.tap()
-            let answer = app.textFields["mp.field.input." + field]
-            XCTAssertTrue(answer.waitForExistence(timeout: 3)); XCTAssertEqual(answer.value as? String, String(minutes))
-            savedMinutes[field] = String(minutes)
-        }
-        app.terminate(); app.launch(); XCTAssertTrue(app.buttons["house.在线通勤回归"].waitForExistence(timeout: 10)); app.buttons["house.在线通勤回归"].tap()
-        for (filter, field) in [("公交地铁", "21255282-3663-4abe-b7de-d91eeb3825ed"), ("开车", "3c70cda2-7c6c-4fa6-b2db-b647af24ba72")] {
-            focus(checklist, in: app)
-            let prior = checklist.value as? String ?? ""
-            if prior != "搜索检查项、结果或备注" { checklist.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: prior.count)) }
-            checklist.typeText(filter); XCTAssertEqual(checklist.value as? String, filter); app.buttons["checklist.keyboard.done"].tap()
-            XCTAssertEqual(app.textFields["mp.field.input." + field].value as? String, savedMinutes[field])
-        }
-        capture("live-map-05-both-commutes-persisted", app)
-    }
 }

@@ -12,9 +12,10 @@ struct HouseSummary: Decodable, Identifiable, Equatable {
     let decision: String
     let stats: InspectionStats
     let cover: String
+    let currencyCode: String
     var card: HouseCardContent {
         HouseCardContent(name: name, rent: rent, address: address, area: area, decision: decision,
-                         done: stats.done, total: stats.total, issues: stats.issues)
+                         done: stats.done, total: stats.total, issues: stats.issues, currencyCode: currencyCode)
     }
 }
 struct InspectionStats: Decodable, Equatable { let done: Int; let total: Int; let issues: Int }
@@ -23,11 +24,10 @@ struct HouseCapacity: Decodable, Equatable { let used: Int; let limit: Int; let 
 private struct CoreReply: Decodable {
     let ok: Bool
     let error: String
-    let value: JSONValue
-    let state: JSONValue
+    let valueIsState: Bool?
     let status: SaveStatus
     let capacity: HouseCapacity
-    let summaries: [HouseSummary]
+    let summaries: [HouseSummary]?
 }
 
 @MainActor @Observable
@@ -37,6 +37,7 @@ final class NativeStore {
     private(set) var status = SaveStatus(error: "", blocked: false, revision: 0)
     private(set) var capacity = HouseCapacity(used: 0, limit: 1, remaining: 1, packs: 0)
     let records: LocalRecords
+    @ObservationIgnored var currencyProvider: () -> String = { "USD" }
     @ObservationIgnored private let context: JSContext
     @ObservationIgnored private let mapQueryTimeout: Duration
 
@@ -90,11 +91,12 @@ final class NativeStore {
     @discardableResult
     func call(_ operation: String, _ parameters: [String: JSONValue] = [:]) throws -> JSONValue {
         var request = parameters
+        if operation == "add" { request["currencyCode"] = .string(currencyProvider()) }
         request["operation"] = .string(operation)
         let data = try JSONEncoder().encode(JSONValue.object(request))
         guard let json = String(data: data, encoding: .utf8) else { throw CoreFailure(message: "操作数据编码失败") }
         context.exception = nil
-        return try consume(context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("dispatch", withArguments: [json]))
+        return try consume(context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("dispatch", withArguments: [json, true]))
     }
 
     @discardableResult
@@ -106,7 +108,7 @@ final class NativeStore {
         try call("archive", ["id": .string(id), "value": .bool(archived)])
     }
     func form(_ id: String, phase: String = "全部", query: String = "", filters: [String] = [], folds: [String: Bool] = [:]) throws -> [JSONValue] {
-        try call("form", ["id": .string(id), "view": .object(["phase": .string(phase), "query": .string(query),
+        try call("form", ["id": .string(id), "view": .object(["phase": .string(phase), "query": .string(query), "queryTerms": .array(AppCopy.searchTerms(query).map(JSONValue.string)),
             "filters": .array(filters.map(JSONValue.string))]), "folds": .object(folds.mapValues(JSONValue.bool))]).array
     }
 
@@ -146,13 +148,23 @@ final class NativeStore {
         guard let json = result?.toString(), let data = json.data(using: .utf8) else {
             throw CoreFailure(message: "清单规则未返回有效结果")
         }
-        let reply = try JSONDecoder().decode(CoreReply.self, from: data)
-        if state != reply.state { state = reply.state }
-        if houses != reply.summaries { houses = reply.summaries }
+        guard var envelope = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw CoreFailure(message: "清单规则未返回有效结果")
+        }
+        // Decode the large, heterogeneous payload once without repeatedly probing
+        // Codable types; retain strict typed validation for the small metadata.
+        var snapshot = try envelope.removeValue(forKey: "state").map(JSONValue.init(jsonObject:))
+        if let rawDelta = envelope.removeValue(forKey: "stateDelta") {
+            snapshot = try StateDelta.apply(JSONValue(jsonObject: rawDelta), to: state)
+        }
+        let value = try JSONValue(jsonObject: envelope.removeValue(forKey: "value") ?? NSNull())
+        let reply = try JSONDecoder().decode(CoreReply.self, from: JSONSerialization.data(withJSONObject: envelope))
+        if let snapshot, state != snapshot { state = snapshot }
+        if let summaries = reply.summaries, houses != summaries { houses = summaries }
         if status != reply.status { status = reply.status }
         if capacity != reply.capacity { capacity = reply.capacity }
         guard reply.ok else { throw CoreFailure(message: reply.error) }
-        return reply.value
+        return reply.valueIsState == true ? state : value
     }
 }
 

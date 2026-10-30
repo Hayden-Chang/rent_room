@@ -45,7 +45,7 @@ struct XiaodaGreeting: View {
         HStack(spacing: 14) {
             Image("xiaoda-greet").resizable().scaledToFit().frame(width: 88, height: 104)
                 .accessibilityHidden(true)
-            Text("你好呀！我是小搭。\n先让我了解一下你的偏好，\n给你最关心的事情排个序吧！")
+            AppText("你好呀！我是小搭。\n先让我了解一下你的偏好，\n给你最关心的事情排个序吧！")
                 .font(.system(size: 16)).lineSpacing(5).fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(SetupStyle.ink).padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -73,7 +73,7 @@ struct InspectionTemplateEditor: View {
             VStack(spacing: 0) {
                 ForEach(draft.order, id: \.self) { title in
                     HStack(spacing: 0) {
-                        Text("≡")
+                        AppText("≡")
                             .font(.system(size: 20)).foregroundStyle(Color(red: 154/255, green: 158/255, blue: 178/255))
                             .frame(width: 54, height: 66).contentShape(Rectangle())
                             .highPriorityGesture(DragGesture(minimumDistance: 5, coordinateSpace: .global)
@@ -84,11 +84,11 @@ struct InspectionTemplateEditor: View {
                                     scroll.stop()
                                     withAnimation(.easeInOut(duration: 0.18)) { draft.move(title, to: target) }
                                 })
-                            .accessibilityLabel("拖动\(title)")
+                            .accessibilityLabel(AppCopy.text("拖动\(AppCopy.text(title))"))
                             .accessibilityIdentifier("setup.drag.\(title)")
-                            .accessibilityAction(named: "上移") { move(title, offset: -1) }
-                            .accessibilityAction(named: "下移") { move(title, offset: 1) }
-                        Text(title).font(.system(size: 16, weight: .semibold))
+                            .accessibilityAction(named: AppCopy.text("上移")) { move(title, offset: -1) }
+                            .accessibilityAction(named: AppCopy.text("下移")) { move(title, offset: 1) }
+                        AppText(title).font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(draft.disabled.contains(title) ? Color(red: 182/255, green: 185/255, blue: 198/255) : Color(red: 41/255, green: 50/255, blue: 75/255))
                             .strikethrough(draft.disabled.contains(title))
                             .frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 12)
@@ -98,7 +98,7 @@ struct InspectionTemplateEditor: View {
                         } label: {
                             MPTrashIcon(disabled: draft.disabled.contains(title)).frame(width: 24, height: 24).frame(width: 48, height: 48)
                         }.buttonStyle(.plain).padding(.leading, 8).padding(.trailing, 12)
-                            .accessibilityLabel("\(draft.disabled.contains(title) ? "恢复" : "停用")\(title)")
+                            .accessibilityLabel(AppCopy.text("\(draft.disabled.contains(title) ? "恢复" : "停用")\(title)"))
                             .accessibilityIdentifier("setup.toggle.\(title)")
                     }
                     .frame(minHeight: 66)
@@ -117,7 +117,7 @@ struct InspectionTemplateEditor: View {
                 .padding(2).clipShape(RoundedRectangle(cornerRadius: 20))
                 .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(SetupStyle.border, lineWidth: 2))
             if !error.isEmpty {
-                Text(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12)
+                AppText(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12)
                     .accessibilityIdentifier("setup.error")
             }
         }
@@ -173,10 +173,10 @@ struct InspectionModeChoice: View {
                             Spacer(minLength: 0)
                         }.padding(.vertical, showsExamples ? 0 : 8).frame(minHeight: 44).contentShape(Rectangle())
                     }.buttonStyle(.plain).accessibilityIdentifier("setup.mode.\(mode.rawValue)")
-                        .accessibilityLabel(mode.title).accessibilityValue(selection == mode ? "已选择" : "未选择")
+                        .accessibilityLabel(AppCopy.text(mode.title)).accessibilityValue(AppCopy.text(selection == mode ? "已选择" : "未选择"))
                         .accessibilityAddTraits(selection == mode ? .isSelected : [])
                     if showsExamples { VStack(alignment: .leading, spacing: 8) {
-                        Text("示例").font(.system(size: 12, weight: .semibold)).foregroundStyle(XJTheme.muted)
+                        AppText("示例").font(.system(size: 12, weight: .semibold)).foregroundStyle(XJTheme.muted)
                             .padding(.horizontal, 8).padding(.vertical, 3).background(XJTheme.background, in: RoundedRectangle(cornerRadius: 5))
                         if mode == .simple { simpleExample } else { detailedExample }
                     }.padding(12).background(.white, in: RoundedRectangle(cornerRadius: 12)) }
@@ -189,34 +189,34 @@ struct InspectionModeChoice: View {
     }
 
     private func title(_ mode: InspectionMode) -> some View {
-        Text(mode.title).font(.system(size: 18, weight: .bold)).foregroundStyle(selection == mode ? Color(red: 81/255, green: 73/255, blue: 207/255) : SetupStyle.ink).frame(minHeight: 27)
+        AppText(mode.title).font(.system(size: 18, weight: .bold)).foregroundStyle(selection == mode ? Color(red: 81/255, green: 73/255, blue: 207/255) : SetupStyle.ink).frame(minHeight: 27)
     }
     private func subtitle(_ mode: InspectionMode) -> some View {
-        Text(showsExamples ? mode.detail : (mode == .simple ? "90个检查项，突出重点" : "200+检查项，更加全面")).font(.system(size: 14)).foregroundStyle(Color(red: 96/255, green: 107/255, blue: 125/255)).frame(minHeight: 21)
+        AppText(showsExamples ? mode.detail : (mode == .simple ? "90个检查项，突出重点" : "200+检查项，更加全面")).font(.system(size: 14)).foregroundStyle(Color(red: 96/255, green: 107/255, blue: 125/255)).frame(minHeight: 21)
     }
     private var simpleExample: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("生活配套方便").font(.system(size: 16, weight: .semibold))
+                AppText("生活配套方便").font(.system(size: 16, weight: .semibold))
                 Spacer(minLength: 8)
                 answer("是", problem: false); answer("否", problem: true)
             }
-            Text("看看附近的超市、菜市场、餐饮、药店、医院和快递，以及外卖能否上楼。")
+            AppText("看看附近的超市、菜市场、餐饮、药店、医院和快递，以及外卖能否上楼。")
                 .font(.system(size: 14)).lineSpacing(5).foregroundStyle(XJTheme.muted)
             HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text("备注").foregroundStyle(XJTheme.muted)
-                Text("附近没有菜市场").foregroundStyle(XJTheme.danger)
+                AppText("备注").foregroundStyle(XJTheme.muted)
+                AppText("附近没有菜市场").foregroundStyle(XJTheme.danger)
                 Spacer(minLength: 0)
             }.font(.system(size: 14)).padding(10).background(XJTheme.dangerBackground, in: RoundedRectangle(cornerRadius: 8))
         }.fixedSize(horizontal: false, vertical: true)
     }
     private var detailedExample: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("生活配套").font(.system(size: 16, weight: .semibold)).padding(.bottom, 6)
+            AppText("生活配套").font(.system(size: 16, weight: .semibold)).padding(.bottom, 6)
             ForEach(details, id: \.self) { label in
                 let problem = label == "附近有菜市场"
                 HStack {
-                    Text(label).font(.system(size: 14)).foregroundStyle(problem ? XJTheme.danger : SetupStyle.ink)
+                    AppText(label).font(.system(size: 14)).foregroundStyle(problem ? XJTheme.danger : SetupStyle.ink)
                     Spacer(); answer(problem ? "否" : "是", problem: problem)
                 }.padding(.horizontal, 6).frame(minHeight: 38)
                     .background(problem ? XJTheme.dangerBackground : .clear, in: RoundedRectangle(cornerRadius: 6))
@@ -225,7 +225,7 @@ struct InspectionModeChoice: View {
         }
     }
     private func answer(_ text: String, problem: Bool) -> some View {
-        Text(text).font(.system(size: 14, weight: problem ? .semibold : .regular))
+        AppText(text).font(.system(size: 14, weight: problem ? .semibold : .regular))
             .foregroundStyle(problem ? XJTheme.danger : XJTheme.muted)
             .frame(width: 32, height: 28)
             .background(problem ? XJTheme.dangerBackground : XJTheme.background, in: RoundedRectangle(cornerRadius: 6))
@@ -248,13 +248,13 @@ struct InspectionSetupSurface: View {
                     HStack(spacing: 6) {
                         Capsule().fill(SetupStyle.purple).frame(height: 8)
                         Capsule().fill(choosingMode ? SetupStyle.purple : SetupStyle.border).frame(height: 8)
-                        Text(choosingMode ? "2 / 2" : "1 / 2").font(.system(size: 12, weight: .semibold)).padding(.leading, 10)
+                        AppText(choosingMode ? "2 / 2" : "1 / 2").font(.system(size: 12, weight: .semibold)).padding(.leading, 10)
                     }.foregroundStyle(XJTheme.muted).id("setup.top")
                     VStack(alignment: .leading, spacing: 8) {
                         if !choosingMode && !conciseWelcome {
-                            Text("和小搭一起，准备看房").font(.system(size: 12, weight: .semibold)).foregroundStyle(XJTheme.muted)
+                            AppText("和小搭一起，准备看房").font(.system(size: 12, weight: .semibold)).foregroundStyle(XJTheme.muted)
                         }
-                        Text(choosingMode ? "选一种记录方式" : "定制你的看房清单")
+                        AppText(choosingMode ? "选一种记录方式" : "定制你的看房清单")
                             .font(.system(size: 24, weight: .bold)).foregroundStyle(SetupStyle.ink)
                     }
                     if choosingMode { InspectionModeChoice(selection: $mode, showsExamples: !conciseWelcome) }
@@ -270,11 +270,11 @@ struct InspectionSetupSurface: View {
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     HStack(spacing: 12) {
                         if choosingMode {
-                            Button("返回调整") { if changeStep("sort") { choosingMode = false; proxy.scrollTo("setup.top", anchor: .top) } }
+                            Button(AppCopy.text("返回调整")) { if changeStep("sort") { choosingMode = false; proxy.scrollTo("setup.top", anchor: .top) } }
                                 .font(.system(size: 15, weight: .semibold)).foregroundStyle(SetupStyle.purple)
                                 .frame(minHeight: 50).accessibilityIdentifier("setup.back")
                         }
-                        Button(choosingMode ? "选好啦" : "排好啦") {
+                        Button(AppCopy.text(choosingMode ? "选好啦" : "排好啦")) {
                             if choosingMode { finish() }
                             else if changeStep("mode") { choosingMode = true; proxy.scrollTo("setup.top", anchor: .top) }
                         }.buttonStyle(SetupButtonStyle()).accessibilityIdentifier("setup.next")

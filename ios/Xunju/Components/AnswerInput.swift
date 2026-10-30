@@ -24,7 +24,7 @@ struct AnswerInput: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text(field["label"].string + (field["multiple"].bool ? " · 多选" : ""))
+                AppText(field["label"].string + (field["multiple"].bool ? " · 多选" : ""))
                     .font(.system(size: 13)).frame(maxWidth: .infinity, alignment: .leading)
                 if actionsOpen && !readonly {
                     HStack(spacing: 0) {
@@ -36,11 +36,11 @@ struct AnswerInput: View {
                     if let measurement {
                         HStack(spacing: 6) {
                             input.frame(width: measurement.kind == .speed ? 68 : 72)
-                            if measurement.kind == .speed { Text("Mbps").font(.system(size: 12)).fixedSize(horizontal: true, vertical: false).foregroundStyle(XJTheme.muted) }
-                            Button(measurement.kind == .speed ? "测试" : "查询", action: measurement.perform)
+                            if measurement.kind == .speed { AppText("Mbps").font(.system(size: 12)).fixedSize(horizontal: true, vertical: false).foregroundStyle(XJTheme.muted) }
+                            Button(AppCopy.text(measurement.kind == .speed ? "测试" : "查询"), action: measurement.perform)
                                 .font(.system(size: 13)).foregroundStyle(XJTheme.primary).frame(width: 48, height: 44)
                                 .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)).disabled(readonly)
-                                .accessibilityLabel((measurement.kind == .speed ? "测试" : "查询") + field["label"].string)
+                                .accessibilityLabel(AppCopy.text((measurement.kind == .speed ? "测试" : "查询") + field["label"].string))
                                 .accessibilityIdentifier("measurement.\(field.id)")
                         }
                     } else {
@@ -58,7 +58,7 @@ struct AnswerInput: View {
                 ChoiceFlow(spacing: 8) {
                     ForEach(field["options"].array, id: \.self) { choice in
                         Button { choose(choice["value"].string) } label: {
-                            Text(choice["label"].string).font(.system(size: 13)).padding(.horizontal, 14)
+                            AppText(choice["label"].string).font(.system(size: 13)).padding(.horizontal, 14)
                                 .frame(minHeight: 44).foregroundStyle(choice["selected"].bool ? XJTheme.primary : XJTheme.ink)
                                 .background(choice["selected"].bool ? XJTheme.soft : XJTheme.background)
                                 .clipShape(RoundedRectangle(cornerRadius: 6))
@@ -68,20 +68,20 @@ struct AnswerInput: View {
                     }
                 }
             } else if field["type"].string == "d" {
-                Button(text.isEmpty ? "选择日期" : text) { datePicker = true }
+                Button(AppCopy.text(text.isEmpty ? "选择日期" : text)) { datePicker = true }
                     .font(.system(size: 13)).frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                     .padding(.horizontal, 12).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                     .disabled(readonly)
             }
             if field["other"].bool {
-                TextField("请填写其他内容", text: $otherText).font(.system(size: 13))
+                TextField(AppCopy.text("请填写其他内容"), text: $otherText).font(.system(size: 13))
                     .padding(.horizontal, 12).frame(minHeight: 44)
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                     .disabled(readonly).accessibilityIdentifier("input.\(field.id).other")
             }
             if !field["note"].string.isEmpty {
                 Button { action("备注") } label: {
-                    Text(field["note"].string).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                    Text(verbatim: field["note"].string).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                         .lineLimit(2).frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(.plain)
             }
@@ -92,7 +92,7 @@ struct AnswerInput: View {
                 ToolbarItemGroup(placement: .keyboard) {
                     if showsKeyboardToolbar {
                     Spacer()
-                    Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                    Button(AppCopy.text("完成")) { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
                     }
                 }
             }
@@ -103,7 +103,7 @@ struct AnswerInput: View {
     }
 
     private var input: some View {
-        TextField(measurement.map { $0.kind == .speed ? "网速" : "分钟" } ?? (field["type"].string == "n" ? "填写数值" : "填写信息"), text: $text)
+        TextField(AppCopy.text(measurement.map { $0.kind == .speed ? "网速" : "分钟" } ?? (field["type"].string == "n" ? "填写数值" : "填写信息")), text: $text)
             .font(.system(size: 13)).keyboardType(field["type"].string == "n" ? .decimalPad : .default)
             .multilineTextAlignment(field["type"].string == "n" ? .trailing : .leading)
             .padding(.horizontal, 12).frame(minHeight: 44)
@@ -113,7 +113,7 @@ struct AnswerInput: View {
     private func tray(_ label: String, icon: String, color: Color) -> some View {
         Button { actionsOpen = false; action(label) } label: {
             XJIcon(name: icon).frame(width: 44, height: 44).background(color)
-        }.buttonStyle(.plain).accessibilityLabel(label)
+        }.buttonStyle(.plain).accessibilityLabel(AppCopy.text(label))
     }
 }
 
@@ -152,11 +152,11 @@ struct DateInputSheet: View {
     }()
     var body: some View {
         NavigationStack {
-            DatePicker("选择日期", selection: $date, displayedComponents: .date).datePickerStyle(.wheel).labelsHidden()
+            DatePicker(AppCopy.text("选择日期"), selection: $date, displayedComponents: .date).datePickerStyle(.wheel).labelsHidden()
                 .padding().onAppear { date = Self.format.date(from: value) ?? Date() }
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) { Button("取消") { dismiss() } }
-                    ToolbarItem(placement: .confirmationAction) { Button("确定") { value = Self.format.string(from: date); dismiss() } }
+                    ToolbarItem(placement: .cancellationAction) { Button(AppCopy.text("取消")) { dismiss() } }
+                    ToolbarItem(placement: .confirmationAction) { Button(AppCopy.text("确定")) { value = Self.format.string(from: date); dismiss() } }
                 }
         }
     }

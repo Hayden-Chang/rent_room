@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-rating-name-20261030-j",
+  "phase": "final-pr-head",
+  "taskName": "看房搭子系统评分显示名验证",
+  "sessionId": "01a1887c-9241-7ce3-bf41-215ed13a8d4b",
+  "workspace": "/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/ios-system-rating-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/NativeStorefrontTests/testFinishedConsumableHistoryAndExistingPrivacyKeysReachBuiltApp",
+      "reason": "CFBundleDisplayName 修改必须进入实际构建包且其他隐私及 StoreKit Info 键仍保留",
+      "source": "new-or-modified"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/AppReviewUITests/testThirdCreationRequestsSystemReviewOnceAndKeepsManualFeedback",
+      "reason": "验证系统原生评分标题使用看房搭子，保留系统说明和不重复请求行为",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/AppReviewUITests/testVerifiedPurchaseRequestsSystemReviewAfterThankYou",
+      "reason": "验证系统原生评分标题使用看房搭子，保留系统说明和不重复请求行为",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/AppReviewUITests/testThirdCreationRequestsSystemReviewOnceAndKeepsManualFeedback",
+    "XunjuUITests/AppReviewUITests/testVerifiedPurchaseRequestsSystemReviewAfterThankYou"
+  ],
+  "headSha": "d8d827a8282062b2518d571dbb1379cfd6170864"
+}

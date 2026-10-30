@@ -1,8 +1,23 @@
 import Foundation
+import CoreFoundation
 
 /// Lossless access to the shared mini-program schema, including old backup fields.
 enum JSONValue: Codable, Equatable, Hashable, Sendable {
     case object([String: JSONValue]), array([JSONValue]), string(String), number(Double), bool(Bool), null
+
+    /// Used for native bridge payloads already parsed by JSONSerialization. Keep
+    /// NSNumber booleans distinct from numeric 0/1, including inside old records.
+    init(jsonObject value: Any) throws {
+        switch value {
+        case let value as String: self = .string(value)
+        case let value as NSNumber:
+            self = CFGetTypeID(value) == CFBooleanGetTypeID() ? .bool(value.boolValue) : .number(value.doubleValue)
+        case let value as [String: Any]: self = .object(try value.mapValues { try JSONValue(jsonObject: $0) })
+        case let value as [Any]: self = .array(try value.map { try JSONValue(jsonObject: $0) })
+        case is NSNull: self = .null
+        default: throw CoreFailure(message: "清单数据类型无效")
+        }
+    }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

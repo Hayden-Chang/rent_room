@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-swipe-axis-red3-01a18ae4",
+  "phase": "development",
+  "taskName": "iOS swipe axis regression",
+  "sessionId": "01a18ae4-8e6a-7540-b653-233b5a49e9fb",
+  "workspace": "/private/tmp/rent-room-ios-swipe-axis-lock-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/MiniProgramReviewTests/testDiagonalSwipeKeepsListStillAndVerticalDragClosesActions",
+      "reason": "Diagonal row swipe must keep the list stationary while vertical intent scrolls",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/MiniProgramReviewTests/testDiagonalSwipeKeepsListStillAndVerticalDragClosesActions"
+  ]
+}

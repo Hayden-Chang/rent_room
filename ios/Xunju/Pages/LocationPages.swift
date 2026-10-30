@@ -54,16 +54,16 @@ struct WorkplacePage: View {
                 XJCard {
                     VStack(alignment: .leading, spacing: 0) {
                         HStack {
-                            Text("上班地址").font(.system(size: 17, weight: .semibold)).frame(minHeight: 25.5); Spacer()
-                            if !text.isEmpty { Button("清空地点") { save(clear: true) }.font(.system(size: 13)).accessibilityIdentifier("workplace.clear") }
+                            AppText("上班地址").font(.system(size: 17, weight: .semibold)).frame(minHeight: 25.5); Spacer()
+                            if !text.isEmpty { Button(AppCopy.text("清空地点")) { save(clear: true) }.font(.system(size: 13)).accessibilityIdentifier("workplace.clear") }
                         }
-                        TextField("手动填写上班地址或地点", text: $text, prompt: Text("手动填写上班地址或地点").foregroundStyle(Color(white: 0.5)), axis: .vertical).lineLimit(2...5).font(.system(size: 14))
+                        TextField(AppCopy.text("手动填写上班地址或地点"), text: $text, prompt: AppText("手动填写上班地址或地点").foregroundStyle(Color(white: 0.5)), axis: .vertical).lineLimit(2...5).font(.system(size: 14))
                             .lineSpacing(7).padding(12)
                             .frame(minHeight: 72, maxHeight: 144, alignment: .topLeading).background(XJTheme.background).clipShape(RoundedRectangle(cornerRadius: 8))
                             .padding(.top, 12).focused($editing).accessibilityIdentifier("workplace.address")
                             .onChange(of: text) { if text.count > 200 { text = String(text.prefix(200)) }; save() }
-                        Text("填写后自动保存，也可以在下方搜索或选点。").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(minHeight: 18).padding(.top, 10)
-                        if !error.isEmpty { Text(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger); Button("重试保存") { save() } }
+                        AppText("填写后自动保存，也可以在下方搜索或选点。").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(minHeight: 18).padding(.top, 10)
+                        if !error.isEmpty { AppText(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger); Button(AppCopy.text("重试保存")) { save() } }
                     }
                 }
                 XJCard {
@@ -72,8 +72,8 @@ struct WorkplacePage: View {
                     }
                 }
             }.padding(16)
-        }.background(XJTheme.background).miniNavigation("上班地点")
-            .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("完成") { editing = false; UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) } } }
+        }.background(XJTheme.background).miniNavigation(AppCopy.text("上班地点"))
+            .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button(AppCopy.text("完成")) { editing = false; UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) } } }
             .onAppear { search.start(address: text) }
     }
     private func save(clear: Bool = false) {
@@ -110,19 +110,19 @@ struct CommutePage: View {
                         CommuteEndpointRow(origin: false, address: search.endpoints["destination"]["address"].string, hasPoint: search.nativePoint(search.endpoints["destination"]["location"]) != nil) { choosingWorkplace = true }
                     }.padding(.horizontal, 16).padding(.vertical, 4).background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
                     CommuteRouteMap(origin: search.nativePoint(search.endpoints["origin"]["location"]), destination: search.nativePoint(search.endpoints["destination"]["location"]), paths: search.chosen?.paths ?? [])
-                    HStack { Spacer(); Button(search.busy ? "查询中…" : "重新查询") { search.query() }.font(.system(size: 13)).disabled(search.busy) }
-                    if search.busy { XJCard { Text("正在查询房源到上班地点的路线…").font(.system(size: 13)).foregroundStyle(XJTheme.muted) } }
-                    if !search.message.isEmpty { XJCard { Text(search.message).font(.system(size: 13)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("route.message") } }
+                    HStack { Spacer(); Button(AppCopy.text(search.busy ? "查询中…" : "重新查询")) { search.query() }.font(.system(size: 13)).disabled(search.busy) }
+                    if search.busy { XJCard { AppText("正在查询房源到上班地点的路线…").font(.system(size: 13)).foregroundStyle(XJTheme.muted) } }
+                    if !search.message.isEmpty { XJCard { AppText(search.message).font(.system(size: 13)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("route.message") } }
                     ForEach(search.routes) { route in CommuteRouteCard(route: route, selected: search.selectedID == route.id) { search.selectedID = route.id } }
                 }.padding(16)
             }.background(XJTheme.background)
             CommuteRouteFooter(minutes: search.chosen?.minutes, busy: search.busy, cancel: { search.cancel(); dismiss() }, confirm: {
                 do { try search.confirm(); dismiss() } catch { search.message = error.localizedDescription }
             })
-        }.miniNavigation(fieldID == UtilityField.driving ? "驾车通勤" : "公共交通通勤")
+        }.miniNavigation(AppCopy.text(fieldID == UtilityField.driving ? "驾车通勤" : "公共交通通勤"))
             .onAppear { search.query() }.onDisappear { search.cancel() }
             .navigationDestination(isPresented: $choosingOrigin) {
-                ScrollView { XJCard { HousePlaceField(workspace: workspace, id: houseID) }.padding(16) }.background(XJTheme.background).navigationTitle("选择房源位置")
+                ScrollView { XJCard { HousePlaceField(workspace: workspace, id: houseID) }.padding(16) }.background(XJTheme.background).navigationTitle(AppCopy.text("选择房源位置"))
             }
             .navigationDestination(isPresented: $choosingWorkplace) { WorkplacePage(workspace: workspace) }
     }

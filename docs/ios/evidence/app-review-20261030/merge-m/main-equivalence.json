@@ -1,0 +1,10 @@
+{
+  "validatedHead": "a22540aa25cb308b96a7ceb17704edda4cf97b40",
+  "validatedBase": "5a08dc0c1000217aff38c9a0c3ea9985465413c4",
+  "advancedBase": "ab9c02f55e5a3043bee5a74e7f8f6fd96f902d2a",
+  "simulatedMergeTree": "85e0214b8a1779751cd29d7ae61b256c62ece566",
+  "noConflict": true,
+  "identicalPRPatch": true,
+  "beforePatchSHA256": "ba0636cb4217065823ac52b0ceda28c8e5d1d7fb0f5395fc21aa34ecdf79dad2",
+  "afterPatchSHA256": "ba0636cb4217065823ac52b0ceda28c8e5d1d7fb0f5395fc21aa34ecdf79dad2"
+}
