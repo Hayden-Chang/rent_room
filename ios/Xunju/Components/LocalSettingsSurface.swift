@@ -44,7 +44,13 @@ struct LocalSettingsSurface: View {
             Text("数据与备份").font(.system(size: 16, weight: .semibold)).padding(.top, 8)
             XJCard { VStack(spacing: 0) { row(.importFile); row(.export) } }
             XJCard { row(.permissions) }
-            XJCard { VStack(spacing: 0) { row(.feedback); row(.share) } }
+            XJCard {
+                VStack(spacing: 0) {
+                    row(.feedback)
+                    AppStoreReviewRow(appID: AppStoreReview.appID)
+                    row(.share)
+                }
+            }
             XJCard {
                 VStack(spacing: 0) {
                     ForEach(LegalPage.allCases, id: \.self) { page in
