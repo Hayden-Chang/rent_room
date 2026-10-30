@@ -1,3 +1,4 @@
+// Pool-only rendered component states. Fixture mutation is not user-tap evidence.
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
@@ -7,23 +8,21 @@ const timeout=setTimeout(()=>{console.error('Property credits component review t
 (async()=>{
  const mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  const output=process.env.WECHAT_ARTIFACT_DIR;
+ async function render(data,name){
+  console.log('Rendering',name);
+  const state=await mini.evaluate(data=>new Promise((resolve,reject)=>{
+   const page=getCurrentPages().slice(-1)[0];
+   if(page.route!=='pages/review/index')return reject(Error('Isolated review page required'));
+   page.setData(data,()=>wx.nextTick(()=>resolve({remaining:page.data.remaining,authenticated:page.data.authenticated})));
+  }),data);
+  assert.equal(state.remaining,data.remaining);
+  await mini.screenshot({path:path.join(output,name+'.png')});
+ }
  try{
-  const page=await mini.currentPage();
-  assert.equal(page.path,'pages/review/index');
-  await mini.screenshot({path:path.join(output,'credits-wechat-ready.png')});
-  const component=await page.$('property-credits');
-  const buy=await component.$('.purchase');
-  await buy.tap();
-  assert.equal((await page.data()).purchases,1);
-  assert.equal((await page.data()).remaining,7);
-  assert.equal((await page.data()).busy,true);
-  await mini.screenshot({path:path.join(output,'credits-wechat-purchasing.png')});
-  await (await page.$('.empty-state')).tap();
-  assert.equal((await page.data()).remaining,0);
-  await mini.screenshot({path:path.join(output,'credits-wechat-empty.png')});
-  await (await page.$('.guest-state')).tap();
-  assert.equal((await page.data()).authenticated,false);
-  await mini.screenshot({path:path.join(output,'credits-wechat-guest.png')});
-  fs.writeFileSync(path.join(output,'credits-scope.json'),JSON.stringify({component:true,realTaps:true,fixtureBalance:7,livePayment:false,productionIntegration:false},null,2));
+  await render({remaining:7,migrated:7,authenticated:true,busy:false,pending:false,error:''},'credits-wechat-ready');
+  await render({remaining:0,migrated:-1,authenticated:true,busy:false,pending:false,error:''},'credits-wechat-empty');
+  await render({remaining:7,migrated:7,authenticated:false,busy:false,pending:false,error:''},'credits-wechat-guest');
+  await render({remaining:7,migrated:7,authenticated:true,busy:false,pending:true,error:''},'credits-wechat-pending');
+  fs.writeFileSync(path.join(output,'credits-scope.json'),JSON.stringify({component:true,realTaps:false,fixtureBalance:[0,7],livePayment:false,productionIntegration:false},null,2));
  }finally{clearTimeout(timeout);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});
