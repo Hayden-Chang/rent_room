@@ -99,6 +99,23 @@ import XCTest
         flow.chooseCurrency("EUR"); let count = locator.calls; flow.refreshOnForeground(); await Task.yield()
         XCTAssertEqual(locator.calls, count)
     }
+    func testOfflineWorkspaceKeepsCurrencyPreferenceAndSnapshotsAcrossRestart() throws {
+        let suite = "offline-currency.\(UUID().uuidString)", root = FileManager.default.temporaryDirectory.appending(path: suite)
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite); try? FileManager.default.removeItem(at: root) }
+        let first = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), regionalDefaults: defaults)
+        first.regional.selectCurrency("CNY")
+        let yuan = try first.store.add("人民币房源")
+        try first.store.answer(yuan, field: "f1_6", value: .string("2000")); first.save()
+        first.regional.selectCurrency("EUR")
+        let second = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), regionalDefaults: defaults)
+        let euro = try second.store.add("欧元房源")
+        XCTAssertEqual(second.store.records.directory, first.store.records.directory)
+        XCTAssertEqual(second.store.house(yuan)["currencyCode"].string, "CNY")
+        XCTAssertEqual(second.store.house(yuan)["answers"]["f1_6"]["value"].string, "2000")
+        XCTAssertEqual(second.store.house(euro)["currencyCode"].string, "EUR")
+        XCTAssertEqual(second.store.state["iosReview"]["created"].int, 2)
+    }
     func testCurrencyLabelsIncludeCodeWhenCanonicalCostHasNoUnit() {
         let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
         defer { AppLanguage.shared.value = prior }

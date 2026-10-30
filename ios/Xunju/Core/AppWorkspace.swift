@@ -80,6 +80,7 @@ final class AppWorkspace {
             try PixelParityFixture.populate(store)
         }
         #endif
+        store.currencyProvider = { [regional] in regional.preferences.currencyCode }
     }
 
     static func dataRoot(arguments: [String] = ProcessInfo.processInfo.arguments) throws -> URL {

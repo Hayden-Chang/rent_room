@@ -1,3 +1,4 @@
+import {recordHouseCreated} from './app-review.js';
 import copy from '../Xunju/Resources/RegionalCopy.json' with {type:'json'};
 import {freshHouse,houseTopics,activeEntries,comparison} from '../../apps/wechat/src/lib/model.js';
 
@@ -26,6 +27,7 @@ export function addCurrencyHouse(store,name,code) {
   store.change(state=>{
     const h=freshHouse(name,{templates:state.settings.templates,selectedTemplate:state.settings.selectedTemplate});
     h.currencyCode=code;id=h.id;state.houses.push(h);
+    recordHouseCreated(state);
     delete state.xiaoda.intent;state.xiaoda.returnGuide=false;
     if(!state.xiaoda.firstHouseId&&!state.xiaoda.legacy)state.xiaoda.firstHouseId=id;
   },true);

@@ -1,7 +1,7 @@
 {
   "generator": "agy -p",
   "model": "gemini-3.8-flash-high",
-  "sourceSHA256": "02be09d61684c8af1243aaa35642cb589470edc8c4ca8870f4593f92d1767732",
+  "sourceSHA256": "30bd363a993a9fcd1d7593a2830942c7473df95129203b38d4746f3bf3c31152",
   "entryCount": 1322,
   "batches": [
     {
@@ -1424,6 +1424,37 @@
       "english": "app-comparison-en.agy.json",
       "englishSHA256": "37071ba7ac1eaec963e43dc0fb775f5b7919ef73c28644d97328d6f2d68a050e",
       "rawResponseSHA256": "37071ba7ac1eaec963e43dc0fb775f5b7919ef73c28644d97328d6f2d68a050e"
+    },
+    {
+      "keys": [
+        "merge001",
+        "merge002",
+        "merge003",
+        "merge004",
+        "merge005",
+        "merge006",
+        "merge007",
+        "merge008",
+        "merge009",
+        "merge010",
+        "merge011",
+        "merge012",
+        "merge013",
+        "merge014",
+        "merge015",
+        "merge016",
+        "merge017",
+        "merge018",
+        "merge019",
+        "merge020",
+        "merge021"
+      ],
+      "prompt": "app-merge-main-prompt.txt",
+      "english": "app-merge-main-en.agy.json",
+      "promptSHA256": "d69902f3f171767877b4442f4b1c44e20e485cc7bd3bc4b678ebb789555a05a7",
+      "englishSHA256": "5ab2cc34a1c7278b03d3c2c4890a86e071a45380ff360c0d7d72dc69c2a09314",
+      "command": "agy --model gemini-3.8-flash-high --mode plan -p <app-merge-main-prompt.txt>",
+      "reason": "Local StoreKit and settings copy from merged main; raw stdout preserved in artifacts/cny-form-unit/agy-main-raw-02.txt"
     }
   ]
 }
