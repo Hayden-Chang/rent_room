@@ -2,7 +2,7 @@
 
 ## 当前交付状态
 
-2026-10-30：用户已批准设置/扩容组件接入和公开页面发布，三个公开页面已上线。正式 iOS 页面的无登录与离线接入、独立 Apple 购买身份与后端账本已实现，正在完成业务回归。后端草稿 PR 为 https://github.com/Hayden-Chang/model_server/pull/98 （137 项回归通过，未部署）。本地 App 的 Bundle ID `com.keeline.xunju.ios` 在当前 App Store Connect 凭据下查询结果为空，真实沙盒付款需先建立对应 App 与内购商品并配置服务端。App Privacy 标签仍需单独填写。
+2026-10-30：用户已批准设置/扩容组件接入和公开页面发布，三个公开页面已上线。正式 iOS 页面的无登录与离线接入、独立 Apple 购买身份与后端账本已实现，已完成下文列出的定向业务回归。后端草稿 PR 为 https://github.com/Hayden-Chang/model_server/pull/98 （137 项回归通过，未部署）。本地 App 的 Bundle ID `com.keeline.xunju.ios` 在当前 App Store Connect 凭据下查询结果为空，真实沙盒付款需先建立对应 App 与内购商品并配置服务端。App Privacy 标签仍需单独填写。
 
 以下“组件预审”记录为批准前的历史证据，不代表当前仍在等待同一次 UI 批准。
 
@@ -94,3 +94,22 @@
 本轮验证计划：13 条业务/迁移/API 单测，实际包内隐私清单单测，3 条真实页面交互（本机记录重启/无登录设置/公开链接入口；未确认购买恢复且不重复发放；退款保留超额房源/商品不可用）。其他已有 UI 文件仅同步设置入口选择器，移除已废弃登录/账号资料 UI 测试，保留旧账号数据模型与迁移单测。
 
 补充主动联网边界：保存过地址的清单地图以前会在 onAppear 查询，折叠但已创建的 MapKit 也可能加载地图。现改为仅回填本机地址文字，搜索/定位/展开地图才创建请求或 Map；归档房源同样先显示“展开地图”入口。用户仍可离线手填地址。这是本轮离线约束的必要修复，增加对应单测及重启后手填地址 UI 断言。
+
+## 业务验证交付（2026-10-30）
+
+最终覆盖为 **17 条单测 + 3 条真实页面 UI 用例分批通过**，不是全量测试，也不是实际 Apple 付款：
+
+| 批次 | 源码 | 设备 | 结果 |
+| --- | --- | --- | --- |
+| `xunju-offline-business-20261030-06` | `e270005a4f47c71efe74ea3ecba60e41941addbe` | iPhone 16 / iOS 26.5 | 16 UT + 2 UI 通过；另有 1 UT、1 UI 失败，见下文 |
+| `xunju-offline-business-20261030-07` | `768ce05c2a79137a1aa9220389975d1e25eb286f` | iPhone 14 Pro / iOS 18.3.1 | 17 UT + 1 UI 通过，0 失败、0 跳过，runner 退出 0 |
+
+07 与 06 只差文档及一个地图单测断言，App 源码、资源、配置与 UI 测试完全相同。因此复用 06 中已通过的“本机记录/手填地址重启保留及无登录法律入口”和“退款保留超额房源/商品不可用”两个 UI 结果；07 复跑未通过的“购买未确认不加额、恢复到账、重启再恢复不重复加额”用例并通过。没有为通过而修改业务导航代码或放宽 UI 断言。
+
+失败保留：03 编译发现观察属性在 store 初始化前读取，已修复；04 编译成功后模拟器 inventory 命令失败，复查恢复后换 run 重试；05 目录 URL 的目录标志差异被误判为路径越界，改为比较规范化路径并保留 symlink 检查；06 地图单测错误地要求主动附近查询只有一次请求，而原实现并行请求逆地理编码和附近地点，现同时验证 appearance 不增加请求数、主动操作才增加。06 的扩容 UI 点击后仍停在设置页，未确认具体原因；07 同一 UI 测试在另一池设备通过，不能声称该瞬态交互问题已定位。原始日志、失败层级与录屏均保留，不改写失败结果。
+
+计划、完整命令、日志和截图导出：`/private/tmp/xunju-offline-privacy-20261030/{plan,run,summary}-0{6,7}.*`；结果包：`/Volumes/mac2/codex-builds/xunju-offline-business-20261030-0{6,7}.xcresult`。主 agent 已逐张检查 8 张未修改原图；设置及法律入口对齐清晰，手填地址重启后保持折叠地图；购买待确认仍为 0/1，确认与重启恢复为 0/11，退款保留 3 套房源而总额度降为 1。待确认状态下恢复按钮和法律链接需要滚动；确认截图气泡处于逐字动画中，重启后截图为完整文案。
+
+持久截图与逐图 SHA256 来源记录位于 `/Users/pc/.codex/visualizations/2026/10/29/01a18886-1bc3-7922-9396-c73515b59cbf/ios-offline-business/`：`settings.png`、`legal-links.png`、`offline-address.png`、`purchase-pending.png`、`purchase-confirmed.png`、`purchase-restored-once.png`、`refund-keeps-records.png`、`product-unavailable.png`。¥1.99、订单和容量为受控测试夹具，实际采用原生页面、持久文件和购买控制器；不证明真实 StoreKit 签名获取、Apple 扣款或服务器部署成功。
+
+公开页面已于本轮按授权合并并验证 HTTP 200。App Store Connect 查询证据为上述目录 `asc-bundle-lookup.json`（当前凭据对 `com.keeline.xunju.ios` 返回 data=[]）；公开页回读为 `public-pages-live.json`。iOS PR #92 和后端 PR #98 仍为草稿，未合并、未部署、未上传或提交 App Review。真实 Apple 沙盒交易及 App Privacy 标签填写仍待具备对应 App/商品/服务配置后单独验收。
