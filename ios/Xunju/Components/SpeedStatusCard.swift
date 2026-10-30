@@ -19,22 +19,22 @@ struct SpeedStatusCard: View {
     let cancel: () -> Void, retry: () -> Void, save: () -> Void
     var body: some View {
         VStack(spacing: 0) {
-            Text("下载速度").font(.system(size: 15)).foregroundStyle(XJTheme.muted)
+            AppText("下载速度").font(.system(size: 15)).foregroundStyle(XJTheme.muted)
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text(reading.map { String(format: "%.2f", $0.mbps) } ?? "—").font(.system(size: 52, weight: .semibold)).monospacedDigit()
+                AppText(reading.map { String(format: "%.2f", $0.mbps) } ?? "—").font(.system(size: 52, weight: .semibold)).monospacedDigit()
                     .foregroundStyle(XJTheme.primary).accessibilityIdentifier("speed.value")
-                Text("Mbps").font(.system(size: 15)).foregroundStyle(XJTheme.muted)
+                AppText("Mbps").font(.system(size: 15)).foregroundStyle(XJTheme.muted)
             }.padding(.top, 34).padding(.bottom, 38)
             GeometryReader { geometry in
                 Capsule().fill(XJTheme.soft)
                 Capsule().fill(XJTheme.primary).frame(width: geometry.size.width * max(0, min(100, reading?.progress ?? 0)) / 100)
-            }.frame(height: 6).accessibilityLabel("测速进度").accessibilityValue("\(Int(reading?.progress ?? 0))%")
+            }.frame(height: 6).accessibilityLabel(AppCopy.text("测速进度")).accessibilityValue(AppCopy.text("\(Int(reading?.progress ?? 0))%"))
             if !state.message.isEmpty {
-                Text(state == .done ? doneMessage : state.message).font(.system(size: 14)).foregroundStyle(XJTheme.muted).lineSpacing(4)
+                AppText(state == .done ? doneMessage : state.message).font(.system(size: 14)).foregroundStyle(XJTheme.muted).lineSpacing(4)
                     .multilineTextAlignment(.center).padding(.top, 24).accessibilityIdentifier("speed.message")
             }
             if state != .done {
-                Button(state.active ? "取消" : (isSaveError ? "重试保存" : "重新测速"), action: state.active ? cancel : (isSaveError ? save : retry))
+                Button(AppCopy.text(state.active ? "取消" : (isSaveError ? "重试保存" : "重新测速")), action: state.active ? cancel : (isSaveError ? save : retry))
                     .font(.system(size: 15)).foregroundStyle(state.active ? XJTheme.muted : XJTheme.primary)
                     .padding(.horizontal, 28).frame(minHeight: 44).background(state.active ? XJTheme.background : XJTheme.soft)
                     .clipShape(Capsule()).padding(.top, 24).accessibilityIdentifier("speed.action")

@@ -1,0 +1,28 @@
+{
+  "runId": "rent-room-swipe-axis-final2-01a18ae4",
+  "resultBundlePath": "/Volumes/mac2/codex-builds/rent-room-swipe-axis-final2-01a18ae4.xcresult",
+  "requestedAt": 1793335088684,
+  "cacheWaitSeconds": 0.01,
+  "queueSeconds": 784.807,
+  "buildResultBundlePath": "/Volumes/mac2/codex-builds/rent-room-swipe-axis-final2-01a18ae4.build.xcresult",
+  "stages": {
+    "build": {
+      "queuedAt": 1793335088695,
+      "startedAt": 1793335502008,
+      "queueSeconds": 413.313,
+      "finishedAt": 1793335587290,
+      "exitCode": 0
+    },
+    "test": {
+      "queuedAt": 1793335587293,
+      "startedAt": 1793335958787,
+      "queueSeconds": 371.494,
+      "finishedAt": 1793336298253,
+      "exitCode": 0
+    }
+  },
+  "commandStartedAt": 1793335958787,
+  "finishedAt": 1793336298297,
+  "exitCode": 0,
+  "leaseReleased": true
+}

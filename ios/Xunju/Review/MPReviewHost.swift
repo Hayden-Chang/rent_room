@@ -106,7 +106,7 @@ struct MPReviewHost: View {
                 recover: { toast = "正在尝试恢复本机记录…" })
         case .transfer:
             MPTransferSurface(exporting: state == "export", items: state == "empty" ? [] : MPReviewFixtures.transfers, selected: $selected, modes: $modes,
-                fileName: state == "empty" ? "" : "寻居房源-2026-10-20.zip", busy: transferBusy, preparing: state == "preparing",
+                fileName: state == "empty" ? "" : "看房搭子房源-2026-10-20.zip", busy: transferBusy, preparing: state == "preparing",
                 progress: "正在整理房源与影像…", error: state == "error" ? "文件无法读取，请重新选择 ZIP" : "",
                 choose: { toast = "请选择 ZIP 文件" }, cancel: { route = .home }, commit: { transferBusy = true })
         case .workplace:

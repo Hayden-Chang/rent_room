@@ -94,7 +94,7 @@ import XCTest
         app.confirmArchiveFromHouseMenu()
         XCTAssertFalse(app.buttons["house.第一套"].exists)
         app.buttons["tab.我的"].tap()
-        let archives = app.buttons["settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
+        let archives = app.buttons["local-settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
         let open = app.buttons["archive.open.第一套"]; XCTAssertTrue(open.waitForExistence(timeout: 3)); open.tap()
         XCTAssertTrue(app.staticTexts["house.readonly"].waitForExistence(timeout: 3))
         app.buttons["tab.总结"].tap(); XCTAssertFalse(app.buttons["summary.考虑租住"].isEnabled)
@@ -166,7 +166,10 @@ import XCTest
         let cardVideo = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'manualIssue.' AND identifier CONTAINS '.video.'")).firstMatch
         reveal(cardVideo, app)
         let play = app.buttons["Play/Pause"]
-        if play.isHittable { play.tap() } else { cardVideo.tap() }
+        if !play.isHittable { cardVideo.tap() }
+        let controlsReady = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: play)
+        XCTAssertEqual(XCTWaiter.wait(for: [controlsReady], timeout: 3), .completed)
+        if !["Pause", "暂停"].contains(play.label) { play.tap() }
         let playing = expectation(for: NSPredicate(format: "label IN %@", ["Pause", "暂停"]), evaluatedWith: play)
         XCTAssertEqual(XCTWaiter.wait(for: [playing], timeout: 3), .completed)
         XCTAssertFalse(app.textFields["issueEditor.title"].exists)
@@ -196,7 +199,7 @@ import XCTest
         app.buttons["tab.影像"].tap(); XCTAssertEqual(buttons("gallery.preview.", app).count, 2)
         home(app); app.buttons["house.影像业务"].press(forDuration: 1)
         app.confirmArchiveFromHouseMenu()
-        app.buttons["tab.我的"].tap(); let archives = app.buttons["settings.archive"]; reveal(archives, app); archives.tap()
+        app.buttons["tab.我的"].tap(); let archives = app.buttons["local-settings.archive"]; reveal(archives, app); archives.tap()
         let open = app.buttons["archive.open.影像业务"]; XCTAssertTrue(open.waitForExistence(timeout: 3)); open.tap()
         app.buttons["tab.影像"].tap(); XCTAssertFalse(app.buttons["拍照或录视频"].exists)
         XCTAssertEqual(buttons("gallery.caption.", app).count, 1)
@@ -269,7 +272,7 @@ import XCTest
         app.buttons["tab.问题"].tap(); XCTAssertEqual(rent.value as? String, "0"); capture("83-business-automatic-numeric-restored", app)
         home(app); app.buttons["house.自动数值问题"].press(forDuration: 1)
         app.confirmArchiveFromHouseMenu()
-        app.buttons["tab.我的"].tap(); let archives = app.buttons["settings.archive"]; reveal(archives, app); archives.tap()
+        app.buttons["tab.我的"].tap(); let archives = app.buttons["local-settings.archive"]; reveal(archives, app); archives.tap()
         let open = app.buttons["archive.open.自动数值问题"]; XCTAssertTrue(open.waitForExistence(timeout: 3)); open.tap()
         query.tap(); query.typeText("租金"); app.buttons["checklist.keyboard.done"].tap()
         let category = app.staticTexts["mp.field.title.node:category:房源基本信息"]
@@ -388,7 +391,7 @@ import XCTest
     }
     func testExportSelectedHousePreparesRealZIPBeforeShare() {
         let app = launch(); add("原生备份房源", app); home(app); app.buttons["tab.我的"].tap()
-        let entry = app.buttons["settings.export"]; reveal(entry, app); entry.tap()
+        let entry = app.buttons["local-settings.export"]; reveal(entry, app); entry.tap()
         let select = app.buttons["backup.select.原生备份房源"]; XCTAssertTrue(select.waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.buttons["backup.share"].value as? String, "ZIP 已生成，包含 1 套房源及其影像")

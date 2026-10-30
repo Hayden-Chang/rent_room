@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-rating-final-20261030-i",
+  "phase": "final-pr-head",
+  "taskName": "系统评分最终主流程验证",
+  "sessionId": "01a1887c-9241-7ce3-bf41-215ed13a8d4b",
+  "workspace": "/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/ios-system-rating-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/AppReviewTests/testPurchaseAndThirdCreationShareOneDurableRequest",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppReviewTests/testCancelledPendingFailedAndRevokedPurchasesDoNotRequest",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppReviewTests/testLoadedAndRestoredTransactionsDoNotRequest",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppReviewTests/testPendingApprovalRequestsOnlyAfterVerifiedUpdate",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppReviewTests/testReviewPersistenceFailureDoesNotFailConfirmedPurchase",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testUnconfirmedPurchaseRetainsRecordsAndRestoresExactlyOnceAfterRelaunch",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testRefundAndOlderSnapshotsKeepAllHousesAndRejectInconsistentOrForeignBalances",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testDuplicateForegroundAndBackgroundVerificationSharesOneGrantAndFinish",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testKeychainFailureKeepsPurchaseUnfinishedUntilCapacityCacheCanBeSaved",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testFixtureRequiresExplicitUUIDAndKnownMode",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testIdentityChangeDuringServerConfirmationCannotGrantOrFinish",
+      "reason": "购买确认、拒绝状态、幂等与评分状态落盘",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testCanonicalCatalogAndRoundTripRetainAnswersAndZero",
+      "reason": "创建事务和游客迁移持久化边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection",
+      "reason": "创建事务和游客迁移持久化边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession",
+      "reason": "创建事务和游客迁移持久化边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/IdentityScopeTests/testGuestClaimIsIdempotentAndLogoutStartsFreshGuest",
+      "reason": "创建事务和游客迁移持久化边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/IdentityScopeTests/testFirstClaimKeepsGuestSettingsAndCopiesMediaWithoutChangingOriginal",
+      "reason": "创建事务和游客迁移持久化边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/IdentityScopeTests/testFailedMediaClaimRetainsJournalAndCanResumeOnce",
+      "reason": "创建事务和游客迁移持久化边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/IdentityScopeTests/testDuplicateHouseIDsReceiveNewIDWithoutOverwritingAccount",
+      "reason": "创建事务和游客迁移持久化边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/AppReviewTests/testPendingApprovalAndFailedVerificationSurviveRelaunch",
+      "reason": "本次新购买延迟完成跨重启仍保留评分资格",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppReviewTests/testPendingApprovalDoesNotTreatRestoredHistoryAsNewPurchase",
+      "reason": "Pending approval must retain eligibility until a verified transaction purchased after this attempt, including relaunch and historical restoration",
+      "source": "new-or-modified"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/AppReviewUITests/testThirdCreationRequestsSystemReviewOnceAndKeepsManualFeedback",
+      "reason": "系统评分两条入口，首次返回不弹问卷，主动反馈及既有流程",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/AppReviewUITests/testVerifiedPurchaseRequestsSystemReviewAfterThankYou",
+      "reason": "系统评分两条入口，首次返回不弹问卷，主动反馈及既有流程",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity",
+      "reason": "系统评分两条入口，首次返回不弹问卷，主动反馈及既有流程",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/AppReviewUITests/testThirdCreationRequestsSystemReviewOnceAndKeepsManualFeedback",
+    "XunjuUITests/AppReviewUITests/testVerifiedPurchaseRequestsSystemReviewAfterThankYou",
+    "XunjuUITests/InspectionBusinessUITests/testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity",
+    "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot"
+  ],
+  "headSha": "9d465c93a0d30d3be354a5e0684b13e454ec9fc2"
+}

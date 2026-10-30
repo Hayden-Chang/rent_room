@@ -11,19 +11,19 @@ struct NewHouseSurface: View {
         ScrollView {
             VStack(spacing: 0) {
                 XiaodaMessage(text: "给这套房源起个名字吧～", pose: "greet", compact: false) { EmptyView() }
-                TextField("例如：阳光花园3栋", text: $name)
+                TextField(AppCopy.text("例如：阳光花园3栋"), text: $name)
                     .font(.system(size: 16)).padding(.horizontal, 16).frame(height: 56)
                     .background(.white).clipShape(RoundedRectangle(cornerRadius: 14))
                     .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color(red: 222/255, green: 223/255, blue: 240/255), lineWidth: 2))
                     .padding(.top, 28).padding(.bottom, 20)
                     .submitLabel(.done).onSubmit(save).accessibilityIdentifier("prompt.text")
                     .onChange(of: name) { _, value in name = String(value.prefix(80)); error = "" }
-                if !error.isEmpty { Text(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12).frame(maxWidth: .infinity, alignment: .leading).background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 10)).padding(.bottom, 12).accessibilityIdentifier("prompt.error") }
-                Button(action: save) { if busy { ProgressView() } else { Text("创建房源") } }
+                if !error.isEmpty { AppText(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12).frame(maxWidth: .infinity, alignment: .leading).background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 10)).padding(.bottom, 12).accessibilityIdentifier("prompt.error") }
+                Button(action: save) { if busy { ProgressView() } else { AppText("创建房源") } }
                     .buttonStyle(SetupButtonStyle()).disabled(busy).accessibilityIdentifier("prompt.confirm")
             }.padding(.horizontal, 20).padding(.top, 24).padding(.bottom, 40)
                 .frame(maxWidth: 600).frame(maxWidth: .infinity)
-        }.background(.white).miniNavigation("新建房源", background: .white)
+        }.background(.white).miniNavigation(AppCopy.text("新建房源"), background: .white)
     }
     private func save() {
         guard !busy else { return }

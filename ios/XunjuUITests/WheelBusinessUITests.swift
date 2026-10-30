@@ -90,7 +90,7 @@ import XCTest
         let house = app.buttons["house.轮盘正式表单"]; XCTAssertTrue(house.waitForExistence(timeout: 3)); house.press(forDuration: 1)
         app.confirmArchiveFromHouseMenu()
         app.buttons["tab.我的"].tap()
-        let archives = app.buttons["settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
+        let archives = app.buttons["local-settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
         let archived = app.buttons["archive.open.轮盘正式表单"]; XCTAssertTrue(archived.waitForExistence(timeout: 3)); archived.tap()
         XCTAssertTrue(app.staticTexts["house.readonly"].waitForExistence(timeout: 3))
         search("提前退租违约金", app)

@@ -50,11 +50,11 @@ final class LaunchIntegrationTests: XCTestCase {
         capture("launch-returning-home", app)
 
         app.buttons["tab.我的"].tap()
-        XCTAssertTrue(app.buttons["settings.capacity"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["local-settings.capacity"].waitForExistence(timeout: 3))
         XCUIDevice.shared.press(.home)
         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
         app.activate()
-        XCTAssertTrue(app.buttons["settings.capacity"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["local-settings.capacity"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["tab.我的"].isSelected)
         XCTAssertFalse(app.images["brandLaunch.icon"].exists)
         capture("launch-background-resume-settings", app)

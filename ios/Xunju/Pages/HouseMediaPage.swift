@@ -2,7 +2,6 @@ import SwiftUI
 import PhotosUI
 import UniformTypeIdentifiers
 import AVKit
-import ImageIO
 
 struct HouseMediaPage: View {
     let workspace: AppWorkspace
@@ -43,11 +42,7 @@ struct HouseMediaPage: View {
               relation: !value["issueTitle"].string.isEmpty ? "问题 · " + value["issueTitle"].string : value["fieldId"].string.isEmpty ? "房源影像" : "已关联检查项")
 }
 
-func thumbnail(_ url: URL) -> UIImage? {
-    guard let source = CGImageSourceCreateWithURL(url as CFURL, nil), let cg = CGImageSourceCreateThumbnailAtIndex(source, 0,
-        [kCGImageSourceCreateThumbnailFromImageAlways: true, kCGImageSourceThumbnailMaxPixelSize: 600, kCGImageSourceCreateThumbnailWithTransform: true] as CFDictionary) else { return nil }
-    return UIImage(cgImage: cg)
-}
+@MainActor func thumbnail(_ url: URL) -> UIImage? { ThumbnailCache.shared.image(at: url) }
 
 private struct ImportedVideo: Transferable, Sendable {
     let url: URL
@@ -79,15 +74,15 @@ struct MediaPickerSheet: View {
                     else { error = "当前设备没有可用相机" }
                 }).allowsHitTesting(!busy).accessibilityElement(children: .contain).accessibilityIdentifier("media.source").accessibilityHidden(busy)
             if busy {
-                ProgressView("正在保存影像…").padding(24).background(.white)
+                ProgressView(AppCopy.text("正在保存影像…")).padding(24).background(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
             }
             #if DEBUG
             if MediaImportFixture.enabled(ProcessInfo.processInfo.arguments) {
                 VStack {
                     HStack(spacing: 20) {
-                        Button("导入测试照片") { fixture(video: false) }.accessibilityIdentifier("media.fixture.image")
-                        Button("导入测试视频") { fixture(video: true) }.accessibilityIdentifier("media.fixture.video")
+                        Button(AppCopy.text("导入测试照片")) { fixture(video: false) }.accessibilityIdentifier("media.fixture.image")
+                        Button(AppCopy.text("导入测试视频")) { fixture(video: true) }.accessibilityIdentifier("media.fixture.video")
                     }.padding(16).background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).disabled(busy)
                     Spacer()
                 }
@@ -95,9 +90,9 @@ struct MediaPickerSheet: View {
             #endif
         }.presentationBackground(.clear).interactiveDismissDisabled(busy)
             .photosPicker(isPresented: $library, selection: $photos, maxSelectionCount: 9, selectionBehavior: .ordered, matching: .any(of: [.images, .videos]), preferredItemEncoding: .compatible)
-            .alert("无法添加影像", isPresented: Binding(get: { !error.isEmpty }, set: { if !$0 { error = "" } })) {
-                Button("知道了") { error = "" }
-            } message: { Text(error) }
+            .alert(AppCopy.text("无法添加影像"), isPresented: Binding(get: { !error.isEmpty }, set: { if !$0 { error = "" } })) {
+                Button(AppCopy.text("知道了")) { error = "" }
+            } message: { AppText(error) }
             .onDisappear { importTask?.cancel() }
             .onChange(of: photos) { _, items in if !items.isEmpty { load(items) } }
             .fullScreenCover(isPresented: $camera) {
@@ -222,14 +217,14 @@ private struct MediaDetailPage: View {
                         if media["type"].string == "video" { VideoPlayer(player: AVPlayer(url: url)).frame(height: 320) }
                         else if let image = UIImage(contentsOfFile: url.path) { Image(uiImage: image).resizable().scaledToFit() }
                     }
-                    Text(media["caption"].string).font(.system(size: 14)).frame(maxWidth: .infinity, alignment: .leading)
+                    Text(verbatim: media["caption"].string).font(.system(size: 14)).frame(maxWidth: .infinity, alignment: .leading)
                     if !readonly {
-                        Button("编辑影像备注") { note = true }.buttonStyle(XJButtonStyle(primary: false))
-                        Button("关联检查项") { linking = true }.buttonStyle(XJButtonStyle(primary: false))
-                        Button("删除影像", role: .destructive) { deleting = true }
+                        Button(AppCopy.text("编辑影像备注")) { note = true }.buttonStyle(XJButtonStyle(primary: false))
+                        Button(AppCopy.text("关联检查项")) { linking = true }.buttonStyle(XJButtonStyle(primary: false))
+                        Button(AppCopy.text("删除影像"), role: .destructive) { deleting = true }
                     }
                 }.padding(16)
-            }.navigationTitle("影像").navigationBarTitleDisplayMode(.inline)
+            }.navigationTitle(AppCopy.text("影像")).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton() } }
                 .onAppear { workspace.perform { targets = try workspace.store.call("targets", ["id": .string(houseID)]).array } }
                 .sheet(isPresented: $note) {
@@ -240,14 +235,14 @@ private struct MediaDetailPage: View {
                 .sheet(isPresented: $linking) {
                     NavigationStack {
                         List {
-                            Button("不关联检查项") { link("") }
-                            ForEach(targets.filter { search.isEmpty || $0["label"].string.localizedCaseInsensitiveContains(search) }, id: \.id) { target in Button(target["label"].string) { link(target.id) } }
-                        }.searchable(text: $search, prompt: "搜索检查项").navigationTitle("关联检查项")
+                            Button(AppCopy.text("不关联检查项")) { link("") }
+                            ForEach(targets.filter { search.isEmpty || $0["label"].string.localizedCaseInsensitiveContains(search) || AppCopy.fieldLabel($0["label"].string, id: $0.id).localizedCaseInsensitiveContains(search) }, id: \.id) { target in Button(AppCopy.fieldLabel(target["label"].string, id: target.id)) { link(target.id) } }
+                        }.searchable(text: $search, prompt: AppCopy.text("搜索检查项")).navigationTitle(AppCopy.text("关联检查项"))
                             .toolbar { ToolbarItem(placement: .cancellationAction) { CloseSheetButton() } }
                     }
                 }
-                .confirmationDialog("删除这条影像？", isPresented: $deleting, titleVisibility: .visible) {
-                    Button("删除影像", role: .destructive) {
+                .confirmationDialog(AppCopy.text("删除这条影像？"), isPresented: $deleting, titleVisibility: .visible) {
+                    Button(AppCopy.text("删除影像"), role: .destructive) {
                         if workspace.perform({ try workspace.store.call("removeMedia", ["id": .string(houseID), "field": .string(mediaID)]) }) { dismiss() }
                     }
                 }

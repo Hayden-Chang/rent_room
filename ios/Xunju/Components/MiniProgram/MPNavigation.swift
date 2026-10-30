@@ -13,13 +13,13 @@ private struct MPNavigation: ViewModifier {
         content.foregroundStyle(XJTheme.ink).toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
                 ZStack(alignment: leadingTitle ? .leading : .center) {
-                    Text(title).font(.system(size: 17, weight: .semibold)).lineLimit(1)
+                    Text(verbatim: title).font(.system(size: 17, weight: .semibold)).lineLimit(1)
                         .padding(.leading, leadingTitle ? 64 : 52).padding(.trailing, 52)
                     if showsBack {
                         HStack(spacing: 0) {
                             Button { if let back { back() } else { dismiss() } } label: {
-                                Text("‹").font(.system(size: 34, weight: .semibold)).frame(width: 44, height: 44).contentShape(Rectangle())
-                            }.buttonStyle(.plain).padding(.leading, 4).accessibilityLabel("返回").accessibilityIdentifier("navigation.back")
+                                AppText("‹").font(.system(size: 34, weight: .semibold)).frame(width: 44, height: 44).contentShape(Rectangle())
+                            }.buttonStyle(.plain).padding(.leading, 4).accessibilityLabel(AppCopy.text("返回")).accessibilityIdentifier("navigation.back")
                             Spacer(minLength: 0)
                         }
                     }

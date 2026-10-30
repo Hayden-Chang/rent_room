@@ -32,10 +32,20 @@ import AVFoundation
                 guard export.status == .completed else { throw CoreFailure(message: "视频转换失败") }
             }
         } else {
-            guard let image, let data = image.jpegData(compressionQuality: 0.9), data.count <= 50 * 1024 * 1024 else {
-                throw CoreFailure(message: "照片无法保存或超过 50 MiB")
+            guard let image else { throw CoreFailure(message: "照片无法保存或超过 50 MiB") }
+            let worker = Task.detached(priority: .userInitiated) {
+                try Task.checkCancellation()
+                try autoreleasepool {
+                    guard let data = image.jpegData(compressionQuality: 0.9), data.count <= 50 * 1024 * 1024 else {
+                        throw CoreFailure(message: "照片无法保存或超过 50 MiB")
+                    }
+                    try Task.checkCancellation()
+                    try data.write(to: destination, options: .atomic)
+                }
             }
-            try data.write(to: destination, options: .atomic)
+            // Await the worker even on cancellation, so cleanup never races a
+            // late file write. The final scope check still runs on the main actor.
+            try await withTaskCancellationHandler { try await worker.value } onCancel: { worker.cancel() }
         }
         try Task.checkCancellation()
         let bytes = try destination.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0

@@ -1,0 +1,41 @@
+Translate these rental comparison table labels into concise natural English. Values in each column already show the ISO currency code (GBP 2000, EUR 1500), so do not include CNY or any currency symbol in the labels. Preserve the billing unit or period where present in the original context (monthly rent, electricity per kWh, water per tonne, gas per cubic meter). Chinese label keys use simplified display labels; original full labels below clarify meaning. Return ONLY JSON with exact keys, no tools or file access.
+Labels:
+{
+  "s1306": "租金",
+  "s1307": "电费",
+  "s1308": "水费",
+  "s1309": "燃气费",
+  "s1310": "网费",
+  "s1311": "物业费",
+  "s1312": "清洁费",
+  "s1313": "垃圾费",
+  "s1314": "管理费",
+  "s1315": "取暖费",
+  "s1316": "电梯费",
+  "s1317": "中介费",
+  "s1318": "门卡/门锁费",
+  "s1319": "退房保洁费",
+  "s1320": "折旧/损耗费",
+  "s1321": "消毒费",
+  "s1322": "转租手续费"
+}
+Original context:
+{
+  "s1306": "租金（元/月）",
+  "s1307": "电费（元/度）",
+  "s1308": "水费（元/吨）",
+  "s1309": "燃气费（元/立方米）",
+  "s1310": "网费（元/月）",
+  "s1311": "物业费（元/月）",
+  "s1312": "清洁费（元/月）",
+  "s1313": "垃圾费（元/月）",
+  "s1314": "管理费（元/月）",
+  "s1315": "取暖费（元/月）",
+  "s1316": "电梯费（元/月）",
+  "s1317": "中介费（元）",
+  "s1318": "门卡/门锁费（元）",
+  "s1319": "退房保洁费（元）",
+  "s1320": "折旧/损耗费（元）",
+  "s1321": "消毒费（元）",
+  "s1322": "转租手续费（元）"
+}
