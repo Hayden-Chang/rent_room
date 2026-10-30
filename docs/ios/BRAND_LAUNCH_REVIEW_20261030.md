@@ -1,6 +1,6 @@
 # 寻居品牌 Logo 启动屏 · 视觉评审
 
-用户确认沿用小程序现有的蓝紫底、白色「房屋＋对勾」Logo，并继续要求没有文字、没有小搭。当前为可独立运行的 SwiftUI 组件；尚未接入正式启动、初始化、首页导航或系统 LaunchScreen。
+用户确认沿用小程序现有的蓝紫底、白色「房屋＋对勾」Logo，并继续要求没有文字、没有小搭。用户随后以「可以的」批准原生视觉；同一组件现接入 AppRoot 的本机记录读取阶段，并配置系统 LaunchScreen。
 
 ## 设计
 
@@ -17,7 +17,9 @@ Figma 插件未连接，尚未同步设计主稿。
 
 Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `#if DEBUG` 评审宿主，不创建 `AppWorkspace`，不读写用户房源或账号。Release 不识别评审参数。
 
-用户确认此版原生截图后，再处理真实启动衔接。当前只验证组件渲染，不证明冷启动切换或时长；不要人为延长启动时间。
+系统 LaunchScreen 使用 UIKit storyboard。圆角透明 PNG 由 `ios/scripts/render-launch-logo.swift` 以相同的 112 pt、26 pt 连续圆角、3 倍分辨率导出，背景和全屏中心与 SwiftUI 组件一致。AppRoot 读取完成后沿用既有设置页/房源页分流，无定时器、最低展示时长或额外网络等待；失败重试分支保留。
+
+`project.yml` 是工程配置唯一真源。新增 XunjuLaunch 验证 scheme 保留成功用例录屏，默认 Xunju scheme 不变。正式启动验证用每例唯一 `--business-test UUID` 隔离数据目录；返回用户用例使用已有 fixture 准备本机房源。
 
 ## 验证映射
 
@@ -31,7 +33,7 @@ Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `
 
 ## 证据
 
-状态：`REVIEW_READY`。用户已确认采用小程序 Logo；替换后的原生启动屏截图待用户最终确认。
+状态：`APPROVED`。用户已批准下列 iOS 26.5 原生截图。以下为接入前组件证据，正式启动验证另列。
 
 - 证据代码 SHA：`2c8b406b48bfc40b5ae32e557625946fe330e164`；基线 `eb75079b3e46726e5742cc4c861dc7a278d9dd31`。
 - `xunju-brand-launch-logo-20261030-02`：iPhone 14 Pro / iOS 18.3.1（22D8075），**1 UT + 1 UI，2 passed / 0 failed / 0 skipped**。
@@ -54,7 +56,7 @@ Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `
 
 主 agent 已查看两张截图：Logo 保持蓝紫底白色房屋与对勾，圆角、尺寸和居中位置一致；浅灰白背景连续覆盖安全区，没有小搭或品牌文字。系统状态栏保留。截图来自 Debug 组件宿主，不证明正式冷启动切页或时长。
 
-已复核完整 diff：独立组件、Logo 资源、Debug 评审入口、定向测试和本说明；无业务数据或导航改动。后续证据文档提交不改变源码、资源、测试或配置，因此可复用上述 SHA 的截图，不将它称为文档提交生成的截图。PR 保持 Draft，未合并或部署。
+组件证据后的文档提交不改变源码、资源、测试或配置，可复用上述 SHA 的组件截图。PR 未合并或部署。
 
 未覆盖小屏、iPad、VoiceOver 实际朗读、深色模式或真实冷启动。Figma 尚未同步。
 

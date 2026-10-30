@@ -13,7 +13,7 @@ struct AppRoot: View {
                     Text(launchError).font(.subheadline)
                     Button("重试", action: load).buttonStyle(XJButtonStyle(primary: true))
                 }.padding(24)
-            } else { ProgressView("正在读取本机记录…") }
+            } else { BrandLaunchSurface() }
         }.frame(maxWidth: .infinity, maxHeight: .infinity).background(XJTheme.background)
             .task { if workspace == nil { load() } }
             .onChange(of: scenePhase) { _, phase in

@@ -36,7 +36,7 @@ targets:
         INFOPLIST_KEY_NSMicrophoneUsageDescription: 录制看房视频时收录现场声音
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: 获取当前位置，选择房源或上班地点
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.lifestyle
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UILaunchStoryboardName: LaunchScreen
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
@@ -88,3 +88,15 @@ schemes:
       gatherCoverageData: false
       targets:
         - XunjuTests
+  XunjuLaunch:
+    build:
+      targets:
+        Xunju: all
+    test:
+      gatherCoverageData: false
+      captureScreenshotsAutomatically: true
+      deleteScreenshotsWhenEachTestSucceeds: false
+      preferredScreenCaptureFormat: screenRecording
+      targets:
+        - XunjuTests
+        - XunjuUITests
