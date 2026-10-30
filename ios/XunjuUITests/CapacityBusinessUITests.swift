@@ -31,6 +31,12 @@ import XCTest
         capture("95-capacity-unconfirmed-no-grant", app)
         app.buttons["capacity.restore"].tap(); waitTotal("0 / 11 套", app); idle(app)
         XCTAssertFalse(app.staticTexts["capacity.pending"].exists)
+        // A recovered new purchase retains main's one-time native rating request.
+        let review = app.staticTexts["喜欢“看房搭子”吗？"]
+        XCTAssertTrue(review.waitForExistence(timeout: 10))
+        capture("96-capacity-recovery-review", app)
+        app.buttons["以后"].tap()
+        XCTAssertTrue(review.waitForNonExistence(timeout: 3))
         capture("96-capacity-server-confirmed", app)
         app.terminate()
         let reopened = launch(id, mode: "pending"); idle(reopened); waitTotal("0 / 11 套", reopened)

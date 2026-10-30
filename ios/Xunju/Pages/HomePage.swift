@@ -11,9 +11,7 @@ struct HomePage: View {
     @State private var capacity = false
     @State private var continueCreate = false
     @State private var capacityAfterName = false
-    @State private var feedback = false
     @State private var homeMessage = ""
-    @State private var thankYou = false
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -37,12 +35,10 @@ struct HomePage: View {
                     }
                 }
                 if !workspace.store.activeHouses.isEmpty && !homeMessage.isEmpty {
-                    XiaodaMessage(text: homeMessage, pose: thankYou ? "success" : "point-down-right") {
-                        if !thankYou {
-                            HStack {
-                                Button("再等等") { workspace.perform { try workspace.store.call("waitSecondHouse") }; refreshGuide() }
-                                Button("去添加", action: add).buttonStyle(XJButtonStyle(primary: true))
-                            }
+                    XiaodaMessage(text: homeMessage, pose: "point-down-right") {
+                        HStack {
+                            Button("再等等") { workspace.perform { try workspace.store.call("waitSecondHouse") }; refreshGuide() }
+                            Button("去添加", action: add).buttonStyle(XJButtonStyle(primary: true))
                         }
                     }
                 }
@@ -85,16 +81,9 @@ struct HomePage: View {
             }) {
                 NavigationStack { CapacityPage(workspace: workspace, continued: { result in continueCreate = result["kind"].string == "create" }) }
             }
-            .fullScreenCover(isPresented: $feedback) {
-                FeedbackPage(workspace: workspace) { thankYou = true; homeMessage = "收到啦，谢谢你的反馈！" }.presentationBackground(.clear)
-            }
             .onAppear(perform: refreshGuide)
-            .onChange(of: workspace.store.state["xiaoda"]["feedback"]) { _, _ in if path.isEmpty { refreshGuide() } }
-            .task(id: thankYou) {
-                guard thankYou else { return }
-                do { try await Task.sleep(for: .seconds(3)) } catch { return }
-                thankYou = false; refreshGuide()
-            }
+            .modifier(AppReviewPrompt(workspace: workspace, ready: path.isEmpty && !adding && managed == nil
+                && exporting == nil && !capacity && !capacityAfterName && !continueCreate))
     }
     private func closeHouse() {
         if let id = path.last { workspace.perform { try workspace.store.call("leaveInspection", ["id": .string(id)]) } }
@@ -110,8 +99,7 @@ struct HomePage: View {
         guard !workspace.store.status.blocked else { return }
         workspace.perform {
             let value = try workspace.store.call("homeGuide")
-            feedback = value["feedback"].bool
-            if !thankYou { homeMessage = value["message"].string }
+            homeMessage = value["message"].string
         }
     }
 }

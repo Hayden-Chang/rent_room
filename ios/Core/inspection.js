@@ -27,7 +27,7 @@ function guide(store, id) {
       text:target.category === '房源基本信息' ? '写一下房子的基本信息吧。' : `先看看「${target.category}」吧。`};
   }
   return {enabled, tutorial, progress:rows, prompt:prompt || null,
-    steps:coachSteps.map(step => ({...step, body:step.text})), target:coachTarget(house)};
+    steps:coachSteps.map(step => ({...step, body:step.text})), target:tutorial ? coachTarget(house) : null};
 }
 
 // Native navigation calls these commands; the shared store owns transactions,

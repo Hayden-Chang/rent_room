@@ -40,6 +40,11 @@ import XCTest
             XCTAssertTrue(row.isHittable)
         }
         capture("offline-business-legal", app)
+        let touchTrail = app.switches["settings.touch-trails"]
+        for _ in 0..<3 where !touchTrail.isHittable { app.swipeUp() }
+        XCTAssertTrue(touchTrail.isHittable)
+        XCTAssertEqual(touchTrail.value as? String, "0")
+        capture("offline-business-touch-preference", app)
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)

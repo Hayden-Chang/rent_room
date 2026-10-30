@@ -14,9 +14,11 @@ final class LegalResourcesTests: XCTestCase {
         XCTAssertEqual(plist["NSPrivacyTracking"] as? Bool, false)
         XCTAssertEqual(plist["NSPrivacyTrackingDomains"] as? [String], [])
         let accessed = try XCTUnwrap(plist["NSPrivacyAccessedAPITypes"] as? [[String: Any]])
-        XCTAssertEqual(accessed.count, 1)
-        XCTAssertEqual(accessed.first?["NSPrivacyAccessedAPIType"] as? String, "NSPrivacyAccessedAPICategorySystemBootTime")
-        XCTAssertEqual(accessed.first?["NSPrivacyAccessedAPITypeReasons"] as? [String], ["35F9.1"])
+        XCTAssertEqual(accessed.count, 2)
+        let timing = accessed.first { $0["NSPrivacyAccessedAPIType"] as? String == "NSPrivacyAccessedAPICategorySystemBootTime" }
+        XCTAssertEqual(timing?["NSPrivacyAccessedAPITypeReasons"] as? [String], ["35F9.1"])
+        let defaults = accessed.first { $0["NSPrivacyAccessedAPIType"] as? String == "NSPrivacyAccessedAPICategoryUserDefaults" }
+        XCTAssertEqual(defaults?["NSPrivacyAccessedAPITypeReasons"] as? [String], ["CA92.1"])
         let collected = try XCTUnwrap(plist["NSPrivacyCollectedDataTypes"] as? [[String: Any]])
         XCTAssertTrue(collected.allSatisfy { $0["NSPrivacyCollectedDataTypeTracking"] as? Bool == false })
         XCTAssertTrue(collected.contains { $0["NSPrivacyCollectedDataType"] as? String == "NSPrivacyCollectedDataTypeCustomerSupport" })

@@ -53,6 +53,7 @@ struct LocalSettingsSurface: View {
                     }
                 }
             }
+            XJCard { TouchTrailSettingsRow() }
             XJCard {
                 HStack { Text("版本"); Spacer(); Text(version).foregroundStyle(XJTheme.muted) }
                     .font(.system(size: 14)).frame(minHeight: 50)

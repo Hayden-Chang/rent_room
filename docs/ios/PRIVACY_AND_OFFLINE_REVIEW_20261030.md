@@ -113,3 +113,13 @@
 持久截图与逐图 SHA256 来源记录位于 `/Users/pc/.codex/visualizations/2026/10/29/01a18886-1bc3-7922-9396-c73515b59cbf/ios-offline-business/`：`settings.png`、`legal-links.png`、`offline-address.png`、`purchase-pending.png`、`purchase-confirmed.png`、`purchase-restored-once.png`、`refund-keeps-records.png`、`product-unavailable.png`。¥1.99、订单和容量为受控测试夹具，实际采用原生页面、持久文件和购买控制器；不证明真实 StoreKit 签名获取、Apple 扣款或服务器部署成功。
 
 公开页面已于本轮按授权合并并验证 HTTP 200。App Store Connect 查询证据为上述目录 `asc-bundle-lookup.json`（当前凭据对 `com.keeline.xunju.ios` 返回 data=[]）；公开页回读为 `public-pages-live.json`。iOS PR #92 和后端 PR #98 仍为草稿，未合并、未部署、未上传或提交 App Review。真实 Apple 沙盒交易及 App Privacy 标签填写仍待具备对应 App/商品/服务配置后单独验收。
+
+## 主线前进后的整合
+
+最终远程回读发现 main 已前进到 `8a078ec6dcc0aab0681f3099e936acae77ff8b30`，包含性能优化、移除自动通勤入口、触摸轨迹与系统评分。此前 GitHub PR base 快照仍显示旧 SHA，但 mergeability 已为 dirty，因此没有把旧批次当作当前主线的合并证据。
+
+在本任务分支合入该主线并解决冲突：保留免登录设置和主线触摸轨迹开关；购买确认继续保留评分资格、失败重试及待批准订单的购买时间判断；保留主线已删除的自动通勤入口与对应测试删除；保留模板重新打开的新增断言。旧 Apple 登录 UI 测试继续删除，现有评分和触摸轨迹测试改用无登录设置入口。
+
+主线新增 `UserDefaults` / `@AppStorage` 存储触摸轨迹本机偏好，隐私清单随之补入 `NSPrivacyAccessedAPICategoryUserDefaults` / `CA92.1`，同步实际包内清单断言；依据 [Apple TN3183](https://developer.apple.com/documentation/technotes/tn3183-adding-required-reason-api-entries-to-your-privacy-manifest)。此前“未使用 UserDefaults”仅属于旧基线扫描结果。
+
+本次冲突使旧 iOS 证据不再覆盖整合后的代码。重新执行全部本批单测、评分相关单测与触摸偏好观察单测，以及三个最高风险 UI 方法：离线记录重启与无登录设置（包含触摸开关默认关闭及法律入口）；未确认订单恢复、系统评分与重启去重；退款保留超额记录与商品不可用。触摸手势和所有仅换选择器的历史长流程不在本次最终三项 UI 选择内，不能声称全量 UI 回归。

@@ -57,13 +57,19 @@ import Observation
         do {
             let identity = try await prepare(loadProduct: true)
             guard let product, let context, context.available else { throw CoreFailure(message: "房源包暂未开放购买，请稍后再试") }
+            let purchaseStartedAt = Date().timeIntervalSince1970
             switch try await storefront.purchase(product, accountToken: context.appAccountToken) {
             case .cancelled: break
-            case .pending: if current(identity) { pending = true; awaitingApproval = true }
+            case .pending:
+                if current(identity) {
+                    pending = true; awaitingApproval = true
+                    _ = try? workspace?.store.call("reviewPurchasePending", ["value": .string("approval:\(purchaseStartedAt)")])
+                }
             case .verified(let transaction):
                 guard current(identity) else { return }
                 pending = true
-                try await confirm(transaction, identity: identity)
+                _ = try? workspace?.store.call("reviewPurchasePending", ["value": .string(transaction.id)])
+                try await confirm(transaction, identity: identity, requestReview: true)
                 if current(identity) { pending = awaitingApproval }
             }
         } catch is CancellationError {} catch { self.error = error.localizedDescription }
@@ -107,7 +113,7 @@ import Observation
         return transaction.productID == context.productID && transaction.accountToken == context.appAccountToken
             && transaction.environment == identity.environment && transaction.appTransactionID == identity.appTransactionID
     }
-    private func confirm(_ transaction: CapacityTransaction, identity: PurchaseIdentity) async throws {
+    private func confirm(_ transaction: CapacityTransaction, identity: PurchaseIdentity, requestReview: Bool = false) async throws {
         guard current(identity), matches(transaction) else { throw CoreFailure(message: "请使用购买时的 App Store 账号恢复容量") }
         let key = identity.account + ":" + transaction.environment + ":" + transaction.id
         let task: Task<CapacityConfirmation, Error>
@@ -120,6 +126,15 @@ import Observation
         let value = try await task.value
         guard value.transactionID == transaction.id, ["verified", "revoked"].contains(value.status) else { throw CoreFailure(message: "购买记录暂时无法确认") }
         try apply(value.balance, identity: identity)
+        let pendingReview = workspace?.store.state["iosReview"]["pendingPurchase"].string ?? ""
+        let approvalStartedAt = pendingReview.hasPrefix("approval:") ? Double(pendingReview.dropFirst(9)) : nil
+        let approvedNewPurchase = approvalStartedAt.map { startedAt in
+            transaction.purchaseDate.map { $0.timeIntervalSince1970 >= startedAt } ?? false
+        } ?? false
+        if value.status == "verified", requestReview || pendingReview == transaction.id || approvedNewPurchase {
+            // Rating bookkeeping must never turn a completed purchase into an error.
+            _ = try? workspace?.store.call("reviewPurchaseConfirmed")
+        }
         guard !finished.contains(key) else { return }
         finished.insert(key)
         await storefront.finish(transaction)

@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
@@ -11,7 +12,7 @@ it('opens, folds and reopens the root pest group through the built page without 
  vm.runInContext(appCode,context);app.onLaunch();localPageFixture(app,wx);
  const id=app.service.store.add('虫害鼠害回归'),before=JSON.stringify(app.service.store.house(id));
  vm.runInContext(pageCode,context);
- page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};
+ page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){applyPageData(this.data,p);};
  page.onLoad({id});
  const counts=JSON.stringify(page.data.stats);
  page.fold({currentTarget:{dataset:{id:'虫害鼠害',expanded:false}}});

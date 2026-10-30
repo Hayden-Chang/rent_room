@@ -11,7 +11,7 @@ import re
 import subprocess
 
 CANONICAL_BUNDLE = "com.keeline.xunju.ios"
-DISPLAY_NAME = "寻居开发版"
+DISPLAY_NAME = "看房搭子开发版"
 ROOT = Path(__file__).resolve().parents[2]
 
 

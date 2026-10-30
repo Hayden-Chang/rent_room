@@ -6,6 +6,7 @@ actor CapacityTestAPI: CapacityServicing {
     let accountToken = UUID(uuidString: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")!
     var packs = 0, revision = 0, calls = 0
     var unavailable = false, failVerification = false, failRestore = false
+    var verificationStatus = "verified"
     var granted: Set<String> = []
     var verificationGate: CheckedContinuation<Void, Never>?
     var blockVerification = false
@@ -16,15 +17,16 @@ actor CapacityTestAPI: CapacityServicing {
         calls += 1
         if blockVerification { await withCheckedContinuation { verificationGate = $0; started?() } }
         if failVerification { throw CoreFailure(message: "购买记录暂时无法确认，请稍后重试") }
-        if granted.insert(transactionID).inserted { packs += 1; revision += 1 }
-        return CapacityConfirmation(transactionID: transactionID, status: "verified", balance: balance())
+        if verificationStatus == "verified", granted.insert(transactionID).inserted { packs += 1; revision += 1 }
+        return CapacityConfirmation(transactionID: transactionID, status: verificationStatus, balance: balance())
     }
     func restore(proof: String) throws -> CapacityBalance {
         if failRestore { throw CoreFailure(message: "恢复失败，请重试") }
         return balance()
     }
-    func configure(failVerification: Bool = false, failRestore: Bool = false, unavailable: Bool = false) {
+    func configure(failVerification: Bool = false, failRestore: Bool = false, unavailable: Bool = false, verificationStatus: String = "verified") {
         self.failVerification = failVerification; self.failRestore = failRestore; self.unavailable = unavailable
+        self.verificationStatus = verificationStatus
     }
     func gate(_ started: @escaping @Sendable () -> Void) { blockVerification = true; self.started = started }
     func resume() { blockVerification = false; verificationGate?.resume(); verificationGate = nil }
@@ -43,7 +45,7 @@ actor CapacityTestAPI: CapacityServicing {
     var syncs = 0, purchases = 0
     var productFails = false
     var receive: (@MainActor (CapacityTransaction) async -> Void)?
-    var transaction: CapacityTransaction { CapacityTransaction(id: "10001", productID: "test.capacity.10", accountToken: accountToken, environment: "Sandbox", appTransactionID: purchaseIdentity.appTransactionID) }
+    var transaction: CapacityTransaction { CapacityTransaction(id: "10001", productID: "test.capacity.10", accountToken: accountToken, environment: "Sandbox", appTransactionID: purchaseIdentity.appTransactionID, purchaseDate: Date()) }
     func product(_ id: String) throws -> CapacityProduct {
         if productFails { throw CoreFailure(message: "商品暂不可用") }
         return CapacityProduct(id: id, displayPrice: "$0.99")
@@ -84,6 +86,9 @@ actor CapacityTestAPI: CapacityServicing {
         XCTAssertEqual(reopened.store.house(id)["answers"]["f1_6"]["value"].string, "0")
         XCTAssertNil(reopened.session); XCTAssertNil(keychain.read())
         XCTAssertEqual(reopened.purchaseBalance?.packs, 1)
+        // This completes the new purchase from before relaunch, not an old restore.
+        XCTAssertTrue(try reopened.store.call("reviewRequest").bool)
+        XCTAssertFalse(try reopened.store.call("reviewRequest").bool)
     }
     func testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct() async throws {
         let (workspace, api, storefront, _) = try fixture()
@@ -131,6 +136,8 @@ actor CapacityTestAPI: CapacityServicing {
         XCTAssertEqual(workspace.store.capacity.limit, 11)
         XCTAssertEqual(storefront.finished, ["10001"])
         let calls = await api.calls; XCTAssertEqual(calls, 1)
+        XCTAssertTrue(try workspace.store.call("reviewRequest").bool)
+        XCTAssertFalse(try workspace.store.call("reviewRequest").bool)
     }
     func testCacheFailureKeepsPurchaseUnfinishedUntilCapacityCanBeSaved() async throws {
         let (workspace, api, storefront, _) = try fixture()
@@ -155,6 +162,7 @@ actor CapacityTestAPI: CapacityServicing {
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: ["--business-test", "invalid", "--capacity-business-fixture", "pending"]))
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: ["--business-test", UUID().uuidString, "--capacity-business-fixture", "other"]))
         XCTAssertEqual(CapacityBusinessFixture.mode(arguments: ["--business-test", UUID().uuidString, "--capacity-business-fixture", "pending"]), "pending")
+        XCTAssertEqual(CapacityBusinessFixture.mode(arguments: ["--business-test", UUID().uuidString, "--capacity-business-fixture", "success"]), "success")
     }
     func testIdentityChangeDuringServerConfirmationCannotGrantOrFinish() async throws {
         let (workspace, api, storefront, _) = try fixture()
@@ -167,5 +175,6 @@ actor CapacityTestAPI: CapacityServicing {
         await api.resume(); await purchase.value
         XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
         XCTAssertEqual(workspace.billing.activity, .idle)
+        XCTAssertFalse(try workspace.store.call("reviewRequest").bool)
     }
 }

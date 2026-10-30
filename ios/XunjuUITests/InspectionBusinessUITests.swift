@@ -28,12 +28,18 @@ import XCTest
         reveal(choice, app); choice.tap(); app.buttons["setup.next"].tap()
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 5))
     }
-    private func addAndLearn(_ app: XCUIApplication, simple: Bool, verifyGuardAndResume: Bool = false) {
+    private func addAndLearn(_ app: XCUIApplication, simple: Bool, verifyGuardAndResume: Bool = false, entryBudget: TimeInterval? = nil) {
         app.homeAddButton.tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
-        XCTAssertEqual(name.value as? String, "第1套"); app.buttons["prompt.confirm"].tap()
+        XCTAssertEqual(name.value as? String, "第1套")
+        let entryStarted = Date(); app.buttons["prompt.confirm"].tap()
         let title = app.staticTexts["coach.title"]
         XCTAssertTrue(title.waitForExistence(timeout: 5)); XCTAssertEqual(title.label, "看房的三个阶段")
+        if let entryBudget {
+            let elapsed = Date().timeIntervalSince(entryStarted)
+            print("PERF first-house-entry-seconds=\(elapsed)")
+            XCTAssertLessThan(elapsed, entryBudget, "Opening the first checklist must not spin in a layout update loop")
+        }
         capture("business-01-three-phases", app); app.buttons["coach.next"].tap()
         XCTAssertEqual(title.label, "找到你想看的内容"); capture("business-02-filter-teaching", app)
         app.buttons["coach.next"].tap(); XCTAssertEqual(title.label, "向左滑，试试看")
@@ -77,11 +83,10 @@ import XCTest
         field.typeText(text); app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
     }
-    private func homeAndSkipFeedback(_ app: XCUIApplication) {
+    private func returnHomeWithoutFeedback(_ app: XCUIApplication) {
         app.navigationBackButton.tap()
-        let close = app.buttons["关闭反馈"]
-        XCTAssertTrue(close.waitForExistence(timeout: 4)); close.tap()
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["关闭反馈"].exists)
     }
     func testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity() {
         let app = launch()
@@ -113,17 +118,26 @@ import XCTest
         XCTAssertFalse(app.buttons["coach.next"].exists); search("生活配套", app)
         XCTAssertTrue(no.isSelected); XCTAssertTrue(app.buttons["附近没有菜市场"].exists)
         app.navigationBackButton.tap()
+        XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 4))
+        XCTAssertFalse(app.buttons["关闭反馈"].exists)
+        app.buttons["tab.我的"].tap()
+        let feedback = app.buttons["local-settings.feedback"]; reveal(feedback, app); feedback.tap()
         let ease = app.buttons["feedback.ease.方便"]; XCTAssertTrue(ease.waitForExistence(timeout: 4)); ease.tap()
         capture("business-07-feedback-draft", app); app.terminate(); app.launch()
-        XCTAssertTrue(ease.waitForExistence(timeout: 10)); XCTAssertTrue(ease.isSelected)
-        app.buttons["关闭反馈"].tap(); app.homeAddButton.tap()
+        XCTAssertTrue(app.buttons["house.第1套"].waitForExistence(timeout: 10))
+        XCTAssertFalse(ease.exists)
+        app.buttons["tab.我的"].tap(); reveal(feedback, app); feedback.tap()
+        XCTAssertTrue(ease.waitForExistence(timeout: 4)); XCTAssertTrue(ease.isSelected)
+        app.buttons["关闭反馈"].tap(); app.buttons["tab.房源"].tap()
+        let add = app.buttons["home.add"]
+        XCTAssertTrue(add.waitForExistence(timeout: 4)); add.tap()
         XCTAssertTrue(app.buttons["capacity.continue"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)
         XCTAssertEqual(app.staticTexts["capacity.total"].label, "1 / 1 套")
         capture("business-08-capacity-interruption", app)
     }
     func testDetailedNoneTemplateChangesAndArchivedSnapshot() {
-        let app = launch(); finishSetup(app, mode: "detailed"); addAndLearn(app, simple: false)
+        let app = launch(); finishSetup(app, mode: "detailed"); addAndLearn(app, simple: false, entryBudget: 30)
         search("缺少的家具", app)
         let input = app.textFields["mp.field.input.f54_0"]; reveal(input, app)
         XCTAssertTrue(input.isEnabled); input.tap()
@@ -138,9 +152,7 @@ import XCTest
         reveal(rentFree, app); XCTAssertFalse(app.buttons["mp.field.wheel.f5_3"].exists)
         rentFree.tap(); XCTAssertTrue(app.keyboards.keys["9"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.keyboards.keys["."].exists)
-        let numericReady = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: app.keyboards.keys["9"])
-        wait(for: [numericReady], timeout: 3)
-        app.keyboards.keys["9"].tap(); app.keyboards.keys["0"].tap(); app.keyboards.keys["."].tap(); app.keyboards.keys["5"].tap()
+        rentFree.typeText("90.5")
         XCTAssertEqual(rentFree.value as? String, "90.5")
         let keyboard = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         keyboard.name = "business-rent-free-system-number-pad"; keyboard.lifetime = .keepAlways; add(keyboard)
@@ -171,12 +183,13 @@ import XCTest
         XCTAssertEqual(rentFree.value as? String, "90.5"); XCTAssertTrue(app.buttons["协商90.5天"].exists)
         capture("business-rent-free-issue-restored", app)
         app.buttons["tab.清单"].tap()
-        homeAndSkipFeedback(app)
+        returnHomeWithoutFeedback(app)
         app.buttons["tab.我的"].tap(); let templates = app.buttons["local-settings.templates"]; reveal(templates, app); templates.tap()
         XCTAssertTrue(app.buttons["setup.mode.detailed"].isSelected)
         let simple = app.buttons["setup.mode.simple"]; reveal(simple, app); simple.tap()
         app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["templates.stay"].waitForExistence(timeout: 3)); app.buttons["templates.stay"].tap()
+        XCTAssertTrue(app.buttons["templates.stay"].waitForNonExistence(timeout: 3))
         let edit = app.buttons["templates.edit.simple"]; reveal(edit, app); edit.tap()
         let toggle = app.buttons["setup.toggle.周边与小区"]; XCTAssertTrue(toggle.waitForExistence(timeout: 3)); toggle.tap()
         app.buttons["template.save"].tap(); app.buttons["templates.confirm"].tap()
