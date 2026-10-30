@@ -28,12 +28,18 @@ import XCTest
         reveal(choice, app); choice.tap(); app.buttons["setup.next"].tap()
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 5))
     }
-    private func addAndLearn(_ app: XCUIApplication, simple: Bool, verifyGuardAndResume: Bool = false) {
+    private func addAndLearn(_ app: XCUIApplication, simple: Bool, verifyGuardAndResume: Bool = false, entryBudget: TimeInterval? = nil) {
         app.homeAddButton.tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
-        XCTAssertEqual(name.value as? String, "第1套"); app.buttons["prompt.confirm"].tap()
+        XCTAssertEqual(name.value as? String, "第1套")
+        let entryStarted = Date(); app.buttons["prompt.confirm"].tap()
         let title = app.staticTexts["coach.title"]
         XCTAssertTrue(title.waitForExistence(timeout: 5)); XCTAssertEqual(title.label, "看房的三个阶段")
+        if let entryBudget {
+            let elapsed = Date().timeIntervalSince(entryStarted)
+            print("PERF first-house-entry-seconds=\(elapsed)")
+            XCTAssertLessThan(elapsed, entryBudget, "Opening the first checklist must not spin in a layout update loop")
+        }
         capture("business-01-three-phases", app); app.buttons["coach.next"].tap()
         XCTAssertEqual(title.label, "找到你想看的内容"); capture("business-02-filter-teaching", app)
         app.buttons["coach.next"].tap(); XCTAssertEqual(title.label, "向左滑，试试看")
@@ -123,7 +129,7 @@ import XCTest
         capture("business-08-capacity-interruption", app)
     }
     func testDetailedNoneTemplateChangesAndArchivedSnapshot() {
-        let app = launch(); finishSetup(app, mode: "detailed"); addAndLearn(app, simple: false)
+        let app = launch(); finishSetup(app, mode: "detailed"); addAndLearn(app, simple: false, entryBudget: 30)
         search("缺少的家具", app)
         let input = app.textFields["mp.field.input.f54_0"]; reveal(input, app)
         XCTAssertTrue(input.isEnabled); input.tap()
@@ -177,6 +183,7 @@ import XCTest
         let simple = app.buttons["setup.mode.simple"]; reveal(simple, app); simple.tap()
         app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["templates.stay"].waitForExistence(timeout: 3)); app.buttons["templates.stay"].tap()
+        XCTAssertTrue(app.buttons["templates.stay"].waitForNonExistence(timeout: 3))
         let edit = app.buttons["templates.edit.simple"]; reveal(edit, app); edit.tap()
         let toggle = app.buttons["setup.toggle.周边与小区"]; XCTAssertTrue(toggle.waitForExistence(timeout: 3)); toggle.tap()
         app.buttons["template.save"].tap(); app.buttons["templates.confirm"].tap()

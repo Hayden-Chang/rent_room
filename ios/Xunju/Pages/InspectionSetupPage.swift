@@ -77,7 +77,9 @@ struct InspectionTemplatesPage: View {
                     }
                 } }
             }
-            .navigationDestination(item: $editing) { mode in InspectionTemplatePage(workspace: workspace, mode: mode) }
+            // Capturing the whole parent also captures its changing dismiss environment.
+            // Keep destination construction independent of that navigation context.
+            .navigationDestination(item: $editing) { [workspace] mode in InspectionTemplatePage(workspace: workspace, mode: mode) }
             .onAppear {
                 // Returning from an editor must not silently reset the user's radio selection.
                 if !initialized {

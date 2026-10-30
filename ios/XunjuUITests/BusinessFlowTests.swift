@@ -166,7 +166,10 @@ import XCTest
         let cardVideo = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'manualIssue.' AND identifier CONTAINS '.video.'")).firstMatch
         reveal(cardVideo, app)
         let play = app.buttons["Play/Pause"]
-        if play.isHittable { play.tap() } else { cardVideo.tap() }
+        if !play.isHittable { cardVideo.tap() }
+        let controlsReady = expectation(for: NSPredicate(format: "hittable == true"), evaluatedWith: play)
+        XCTAssertEqual(XCTWaiter.wait(for: [controlsReady], timeout: 3), .completed)
+        if !["Pause", "暂停"].contains(play.label) { play.tap() }
         let playing = expectation(for: NSPredicate(format: "label IN %@", ["Pause", "暂停"]), evaluatedWith: play)
         XCTAssertEqual(XCTWaiter.wait(for: [playing], timeout: 3), .completed)
         XCTAssertFalse(app.textFields["issueEditor.title"].exists)
