@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "pr": "https://github.com/Hayden-Chang/rent_room/pull/98",
+  "base": "8a078ec6dcc0aab0681f3099e936acae77ff8b30",
+  "baseRechecked": "b5a3b4d40d6476dffd17fcf30721d3b6383d4788",
+  "evidenceSha": "a2e740a17cf3869224433021d48417f4791c552a",
+  "scope": "Top alignment after first filling guide acceptance, both checklist modes, and later dismissal scroll restoration",
+  "configuration": {
+    "name": "Debug",
+    "SWIFT_OPTIMIZATION_LEVEL": "-O",
+    "ARCHS": "arm64",
+    "parallelTesting": false
+  },
+  "rawEvidenceRoot": "/private/tmp/rent-room-ios-onboarding-evidence-20261030",
+  "finalCommand": "#!/bin/zsh\nGIT_CONFIG_GLOBAL=/dev/null node '/Volumes/mac2/projects/git_repo/run_self/Simulator Management/bin/sim-test-run.mjs' --plan /private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated-plan.json  -- /private/tmp/rent-room-ios-onboarding-top-20261030/scripts/run-xcodebuild.sh -project /private/tmp/rent-room-ios-onboarding-top-20261030/ios/Xunju.xcodeproj -scheme Xunju -configuration Debug -destination 'platform=iOS Simulator,id=__SIM_UDID__' -derivedDataPath /Volumes/mac2/codex-builds/rent-room-onboarding-green-calibrated-20261030-__SIM_UDID__ -clonedSourcePackagesDirPath /private/tmp/rent-room-ios-onboarding-evidence-20261030/SourcePackages -skipPackageUpdates -resultBundlePath /private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated.xcresult -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO ARCHS=arm64 SWIFT_OPTIMIZATION_LEVEL=-O test -only-testing:XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop -only-testing:XunjuUITests/InspectionBusinessUITests/testFirstDetailedFillingStartsAtExpandedSectionTop -only-testing:XunjuUITests/InspectionBusinessUITests/testLaterFillingGuideRestoresReadingPosition\n",
+  "finalPlan": {
+    "schemaVersion": 1,
+    "runId": "rent-room-onboarding-green-calibrated-20261030",
+    "phase": "final-pr-head",
+    "taskName": "首次填写顶部对齐最终 UI 验证",
+    "sessionId": "01a18abc-ba28-7211-935a-5b98fddfac2f",
+    "workspace": "/private/tmp/rent-room-ios-onboarding-top-20261030",
+    "unitTestTarget": "XunjuTests",
+    "uiTestTarget": "XunjuUITests",
+    "unitTests": [],
+    "uiTests": [
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop",
+        "reason": "真实首次引导后展开分类须从顶部显示",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testFirstDetailedFillingStartsAtExpandedSectionTop",
+        "reason": "真实首次引导后展开分类须从顶部显示",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testLaterFillingGuideRestoresReadingPosition",
+        "reason": "顶部引导关闭后保留原阅读位置",
+        "source": "new-or-modified"
+      }
+    ],
+    "changedUITests": [
+      "XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop",
+      "XunjuUITests/InspectionBusinessUITests/testFirstDetailedFillingStartsAtExpandedSectionTop",
+      "XunjuUITests/InspectionBusinessUITests/testLaterFillingGuideRestoresReadingPosition"
+    ],
+    "headSha": "a2e740a17cf3869224433021d48417f4791c552a"
+  },
+  "baselineSummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+          "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+          "modelName": "iPhone 14 Pro",
+          "osBuildNumber": "22D8075",
+          "osVersion": "18.3.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 2,
+        "passedTests": 3,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "Xunju · Built with macOS 26.2",
+    "expectedFailures": 0,
+    "failedTests": 2,
+    "finishTime": 1793335486.758,
+    "passedTests": 3,
+    "result": "Failed",
+    "skippedTests": 0,
+    "startTime": 1793335030.288,
+    "statistics": [],
+    "testFailures": [
+      {
+        "failureText": "XCTAssertTrue failed",
+        "targetName": "XunjuUITests",
+        "testIdentifier": 3,
+        "testIdentifierString": "InspectionBusinessUITests/testFirstDetailedFillingStartsAtExpandedSectionTop()",
+        "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionBusinessUITests/testFirstDetailedFillingStartsAtExpandedSectionTop",
+        "testName": "testFirstDetailedFillingStartsAtExpandedSectionTop()"
+      },
+      {
+        "failureText": "XCTAssertTrue failed",
+        "targetName": "XunjuUITests",
+        "testIdentifier": 4,
+        "testIdentifierString": "InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop()",
+        "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop",
+        "testName": "testFirstSimpleFillingStartsAtExpandedSectionTop()"
+      }
+    ],
+    "title": "Test - Xunju",
+    "topInsights": [],
+    "totalTestCount": 5
+  },
+  "baselineSource": {
+    "head": "a2e740a17cf3869224433021d48417f4791c552a",
+    "patch": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/red-calibrated-production-reversal.patch",
+    "mode": "only scrollAnchor reversed to original center"
+  },
+  "unitReuse": "Same two unit methods, fixture, core and build configuration; final change only restores .top in ChecklistPage",
+  "mainAgentReview": "Reviewed GitHub diff after PR creation and stable-identifier changes; no blocking code findings",
+  "limitations": [
+    "No full UI suite",
+    "Final UI fixture starts immediately after teaching; full first teaching not re-executed",
+    "Intermittent entry wait observed in baseline and earlier candidate, with SwiftUI activity sample preserved",
+    "No physical device verification or mini-program pixel parity claim"
+  ],
+  "preservedEvidenceRoot": "/Users/pc/.codex/visualizations/2026/10/30/01a18abc-ba28-7211-935a-5b98fddfac2f/ios-filling-guide-evidence",
+  "finalSummary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+          "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+          "modelName": "iPhone 14 Pro",
+          "osBuildNumber": "22D8075",
+          "osVersion": "18.3.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 3,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "Xunju · Built with macOS 26.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1793336408.014,
+    "passedTests": 3,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1793336188.258,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - Xunju",
+    "topInsights": [],
+    "totalTestCount": 3
+  },
+  "finalReceipt": {
+    "runId": "rent-room-onboarding-green-calibrated-20261030",
+    "token": "bdd6d1ae-bfad-4e00-b036-215b2058a2d5",
+    "resultBundlePath": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated.xcresult",
+    "requestedAt": 1793335555924,
+    "cacheWaitSeconds": 0.048,
+    "queueSeconds": 506.10699999999997,
+    "buildResultBundlePath": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated.build.xcresult",
+    "stages": {
+      "build": {
+        "queuedAt": 1793335555973,
+        "startedAt": 1793335765566,
+        "queueSeconds": 209.593,
+        "finishedAt": 1793335874571,
+        "exitCode": 0
+      },
+      "test": {
+        "queuedAt": 1793335874721,
+        "startedAt": 1793336171235,
+        "queueSeconds": 296.514,
+        "finishedAt": 1793336413298,
+        "exitCode": 0
+      }
+    },
+    "commandStartedAt": 1793336171235,
+    "finishedAt": 1793336413324,
+    "exitCode": 0
+  },
+  "finalLeaseReleased": true,
+  "images": [
+    {
+      "file": "after-first-detailed-expanded-section.png",
+      "run": "green-calibrated",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated-images/2C9A2511-C854-4947-BAFF-8666A9686893.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "befafb2e81b0c23118f9b857ef90c11c322558a58ad2fdb2d4a3bb94d8b3c8de"
+    },
+    {
+      "file": "after-first-detailed-filling-guide.png",
+      "run": "green-calibrated",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated-images/C5E1507A-A0BB-4F35-9CCE-D775DE1DB003.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "7a84593120972b29559d1a926d45fcee3359cb2a09287d94eecd292a6b793ebe"
+    },
+    {
+      "file": "after-first-simple-expanded-section.png",
+      "run": "green-calibrated",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated-images/D183A650-A7C1-42FF-B48E-9E7FC4BE92C8.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "6e5d2527877e22568ad8279200a0404ffa5c19ec0b48a5cfc39af6c8808bf124"
+    },
+    {
+      "file": "after-first-simple-filling-guide.png",
+      "run": "green-calibrated",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated-images/C9B24FE8-020B-42F8-9B9C-5E9040702499.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "d8ae75990314c7cdaa4c943a0f520375dbe9f57390e735735b64e41785444a11"
+    },
+    {
+      "file": "after-filling-later-restores-position.png",
+      "run": "green-calibrated",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated-images/3A710D22-C3AC-4C96-B002-6443922C7941.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "4759a687ba818fc3ef413f4ee86659695238c3e59207945c40c36fa0def26540"
+    },
+    {
+      "file": "after-filling-completion-guide.png",
+      "run": "green-calibrated",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/green-calibrated-images/838D24AB-8D63-488D-ACCC-A52C51F428AE.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "e4633f5027606bb99219f07de87d686721441f24bbf91c4ec35e41248353b37d"
+    },
+    {
+      "file": "before-first-detailed-expanded-section.png",
+      "run": "red-focused",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/red-focused-images/D301EE8A-C432-4925-ADCA-7844661B3EEB.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "e4eeaddac4a45fc080ef3b0684e50fdc4ba3940131676b929d25ba3786abdfd6"
+    },
+    {
+      "file": "before-first-simple-expanded-section.png",
+      "run": "red-focused",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/red-focused-images/BBD358C9-9CA3-4FC1-9F4C-551FCBC3730C.png",
+      "width": 1178,
+      "height": 2556,
+      "sha256": "e4eeaddac4a45fc080ef3b0684e50fdc4ba3940131676b929d25ba3786abdfd6"
+    }
+  ],
+  "measuredAccessibilityFrames": {
+    "simple": {
+      "headingTop": 105,
+      "navigationHeaderBottom": 103
+    },
+    "detailed": {
+      "headingTop": 105,
+      "navigationHeaderBottom": 103
+    }
+  },
+  "actualDerivedData": "/Volumes/mac2/codex-builds/time-fragment-dd-shared-df17cc9a3bd31d5eff9f5bac-simulator"
+}

@@ -218,6 +218,59 @@ import Vision
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["关闭反馈"].exists)
     }
+    func testFirstSimpleFillingStartsAtExpandedSectionTop() {
+        assertFirstFillingStartsAtTop(mode: "simple")
+    }
+    func testFirstDetailedFillingStartsAtExpandedSectionTop() {
+        assertFirstFillingStartsAtTop(mode: "detailed")
+    }
+    private func assertFirstFillingStartsAtTop(mode: String) {
+        let app = launchFilling(mode: mode)
+        capture("first-\(mode)-filling-guide", app)
+        app.buttons["xiaoda.accept"].tap()
+        XCTAssertTrue(app.buttons["xiaoda.accept"].waitForNonExistence(timeout: 3))
+        let heading = app.staticTexts["mp.field.title.node:category:房源基本信息"].firstMatch
+        XCTAssertTrue(heading.waitForExistence(timeout: 5))
+        let top = heading.frame.minY, headerBottom = app.navigationHeader.frame.maxY
+        capture("first-\(mode)-expanded-section", app)
+        print("FILLING \(mode): headingTop=\(top), headerBottom=\(headerBottom)")
+        XCTAssertTrue(heading.isHittable)
+        XCTAssertGreaterThanOrEqual(top, headerBottom)
+        XCTAssertLessThanOrEqual(top, headerBottom + 44)
+        XCTAssertTrue(app.staticTexts["mp.field.title.f1_1"].firstMatch.isHittable,
+                      "去填写必须露出新展开分类的第一个填写项")
+    }
+    private func launchFilling(mode: String) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = ["--business-test", UUID().uuidString, "--filling-guide-fixture", mode,
+                               "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 5)); currency.tap()
+        XCTAssertTrue(currency.waitForNonExistence(timeout: 3))
+        let house = app.buttons["house.首次填写"].firstMatch
+        XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
+        XCTAssertTrue(app.scrollViews["mp.checklist.scroll"].buttons["xiaoda.accept"].firstMatch.waitForExistence(timeout: 5))
+        return app
+    }
+    func testLaterFillingGuideRestoresReadingPosition() {
+        let app = launchFilling(mode: "simple")
+        app.buttons["xiaoda.accept"].tap()
+        search("室内环境", app)
+        for id in ["simple_11", "simple_12", "simple_13"] {
+            let yes = app.buttons["mp.field.choice." + id + ".是"]; reveal(yes, app); yes.tap()
+        }
+        let lastYes = app.buttons["mp.field.choice.simple_49.是"]; reveal(lastYes, app)
+        let label = app.staticTexts["mp.field.title.simple_49"], before = label.frame.minY
+        lastYes.tap()
+        let later = app.buttons["xiaoda.later"]; XCTAssertTrue(later.waitForExistence(timeout: 5))
+        capture("filling-completion-guide", app); later.tap()
+        XCTAssertTrue(later.waitForNonExistence(timeout: 3))
+        let position = expectation(for: NSPredicate { _, _ in abs(label.frame.minY - before) < 2 }, evaluatedWith: label)
+        wait(for: [position], timeout: 3)
+        XCTAssertTrue(lastYes.isSelected)
+        capture("filling-later-restores-position", app)
+    }
     func testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity() {
         let app = launch()
         capture("business-welcome-connected", app)

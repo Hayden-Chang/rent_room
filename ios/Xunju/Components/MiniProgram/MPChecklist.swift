@@ -1,5 +1,20 @@
 import SwiftUI
 import Observation
+import UIKit
+
+enum ChecklistFeedback {
+    case selection, disclosure
+
+    @MainActor private static let selectionGenerator = UISelectionFeedbackGenerator()
+    @MainActor private static let disclosureGenerator = UIImpactFeedbackGenerator(style: .soft)
+
+    @MainActor func play() {
+        switch self {
+        case .selection: Self.selectionGenerator.selectionChanged()
+        case .disclosure: Self.disclosureGenerator.impactOccurred(intensity: 0.5)
+        }
+    }
+}
 
 struct MPSwipeMotion {
     enum Axis { case undecided, horizontal, vertical }
@@ -105,6 +120,7 @@ struct MPFieldRow: View {
     var measurement: MeasurementAction? = nil
     var wheel: (() -> Void)? = nil
     var interaction: (String, Bool?) -> Void = { _, _ in }
+    var feedback: @MainActor (ChecklistFeedback) -> Void = { $0.play() }
     @FocusState private var focused: Bool
     @State private var datePicker = false
     private var height: CGFloat { item.kind == .category ? 56 : item.heading ? 48 : 44 }
@@ -132,7 +148,12 @@ struct MPFieldRow: View {
                             .accessibilityValue(AppCopy.text(item.heading && item.collapsible ? (state.expanded ? "已展开" : "已折叠") : ""))
                         if item.heading && item.collapsible { AppText(state.expanded ? "⌃" : "⌄").font(.system(size: 11)).foregroundStyle(XJTheme.muted).accessibilityHidden(true) }
                     }.frame(maxWidth: item.kind == .text ? 104 : .infinity, minHeight: height, alignment: .leading)
-                        .contentShape(Rectangle()).onTapGesture { if !coordinator.consumeTap(), item.heading && item.collapsible { state.expanded.toggle() } }
+                        .contentShape(Rectangle()).onTapGesture {
+                            if !coordinator.consumeTap(), item.heading && item.collapsible {
+                                state.expanded.toggle()
+                                feedback(.disclosure)
+                            }
+                        }
                     if item.inline || item.heading {
                         ZStack { answer.offset(x: offset) }.clipped().allowsHitTesting(offset == 0)
                     }
@@ -245,7 +266,13 @@ struct MPFieldRow: View {
         option("无", selected: state.noneSelected) { state.noneSelected.toggle() }
     }
     private func option(_ title: String, selected: Bool, isSkip: Bool = false, action: @escaping () -> Void) -> some View {
-        Button { if !coordinator.consumeTap() { action() } } label: {
+        Button {
+            if !coordinator.consumeTap() {
+                action()
+                // One feedback per user action, including a parent choice that also expands.
+                feedback(.selection)
+            }
+        } label: {
             AppText(title).font(.system(size: isSkip ? 12 : 13, weight: item.heading && !isSkip ? .semibold : .regular))
                 .fixedSize(horizontal: true, vertical: false).padding(.horizontal, item.inline ? 10 : 14).frame(minWidth: 44, minHeight: 44)
                 .foregroundStyle(selected ? XJTheme.primary : XJTheme.ink).background(selected ? XJTheme.soft : XJTheme.background)

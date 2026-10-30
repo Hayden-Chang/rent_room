@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "validatedHead": "f60fdb533959992071e369716d08871dfa821205",
+  "integratedBase": "46f6ff384d1fe549883bcf4cc1ecf3c271087681",
+  "advancedBase": "4ebd80f6f7340645d5bc396317dfeddeede7a777",
+  "mergeTree": "3de1fde4999ff65d9f57e5d42a969d8669f2cd5d",
+  "productAndTestPatchId": "21fd2acecf65f082ea2ee1f69f257f606710620a",
+  "baseEquivalence": "Advanced base adds horizontal pan arbitration and haptic feedback. No swipe/drag interactions occurred in the recorded selected runs. Haptic calls follow existing action() / expanded.toggle() without changing state, layout, scrolling, initialization, build configuration, dependencies, or selected tests; the guide button uses a separate unchanged action. DEBUG feedback route is not enabled by these tests. Fresh simulated merge is clean and final ios business/test patch-id remains 21fd2acecf65f082ea2ee1f69f257f606710620a. Same validation environment and selection remain applicable.",
+  "selection": {
+    "schemaVersion": 1,
+    "runId": "rent-room-onboarding-main-ready-20261030",
+    "phase": "final-pr-head",
+    "taskName": "首次填写顶部定位与最新主线组合验证",
+    "sessionId": "01a18abc-ba28-7211-935a-5b98fddfac2f",
+    "workspace": "/private/tmp/rent-room-ios-onboarding-top-20261030",
+    "unitTestTarget": "XunjuTests",
+    "uiTestTarget": "XunjuUITests",
+    "unitTests": [
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testFillingFixtureRequiresExplicitModeAndIsolatedDirectory",
+        "reason": "显式测试入口与隔离数据前置安全性",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testFillingFixtureKeepsAnswersEmptyAndFirstGuidePending",
+        "reason": "显式测试入口与隔离数据前置安全性",
+        "source": "new-or-modified"
+      }
+    ],
+    "uiTests": [
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop",
+        "reason": "真实首次引导后展开分类须从顶部显示",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testFirstDetailedFillingStartsAtExpandedSectionTop",
+        "reason": "真实首次引导后展开分类须从顶部显示",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testLaterFillingGuideRestoresReadingPosition",
+        "reason": "顶部引导关闭后保留原阅读位置",
+        "source": "new-or-modified"
+      }
+    ],
+    "changedUITests": [
+      "XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop",
+      "XunjuUITests/InspectionBusinessUITests/testFirstDetailedFillingStartsAtExpandedSectionTop",
+      "XunjuUITests/InspectionBusinessUITests/testLaterFillingGuideRestoresReadingPosition"
+    ],
+    "headSha": "f60fdb533959992071e369716d08871dfa821205"
+  },
+  "campaign": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+          "deviceName": "todo-pool-bicycle-20260717111352",
+          "modelName": "iPhone 16",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 1,
+        "passedTests": 4,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "Xunju · Built with macOS 26.2",
+    "expectedFailures": 0,
+    "failedTests": 1,
+    "finishTime": 1793346834.836,
+    "passedTests": 4,
+    "result": "Failed",
+    "skippedTests": 0,
+    "startTime": 1793346525.164,
+    "statistics": [],
+    "testFailures": [
+      {
+        "failureText": "Failed to get matching snapshots: Timed out while evaluating UI query.",
+        "targetName": "XunjuUITests",
+        "testIdentifier": 4,
+        "testIdentifierString": "InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop()",
+        "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop",
+        "testName": "testFirstSimpleFillingStartsAtExpandedSectionTop()"
+      }
+    ],
+    "title": "Test - Xunju",
+    "topInsights": [],
+    "totalTestCount": 5
+  },
+  "singleFailureRecovery": {
+    "sameHead": true,
+    "sameDevice": true,
+    "codeChanges": [],
+    "hypothesis": "Determine whether the isolated simple case completes without the preceding detailed-case launch; a pass does not establish the underlying navigation stall is fixed.",
+    "result": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+            "deviceName": "todo-pool-bicycle-20260717111352",
+            "modelName": "iPhone 16",
+            "osBuildNumber": "23F77",
+            "osVersion": "26.5",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "Xunju · Built with macOS 26.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1793347457.352,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1793347367.966,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - Xunju",
+      "topInsights": [],
+      "totalTestCount": 1
+    },
+    "selection": {
+      "schemaVersion": 1,
+      "runId": "rent-room-onboarding-simple-recovery-20261030",
+      "phase": "final-pr-head",
+      "taskName": "同设备独立检查精简引导的启动顺序影响",
+      "sessionId": "01a18abc-ba28-7211-935a-5b98fddfac2f",
+      "workspace": "/private/tmp/rent-room-ios-onboarding-top-20261030",
+      "unitTestTarget": "XunjuTests",
+      "uiTestTarget": "XunjuUITests",
+      "unitTests": [],
+      "uiTests": [
+        {
+          "selector": "XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop",
+          "reason": "真实首次引导后展开分类须从顶部显示",
+          "source": "new-or-modified"
+        }
+      ],
+      "changedUITests": [
+        "XunjuUITests/InspectionBusinessUITests/testFirstSimpleFillingStartsAtExpandedSectionTop"
+      ],
+      "headSha": "f60fdb533959992071e369716d08871dfa821205"
+    }
+  },
+  "coverage": "Two new unit tests and three unique UI methods passed across the full campaign plus exact single-case recovery; no full-suite claim.",
+  "initialIntegratedRun": "main at 26f1731 interrupted after identifying newly required currency prompt prerequisite; exit 130, not counted as green.",
+  "testAdaptation": "f60fdb5 adds real tap on currency.prompt.decline (使用美元) and waits for disappearance; original position assertions unchanged.",
+  "limitations": [
+    "Intermittent checklist entry wait remains recorded; not claimed fixed",
+    "No physical-device or full first-teaching end-to-end coverage"
+  ],
+  "preservedEvidenceRoot": "/Users/pc/.codex/visualizations/2026/10/30/01a18abc-ba28-7211-935a-5b98fddfac2f/ios-filling-guide-evidence",
+  "images": [
+    {
+      "file": "first-detailed-expanded-section.png",
+      "run": "main-ready",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/main-ready-images/10C7B27F-7B78-4A4D-8CCB-B9EAD722BFD5.png",
+      "dimensions": [
+        1178,
+        2556
+      ],
+      "sha256": "e246dbbbb10f6ba01dc3830f2e8e6967ea37a32edeaceb8c543a234cbf28d813"
+    },
+    {
+      "file": "first-detailed-filling-guide.png",
+      "run": "main-ready",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/main-ready-images/26FA5C8D-A8CB-4AE1-8327-BB331C8C27A7.png",
+      "dimensions": [
+        1178,
+        2556
+      ],
+      "sha256": "35f0e35c672158ec12f5bad71ec36683341e7a6c907b2fb103736c2ce1425409"
+    },
+    {
+      "file": "filling-later-restores-position.png",
+      "run": "main-ready",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/main-ready-images/F93A297E-8E3F-4479-87F0-7D717FDB27B4.png",
+      "dimensions": [
+        1178,
+        2556
+      ],
+      "sha256": "82971364c5199561003a4698e162ed1c9b8d22d59c27e5e8a6ec90395491efd9"
+    },
+    {
+      "file": "filling-completion-guide.png",
+      "run": "main-ready",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/main-ready-images/A172D1EF-5CBB-48B5-A649-59BCEDC3A493.png",
+      "dimensions": [
+        1178,
+        2556
+      ],
+      "sha256": "4a57c10f9ca5f6b5ba9604684da5ecb52be36c92eb18958ec62e3b31415ea78f"
+    },
+    {
+      "file": "first-simple-expanded-section.png",
+      "run": "simple-recovery",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/simple-recovery-images/0E4444BA-F6F2-4CB2-8C5F-716FDDF1B0DA.png",
+      "dimensions": [
+        1178,
+        2556
+      ],
+      "sha256": "ca94a56239025383819560174bdcdd3ba269e8a7a6487aec4f90c40357d48462"
+    },
+    {
+      "file": "first-simple-filling-guide.png",
+      "run": "simple-recovery",
+      "originalAttachment": "/private/tmp/rent-room-ios-onboarding-evidence-20261030/simple-recovery-images/B62FBAC0-ABF8-46C8-B841-993355587705.png",
+      "dimensions": [
+        1178,
+        2556
+      ],
+      "sha256": "dda6adb2d0e1e673a71d7fac4af5976f51743225eb688371f5abc5fa6ca194ba"
+    }
+  ],
+  "leasesReleased": true,
+  "approval": "User explicitly requested 合入到主线 after screenshot presentation.",
+  "baseAdvances": [
+    {
+      "sha": "a4b47a1a3e05a42d4940e24f1155a14b66c5f2e5",
+      "change": "Horizontal pan arbitration; no matching gestures executed in selected runs."
+    },
+    {
+      "sha": "4ebd80f6f7340645d5bc396317dfeddeede7a777",
+      "change": "Selection/disclosure haptic calls after existing state actions; no changes to guide, scroll, layout, data, test configuration or selected tests."
+    }
+  ]
+}

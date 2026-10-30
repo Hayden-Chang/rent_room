@@ -2,7 +2,7 @@
 import SwiftUI
 
 enum MPReviewRoute: String, CaseIterable {
-    case home, archive, detail, compare, settings, transfer, workplace, commute, capacity, editor, guide, speed
+    case home, archive, detail, compare, settings, transfer, workplace, commute, capacity, editor, guide, speed, feedback
     static func parse(_ args: [String]) -> MPReviewRoute? {
         guard let index = args.firstIndex(of: "--component-review"), args.indices.contains(index + 1),
               args[index + 1].hasPrefix("parity-") else { return nil }
@@ -62,6 +62,7 @@ struct MPReviewHost: View {
         case .editor: "新建问题"
         case .guide: "阳光小区"
         case .speed: "网速测试"
+        case .feedback: "清单触觉验收"
         }
     }
     var body: some View {
@@ -122,6 +123,8 @@ struct MPReviewHost: View {
         case .editor:
             MPIssueReviewHost(state: state, close: { route = .detail })
         case .guide: EmptyView()
+        case .feedback:
+            ChecklistFeedbackReviewHost()
         case .speed:
             ScrollView {
                 SpeedStatusCard(state: state == "done" ? .done : state == "error" ? .saveError("结果未能保存，请重试；原答案保持不变") : .testing,

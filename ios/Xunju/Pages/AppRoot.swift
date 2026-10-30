@@ -14,7 +14,7 @@ struct AppRoot: View {
                     AppText(launchError).font(.subheadline)
                     Button(AppCopy.text("重试"), action: load).buttonStyle(XJButtonStyle(primary: true))
                 }.padding(24)
-            } else { ProgressView(AppCopy.text("正在读取本机记录…")) }
+            } else { BrandLaunchSurface() }
         }.frame(maxWidth: .infinity, maxHeight: .infinity).background(XJTheme.background)
             .task { if workspace == nil { load() } }
             .onChange(of: scenePhase) { _, phase in
