@@ -26,3 +26,14 @@ struct ChecklistSoundToggle: View {
         .accessibilityIdentifier("checklist.sound.toggle")
     }
 }
+
+/// Stores the preference for this installation; the visual toggle stays reusable.
+struct ChecklistSoundControl: View {
+    @AppStorage(ChecklistSoundPreference.key, store: ChecklistSoundPreference.defaults())
+    private var enabled = ChecklistSoundPreference.defaultValue
+
+    var body: some View {
+        ChecklistSoundToggle(enabled: $enabled)
+            .onChange(of: enabled) { if !enabled { ChecklistSound.stop() } }
+    }
+}

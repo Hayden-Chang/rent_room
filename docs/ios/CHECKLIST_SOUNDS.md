@@ -32,3 +32,7 @@ ffmpeg -v error -nostdin -i trimmed-sped.wav \
 `checklist-problem.wav`仍由`ios/scripts/build-checklist-sounds.py`生成，时长290ms，48kHz单声道PCM16。此次未改变文件字节。
 
 校验命令：`python3 ios/scripts/build-checklist-sounds.py --check`。XCTest的`ChecklistSoundTests/testBundledSoundsDecodeAsDistinctShortMonoCues`验证实际打包资源能够解码，单声道、时长正确且不超过0.8秒、文件小于80KB且两段不同。
+
+## 声音开关
+
+房源页右上角铃铛点击切换声音，关闭时添加从右上到左下的斜线。默认开启；选择保存在本安装的 UserDefaults 中，跨房源、重启继续沿用。正向音和问题音统一遵循开关，关闭时停止正在播放的提示音；音效仍遵循系统静音模式，触觉反馈独立。DEBUG 业务测试使用 UUID 隔离的偏好域，不改变用户设置。
