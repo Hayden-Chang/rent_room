@@ -1,11 +1,13 @@
 import {beginHouseAction} from '../../lib/house-intent.js';
+import {houseLongPressHintDismissed,dismissHouseLongPressHint} from '../../lib/house-long-press-hint.js';
 import {homeXiaodaData,homeXiaodaMethods} from '../../lib/home-xiaoda.js';
 import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {stats} from '../../lib/model.js';
 import {service,attempt,watch,unwatch,prompt,confirm} from '../../lib/ui.js';
-const home=protectedPage({data:{...homeXiaodaData,query:'',pending:false,houses:[],saveError:''},
-  onLoad(){watch(this);},onShow(){this.refresh();this.showHomeXiaoda();},onUnload(){unwatch(this);},
+const home=protectedPage({data:{...homeXiaodaData,query:'',pending:false,houses:[],saveError:'',longPressHintDismissed:false},
+  onLoad(){watch(this);},onShow(){this.setData({longPressHintDismissed:houseLongPressHintDismissed()});this.refresh();this.showHomeXiaoda();},onUnload(){unwatch(this);},
+  dismissLongPressHint(){return attempt(()=>{dismissHouseLongPressHint();this.setData({longPressHintDismissed:true});});},
   refresh(){const {query,pending}=this.data;this.setData({houses:service().store.get().houses.filter(h=>!h.archived&&(!pending||!h.decision||h.decision==='继续比较')&&`${h.name} ${h.address}`.includes(query)).map(h=>({id:h.id,name:h.name,address:h.address,decision:h.decision,stats:stats(h),rent:h.answers.f1_6?.value==null||h.answers.f1_6.value===''?'待填写':h.answers.f1_6.value,area:h.answers.f1_3?.value||'—',cover:h.media.find(m=>m.type==='image')?.path||''}))});},
   search(e){this.setData({query:e.detail.value});this.refresh();},filter(e){this.setData({pending:e.currentTarget.dataset.value==='pending'});this.refresh();},
   add(){return attempt(()=>beginHouseAction('create'));},
