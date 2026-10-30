@@ -19,11 +19,11 @@ final class BrandLaunchReviewTests: XCTestCase {
         let surface = app.otherElements["brandLaunch.surface"]
         XCTAssertTrue(surface.exists)
         XCTAssertEqual(surface.staticTexts.count, 0, "The launch surface contains no visible copy")
-        XCTAssertEqual(surface.images.count, 1, "Only the house icon is displayed")
+        XCTAssertEqual(surface.images.count, 1, "Only the brand logo is displayed")
         XCTAssertEqual(app.buttons.count, 0, "The static brand surface has no action or skip button")
 
         let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = "brand-launch-icon-only"
+        attachment.name = "brand-launch-mini-program-logo"
         attachment.lifetime = .keepAlways
         add(attachment)
     }

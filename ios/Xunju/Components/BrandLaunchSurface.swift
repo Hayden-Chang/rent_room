@@ -9,7 +9,8 @@ struct BrandLaunchSurface: View {
             Image("brand-launch-icon")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 96, height: 96)
+                .frame(width: 112, height: 112)
+                .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
                 .accessibilityLabel("寻居")
                 .accessibilityIdentifier("brandLaunch.icon")
         }
