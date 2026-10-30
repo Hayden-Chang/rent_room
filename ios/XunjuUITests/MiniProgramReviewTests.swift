@@ -259,12 +259,12 @@ import XCTest
             for action in ["标记问题", "备注", "拍摄"] {
                 XCTAssertTrue(app.buttons["mp.field.action.seal.\(action)"].isHittable)
             }
-            XCTAssertTrue(app.buttons["mp.field.choice.seal.是"].isSelected)
             let reverse = row.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.3))
             reverse.press(forDuration: 0.05, thenDragTo: reverse.withOffset(CGVector(dx: 150, dy: -drift)),
                           withVelocity: .slow, thenHoldForDuration: 0)
             XCTAssertFalse(app.buttons["mp.field.action.seal.备注"].exists)
             XCTAssertEqual(title.frame.minY, before, accuracy: 2)
+            XCTAssertTrue(app.buttons["mp.field.choice.seal.是"].isSelected)
         }
 
         row.swipeLeft()
