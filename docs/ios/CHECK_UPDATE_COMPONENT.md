@@ -32,6 +32,20 @@
 
 `-07` 在队列等待期间因本文档发生修改而被运行器的工作区快照保护终止，未构建、未执行测试；保留原日志与退出码 2 的收据。先提交文档并冻结工作区，再用新的 run ID 执行同一组测试。
 
+#### 当前可评审结果
+
+- 状态：`REVIEW_READY`。已逐张查看并展示 10 张单行布局截图，完整设置页和真实查询仍等待用户视觉确认。
+- 最终代码证据 SHA：`cccde6940541ee5244c2ff2ea922b5397ceb14c8`。之后只补充文档，未改变代码、配置或测试行为。
+- `-08` / `80521f9`：3 UI 中 2 项通过，首次检查用例失败；iPhone 16 / iOS 26.5。保留通过的最新、无结果、网络失败、系统要求和商店不可用用例及截图。
+- `-09` / `6b9fb32`：仅诊断首个失败用例，iPhone 14 Pro / iOS 18.3.1 也复现。可点击条件通过，点击后真实截图和层级显示检查计数仍为 0，排除仅仅状态查询文案不匹配；原断言保留。
+- 修正为在按钮被激活时显式执行 `if offersUpdate { onUpdate() } else { onCheck() }`，替代构建视图时通过三元表达式传入回调；移除临时截图和层级诊断，保留点击就绪条件。
+- `-10` / `cccde69`：仅复测 `testCheckingNewVersionLaterAndStoreHandoffFailure`，1 UI 通过、0 失败、0 跳过，25.341 秒；iPhone 14 Pro / iOS 18.3.1。首次检查、检查中禁用、稍后、行内直接更新和弹窗更新均通过。不能据此声称修正后的完整流程已在 iOS 26.5 复测。
+- 按单一失败恢复规则组合 `-08` 的 2 项通过与 `-10` 的 1 项通过。已检查 `80521f9..cccde69`：只有按钮动作分发和首个用例的点击就绪条件变化，仍是同一检查/更新边界；两个既有通过用例的状态文案、布局、宿主、断言未变。未运行全量测试。
+- 10 张原图均为 1178 × 2556 px，逻辑视口 393 × 852 pt；01–05 来自 `-10`，06–10 来自 `-08`。没有重绘、裁切或拼接，来源与哈希见 `screenshots-single-row.json`。
+- 结果包：`/Volumes/mac2/codex-builds/rent-room-check-update-20261030-08.xcresult`、`/Volumes/mac2/codex-builds/rent-room-check-update-20261030-10.xcresult`；失败诊断 `-09.xcresult` 同目录保留。
+- 图集：`/Volumes/mac2/projects/git_repo/run_self/rent_room/outputs/ios-check-update-20261030/REVIEW-SINGLE-ROW.md`；原始附件为同目录 `attachments-08/`、`attachments-10/`，命名原图为 `screenshots-single-row/`。精确命令、日志、收据、汇总为同目录的 `run-single-row-*.sh`、`development-*.log`、`receipt-*.json`、`summary-*.json`。
+- 统一 runner 配置 `/Volumes/mac2/projects/git_repo/run_self/Simulator Management/config/runner.json`；本任务缓存 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-2d2e498785c52092d5d69415-simulator` 按工作树/工程/scheme 隔离；所有批次结束后，本任务队列、执行槽与设备租约均已释放。生成工程未入 Git，`ios/project.yml` 未修改，XcodeGen 2.45.4 双次生成检查通过。
+
 ### 首版双行布局验证（已被单行设计替代）
 
 - 首版状态：用户提出排版修改，双行布局不再用于当前视觉验收。
