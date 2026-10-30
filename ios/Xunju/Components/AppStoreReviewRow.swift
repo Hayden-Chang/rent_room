@@ -24,17 +24,17 @@ struct AppStoreReviewRow: View {
             openURL(url) { accepted in showingError = !accepted }
         } label: {
             HStack(spacing: 16) {
-                Text("在 App Store 中评价").fontWeight(.medium).foregroundStyle(XJTheme.ink)
+                AppText("在 App Store 中评价").fontWeight(.medium).foregroundStyle(XJTheme.ink)
                 Spacer(minLength: 0)
-                Text("›").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted)
+                AppText("›").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted)
             }.font(.system(size: 14)).frame(minHeight: 50).contentShape(Rectangle())
                 .overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
         }.buttonStyle(.plain)
             .accessibilityIdentifier("settings.appStoreReview")
-            .alert("无法打开 App Store", isPresented: $showingError) {
-                Button("好", role: .cancel) {}
+            .alert(AppCopy.text("无法打开 App Store"), isPresented: $showingError) {
+                Button(AppCopy.text("好"), role: .cancel) {}
             } message: {
-                Text("暂时无法打开评价页面，请稍后重试。")
+                AppText("暂时无法打开评价页面，请稍后重试。")
             }
     }
 }

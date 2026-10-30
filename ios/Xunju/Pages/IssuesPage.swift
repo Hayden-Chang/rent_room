@@ -14,11 +14,11 @@ struct IssuesPage: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 SaveBanner(workspace: workspace)
-                Text("需要关注 · \(workspace.store.houses.first { $0.id == id }?.stats.issues ?? 0)").font(.system(size: 16, weight: .semibold)).frame(height: 24).padding(.top, 20)
+                AppText("需要关注 · \(workspace.store.houses.first { $0.id == id }?.stats.issues ?? 0)").font(.system(size: 16, weight: .semibold)).frame(height: 24).padding(.top, 20)
                 if automatic.isEmpty && manual.isEmpty {
                     VStack(spacing: 12) {
-                        Text("目前没有标记的问题").font(.system(size: 17, weight: .semibold)).frame(height: 25.5)
-                        Text("未检查的项目仍需继续查看。").font(.system(size: 14)).frame(height: 21).foregroundStyle(XJTheme.muted)
+                        AppText("目前没有标记的问题").font(.system(size: 17, weight: .semibold)).frame(height: 25.5)
+                        AppText("未检查的项目仍需继续查看。").font(.system(size: 14)).frame(height: 21).foregroundStyle(XJTheme.muted)
                     }.frame(maxWidth: .infinity).padding(.horizontal, 24).padding(.vertical, 56)
                 }
                 ForEach(automatic, id: \.id) { field in
@@ -42,7 +42,7 @@ struct IssuesPage: View {
             .sheet(item: $preview) { MediaPreviewSheet(item: $0) }
             .toolbar { ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("完成") { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
+                Button(AppCopy.text("完成")) { UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil) }
                     .accessibilityIdentifier("issues.keyboard.done")
             } }
     }
@@ -72,11 +72,11 @@ private struct IssueEditor: View {
                 addMedia: { picking = true },
                 removeMedia: { tile in if let item = draft.media.first(where: { $0.id == tile.id }) { draft.remove(item) } },
                 preview: { preview = $0 }, cancel: { draft.discard(); dismiss() }, save: { if draft.save() { dismiss() } })
-                .miniNavigation(isNew ? "新建问题" : "问题详情", back: { if draft.dirty { discarding = true } else { draft.discard(); dismiss() } })
-                .alert("放弃修改？", isPresented: $discarding) {
-                    Button("放弃", role: .destructive) { draft.discard(); dismiss() }
-                    Button("继续编辑", role: .cancel) {}
-                } message: { Text("尚未保存的文字和新增影像将被放弃。") }
+                .miniNavigation(AppCopy.text(isNew ? "新建问题" : "问题详情"), back: { if draft.dirty { discarding = true } else { draft.discard(); dismiss() } })
+                .alert(AppCopy.text("放弃修改？"), isPresented: $discarding) {
+                    Button(AppCopy.text("放弃"), role: .destructive) { draft.discard(); dismiss() }
+                    Button(AppCopy.text("继续编辑"), role: .cancel) {}
+                } message: { AppText("尚未保存的文字和新增影像将被放弃。") }
                 .interactiveDismissDisabled(draft.dirty || picking || draft.saving)
                 .fullScreenCover(isPresented: $picking) {
                     MediaPickerSheet(workspace: workspace, houseID: draft.houseID, stage: { try draft.addImported($0) })

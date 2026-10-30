@@ -74,25 +74,25 @@ struct CoachOverlay: View {
 
     private func card(optedOut: Bool) -> some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("\(step) / \(steps.count)").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
-            Text(steps[step - 1].title).font(.system(size: 17, weight: .semibold)).padding(.top, 5).accessibilityIdentifier("coach.title")
-            Text(steps[step - 1].body).font(.system(size: 14)).foregroundStyle(XJTheme.muted).lineSpacing(4).frame(minHeight: 48, alignment: .topLeading)
+            AppText("\(step) / \(steps.count)").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+            AppText(steps[step - 1].title).font(.system(size: 17, weight: .semibold)).padding(.top, 5).accessibilityIdentifier("coach.title")
+            AppText(steps[step - 1].body).font(.system(size: 14)).foregroundStyle(XJTheme.muted).lineSpacing(4).frame(minHeight: 48, alignment: .topLeading)
             if step == 4 {
                 Button { hideAutomatically.toggle() } label: {
                     HStack(spacing: 10) {
                         ZStack {
                             RoundedRectangle(cornerRadius: 4).fill(optedOut ? XJTheme.primary : .clear)
                             RoundedRectangle(cornerRadius: 4).stroke(optedOut ? XJTheme.primary : XJTheme.muted, lineWidth: 1.2)
-                            if optedOut { Text("✓").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white) }
+                            if optedOut { AppText("✓").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white) }
                         }.frame(width: 18, height: 18).accessibilityHidden(true)
-                        Text("不再自动显示").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
+                        AppText("不再自动显示").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                     }.frame(minHeight: 36)
-                }.buttonStyle(.plain).accessibilityIdentifier("coach.preference").accessibilityValue(optedOut ? "已选中" : "未选中")
+                }.buttonStyle(.plain).accessibilityIdentifier("coach.preference").accessibilityValue(AppCopy.text(optedOut ? "已选中" : "未选中"))
                     .accessibilityAddTraits(optedOut ? [.isSelected] : [])
             }
-            if target == nil { Text("当前清单没有可演示的检查项。").font(.system(size: 12)).foregroundStyle(XJTheme.danger) }
-            if !error.isEmpty { Text(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger).accessibilityIdentifier("coach.error") }
-            Button("知道了", action: next).font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
+            if target == nil { AppText("当前清单没有可演示的检查项。").font(.system(size: 12)).foregroundStyle(XJTheme.danger) }
+            if !error.isEmpty { AppText(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger).accessibilityIdentifier("coach.error") }
+            Button(AppCopy.text("知道了"), action: next).font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
                 .frame(maxWidth: .infinity, minHeight: 44).background(XJTheme.primary).clipShape(RoundedRectangle(cornerRadius: 10))
                 .padding(.top, step == 4 ? 8 : 20).accessibilityIdentifier("coach.next")
         }.foregroundStyle(XJTheme.ink).padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 12)
@@ -102,14 +102,14 @@ struct CoachOverlay: View {
 
     private var swipeDemo: some View {
         HStack(spacing: 0) {
-            Text(fieldLabel).font(.system(size: 13)).foregroundStyle(XJTheme.ink).lineLimit(1).padding(.horizontal, 8)
+            AppText(fieldLabel).font(.system(size: 13)).foregroundStyle(XJTheme.ink).lineLimit(1).padding(.horizontal, 8)
                 .frame(maxWidth: .infinity, alignment: .leading)
             if swiped {
                 HStack(spacing: 0) {
-                    XJIcon(name: "swipe-issue", size: 26).frame(width: 44, height: 44).accessibilityLabel("标记问题")
-                    XJIcon(name: "swipe-note", size: 26).frame(width: 44, height: 44).accessibilityLabel("备注")
-                    XJIcon(name: "coach-media", size: mediaIconSize).frame(width: 44, height: 44).accessibilityLabel("影像")
-                }.accessibilityElement(children: .ignore).accessibilityLabel("标记问题、备注、影像").accessibilityIdentifier("coach.actions")
+                    XJIcon(name: "swipe-issue", size: 26).frame(width: 44, height: 44).accessibilityLabel(AppCopy.text("标记问题"))
+                    XJIcon(name: "swipe-note", size: 26).frame(width: 44, height: 44).accessibilityLabel(AppCopy.text("备注"))
+                    XJIcon(name: "coach-media", size: mediaIconSize).frame(width: 44, height: 44).accessibilityLabel(AppCopy.text("影像"))
+                }.accessibilityElement(children: .ignore).accessibilityLabel(AppCopy.text("标记问题、备注、影像")).accessibilityIdentifier("coach.actions")
                     .transition(.move(edge: .trailing))
             }
         }.background(.white).clipShape(RoundedRectangle(cornerRadius: 10))

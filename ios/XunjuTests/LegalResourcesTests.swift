@@ -21,6 +21,7 @@ final class LegalResourcesTests: XCTestCase {
         XCTAssertEqual(defaults?["NSPrivacyAccessedAPITypeReasons"] as? [String], ["CA92.1"])
         let collected = try XCTUnwrap(plist["NSPrivacyCollectedDataTypes"] as? [[String: Any]])
         XCTAssertTrue(collected.allSatisfy { $0["NSPrivacyCollectedDataTypeTracking"] as? Bool == false })
+        XCTAssertFalse(collected.contains { ["NSPrivacyCollectedDataTypePurchaseHistory", "NSPrivacyCollectedDataTypeUserID"].contains($0["NSPrivacyCollectedDataType"] as? String ?? "") })
         XCTAssertTrue(collected.contains { $0["NSPrivacyCollectedDataType"] as? String == "NSPrivacyCollectedDataTypeCustomerSupport" })
     }
 

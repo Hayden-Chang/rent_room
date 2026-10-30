@@ -3,7 +3,7 @@ import Foundation
 /// Adapts the shared mini-program form without reconstructing its hierarchy or
 /// visibility rules in Swift. Folding must never write an answer.
 enum ChecklistPresentation {
-    static func item(_ field: JSONValue, hideDivider: Bool = false) -> MPFieldItem {
+    static func item(_ field: JSONValue, hideDivider: Bool = false, currency: String = "CNY") -> MPFieldItem {
         let heading = field["heading"].string
         let kind: MPFieldItem.Kind = heading == "category" ? .category : heading == "group" ? .group : field["wheel"].bool ? .wheel :
             !field["options"].array.isEmpty ? .choice : field["type"].string == "n" ? .number :
@@ -18,7 +18,7 @@ enum ChecklistPresentation {
             photoRef: field["photoRef"].string, description: field["description"].string,
             allowsNone: field["cost"].bool || field["allowNone"].bool, numberPad: field["inputType"].string == "number",
             progress: heading == "category" ? Double(stats["done"].int) / Double(max(1, stats["total"].int)) : nil,
-            issueCount: stats["issues"].int, collapsible: field["expanded"] != .null)
+            issueCount: stats["issues"].int, collapsible: field["expanded"] != .null, currency: field["cost"].bool || field["label"].string.contains("（元") ? currency : nil)
     }
 
     static func state(_ field: JSONValue) -> MPFieldState {

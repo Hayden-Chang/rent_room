@@ -1,0 +1,23 @@
+{
+  "merge001": "App Store purchase identity does not match this app",
+  "merge002": "App Store purchase identity failed verification. Please restore capacity later.",
+  "merge003": "Terms of Use",
+  "merge004": "Failed to read original local capacity. Original records have been preserved.",
+  "merge005": "Rate on the App Store",
+  "merge006": "OK",
+  "merge007": "Capacity records do not match the current App Store purchase identity.",
+  "merge008": "Canceled",
+  "merge009": "Help & Support",
+  "merge010": "Unable to open the App Store",
+  "merge011": "Unable to confirm App Store purchase identity. Please restore capacity later.",
+  "merge012": "Unable to open the review page right now. Please try again later.",
+  "merge013": "Local record directory is invalid. Original files have been preserved.",
+  "merge014": "Failed to read local record directory. Original files have been preserved.",
+  "merge015": "Failed to read local purchased capacity. Original records have been preserved. Please restore capacity.",
+  "merge016": "Network unavailable. Existing capacity and property records have been preserved. Please reconnect and try again.",
+  "merge017": "Please use the App Store account used for the purchase to restore capacity.",
+  "merge018": "Invalid purchase record. Please restore capacity.",
+  "merge019": "Invalid purchase record version. Please restore capacity.",
+  "merge020": "Purchases are made through the App Store with no need to register or sign in to Xunju. Purchasing and restoring require an internet connection. Property records are saved locally.",
+  "merge021": "Privacy Policy"
+}

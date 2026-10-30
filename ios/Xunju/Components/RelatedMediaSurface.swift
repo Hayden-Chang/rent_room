@@ -10,17 +10,17 @@ struct FieldMediaStrip: View {
                 ForEach(Array(items.prefix(3))) { item in
                     Button { preview(item) } label: {
                         if item.kind == .image { MediaThumbnail(item: item, height: 44, radius: 6, showsRelation: false) }
-                        else { Text("▶ 视频").font(.system(size: 10)).foregroundStyle(XJTheme.primary).frame(width: 44, height: 44).background(XJTheme.soft) }
+                        else { AppText("▶ 视频").font(.system(size: 10)).foregroundStyle(XJTheme.primary).frame(width: 44, height: 44).background(XJTheme.soft) }
                     }.frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 6))
                         .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore)
                         .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }
-                        .accessibilityLabel(item.kind == .image ? "预览关联照片" : "播放关联视频")
+                        .accessibilityLabel(AppCopy.text(item.kind == .image ? "预览关联照片" : "播放关联视频"))
                         .accessibilityIdentifier("related.preview.\(item.id)")
                 }
                 if items.count > 3 {
-                    Button("+\(items.count - 3)", action: all).font(.system(size: 10)).foregroundStyle(XJTheme.primary)
+                    Button(AppCopy.text("+\(items.count - 3)"), action: all).font(.system(size: 10)).foregroundStyle(XJTheme.primary)
                         .frame(width: 44, height: 44).background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6))
-                        .buttonStyle(.plain).accessibilityLabel("查看全部 \(items.count) 个关联影像")
+                        .buttonStyle(.plain).accessibilityLabel(AppCopy.text("查看全部 \(items.count) 个关联影像"))
                         .accessibilityIdentifier("related.all")
                 }
                 Spacer(minLength: 0)
@@ -42,10 +42,10 @@ struct ManualIssueCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 10) {
-                Button(action: open) { Text(title).font(.system(size: 14, weight: .semibold)).multilineTextAlignment(.leading)
+                Button(action: open) { Text(verbatim: title).font(.system(size: 14, weight: .semibold)).multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading) }
                     .buttonStyle(.plain).accessibilityIdentifier("manualIssue.\(id).open")
-                Button(resolved ? "已解决" : "待跟进", action: resolve)
+                Button(AppCopy.text(resolved ? "已解决" : "待跟进"), action: resolve)
                     .font(.system(size: 13)).padding(.horizontal, 12).frame(minHeight: 44)
                     .foregroundStyle(resolved ? XJTheme.primary : XJTheme.danger)
                     .background(resolved ? XJTheme.soft : XJTheme.dangerBackground)
@@ -53,7 +53,7 @@ struct ManualIssueCard: View {
                     .accessibilityIdentifier("manualIssue.\(id).resolve")
             }
             if !note.isEmpty {
-                Button(action: open) { Text(note).font(.system(size: 14)).lineSpacing(6)
+                Button(action: open) { Text(verbatim: note).font(.system(size: 14)).lineSpacing(6)
                     .multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading) }
                     .padding(.top, 10).buttonStyle(.plain)
             }
@@ -68,7 +68,7 @@ struct ManualIssueCard: View {
                                 ForEach(row) { item in
                                     Button { preview(item) } label: { MediaThumbnail(item: item, height: 96, radius: 8, showsRelation: false) }
                                         .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore)
-                                        .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }.accessibilityLabel("预览问题照片")
+                                        .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }.accessibilityLabel(AppCopy.text("预览问题照片"))
                                         .accessibilityIdentifier("manualIssue.\(id).preview.\(item.id)")
                                 }
                                 ForEach(0..<(3 - row.count), id: \.self) { _ in Color.clear.frame(maxWidth: .infinity, maxHeight: 0) }
@@ -78,7 +78,7 @@ struct ManualIssueCard: View {
                 }.padding(.top, 12)
             }
             Button(action: open) {
-                Text((media.isEmpty ? "" : "\(media.count) 个影像 · ") + (readonly ? "查看详情 ›" : "查看 / 编辑 ›"))
+                AppText((media.isEmpty ? "" : "\(media.count) 个影像 · ") + (readonly ? "查看详情 ›" : "查看 / 编辑 ›"))
                     .font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading)
             }.padding(.top, 10).buttonStyle(.plain).accessibilityIdentifier("manualIssue.\(id).details")
         }.padding(16).foregroundStyle(XJTheme.ink)
@@ -93,7 +93,7 @@ struct AutomaticIssueCard<Content: View>: View {
     var body: some View {
         XJCard {
             VStack(alignment: .leading, spacing: 8) {
-                Text(category).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                AppText(category).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                 content
             }
         }

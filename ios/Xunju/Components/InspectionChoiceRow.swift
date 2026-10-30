@@ -20,7 +20,7 @@ struct InspectionChoiceRow: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 8) {
-                Text(title).font(.system(size: 13)).frame(maxWidth: .infinity, alignment: .leading)
+                AppText(title).font(.system(size: 13)).frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(Rectangle())
                 if actionsOpen && !readonly {
                     HStack(spacing: 0) {
@@ -37,7 +37,7 @@ struct InspectionChoiceRow: View {
                             Button {
                                 value = InspectionSelection.toggled(current: value, choice: choice)
                             } label: {
-                                Text(choiceLabels[choice] ?? choice).font(.system(size: 13)).fixedSize(horizontal: true, vertical: false).padding(.horizontal, 10)
+                                AppText(choiceLabels[choice] ?? choice).font(.system(size: 13)).fixedSize(horizontal: true, vertical: false).padding(.horizontal, 10)
                                     .frame(minWidth: 44, minHeight: 44)
                                     .foregroundStyle(value == choice ? XJTheme.primary : XJTheme.ink)
                                     .background(value == choice ? XJTheme.soft : XJTheme.background)
@@ -65,7 +65,7 @@ struct InspectionChoiceRow: View {
 
     private func action(_ label: String, icon: String, background: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) { XJIcon(name: icon).frame(width: 44, height: 44).background(background) }
-            .buttonStyle(.plain).accessibilityLabel(label).accessibilityIdentifier("row.\(title).\(label)")
+            .buttonStyle(.plain).accessibilityLabel(AppCopy.text(label)).accessibilityIdentifier("row.\(title).\(label)")
     }
 }
 
@@ -80,10 +80,10 @@ struct ChecklistDisclosure<Content: View>: View {
             VStack(spacing: 0) {
                 Button { expanded.toggle() } label: {
                     HStack(spacing: 8) {
-                        Text(title).font(.system(size: 14, weight: .semibold))
-                        Text(expanded ? "⌃" : "⌄").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                        AppText(title).font(.system(size: 14, weight: .semibold))
+                        AppText(expanded ? "⌃" : "⌄").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                         Spacer()
-                        Text(progress).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                        AppText(progress).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                     }.frame(minHeight: 56).foregroundStyle(XJTheme.ink).contentShape(Rectangle())
                 }.buttonStyle(.plain).accessibilityIdentifier("group.\(title)")
                 if expanded { content }

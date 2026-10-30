@@ -6,29 +6,29 @@ import Observation
     private(set) var error = ""
     private(set) var product: CapacityProduct?
     @ObservationIgnored private weak var workspace: AppWorkspace?
-    @ObservationIgnored private let api: any CapacityServicing
     @ObservationIgnored private let storefront: any CapacityStorefront
+    @ObservationIgnored private var identityEpoch = 0
     @ObservationIgnored private var identity: PurchaseIdentity?
-    @ObservationIgnored private var context: CapacityContext?
-    @ObservationIgnored private var verifications: [String: Task<CapacityConfirmation, Error>] = [:]
     @ObservationIgnored private var finished: Set<String> = []
     @ObservationIgnored private var pending = false
     @ObservationIgnored private var awaitingApproval = false
-    init(workspace: AppWorkspace, api: any CapacityServicing, storefront: any CapacityStorefront) {
-        self.workspace = workspace; self.api = api; self.storefront = storefront
+
+    init(workspace: AppWorkspace, storefront: any CapacityStorefront) {
+        self.workspace = workspace; self.storefront = storefront
     }
     func identityChanged() {
-        identity = nil; context = nil; product = nil; pending = false; awaitingApproval = false; error = ""; activity = .idle
+        identityEpoch += 1
+        identity = nil; product = nil; pending = false; awaitingApproval = false; error = ""; activity = .idle
     }
-    /// Called only while the user is in the capacity flow, never on app launch.
+    /// StoreKit is contacted only in the user-initiated capacity flow.
     func start() {
         storefront.observe { [weak self] transaction in
-            guard let self, let identity = self.identity, self.matches(transaction) else { return }
+            guard let self, let identity = self.identity, self.matches(transaction, identity) else { return }
             do {
                 try await self.confirm(transaction, identity: identity)
                 if self.current(identity) {
-                    self.pending = false; self.awaitingApproval = false
-                    if !self.activity.busy { self.activity = .idle }; self.error = ""
+                    self.pending = self.awaitingApproval; self.error = ""
+                    if !self.activity.busy { self.activity = self.pending ? .pending : .idle }
                 }
             } catch {
                 if self.current(identity) {
@@ -44,26 +44,27 @@ import Observation
         activity = .loading; error = ""
         defer { activity = pending ? .pending : .idle }
         do {
-            let identity = try await prepare(loadProduct: true)
-            for transaction in try await storefront.transactions(synchronize: false) where matches(transaction) {
-                pending = true; try await confirm(transaction, identity: identity); pending = awaitingApproval
-            }
+            let identity = try await reconcile(synchronize: false)
+            product = nil
+            let loaded = try await storefront.product(PurchaseLedger.productID)
+            guard current(identity) else { throw CancellationError() }
+            guard loaded.id == PurchaseLedger.productID else { throw CoreFailure(message: "房源包信息不一致") }
+            product = loaded
         } catch is CancellationError {} catch { product = nil; self.error = error.localizedDescription }
     }
     func purchase() async {
-        guard !activity.busy, !pending, product != nil, context?.available == true else { return }
+        guard !activity.busy, !pending, let product else { return }
         activity = .purchasing; error = ""
         defer { activity = pending ? .pending : .idle }
         do {
-            let identity = try await prepare(loadProduct: true)
-            guard let product, let context, context.available else { throw CoreFailure(message: "房源包暂未开放购买，请稍后再试") }
-            let purchaseStartedAt = Date().timeIntervalSince1970
-            switch try await storefront.purchase(product, accountToken: context.appAccountToken) {
+            let identity = try await reconcile(synchronize: false)
+            let started = Date().timeIntervalSince1970
+            switch try await storefront.purchase(product, accountToken: identity.accountToken) {
             case .cancelled: break
             case .pending:
                 if current(identity) {
                     pending = true; awaitingApproval = true
-                    _ = try? workspace?.store.call("reviewPurchasePending", ["value": .string("approval:\(purchaseStartedAt)")])
+                    _ = try? workspace?.store.call("reviewPurchasePending", ["value": .string("approval:\(started)")])
                 }
             case .verified(let transaction):
                 guard current(identity) else { return }
@@ -78,69 +79,64 @@ import Observation
         guard !activity.busy else { return }
         activity = .restoring; error = ""
         defer { activity = pending ? .pending : .idle }
-        do {
-            let identity = try await prepare(loadProduct: false, refresh: true)
-            for transaction in try await storefront.transactions(synchronize: true) where matches(transaction) {
-                pending = true; try await confirm(transaction, identity: identity); pending = awaitingApproval
-            }
-            try apply(try await api.restore(proof: identity.signedAppTransaction), identity: identity)
-            pending = awaitingApproval
-        } catch is CancellationError {} catch { self.error = error.localizedDescription }
+        do { _ = try await reconcile(synchronize: true) }
+        catch is CancellationError {} catch { self.error = error.localizedDescription }
     }
-    private func current(_ value: PurchaseIdentity) -> Bool { identity == value }
-    private func prepare(loadProduct: Bool, refresh: Bool = false) async throws -> PurchaseIdentity {
+    private func current(_ value: PurchaseIdentity) -> Bool { identity?.account == value.account }
+    private func prepare(refresh: Bool = false) async throws -> PurchaseIdentity {
+        let epoch = identityEpoch
         let value = try await storefront.identity(refresh: refresh).validated()
+        guard epoch == identityEpoch else { throw CancellationError() }
         try Task.checkCancellation()
-        if identity?.account != value.account || identity?.environment != value.environment {
-            context = nil; product = nil; pending = false; awaitingApproval = false
+        if let old = identity, old.account != value.account {
+            product = nil; pending = false; awaitingApproval = false
         }
         identity = value
-        let response = try await api.context(proof: value.signedAppTransaction)
-        try Task.checkCancellation()
-        try apply(response.balance, identity: value)
-        context = response
-        if loadProduct || !response.available { product = nil }
-        if loadProduct, response.available, let id = response.productID {
-            let loaded = try await storefront.product(id)
-            guard current(value) else { throw CancellationError() }
-            guard loaded.id == id else { throw CoreFailure(message: "房源包信息不一致") }
-            product = loaded
+        if let workspace, let cached = workspace.purchaseBalance, cached.account != value.account {
+            // A different verified Apple account cannot inherit this device's prior capacity.
+            try workspace.recordPurchases([], identity: value, snapshotStartedAt: workspace.purchaseRevision)
         }
         return value
     }
-    private func matches(_ transaction: CapacityTransaction) -> Bool {
-        guard let context, let identity else { return false }
-        return transaction.productID == context.productID && transaction.accountToken == context.appAccountToken
-            && transaction.environment == identity.environment && transaction.appTransactionID == identity.appTransactionID
+    @discardableResult private func reconcile(synchronize: Bool) async throws -> PurchaseIdentity {
+        let value = try await prepare()
+        let revision = workspace?.purchaseRevision ?? 0
+        let transactions = try await storefront.transactions(synchronize: synchronize)
+        guard current(value) else { throw CancellationError() }
+        let confirmed = try await prepare(refresh: synchronize)
+        guard current(confirmed), let workspace else { throw CancellationError() }
+        try workspace.recordPurchases(transactions, identity: confirmed, snapshotStartedAt: revision)
+        for transaction in transactions where matches(transaction, confirmed) {
+            try await acknowledge(transaction, identity: confirmed)
+        }
+        pending = awaitingApproval
+        return confirmed
+    }
+    private func matches(_ transaction: CapacityTransaction, _ identity: PurchaseIdentity) -> Bool {
+        // Old purchases may have no appAccountToken; Apple's signed appTransactionID
+        // establishes ownership without creating an app account or a new device identity.
+        transaction.productID == PurchaseLedger.productID && transaction.environment == identity.environment
+            && transaction.appTransactionID == identity.appTransactionID
     }
     private func confirm(_ transaction: CapacityTransaction, identity: PurchaseIdentity, requestReview: Bool = false) async throws {
-        guard current(identity), matches(transaction) else { throw CoreFailure(message: "请使用购买时的 App Store 账号恢复容量") }
-        let key = identity.account + ":" + transaction.environment + ":" + transaction.id
-        let task: Task<CapacityConfirmation, Error>
-        if let existing = verifications[key] { task = existing }
-        else {
-            task = Task { try await api.verify(transaction.id, proof: identity.signedAppTransaction) }
-            verifications[key] = task
+        guard current(identity), matches(transaction, identity), let workspace else {
+            throw CoreFailure(message: "请使用购买时的 App Store 账号恢复容量")
         }
-        defer { verifications[key] = nil }
-        let value = try await task.value
-        guard value.transactionID == transaction.id, ["verified", "revoked"].contains(value.status) else { throw CoreFailure(message: "购买记录暂时无法确认") }
-        try apply(value.balance, identity: identity)
-        let pendingReview = workspace?.store.state["iosReview"]["pendingPurchase"].string ?? ""
-        let approvalStartedAt = pendingReview.hasPrefix("approval:") ? Double(pendingReview.dropFirst(9)) : nil
-        let approvedNewPurchase = approvalStartedAt.map { startedAt in
-            transaction.purchaseDate.map { $0.timeIntervalSince1970 >= startedAt } ?? false
-        } ?? false
-        if value.status == "verified", requestReview || pendingReview == transaction.id || approvedNewPurchase {
-            // Rating bookkeeping must never turn a completed purchase into an error.
-            _ = try? workspace?.store.call("reviewPurchaseConfirmed")
-        }
-        guard !finished.contains(key) else { return }
-        finished.insert(key)
-        await storefront.finish(transaction)
+        try workspace.recordPurchases([transaction], identity: identity)
+        try await acknowledge(transaction, identity: identity, requestReview: requestReview)
     }
-    private func apply(_ balance: CapacityBalance, identity: PurchaseIdentity) throws {
-        guard current(identity), let workspace else { throw CancellationError() }
-        try workspace.applyPurchaseCapacity(balance, identity: identity)
+    private func acknowledge(_ transaction: CapacityTransaction, identity: PurchaseIdentity, requestReview: Bool = false) async throws {
+        guard current(identity) else { throw CancellationError() }
+        let pendingReview = workspace?.store.state["iosReview"]["pendingPurchase"].string ?? ""
+        let approvalStarted = pendingReview.hasPrefix("approval:") ? Double(pendingReview.dropFirst(9)) : nil
+        let approvedNewPurchase = approvalStarted.map { start in transaction.purchaseDate.map { $0.timeIntervalSince1970 >= start } ?? false } ?? false
+        if workspace?.isActivePurchase(transaction.id) == true, transaction.revocationDate == nil, requestReview || pendingReview == transaction.id || approvedNewPurchase {
+            _ = try? workspace?.store.call("reviewPurchaseConfirmed")
+            awaitingApproval = false
+        }
+        let key = identity.account + ":" + transaction.id
+        guard finished.insert(key).inserted else { return }
+        // Both the ledger and capacity cache are already durable at this point.
+        await storefront.finish(transaction)
     }
 }

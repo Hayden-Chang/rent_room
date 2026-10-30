@@ -1,9 +1,8 @@
 import XCTest
 @testable import Xunju
 
-private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
+private actor OfflineCallCounter: MapTransport {
     var count = 0
-    func fetch() -> CapacityPolicy? { count += 1; return nil }
     func request(_ options: String) async throws -> String { count += 1; throw CoreFailure(message: "offline") }
 }
 @MainActor final class OfflineWorkspaceTests: XCTestCase {
@@ -13,11 +12,11 @@ private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
         return root
     }
     func testGuestRecordsAndAnswersSurviveOfflineRestartWithoutServiceCalls() async throws {
-        let root = root(), counter = OfflineCallCounter(), storefront = CapacityTestStorefront(), api = CapacityTestAPI()
-        let first = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: counter, capacityAPI: api, storefront: storefront, policyAPI: counter)
+        let root = root(), counter = OfflineCallCounter(), storefront = CapacityTestStorefront()
+        let first = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: counter, storefront: storefront)
         let id = try first.store.add("离线记录")
         try first.store.answer(id, field: "f1_6", value: .string("1800")); first.save()
-        let second = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: counter, capacityAPI: api, storefront: storefront, policyAPI: counter)
+        let second = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: counter, storefront: storefront)
         XCTAssertEqual(first.store.records.directory, second.store.records.directory)
         XCTAssertEqual(second.store.house(id)["answers"]["f1_6"]["value"].string, "1800")
         XCTAssertNil(second.session); XCTAssertNil(storefront.receive)
@@ -41,7 +40,7 @@ private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
         keychain.remove()
         let reopened = try AppWorkspace(root: root, keychain: keychain)
         XCTAssertEqual(reopened.store.records.directory, directory)
-        XCTAssertEqual(reopened.store.capacity.limit, 11)
+        XCTAssertEqual(reopened.store.capacity.limit, 12)
         XCTAssertEqual(reopened.store.house(id)["media"].array.first?["path"].string, "media/photo.jpg")
     }
     func testMalformedOfflinePointerNeverFallsBackToAnEmptyStore() throws {
@@ -73,11 +72,11 @@ private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
         let store = workspace.store, id = try store.add("一直在本机")
         for appID in ["9001", "9002"] {
             let identity = PurchaseIdentity(appTransactionID: appID, bundleID: "test.xunju", environment: "Sandbox", signedAppTransaction: "proof")
-            try workspace.applyPurchaseCapacity(CapacityBalance(account: identity.account, environment: "Sandbox", packs: appID == "9001" ? 1 : 0, limit: appID == "9001" ? 11 : 1, revision: 1, capacity: .initial), identity: identity)
+            try workspace.applyPurchaseCapacity(CapacityBalance(account: identity.account, environment: "Sandbox", packs: appID == "9001" ? 1 : 0, limit: appID == "9001" ? 12 : 2, revision: 1, capacity: .initial), identity: identity)
             XCTAssertTrue(workspace.store === store); XCTAssertEqual(store.house(id)["name"].string, "一直在本机")
         }
         let reopened = try AppWorkspace(root: root, keychain: VolatileSessionStorage())
-        XCTAssertEqual(reopened.store.records.directory, store.records.directory); XCTAssertEqual(reopened.store.capacity.limit, 1)
+        XCTAssertEqual(reopened.store.records.directory, store.records.directory); XCTAssertEqual(reopened.store.capacity.limit, 2)
         XCTAssertEqual(reopened.store.houses.count, 1)
     }
 }

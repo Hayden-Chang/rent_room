@@ -12,6 +12,8 @@ struct SettingsPage: View {
         ScrollView {
             VStack(spacing: 12) {
                 SaveBanner(workspace: workspace)
+                RegionalSettingsSection(preferences: workspace.regional.preferences,
+                    chooseLanguage: { destination = .language }, chooseCurrency: { destination = .currency })
                 LocalSettingsSurface(used: workspace.store.capacity.used, limit: workspace.store.capacity.limit,
                     archived: workspace.store.archivedHouses.count, workplace: workspace.store.state["settings"]["workplace"].string,
                     version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0",
@@ -19,9 +21,15 @@ struct SettingsPage: View {
                         workspace.perform { try workspace.store.call("settings", ["property": .string("onboarding"), "value": .bool(value)]) }
                     }), action: act, openLegal: { openURL($0.url) })
             }.padding(16)
-        }.miniNavigation("我的", showsBack: showsBack)
+        }.miniNavigation(AppCopy.text("我的"), showsBack: showsBack)
             .navigationDestination(item: $destination) { action in
                 switch action {
+                case .language:
+                    LanguageSelectionSurface(selection: workspace.regional.preferences.language, select: workspace.regional.selectLanguage)
+                        .miniNavigation(RegionalCopy.text("settings.language", language: workspace.regional.language))
+                case .currency:
+                    CurrencySelectionSurface(preferences: workspace.regional.preferences, select: workspace.currencyLocation.chooseCurrency)
+                        .miniNavigation(RegionalCopy.text("settings.currency", language: workspace.regional.language))
                 case .capacity: CapacityPage(workspace: workspace)
                 case .workplace: WorkplacePage(workspace: workspace)
                 case .archive: ArchivePage(workspace: workspace)
@@ -33,7 +41,7 @@ struct SettingsPage: View {
             }
             .fullScreenCover(isPresented: $feedback) { FeedbackPage(workspace: workspace, completed: {}).presentationBackground(.clear) }
             .sheet(isPresented: $sharing) {
-                if let cover = Bundle.main.url(forResource: "InspectionShareCover", withExtension: "jpg") {
+                if let cover = AppCopy.shareCoverURL {
                     LocalShareSheet(items: [cover])
                 }
             }
@@ -56,5 +64,5 @@ private struct LocalShareSheet: UIViewControllerRepresentable {
 }
 struct CloseSheetButton: View {
     @Environment(\.dismiss) private var dismiss
-    var body: some View { Button("关闭") { dismiss() } }
+    var body: some View { Button(AppCopy.text("关闭")) { dismiss() } }
 }
