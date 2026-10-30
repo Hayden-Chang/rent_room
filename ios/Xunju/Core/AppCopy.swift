@@ -86,13 +86,14 @@ import SwiftUI
     }
     static func moneyLabel(_ source: String, currency: String, verbatim: Bool = false) -> String {
         let code = CurrencyCatalog.codes.contains(currency) ? currency : "CNY"
-        if verbatim { return source + "（\(code)）" }
+        let unit = AppLanguage.shared.value == .chinese && code == "CNY" ? "元" : code
+        if verbatim { return source + "（\(unit)）" }
         let value = text(source)
         if AppLanguage.shared.value == .english, value.contains("CNY") {
             return value.replacingOccurrences(of: "CNY", with: code)
         }
-        if value.contains("（元") { return value.replacingOccurrences(of: "（元", with: "（" + code) }
-        return value + "（\(code)）"
+        if value.contains("（元") { return value.replacingOccurrences(of: "（元", with: "（" + unit) }
+        return value + "（\(unit)）"
     }
     static func searchTerms(_ query: String) -> [String] {
         guard AppLanguage.shared.value == .english, !query.isEmpty else { return [] }

@@ -25,8 +25,8 @@ import CoreLocation
     }
     func testChineseYuanRentLabelUsesYuanAndKeepsAmountAfterRelaunch() {
         let app = launch(returning: true)
-        tap("currency.prompt.decline", app)
-        openSettings(app); chooseCurrency("CNY", app); tap("tab.房源", app)
+        tap("currency.prompt.manual", app); tap("currency.CNY", app); tap("完成", app)
+        XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 5))
         app.homeAddButton.tap()
         let name = app.textFields["prompt.text"]
         XCTAssertTrue(name.waitForExistence(timeout: 5))
