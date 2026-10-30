@@ -1,5 +1,6 @@
 // Shared-pool review: fixtures and observations use the SDK; a native UI
-// operator supplies every answer, tutorial gesture and guidance button click.
+// operator supplies every answer and guidance button click. Unchanged first-use
+// teaching is covered by separate VM tests; native drag is unavailable on this Mac.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const automator=require('/Volumes/mac2/codex-builds/wechat-instance-pool/runner/node_modules/miniprogram-automator');
 const out=process.env.WECHAT_ARTIFACT_DIR;
@@ -26,14 +27,10 @@ function cue(text){console.log('NATIVE_READY: '+text+'; slot='+process.env.WECHA
    h.checklistOrder=['房源基本信息','C','D','E','F','费用与付款','身份与合同'];
    h.templateTopics=h.checklistOrder.map((category,i)=>({id:'quiet-topic-'+i,title:category,category,phase:i<5?'现场看房':'询问与签约',path:[],fields:[{id:'quiet_'+i,label:category+' 检查',type:'s',options:['是','否'],fact:true}]}));
    h.answers.quiet_1={note:'保留原有备注',issueFlag:true};
-   fixture.houses=[h];Object.assign(fixture.xiaoda,{setup:'done',tutorialStep:mode==='detailed'?1:0,firstHouseId:h.id,feedback:'done'});
+   fixture.houses=[h];Object.assign(fixture.xiaoda,{setup:'done',tutorialStep:0,firstHouseId:h.id,feedback:'done'});
    await route('/pages/settings/index');
    await evaluate(function(fixture){const store=getApp().service.store;store.change(s=>Object.assign(s,fixture),true);store.change(()=>{},true);return true;},fixture);
    await route('/pages/home/index');await route('/pages/detail/index?id='+h.id,true);await until(s=>s.ready,'detail ready');
-   if(mode==='detailed'){
-    await until(s=>s.coach===1&&s.coachReady,'first-use tutorial');await capture('detailed-01-first-tutorial');cue('完成首次阶段、筛选、真实左滑及图标教学');
-    await until(s=>s.coach===0&&s.prompt?.kind==='intro','teaching completed');
-   }
    await until(s=>s.prompt?.kind==='intro','new-house introduction');await capture(mode+'-02-intro');cue('点击新房源引导的去填写，再将房源基本信息检查选为是');
    await until(s=>s.answers.quiet_0?.value==='是'&&s.prompt?.target==='C'&&s.stage==='ready','basic to onsite');
    await capture(mode+'-03-cross-basic');cue('点击去填写，进入现场 C');
@@ -64,7 +61,7 @@ function cue(text){console.log('NATIVE_READY: '+text+'; slot='+process.env.WECHA
   await route('/pages/capacity/index');await until(s=>s.ready,'capacity ready');await capture('capacity-guest');
   await evaluate(function(){getCurrentPages().slice(-1)[0].setData({authenticated:true});return true;});
   await capture('capacity-button-copy');
-  fs.writeFileSync(path.join(out,'assertions.json'),JSON.stringify({passed:true,results,nativeClicks:true,fixtureSetup:true,firstTutorialNative:true,capacityRenderOnly:true,capacityAuthenticatedViewFixture:true,realPayments:false,deviceValidated:false,directTargetHandlerCalls:false},null,2));
+  fs.writeFileSync(path.join(out,'assertions.json'),JSON.stringify({passed:true,results,nativeClicks:true,fixtureSetup:true,firstTutorialNative:false,capacityRenderOnly:true,capacityAuthenticatedViewFixture:true,realPayments:false,deviceValidated:false,directTargetHandlerCalls:false},null,2));
   console.log('NATIVE_COMPLETE '+out);
  }catch(error){await capture('failure').catch(()=>{});throw error;}finally{mini.disconnect();}
 })().catch(error=>{fs.writeFileSync(path.join(out,'failure.json'),JSON.stringify({error:error.stack},null,2));console.error(error);process.exit(1);});
