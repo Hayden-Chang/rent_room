@@ -24,7 +24,11 @@ import XCTest
     }
 
     func testChoicesAndManualDisclosureEmitOnceAndPreserveAnswers() {
-        let app = launch()
+        let app = XCUIApplication()
+        app.launchArguments = ["--component-review", "parity-feedback", "--parity-trace", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["feedback.counts"].waitForExistence(timeout: 8))
+        counts(app, selection: 0, disclosure: 0)
         capture(app, "haptics-initial")
         let parent = app.staticTexts["mp.field.title.parent"]
         let yes = app.buttons["mp.field.choice.single.是"]
@@ -32,6 +36,8 @@ import XCTest
 
         // Choosing a collapsed parent also expands it, but emits only one selection.
         app.buttons["mp.field.choice.parent.有"].tap()
+        let inputTrace = XCTAttachment(string: app.debugDescription)
+        inputTrace.name = "parent-first-choice-input-trace"; inputTrace.lifetime = .keepAlways; add(inputTrace)
         counts(app, selection: 1, disclosure: 0)
         XCTAssertTrue(yes.isHittable)
         yes.tap(); counts(app, selection: 2, disclosure: 0)
