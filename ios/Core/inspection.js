@@ -21,6 +21,11 @@ function guide(store, id) {
   const tutorial = !house.archived && state.xiaoda.firstHouseId === id ? state.xiaoda.tutorialStep : 0;
   let prompt = enabled && !tutorial ? house.xiaoda?.prompt : null;
   if (prompt && (!prompt.completed || !rows.some(row => row.category === prompt.completed && row.complete))) prompt = null;
+  // Keep this read-only: native bridge queries are cached and must not rewrite records.
+  if (prompt?.kind === 'next') {
+    const source = rows.find(row => row.category === prompt.completed), target = rows.find(row => row.category === prompt.target);
+    if (source && target && source.phase === target.phase) prompt = null;
+  }
   if (!prompt && enabled && !tutorial && house.xiaoda?.intro === 'pending') {
     const target = rows.find(row => row.category === '房源基本信息' && !row.complete) || rows.find(row => !row.complete);
     if (target) prompt = {kind:'intro', target:target.category, phase:target.phase, id:'intro-'+id,
