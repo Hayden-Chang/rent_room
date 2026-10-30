@@ -61,3 +61,11 @@ it('keeps consumption across repeat grants, refunds, account changes and relaunc
  s.bindCreditAccount(a);account=a;expect(createStore(io,options).capacity().remaining).toBe(8);
  packs=2;expect(s.capacity().remaining).toBe(18);expect(createStore(io,options).capacity().remaining).toBe(18);
 });
+it('retains the debit commit marker across later edits while journal cleanup still fails',()=>{
+ const io=disk(),s=createStore(io);s.save();io.fail({cleanup:true});const id=s.add('已扣点');
+ s.answer(id,'f1_6','value','1800');
+ expect(JSON.parse(io.readCredits()).pending).toBeTruthy();
+ const reopened=createStore(io);expect(reopened.capacity().remaining).toBe(0);
+ expect(reopened.house(id).answers.f1_6.value).toBe('1800');
+ io.fail();reopened.archive(id,false);expect(createStore(io).capacity().remaining).toBe(0);
+});

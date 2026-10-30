@@ -32,7 +32,12 @@ export function withCreditStorage(base) {
     recoverCredits(){return copy(resolve(base.read())?.committed);},
     write(text,options){
       const state=JSON.parse(text),after=validateCredits(state.propertyCredits),raw=base.read(),old=resolve(raw);
-      if(old?.committed&&JSON.stringify(old.committed)===JSON.stringify(after)){base.write(text,options);return;}
+      if(old?.committed&&JSON.stringify(old.committed)===JSON.stringify(after)){
+        // If journal cleanup failed, ordinary edits must retain the disk commit
+        // marker until settlement succeeds. The in-memory state may predate it.
+        try{state._creditsCommit=JSON.parse(raw)._creditsCommit;}catch{}
+        base.write(JSON.stringify(state),options);return;
+      }
       let before=old?.committed??null;
       if(!old&&raw){try{before=JSON.parse(raw).propertyCredits??null;}catch{}}
       if(before)validateCredits(before);
