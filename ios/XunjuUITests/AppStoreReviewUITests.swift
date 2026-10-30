@@ -26,6 +26,13 @@ import XCTest
     func testReviewRowOpensWriteReviewURLOnEveryTap() {
         let app = launch()
         let row = app.buttons["settings.appStoreReview"]
+        // iOS 18 can report an offscreen scroll child as hittable below the tab bar.
+        let tabBarTop = app.buttons["tab.我的"].frame.minY
+        for _ in 0..<4 {
+            if row.frame.maxY < tabBarTop { break }
+            app.swipeUp()
+        }
+        XCTAssertLessThan(row.frame.maxY, tabBarTop)
         XCTAssertTrue(row.isHittable)
         XCTAssertTrue(row.label.contains("在 App Store 中评价"))
         XCTAssertTrue(app.buttons["local-settings.feedback"].exists)
