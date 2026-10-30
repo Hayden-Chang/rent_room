@@ -125,3 +125,5 @@ Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `
 完整证据位于本 worktree 的 `artifacts/launch-merge-20261030/`：`merge-01/02/03.xcresult`、对应 `plan-*.json`、`run-*.sh`、`runner-*.log`，以及 `summary-02.json`、`summary-03.json`、`attachments-02/03/manifest.json`。现代 xcresult 摘要接口写入 TestReport 缓存遇到权限问题，改用受支持的 legacy 对象读取与附件导出接口；未改写原始结果。失败截图、层级及录像保留。
 
 主 agent 再次检查最终差异与原生截图：Logo 外观不变，后台返回仍停留「我的」，旧房源在重启后恢复。最终所需功能用例已通过；该结果不覆盖普通系统冷启动的无黑屏时序。所有本任务设备租约、执行槽和队列均已释放。合并前远程检查未发现 CI workflow、check run 或提交状态检查，main 未配置必需状态检查；这不等于远程 CI 通过。
+
+验证完成后 main 前进到 `fafd2946885c4296af5a37f6082c87a3ee1a77cc`。重新模拟合并无冲突，组合结果相对新主线的全部非文档 diff 与已验证差异逐字节一致，SHA-256 均为 `18db96af1ff71e5ec56fd4bf9aa307e2182dca64fe55fa4650313eab4605ac22`。新增清单震动及填写定位逻辑不进入本次启动用例；AppWorkspace 新增的填写夹具仅在显式 `--filling-guide-fixture` 参数下启用，本次未使用。测试环境、选择与对应业务路径仍适用，复用上述证据，详见 `base-equivalence.json`。
