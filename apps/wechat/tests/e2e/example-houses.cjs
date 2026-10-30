@@ -27,6 +27,7 @@ if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared instance pool');
   const initial=await until(s=>s.route==='pages/welcome/index'&&s.data.step==='sort','等待首次欢迎页');
   assert.ok(initial.root.includes('/xunju-test-examples-'));assert.equal(initial.houses.length,2);
   assert.ok(initial.houses.every(h=>h.checklistMode==='simple'));
+  assert.ok(initial.houses.every(h=>h.media.length===1&&h.media[0].type==='image'&&h.media[0].path.startsWith(initial.root+'/media/')));
   const ids=initial.houses.map(h=>h.id);write('initial',initial);
   await until(s=>s.route==='pages/welcome/index'&&s.data.step==='mode','点击排好啦');
   await until(s=>s.route==='pages/home/index'&&s.data.houses.length===2,'选择精简模式并点击选好啦');

@@ -28,6 +28,17 @@ describe('first-visit example houses',()=>{
       if(raw==='{bad')expect(s.status().blocked).toBe(true);
     }
   });
+  it('prepares photo files only for a genuinely new save and preserves old saves if preparation fails',()=>{
+    const prepareExamples=vi.fn();
+    for(const raw of ['',JSON.stringify(emptyState()),'{bad']){
+      const io={...adapter(raw),prepareExamples};createStore(io,{firstVisit:true});
+      expect(prepareExamples).not.toHaveBeenCalled();expect(io.write).not.toHaveBeenCalled();
+    }
+    const io={...adapter(),prepareExamples};createStore(io,{firstVisit:true});
+    expect(prepareExamples).toHaveBeenCalledOnce();
+    const failed={...adapter(),prepareExamples(){throw Error('photo copy failed');}};
+    expect(createStore(failed,{firstVisit:true}).status().blocked).toBe(true);expect(failed.write).not.toHaveBeenCalled();
+  });
   it.each(['empty','one','archived','legacy'])('does not seed or write an existing %s save, even if a caller misclassifies it as new',kind=>{
     const state=emptyState();
     if(kind==='one'||kind==='archived'){

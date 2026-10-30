@@ -10,6 +10,7 @@ export function exampleHouses() {
   return choices.map(item=>{
     const house=freshHouse(item.name,{selectedTemplate:'simple'});
     Object.assign(house,{id:item.id,example:true,currencyCode:'CNY',summary:item.summary,decision:'继续比较'});
+    house.media=[{id:item.id+'-photo',type:'image',path:'media/'+item.id+'.jpg',fieldId:'',caption:'示例室内图（AI 生成）',createdAt:house.createdAt}];
     house.xiaoda={...house.xiaoda,intro:'done',disabled:true};
     for(const [field,value] of Object.entries({f1_1:item.address,f1_2:item.layout,f1_6:item.rent,f1_3:item.area,simple_01:item.commute,simple_02:'是',simple_04:'是',simple_05:'是',simple_11:item.light,simple_13:item.noise,simple_15:'是',simple_42:'是',simple_43:'是',simple_44:'是',simple_45:'是'}))updateAnswer(house,field,'value',value);
     updateAnswer(house,'simple_01','note',item.commute==='是'?'示例：步行到地铁站约 5 分钟，全程约 20 分钟。':'示例：公交换乘地铁，全程约 45 分钟。');

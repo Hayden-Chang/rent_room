@@ -3,9 +3,12 @@ import {createAccountSession} from '../src/lib/account-session.js';
 import {createPlatform} from '../src/lib/platform.js';
 import {mockWx} from './helpers/wx.js';
 import {emptyState,freshHouse} from '../src/lib/model.js';
+import {readFileSync} from 'node:fs';
+import {readBackup} from './helpers/backup.js';
 
 function fixture() {
   const m=mockWx();
+  for(const id of ['example-metro-v1','example-sunny-v1'])m.disk.set('assets/examples/'+id+'.jpg',readFileSync(new URL('../src/assets/examples/'+id+'.jpg',import.meta.url)));
   m.io.accessSync=path=>{
     if([...m.disk.keys()].some(key=>key===path||key.startsWith(path+'/')))return;
     throw Error('ENOENT: no such file or directory');
@@ -13,6 +16,18 @@ function fixture() {
   return m;
 }
 describe('installation-scoped example eligibility',()=>{
+  it('copies bundled photos into the guest media directory and includes their bytes in exports',async()=>{
+    const m=fixture(),auth=createAccountSession(m.wx,{firstVisitExamples:true}),service=auth.service;
+    const houses=service.store.get().houses;
+    for(const h of houses){
+      expect(h.media).toHaveLength(1);
+      expect(h.media[0].path).toBe(service.root+'/media/'+h.id+'.jpg');
+      expect(m.disk.get(h.media[0].path)).toEqual(m.disk.get('assets/examples/'+h.id+'.jpg'));
+    }
+    const exported=await service.exportFile(houses.map(h=>h.id)),backup=await readBackup(new Uint8Array(m.disk.get(exported.filePath)));
+    expect(backup.houses).toHaveLength(2);
+    for(let i=0;i<houses.length;i++)expect(backup.files[backup.houses[i].media[0].path]).toEqual(new Uint8Array(m.disk.get(houses[i].media[0].path)));
+  });
   it('initializes only the first installation, persists IDs and does not re-seed after logout',()=>{
     const m=fixture(),auth=createAccountSession(m.wx,{firstVisitExamples:true}),ids=auth.service.store.get().houses.map(h=>h.id);
     expect(ids).toHaveLength(2);

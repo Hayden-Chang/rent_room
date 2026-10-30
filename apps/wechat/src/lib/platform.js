@@ -16,6 +16,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
   try{fs.mkdirSync(root+'/media',true);}catch{}
   const exists=p=>{try{fs.accessSync(p);return true;}catch{return false;}};
   const adapter={read:()=>exists(current)?fs.readFileSync(current,'utf8'):null,previous:()=>exists(previous)?fs.readFileSync(previous,'utf8'):null,
+    prepareExamples(houses){for(const house of houses){const media=house.media[0],path=root+'/'+media.path;fs.writeFileSync(path,fs.readFileSync('assets/examples/'+house.id+'.jpg'));media.path=path;}},
     write(text,{keepPrevious=false}={}){const tmp=root+'/state.pending.json';fs.writeFileSync(tmp,text,'utf8');if(exists(current)&&!keepPrevious)fs.copyFileSync(current,previous);fs.renameSync(tmp,current);},
     preserveCorrupt(){if(exists(current))fs.copyFileSync(current,root+'/preserved-'+Date.now()+'.json');}
   };

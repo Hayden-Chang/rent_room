@@ -26,6 +26,10 @@ export function initialize(raw, packs = 0, free = 1, firstVisit = false) {
   sessionPacks = packs; freeLimit = free;
   store = createStore({
     read: () => currencyState(raw),
+    prepareExamples() {
+      const error = nativePrepareExamples();
+      if (error) throw Error(error);
+    },
     previous() {
       const result = JSON.parse(nativePrevious());
       if (result.error) throw Error(result.error);

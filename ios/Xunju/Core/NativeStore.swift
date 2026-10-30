@@ -66,6 +66,11 @@ final class NativeStore {
         context.setObject(previous, forKeyedSubscript: "nativePrevious" as NSString)
         context.setObject(write, forKeyedSubscript: "nativeWrite" as NSString)
         context.setObject(preserve, forKeyedSubscript: "nativePreserveCorrupt" as NSString)
+        let prepareExamples: @convention(block) () -> String = {
+            do { try ExampleHouseMedia.prepare(in: records.directory); return "" }
+            catch { return error.localizedDescription }
+        }
+        context.setObject(prepareExamples, forKeyedSubscript: "nativePrepareExamples" as NSString)
         let request: @convention(block) (String, JSValue, JSValue) -> Void = { input, success, failure in
             MainActor.assumeIsolated {
                 let callbacks = MapCallbacks(success: success, failure: failure)
