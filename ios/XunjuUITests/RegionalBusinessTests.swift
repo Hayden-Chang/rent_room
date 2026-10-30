@@ -45,6 +45,10 @@ import CoreLocation
         guard let allow = names.map({ alert.buttons[$0] }).first(where: \.exists) else { return XCTFail("Missing location authorization action") }
         allow.tap()
         XCTAssertTrue(app.staticTexts["currency.prompt.title"].waitForNonExistence(timeout: 35))
+        let hero = app.staticTexts["Keep track of homes you've viewed"]
+        XCTAssertTrue(hero.waitForExistence(timeout: 5))
+        XCTAssertGreaterThan(hero.frame.height, 45, "English home heading must wrap instead of clipping to one line")
+        capture("regional-business-17-english-empty-home", app)
         openSettings(app)
         XCTAssertTrue(app.buttons["settings.currency"].label.contains("GBP"), "Real geocoder must identify the simulated UK coordinate")
         capture("regional-business-10-live-country-gbp", app)
@@ -106,6 +110,7 @@ import CoreLocation
         XCTAssertTrue(comparedRent.waitForExistence(timeout: 5))
         XCTAssertTrue(comparedRent.staticTexts.allElementsBoundByIndex.contains { $0.label.contains("GBP 2000") })
         XCTAssertTrue(comparedRent.staticTexts.allElementsBoundByIndex.contains { $0.label.contains("EUR 1500") })
+        XCTAssertFalse(comparedRent.staticTexts.allElementsBoundByIndex.contains { $0.label.range(of: #"[\u3400-\u9fff]"#, options: .regularExpression) != nil }, "Canonical rent heading must be localized")
         if !comparedRent.isHittable { app.scrollViews.firstMatch.swipeUp() }
         capture("regional-business-15-english-comparison", app)
         openSettings(app); XCTAssertTrue(app.buttons["settings.language"].label.contains("English"))

@@ -21,7 +21,7 @@ struct HomePage: View {
                 if workspace.store.activeHouses.isEmpty {
                     if !homeMessage.isEmpty {
                         VStack(spacing: 0) {
-                            AppText("把看过的房子记下来").font(.system(size: 24, weight: .bold)).foregroundStyle(Color(red: 38/255, green: 48/255, blue: 71/255)).frame(height: 33.6).padding(.top, 8).padding(.bottom, 28)
+                            AppText("把看过的房子记下来").font(.system(size: 24, weight: .bold)).foregroundStyle(Color(red: 38/255, green: 48/255, blue: 71/255)).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true).frame(minHeight: 33.6).padding(.top, 8).padding(.bottom, 28)
                             XiaodaMessage(text: homeMessage, pose: "greet", compact: false, hero: true) { EmptyView() }
                             Button(AppCopy.text("新建房源"), action: add).buttonStyle(SetupButtonStyle()).padding(.top, 28).accessibilityIdentifier("home.first")
                         }.padding(.horizontal, 4).padding(.top, 24).padding(.bottom, 20)

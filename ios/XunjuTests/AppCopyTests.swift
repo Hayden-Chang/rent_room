@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor final class AppCopyTests: XCTestCase {
     func testPackagedEnglishCatalogPermissionsAndMoneyUnits() throws {
-        XCTAssertEqual(AppCopy.translations.count, 1305)
+        XCTAssertEqual(AppCopy.translations.count, 1322)
         for (source, english) in AppCopy.translations {
             XCTAssertNil(english.range(of: #"[\u3400-\u9fff]"#, options: .regularExpression), source)
         }
@@ -42,6 +42,18 @@ import XCTest
         AppLanguage.shared.value = .chinese
         XCTAssertEqual(AppCopy.comparisonValue(other, index: 0), "其他：放弃")
         XCTAssertEqual(AppCopy.shareCoverURL?.lastPathComponent, "InspectionShareCover.jpg")
+    }
+    func testEnglishComparisonCostLabelsAreFullyLocalized() throws {
+        let prior = AppLanguage.shared.value; AppLanguage.shared.value = .english
+        defer { AppLanguage.shared.value = prior }
+        let root = FileManager.default.temporaryDirectory.appending(path: "comparison-labels-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = try NativeStore(directory: root, freeLimit: 2), a = try store.add("A"), b = try store.add("B")
+        let rows = try store.call("compare", ["ids": .array([.string(a), .string(b)])]).array.filter { $0["currency"].bool }
+        XCTAssertTrue(rows.contains { $0.id == "f1_6" })
+        for row in rows {
+            XCTAssertNil(AppCopy.fieldLabel(row["label"].string, id: row.id).range(of: #"[\u3400-\u9fff]"#, options: .regularExpression), row["label"].string)
+        }
     }
     func testCanonicalTemplateArgumentsTranslateWhileUserNamesStayVerbatim() {
         let canonical = "先看看「房源基本信息」吧。"

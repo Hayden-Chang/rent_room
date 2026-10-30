@@ -37,6 +37,8 @@ Apple 原生登录按钮、授权框、相册等系统控件的语言由 iOS 管
 | integration run-03 | 3 个业务 XCUITest 通过，包含首次完整清单后的系统授权及真实地理编码。模拟器注入伦敦坐标后，CLGeocoder 实际返回 GB 并使用 GBP。新增费用无单位断言按预期失败，证明原「物业费」未带币种。 |
 | integration run-04 | 费用标签回归通过；16 个单测中定位模拟器用例的固定 yield 等待未等到回调，产生 3 条断言失败。改为有界等待实际状态；不是产品拒绝逻辑失败。 |
 | integration run-05 | 19 单测中 17 通过，另外两项是测试夹具/读取方式错误：使用不存在的“基本信息”类别、把编译后的二进制 strings 当 UTF-8。3 个 UI 中英文录入/对比/重启和中文系统拒绝通过；英文首次流程在错误的 StaticText 选择器停止，截图证实页面已英文，未据此宣称后续授权已验证。上述观测方式均已修正。 |
+| integration run-06 | 候选 `d88d648d2e9ea96059036c038fa15844dd314100`，28 单测 + 3 业务 UI 全通过。逐张看实际截图后发现自动断言未覆盖的两个问题：货币表头去掉单位后漏译，英文首页标题仍被固定单行高度截断；因此不以本轮全绿作为交付终点。 |
+| integration run-07 | 修复前新增 `AppCopyTests/testEnglishComparisonCostLabelsAreFullyLocalized` 确认 17 个去单位后的表头仍有中文；首次业务 UI 新增高度断言确认标题文字高 28.67，未达到换行要求 45。两项均为预期行为失败。随后通过 agy 补齐这些表头（保留单价/周期语义），首页允许按内容增长，并保留相同回归断言。 |
 | JS 搜索 | `apps/wechat/tests/model.test.js` 的 `localized display search` 单例通过，20 例未选；未运行整个共享模型套件。 |
 | 旧选项回归 | `legacy-wheel-before.log` 断言实际 `[true,true]` 与预期 `[false,true]` 不符，旧自定义「放弃」会被翻译。修复后同一断言通过；永久用例 `ios/tests/currency-localization.test.mjs` 与 Native AppCopy 测试共同保护用户原文及固定天数单位。 |
 

@@ -1,8 +1,8 @@
 {
   "generator": "agy -p",
   "model": "gemini-3.8-flash-high",
-  "sourceSHA256": "3cfeff4487d017ad1cfa9353eba33b22f6c852c0f7dc968624bea789d368c479",
-  "entryCount": 1305,
+  "sourceSHA256": "02be09d61684c8af1243aaa35642cb589470edc8c4ca8870f4593f92d1767732",
+  "entryCount": 1322,
   "batches": [
     {
       "batch": 1,
@@ -1396,6 +1396,34 @@
       "english": "app-merge-en.agy.json",
       "englishSHA256": "f0dc086431e9fd84215bcecbb088a49df3125b95b5d82d347367430983387d01",
       "rawResponseSHA256": "f0dc086431e9fd84215bcecbb088a49df3125b95b5d82d347367430983387d01"
+    },
+    {
+      "model": "gemini-3.8-flash-high",
+      "generator": "agy -p",
+      "keys": [
+        "s1306",
+        "s1307",
+        "s1308",
+        "s1309",
+        "s1310",
+        "s1311",
+        "s1312",
+        "s1313",
+        "s1314",
+        "s1315",
+        "s1316",
+        "s1317",
+        "s1318",
+        "s1319",
+        "s1320",
+        "s1321",
+        "s1322"
+      ],
+      "prompt": "app-comparison-prompt.txt",
+      "promptSHA256": "c0edb86d326e0e192203a63e034e61b3713c6981dcbc04a9f2884a98dddb2bf9",
+      "english": "app-comparison-en.agy.json",
+      "englishSHA256": "37071ba7ac1eaec963e43dc0fb775f5b7919ef73c28644d97328d6f2d68a050e",
+      "rawResponseSHA256": "37071ba7ac1eaec963e43dc0fb775f5b7919ef73c28644d97328d6f2d68a050e"
     }
   ]
 }

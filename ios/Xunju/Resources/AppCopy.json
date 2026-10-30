@@ -1303,5 +1303,22 @@
   "{v0} {v1} / 月": "{v0} {v1} / month",
   "房源更新数据无效": "Invalid listing update data",
   "显示触摸轨迹": "Show Touch Trails",
-  "清单数据类型无效": "Invalid checklist data type"
+  "清单数据类型无效": "Invalid checklist data type",
+  "租金": "monthly rent",
+  "电费": "electricity per kWh",
+  "水费": "water per tonne",
+  "燃气费": "gas per cubic meter",
+  "网费": "monthly internet",
+  "物业费": "monthly property management fee",
+  "清洁费": "monthly cleaning fee",
+  "垃圾费": "monthly garbage fee",
+  "管理费": "monthly management fee",
+  "取暖费": "monthly heating fee",
+  "电梯费": "monthly elevator fee",
+  "中介费": "agency fee",
+  "门卡/门锁费": "key card / lock fee",
+  "退房保洁费": "move-out cleaning fee",
+  "折旧/损耗费": "depreciation / wear and tear fee",
+  "消毒费": "disinfection fee",
+  "转租手续费": "sublease fee"
 }
