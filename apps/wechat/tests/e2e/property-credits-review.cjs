@@ -19,10 +19,10 @@ const timeout=setTimeout(()=>{console.error('Property credits component review t
   await mini.screenshot({path:path.join(output,name+'.png')});
  }
  try{
-  await render({remaining:7,migrated:7,authenticated:true,busy:false,pending:false,error:''},'credits-wechat-ready');
-  await render({remaining:0,migrated:-1,authenticated:true,busy:false,pending:false,error:''},'credits-wechat-empty');
-  await render({remaining:7,migrated:7,authenticated:false,busy:false,pending:false,error:''},'credits-wechat-guest');
-  await render({remaining:7,migrated:7,authenticated:true,busy:false,pending:true,error:''},'credits-wechat-pending');
+  await render({remaining:7,authenticated:true,busy:false,pending:false,error:''},'credits-wechat-ready');
+  await render({remaining:0,authenticated:true,busy:false,pending:false,error:''},'credits-wechat-empty');
+  await render({remaining:7,authenticated:false,busy:false,pending:false,error:''},'credits-wechat-guest');
+  await render({remaining:7,authenticated:true,busy:false,pending:true,error:''},'credits-wechat-pending');
   fs.writeFileSync(path.join(output,'credits-scope.json'),JSON.stringify({component:true,realTaps:false,fixtureBalance:[0,7],livePayment:false,productionIntegration:false},null,2));
  }finally{clearTimeout(timeout);mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});

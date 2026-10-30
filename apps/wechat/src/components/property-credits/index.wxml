@@ -1,10 +1,9 @@
 <view class="credits">
  <view class="summary"><view class="summary-title">剩余房源点数</view><view class="balance">{{remaining}}<text> 点</text></view></view>
- <view wx:if="{{migrated>=0}}" class="migration">原有剩余容量已转换为 {{migrated}} 个房源点数。</view>
  <view class="pack">
-  <view class="pack-title">🍪 1 块小饼干 = 10 个房源点数</view>
-  <view class="rules"><view>新建 1 套房源消耗 1 点</view><view>导入或从归档恢复不消耗点数</view><view>归档或删除不返还已用点数</view></view>
-  <view class="actions"><button class="cancel" disabled="{{busy}}" bindtap="cancel">先等等</button><button class="purchase" loading="{{busy}}" disabled="{{busy||pending}}" bindtap="purchase">{{pending?'等待购买结果':authenticated?'¥1.99 购买小饼干':'微信登录后购买'}}</button></view>
+  <view class="pack-title">10 个房源点数</view>
+  <view class="rules"><view>新建 1 套房源消耗 1 点</view></view>
+  <view class="actions"><button class="cancel" disabled="{{busy}}" bindtap="cancel">先等等</button><button class="purchase" loading="{{busy}}" disabled="{{busy||pending}}" bindtap="purchase">{{pending?'等待购买结果':authenticated?'¥1.99 购买 10 点':'微信登录后购买'}}</button></view>
  </view>
  <view wx:if="{{pending}}" class="pending">支付结果正在确认，点数到账前不会增加余额。</view>
  <view wx:if="{{error}}" class="error">{{error}}</view>

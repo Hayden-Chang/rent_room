@@ -1,6 +1,6 @@
 # 房源点数：组件评审与待接入规则
 
-状态：iOS `REVIEW_READY`，小程序实际渲染 `BLOCKED`。本 PR 是展示组件预审；正式容量页、扣点逻辑、用户数据和线上商品均未改动，不能当作点数业务已经上线。
+状态：用户已要求修改展示，当前为 `CHANGES_REQUESTED`，修订版重新生成证据中。本 PR 是展示组件预审；正式容量页、扣点逻辑、用户数据和线上商品均未改动，不能当作点数业务已经上线。
 
 ## 已确认的产品规则
 
@@ -18,11 +18,13 @@
 
 ## 组件范围
 
-- iOS `PropertyCreditsSurface` 接收余额、可选迁移提示、Apple 本地化价格、等待/错误状态和回调。独立 `--component-review property-credits` 路由只在 DEBUG 编译，不创建 AppWorkspace、不读取真实记录、不调用 StoreKit 或网络。
+- iOS `PropertyCreditsSurface` 接收余额、Apple 本地化价格、等待/错误状态和回调。独立 `--component-review property-credits` 路由只在 DEBUG 编译，不创建 AppWorkspace、不读取真实记录、不调用 StoreKit 或网络。
 - 小程序 `components/property-credits` 是相同文案的展示组件。独立工程在 `tests/fixtures/property-credits`，由 `node tests/e2e/build-property-credits-review.mjs` 生成到忽略目录 `artifacts/property-credits-review`。正式 app.json 不注册测试页面。
-- 保留小饼干购买样式，摘要改为“剩余房源点数”；展示新建、导入/恢复、归档/删除三条规则。正式首页、我的页、购买页及小搭感谢文案仍待批准后统一接入。
+- 按用户标注删除小饼干和容量转换提示，摘要为“剩余房源点数”，商品名为“10 个房源点数”，按钮为“价格 + 购买 10 点”；说明只保留“新建 1 套房源消耗 1 点”。删除导入/恢复、归档/删除的展示文案不改变已确认业务规则。正式首页、我的页、购买页及小搭感谢文案仍待批准后统一接入。
 
 ## 验证与证据
+
+以下为被用户要求修订的第一版证据，不代表修订版已通过：
 
 iOS 证据源码：`14861891199e11c7abdbbc4c6dbdfdaa409d25cb`。共享 runner `rent-room-property-credits-20261030-01` 完成 2 UT + 2 UI，全部通过、无失败或跳过；仅验证展示/按钮回调，不是扣点、迁移、支付或恢复的端到端证据。
 
@@ -36,7 +38,7 @@ iOS 证据源码：`14861891199e11c7abdbbc4c6dbdfdaa409d25cb`。共享 runner `r
 
 主 agent 已逐张查看 7 张原图，中英文文案和按钮均完整可见，忙碌/等待状态禁用购买，错误状态保留余额。标题右侧“评审状态”和底部回调次数均为 DEBUG 宿主，不进入正式页面。
 
-小程序官方 `wcc` 和 `wcsc` 对组件及测试页面编译通过；展示回调的 3 条 Vitest 边界用例另存于 `tests/property-credits-component.test.js`。真实渲染任务 `f10f66a83e1e4258b178a5bce4c8af71` 使用共享入口排队，三个槽位实时均为 `quarantined`，未获得槽位、未执行回调、未取得截图。不能用编译/VM 或 iOS 图替代微信实机/工具渲染；未重启、解锁或抢占其他任务实例。E2E 脚本保留待可用槽位执行。
+小程序官方 `wcc` 和 `wcsc` 对组件及测试页面编译通过；展示回调的 3 条 Vitest 边界用例另存于 `tests/property-credits-component.test.js`。第一轮 `f10f66a83e1e4258b178a5bce4c8af71` 排队后取得槽位，但 Page 协议在 90 秒内未响应。第二轮 `ba1fbdf034bc4950b3d08385ab85bbb2` 改用 evaluate + screenshot，已完成旧版组件四种状态的实际渲染，真实点击不计作通过。用户已要求修改这些文案，因此旧图不作为当前版验收。未手工重启、解锁或抢占其他任务实例。
 
 ## 待批准后完成
 

@@ -9,13 +9,12 @@ struct PropertyCreditsReviewHost: View {
     @State private var error = ""
     @State private var purchases = 0
     @State private var restores = 0
-    @State private var migrated: Int? = 7
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    PropertyCreditsSurface(remaining: remaining, price: price, activity: activity, error: error, migrated: migrated,
+                    PropertyCreditsSurface(remaining: remaining, price: price, activity: activity, error: error,
                         purchase: { purchases += 1; activity = .purchasing },
                         restore: { restores += 1; activity = .restoring }, cancel: {})
                     Text("组件预览 · 测试余额与价格 · 购买回调 \(purchases) 次 · 恢复回调 \(restores) 次")
@@ -28,8 +27,8 @@ struct PropertyCreditsReviewHost: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu("评审状态") {
                             Button("中国区") { reset() }
-                            Button("美国区英文") { reset(); AppLanguage.shared.value = .english; price = "$1.99"; migrated = nil }
-                            Button("点数用完") { reset(); remaining = 0; migrated = nil }
+                            Button("美国区英文") { reset(); AppLanguage.shared.value = .english; price = "$1.99" }
+                            Button("点数用完") { reset(); remaining = 0 }
                             Button("商品加载") { reset(); activity = .loading; price = nil }
                             Button("商品不可用") { reset(); price = nil }
                             Button("等待支付") { reset(); activity = .pending }
@@ -42,7 +41,7 @@ struct PropertyCreditsReviewHost: View {
     }
     private func reset() {
         AppLanguage.shared.value = .chinese
-        remaining = 7; price = "¥9.90"; activity = .idle; error = ""; migrated = 7
+        remaining = 7; price = "¥9.90"; activity = .idle; error = ""
     }
 }
 #endif

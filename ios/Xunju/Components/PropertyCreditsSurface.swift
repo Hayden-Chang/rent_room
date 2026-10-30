@@ -6,7 +6,6 @@ struct PropertyCreditsSurface: View {
     let price: String?
     var activity: CapacityActivity = .idle
     var error = ""
-    var migrated: Int? = nil
     let purchase: () -> Void
     let restore: () -> Void
     let cancel: () -> Void
@@ -29,19 +28,11 @@ struct PropertyCreditsSurface: View {
                 .background(.white).clipShape(RoundedRectangle(cornerRadius: 20))
                 .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(XJTheme.line, lineWidth: 2))
 
-            if let migrated {
-                Text(copy("原有剩余容量已转换为 \(migrated) 个房源点数。", "Your remaining capacity was converted to \(migrated) property credits."))
-                    .font(.system(size: 13)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("credits.migration")
-            }
-
             VStack(alignment: .leading, spacing: 18) {
-                Text(copy("🍪 1 块小饼干 = 10 个房源点数", "🍪 1 cookie = 10 property credits"))
+                Text(copy("10 个房源点数", "10 property credits"))
                     .font(.system(size: 17, weight: .bold)).fixedSize(horizontal: false, vertical: true)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(copy("新建 1 套房源消耗 1 点", "Creating a property uses 1 credit"))
-                    Text(copy("导入或从归档恢复不消耗点数", "Importing or restoring an archived property is free"))
-                    Text(copy("归档或删除不返还已用点数", "Archiving or deleting does not return spent credits"))
-                }.font(.system(size: 14)).foregroundStyle(XJTheme.muted)
+                Text(copy("新建 1 套房源消耗 1 点", "Creating a property uses 1 credit"))
+                    .font(.system(size: 14)).foregroundStyle(XJTheme.muted)
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("credits.rules")
                 HStack(spacing: 12) {
                     Button(copy("先等等", "Not now"), action: cancel)
@@ -85,7 +76,7 @@ struct PropertyCreditsSurface: View {
         case .loading: return copy("正在加载点数包…", "Loading credits…")
         case .purchasing: return copy("正在确认购买…", "Confirming purchase…")
         case .pending: return copy("等待购买结果", "Payment pending")
-        default: return price.map { copy("\($0) 购买小饼干", "\($0) Buy a cookie") } ?? copy("点数包暂未开放", "Credits unavailable")
+        default: return price.map { copy("\($0) 购买 10 点", "\($0) Buy 10 credits") } ?? copy("点数包暂未开放", "Credits unavailable")
         }
     }
 }
