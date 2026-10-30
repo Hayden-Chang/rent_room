@@ -12,9 +12,10 @@ struct HouseSummary: Decodable, Identifiable, Equatable {
     let decision: String
     let stats: InspectionStats
     let cover: String
+    let currencyCode: String
     var card: HouseCardContent {
         HouseCardContent(name: name, rent: rent, address: address, area: area, decision: decision,
-                         done: stats.done, total: stats.total, issues: stats.issues)
+                         done: stats.done, total: stats.total, issues: stats.issues, currencyCode: currencyCode)
     }
 }
 struct InspectionStats: Decodable, Equatable { let done: Int; let total: Int; let issues: Int }
@@ -37,6 +38,7 @@ final class NativeStore {
     private(set) var status = SaveStatus(error: "", blocked: false, revision: 0)
     private(set) var capacity = HouseCapacity(used: 0, limit: 1, remaining: 1, packs: 0)
     let records: LocalRecords
+    @ObservationIgnored var currencyProvider: () -> String = { "USD" }
     @ObservationIgnored private let context: JSContext
     @ObservationIgnored private let mapQueryTimeout: Duration
 
@@ -90,6 +92,7 @@ final class NativeStore {
     @discardableResult
     func call(_ operation: String, _ parameters: [String: JSONValue] = [:]) throws -> JSONValue {
         var request = parameters
+        if operation == "add" { request["currencyCode"] = .string(currencyProvider()) }
         request["operation"] = .string(operation)
         let data = try JSONEncoder().encode(JSONValue.object(request))
         guard let json = String(data: data, encoding: .utf8) else { throw CoreFailure(message: "操作数据编码失败") }
@@ -106,7 +109,7 @@ final class NativeStore {
         try call("archive", ["id": .string(id), "value": .bool(archived)])
     }
     func form(_ id: String, phase: String = "全部", query: String = "", filters: [String] = [], folds: [String: Bool] = [:]) throws -> [JSONValue] {
-        try call("form", ["id": .string(id), "view": .object(["phase": .string(phase), "query": .string(query),
+        try call("form", ["id": .string(id), "view": .object(["phase": .string(phase), "query": .string(query), "queryTerms": .array(AppCopy.searchTerms(query).map(JSONValue.string)),
             "filters": .array(filters.map(JSONValue.string))]), "folds": .object(folds.mapValues(JSONValue.bool))]).array
     }
 

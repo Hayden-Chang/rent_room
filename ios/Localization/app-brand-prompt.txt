@@ -1,0 +1,5 @@
+Translate these two iOS rental viewing checklist app strings to concise idiomatic English. The app is named Xunju in English; 看房搭子 is the old Chinese name of this same app and MUST be Xunju in both strings. Preserve the meaning of sharing, rental viewing checklist, and avoiding rental pitfalls. Return ONLY a valid JSON object with the exact input keys and English values. Do not call tools or read files.
+{
+  "s0202": "分享看房搭子",
+  "s0969": "看房搭子｜看房清单，避坑指南"
+}

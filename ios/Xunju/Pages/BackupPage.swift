@@ -28,20 +28,20 @@ struct BackupPage: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(importing ? "选择要导入的房源" : "选择要导出的房源").font(.system(size: 22, weight: .semibold)).frame(minHeight: 30.8)
+                    AppText(importing ? "选择要导入的房源" : "选择要导出的房源").font(.system(size: 22, weight: .semibold)).frame(minHeight: 30.8)
                     if importing {
                         VStack(spacing: 0) {
-                            Text(fileName.isEmpty ? "尚未选择 ZIP 文件" : fileName).font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading)
-                            Button(input == nil ? "选择 ZIP 文件" : "重新选择 ZIP") { choosing = true }
+                            Text(verbatim: fileName.isEmpty ? AppCopy.text("尚未选择 ZIP 文件") : fileName).font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading)
+                            Button(AppCopy.text(input == nil ? "选择 ZIP 文件" : "重新选择 ZIP")) { choosing = true }
                                 .font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.primary).frame(minHeight: 44).disabled(busy)
                         }.padding(.horizontal, 16).padding(.vertical, 12).background(.white).clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    if !error.isEmpty { Text(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12).frame(maxWidth: .infinity, alignment: .leading).background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 10)).accessibilityIdentifier("backup.error") }
+                    if !error.isEmpty { AppText(error).font(.system(size: 14)).foregroundStyle(XJTheme.danger).padding(12).frame(maxWidth: .infinity, alignment: .leading).background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 10)).accessibilityIdentifier("backup.error") }
                     if !houses.isEmpty {
                         HStack {
-                            Text("共 \(houses.count) 套，已选 \(selected.count) 套").font(.system(size: 14))
+                            AppText("共 \(houses.count) 套，已选 \(selected.count) 套").font(.system(size: 14))
                             Spacer()
-                            Button(selected.count == houses.count ? "取消全选" : "全选") { selected = selected.count == houses.count ? [] : Set(houses.map(\.id)); output = nil }
+                            Button(AppCopy.text(selected.count == houses.count ? "取消全选" : "全选")) { selected = selected.count == houses.count ? [] : Set(houses.map(\.id)); output = nil }
                                 .font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.primary).frame(minHeight: 44)
                         }.padding(.bottom, 12)
                     }
@@ -55,18 +55,18 @@ struct BackupPage: View {
                                         MPCheckbox(selected: selected.contains(house.id)).padding(.top, 4)
                                         VStack(alignment: .leading, spacing: 0) {
                                             HStack(spacing: 8) {
-                                                Text(house["name"].string).font(.system(size: 17, weight: .semibold)).frame(minHeight: 25.5)
-                                                if house["archived"].bool { Text("已归档").font(.system(size: 11)).padding(.horizontal, 8).padding(.vertical, 3).foregroundStyle(XJTheme.primary).background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)) }
+                                                Text(verbatim: house["name"].string).font(.system(size: 17, weight: .semibold)).frame(minHeight: 25.5)
+                                                if house["archived"].bool { AppText("已归档").font(.system(size: 11)).padding(.horizontal, 8).padding(.vertical, 3).foregroundStyle(XJTheme.primary).background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)) }
                                             }
-                                            Text(house["address"].string.isEmpty ? "地址未填写" : house["address"].string).font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).frame(minHeight: 18)
-                                            Text("\(answerCount(house)) 条检查记录 · \(house["media"].array.count) 个影像").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).frame(minHeight: 18)
+                                            Text(verbatim: house["address"].string.isEmpty ? AppCopy.text("地址未填写") : house["address"].string).font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).frame(minHeight: 18)
+                                            AppText("\(answerCount(house)) 条检查记录 · \(house["media"].array.count) 个影像").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).frame(minHeight: 18)
                                         }.frame(maxWidth: .infinity, alignment: .leading)
                                     }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
                                 }.buttonStyle(.plain).accessibilityIdentifier("backup.select.\(house["name"].string)")
                                     .accessibilityAddTraits(selected.contains(house.id) ? .isSelected : [])
                                 if importing && selected.contains(house.id), workspace.store.house(house.id) != .null {
                                     XJTheme.line.frame(height: 1)
-                                    Text("本机已有「\(workspace.store.house(house.id)["name"].string)」，请选择处理方式").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 6)
+                                    AppText("本机已有「\(workspace.store.house(house.id)["name"].string)」，请选择处理方式").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 6)
                                     HStack(spacing: 8) {
                                         conflictButton("覆盖", mode: .replace, house: house.id)
                                         conflictButton("新增副本", mode: .copy, house: house.id)
@@ -75,20 +75,20 @@ struct BackupPage: View {
                             }
                         }.padding(.bottom, 12)
                     }
-                    if houses.isEmpty && !importing { Text("还没有可导出的房源").font(.system(size: 14)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity).padding(.top, 56) }
+                    if houses.isEmpty && !importing { AppText("还没有可导出的房源").font(.system(size: 14)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity).padding(.top, 56) }
                 }.padding(16).disabled(busy)
             }
             VStack(spacing: 12) {
-                if busy { ProgressView(importing ? "正在读取并校验 ZIP…" : "正在生成 ZIP…") }
+                if busy { ProgressView(AppCopy.text(importing ? "正在读取并校验 ZIP…" : "正在生成 ZIP…")) }
                 HStack(spacing: 8) {
-                    Button(busy ? "取消操作" : "取消") {
+                    Button(AppCopy.text(busy ? "取消操作" : "取消")) {
                         if busy { progress.cancel(); task?.cancel() } else { dismiss() }
                     }.buttonStyle(MPButtonStyle())
                     if let output {
-                        ShareLink(item: output) { Text("导出 \(selected.count) 套") }
-                            .buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("backup.share").accessibilityValue(message)
+                        ShareLink(item: output) { AppText("导出 \(selected.count) 套") }
+                            .buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("backup.share").accessibilityValue(AppCopy.text(message))
                     } else {
-                        Button(importing ? "导入 \(selected.count) 套" : "导出 \(selected.count) 套") {
+                        Button(AppCopy.text(importing ? "导入 \(selected.count) 套" : "导出 \(selected.count) 套")) {
                             if importing && !replace.intersection(selected).isEmpty { confirming = true }
                             else { start() }
                         }.buttonStyle(MPButtonStyle(kind: .primary, transferDisabled: true)).disabled(busy || !selectionReady)
@@ -96,7 +96,7 @@ struct BackupPage: View {
                     }
                 }
             }.padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 16).background(.white).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }
-        }.foregroundStyle(XJTheme.ink).background(XJTheme.background).miniNavigation(importing ? "导入房源" : "导出房源")
+        }.foregroundStyle(XJTheme.ink).background(XJTheme.background).miniNavigation(AppCopy.text(importing ? "导入房源" : "导出房源"))
             .onAppear {
                 guard !entered else { return }; entered = true
                 if importing { choosing = true }
@@ -110,9 +110,9 @@ struct BackupPage: View {
                 case .failure(let failure): error = failure.localizedDescription
                 }
             }
-            .confirmationDialog("覆盖 \(replace.intersection(selected).count) 套房源？", isPresented: $confirming, titleVisibility: .visible) {
-                Button("整套替换记录和影像", role: .destructive) { start() }
-            } message: { Text("被覆盖的房源记录和附件将被整套替换。") }
+            .confirmationDialog(AppCopy.text("覆盖 \(replace.intersection(selected).count) 套房源？"), isPresented: $confirming, titleVisibility: .visible) {
+                Button(AppCopy.text("整套替换记录和影像"), role: .destructive) { start() }
+            } message: { AppText("被覆盖的房源记录和附件将被整套替换。") }
     }
     private var selectionReady: Bool {
         MPTransferSelection.ready(items: houses.map { house in
@@ -126,7 +126,7 @@ struct BackupPage: View {
         if case .object(let answers) = house["answers"] { return answers.count }; return 0
     }
     private func conflictButton(_ title: String, mode: MPConflictMode, house: String) -> some View {
-        Button(title) {
+        Button(AppCopy.text(title)) {
             conflictModes[house] = mode
             if mode == .replace { replace.insert(house) } else { replace.remove(house) }
         }.buttonStyle(MPButtonStyle(kind: conflictModes[house] == mode ? .soft : .plain))

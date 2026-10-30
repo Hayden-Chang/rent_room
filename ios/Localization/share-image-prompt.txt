@@ -1,0 +1,10 @@
+Use case: text-localization.
+Asset type: English share cover for the Xunju iOS rental viewing app.
+Input image: the attached Chinese share cover is the edit target.
+Replace ONLY the five Chinese text blocks with the following exact English text, already supplied by the user's requested agy translation model:
+Main heading, large deep-blue letters with white outline at the top: "Rental Viewing Checklist"
+Subtitle beneath it on the yellow accent: "Avoid Rental Pitfalls"
+Bottom left green badge beside checklist icon: "Inspect Items"
+Bottom middle lavender badge beside camera icon: "Record Issues"
+Bottom right orange badge beside home icon: "Compare Homes"
+Preserve the illustrated apartment cutaway, furniture, clipboard, mold-warning photo, inset room photos, icons, colors, lighting, and composition. Keep the 5:4 landscape aspect ratio. Adjust only text size, line breaks and the local text areas so all English is legible and fits; main heading may use two lines. Use exact spelling and no additional words. Remove all Chinese text. Keep the illustration as close to the original as possible. Opaque background.

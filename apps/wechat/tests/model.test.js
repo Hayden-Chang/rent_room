@@ -29,3 +29,17 @@ describe('durable store and migrations',()=>{
  it('rejects prototype keys, malformed records and duplicate IDs',()=>{expect(()=>validateState(JSON.parse('{"version":2,"houses":[],"__proto__":{"polluted":true}}'))).toThrow();const h=freshHouse('A');expect(()=>validateState({version:2,houses:[h,h]})).toThrow();expect(()=>validateState({version:2,houses:[{...h,answers:{f1_6:null}}]})).toThrow();expect({}.polluted).toBeUndefined();});
  it('deletion is limited to archived records',()=>{const s=createStore(adapter()),id=s.add('A');expect(()=>s.remove(id)).toThrow('归档');s.archive(id,true);s.remove(id);expect(s.get().houses).toHaveLength(0);});
 });
+
+// Native iOS supplies canonical equivalents of the translated display labels.
+describe('localized display search',()=>{
+ it('matches translated terms while preserving Chinese queries and stored content',()=>{
+  const h=freshHouse('放弃'),t=houseTopics(h).find(t=>t.fields.some(f=>f.id==='f1_6')),f=t.fields.find(f=>f.id==='f1_6');
+  updateAnswer(h,f.id,'value','2000');updateAnswer(h,f.id,'note','Nearby station');const before=JSON.stringify(h);
+  expect(matches(h,t,f,{query:'rent'})).toBe(false);
+  expect(matches(h,t,f,{query:'RENT',queryTerms:['租金']})).toBe(true);
+  expect(matches(h,t,f,{query:'租金'})).toBe(true);
+  expect(matches(h,t,f,{query:'nearby'})).toBe(true);
+  expect(matches(h,t,f,{query:'missing',queryTerms:['',null,23]})).toBe(false);
+  expect(JSON.stringify(h)).toBe(before);
+ });
+});

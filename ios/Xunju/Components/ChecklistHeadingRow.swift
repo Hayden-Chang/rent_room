@@ -30,12 +30,12 @@ struct ChecklistHeadingRow: View {
                     if activeRow != nil { activeRow = nil } else { expanded.toggle() }
                 } label: {
                     HStack(spacing: 8) {
-                        Text(title).font(.system(size: 14, weight: .semibold)).multilineTextAlignment(.leading)
-                        Text(expanded ? "⌃" : "⌄").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
+                        AppText(title).font(.system(size: 14, weight: .semibold)).multilineTextAlignment(.leading)
+                        AppText(expanded ? "⌃" : "⌄").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                         Spacer(minLength: 0)
                     }.frame(maxWidth: .infinity, minHeight: kind == .category ? 56 : 48).contentShape(Rectangle())
                 }.buttonStyle(HeadingFoldButtonStyle()).accessibilityIdentifier("heading.\(id).fold")
-                    .accessibilityValue(expanded ? "已展开" : "已折叠")
+                    .accessibilityValue(AppCopy.text(expanded ? "已展开" : "已折叠"))
                 if actionsOpen && !readonly {
                     HStack(spacing: 0) {
                         action("标记问题", icon: flagged ? "swipe-issue-active" : "swipe-issue", color: flagged ? XJTheme.danger : XJTheme.dangerBackground) { flagged.toggle() }
@@ -45,11 +45,11 @@ struct ChecklistHeadingRow: View {
                 } else {
                     HStack(spacing: 4) {
                         if kind == .category {
-                            (Text("\(done) / \(total)").foregroundStyle(XJTheme.muted) + Text(issues > 0 ? " · \(issues) 问题" : "").foregroundStyle(XJTheme.danger))
+                            (AppText("\(done) / \(total)").foregroundStyle(XJTheme.muted) + AppText(issues > 0 ? " · \(issues) 问题" : "").foregroundStyle(XJTheme.danger))
                                 .font(.system(size: 12)).fixedSize().accessibilityIdentifier("heading.\(id).stats")
                         }
                         if skippable {
-                            Button("不涉及") { if activeRow != nil { activeRow = nil } else { skipped.toggle() } }.font(.system(size: 12)).fixedSize(horizontal: true, vertical: false)
+                            Button(AppCopy.text("不涉及")) { if activeRow != nil { activeRow = nil } else { skipped.toggle() } }.font(.system(size: 12)).fixedSize(horizontal: true, vertical: false)
                                 .padding(.horizontal, 10).frame(minHeight: 44)
                                 .foregroundStyle(skipped ? XJTheme.primary : XJTheme.ink)
                                 .background(skipped ? XJTheme.soft : XJTheme.background)
@@ -61,7 +61,7 @@ struct ChecklistHeadingRow: View {
                                 Button {
                                     if activeRow != nil { activeRow = nil } else { value = InspectionSelection.toggled(current: value, choice: choice) }
                                 } label: {
-                                    Text(choiceLabels[choice] ?? choice).font(.system(size: 13, weight: .semibold)).fixedSize()
+                                    AppText(choiceLabels[choice] ?? choice).font(.system(size: 13, weight: .semibold)).fixedSize()
                                         .padding(.horizontal, 10).frame(minWidth: 44, minHeight: 44)
                                         .foregroundStyle(value == choice ? XJTheme.primary : XJTheme.ink)
                                         .background(value == choice ? XJTheme.soft : XJTheme.background)
@@ -80,7 +80,7 @@ struct ChecklistHeadingRow: View {
                 }
             }).onLongPressGesture { if !readonly { activeRow = id } }
             if !noteText.isEmpty {
-                Button { if activeRow != nil { activeRow = nil } else { note() } } label: { Text(noteText).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                Button { if activeRow != nil { activeRow = nil } else { note() } } label: { AppText(noteText).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                     .multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 8) }
                     .buttonStyle(.plain).accessibilityIdentifier("heading.\(id).note")
             }
@@ -93,7 +93,7 @@ struct ChecklistHeadingRow: View {
 
     private func action(_ label: String, icon: String, color: Color, perform: @escaping () -> Void) -> some View {
         Button { activeRow = nil; perform() } label: { XJIcon(name: icon).frame(width: 44, height: 44).background(color) }
-            .buttonStyle(.plain).accessibilityLabel(label == "标记问题" && flagged ? "取消问题" : label)
+            .buttonStyle(.plain).accessibilityLabel(AppCopy.text(label == "标记问题" && flagged ? "取消问题" : label))
             .accessibilityIdentifier("heading.\(id).\(label)")
     }
 }

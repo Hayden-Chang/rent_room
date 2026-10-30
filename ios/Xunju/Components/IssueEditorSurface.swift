@@ -24,30 +24,30 @@ struct IssueEditorSurface: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 if readonly {
-                    Text("房源已归档，问题只读").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
+                    AppText("房源已归档，问题只读").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                 }
                 XJCard {
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(spacing: 8) {
-                            Text("标题").font(.system(size: 15, weight: .semibold))
-                            Text("必填").font(.system(size: 11)).fixedSize().foregroundStyle(XJTheme.danger)
+                            AppText("标题").font(.system(size: 15, weight: .semibold))
+                            AppText("必填").font(.system(size: 11)).fixedSize().foregroundStyle(XJTheme.danger)
                                 .padding(.vertical, 2).padding(.horizontal, 6).background(XJTheme.dangerBackground)
                                 .clipShape(RoundedRectangle(cornerRadius: 4))
                         }.frame(minHeight: 22.5).padding(.bottom, 12)
-                        TextField("例如：卧室窗户关不严", text: limited($title, to: 200, isTitle: true), prompt: Text("例如：卧室窗户关不严").foregroundStyle(Color(white: 0.5)))
+                        TextField(AppCopy.text("例如：卧室窗户关不严"), text: limited($title, to: 200, isTitle: true), prompt: AppText("例如：卧室窗户关不严").foregroundStyle(Color(white: 0.5)))
                             .font(.system(size: 14)).padding(.horizontal, 12).frame(height: 48)
                             .background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
                             .overlay(RoundedRectangle(cornerRadius: 8).stroke(titleError.isEmpty ? XJTheme.line : XJTheme.danger))
                             .focused($focused, equals: .title).disabled(readonly || busy)
                             .accessibilityIdentifier("issueEditor.title")
                         if !titleError.isEmpty {
-                            Text(titleError).font(.system(size: 12)).foregroundStyle(XJTheme.danger)
+                            AppText(titleError).font(.system(size: 12)).foregroundStyle(XJTheme.danger)
                                 .padding(.top, 6).accessibilityIdentifier("issueEditor.titleError")
                         }
                         label("备注", hint: "选填").padding(.top, 24).padding(.bottom, 12)
                         ZStack(alignment: .topLeading) {
                             if note.isEmpty {
-                                Text("补充问题详情、需要确认或跟进的事项…")
+                                AppText("补充问题详情、需要确认或跟进的事项…")
                                     .foregroundStyle(Color(white: 0.5)).padding(.horizontal, 12).padding(.vertical, 12)
                                     .allowsHitTesting(false)
                             }
@@ -63,7 +63,7 @@ struct IssueEditorSurface: View {
                     VStack(alignment: .leading, spacing: 12) {
                         label("影像", hint: "选填 · 照片或视频")
                         if media.isEmpty && readonly {
-                            Text("未添加影像").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
+                            AppText("未添加影像").font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                         }
                         if !media.isEmpty { VStack(spacing: 10) {
                             ForEach(IssueMediaRows.arrange(media), id: \.first!.id) { row in
@@ -79,14 +79,14 @@ struct IssueEditorSurface: View {
                         } }
                         if !readonly {
                             Button(action: addMedia) {
-                                HStack { if selecting { ProgressView() }; Text("＋ 添加照片 / 视频") }
+                                HStack { if selecting { ProgressView() }; AppText("＋ 添加照片 / 视频") }
                             }.buttonStyle(XJButtonStyle()).padding(.top, 4)
                                 .disabled(busy).opacity(busy ? 0.45 : 1).accessibilityIdentifier("issueEditor.addMedia")
                         }
                     }
                 }
                 if !error.isEmpty {
-                    Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger)
+                    AppText(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger)
                         .padding(.vertical, 12).padding(.horizontal, 16).frame(maxWidth: .infinity, alignment: .leading)
                         .background(XJTheme.dangerBackground).clipShape(RoundedRectangle(cornerRadius: 10))
                         .accessibilityIdentifier("issueEditor.error")
@@ -97,19 +97,19 @@ struct IssueEditorSurface: View {
             .safeAreaInset(edge: .bottom, spacing: 0) { footer }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
-                    Spacer(); Button("完成") { focused = nil }
+                    Spacer(); Button(AppCopy.text("完成")) { focused = nil }
                 }
             }
-            .alert("放弃修改？", isPresented: $discarding) {
-                Button("放弃", role: .destructive, action: cancel)
-                Button("继续编辑", role: .cancel) {}
-            } message: { Text("尚未保存的文字和新增影像将被放弃。") }
+            .alert(AppCopy.text("放弃修改？"), isPresented: $discarding) {
+                Button(AppCopy.text("放弃"), role: .destructive, action: cancel)
+                Button(AppCopy.text("继续编辑"), role: .cancel) {}
+            } message: { AppText("尚未保存的文字和新增影像将被放弃。") }
     }
 
     private func label(_ text: String, hint: String) -> some View {
         HStack(spacing: 8) {
-            Text(text).font(.system(size: 15, weight: .semibold))
-            Text(hint).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+            AppText(text).font(.system(size: 15, weight: .semibold))
+            AppText(hint).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
         }.frame(minHeight: 22.5)
     }
     private func limited(_ binding: Binding<String>, to count: Int, isTitle: Bool = false) -> Binding<String> {
@@ -126,11 +126,11 @@ struct IssueEditorSurface: View {
             } else {
                 Button { preview(item) } label: { MediaThumbnail(item: item, height: 104, radius: 8, showsRelation: false) }
                     .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore)
-                    .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }.accessibilityLabel("预览影像")
+                    .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }.accessibilityLabel(AppCopy.text("预览影像"))
                     .accessibilityIdentifier("issueEditor.preview.\(item.id)")
             }
             if !readonly {
-                Button("移除") { removeMedia(item) }.font(.system(size: 12)).foregroundStyle(XJTheme.danger)
+                Button(AppCopy.text("移除")) { removeMedia(item) }.font(.system(size: 12)).foregroundStyle(XJTheme.danger)
                     .frame(maxWidth: .infinity, minHeight: 44).background(XJTheme.background)
                     .buttonStyle(.plain).disabled(busy).accessibilityIdentifier("issueEditor.remove.\(item.id)")
             }
@@ -139,14 +139,14 @@ struct IssueEditorSurface: View {
     private var footer: some View {
         GeometryReader { geometry in
             HStack(spacing: 12) {
-                Button(readonly ? "返回" : "取消") {
+                Button(AppCopy.text(readonly ? "返回" : "取消")) {
                     focused = nil
                     if dirty && !readonly { discarding = true } else { cancel() }
                 }.buttonStyle(MPButtonStyle()).frame(width: readonly ? geometry.size.width : (geometry.size.width - 12) / 3)
                     .accessibilityIdentifier("issueEditor.cancel")
                 if !readonly {
                     Button { focused = nil; save() } label: {
-                        HStack { if saving { ProgressView().tint(.white) }; Text("保存问题") }
+                        HStack { if saving { ProgressView().tint(.white) }; AppText("保存问题") }
                     }.buttonStyle(XJButtonStyle(primary: true))
                         .accessibilityIdentifier("issueEditor.save")
                 }

@@ -39,6 +39,7 @@ struct RegionalPreferences: Codable, Equatable {
     private(set) var automaticCurrency = "USD"
     private(set) var countryCode: String?
     private(set) var currencyPromptHandled = false
+    private(set) var automaticLocationRequested: Bool? = nil
 
     var currencyCode: String {
         let code: String
@@ -57,13 +58,20 @@ struct RegionalPreferences: Codable, Equatable {
     }
 
     mutating func declineLocation() {
+        automaticLocationRequested = false
         detect(countryCode: nil)
+    }
+
+    mutating func markCurrencyPromptHandled() { currencyPromptHandled = true }
+    mutating func beginLocationDetection() {
+        currencySelection = .automatic; currencyPromptHandled = true; automaticLocationRequested = true
     }
 
     @discardableResult mutating func selectCurrency(_ code: String?) -> Bool {
         if let code {
             guard CurrencyCatalog.codes.contains(code) else { return false }
             currencySelection = .manual(code)
+            automaticLocationRequested = false
             currencyPromptHandled = true
         } else {
             currencySelection = .automatic
@@ -132,6 +140,8 @@ enum CurrencyCatalog {
     func selectCurrency(_ code: String?) { update { $0.selectCurrency(code) } }
     func detect(countryCode: String?) { update { $0.detect(countryCode: countryCode) } }
     func declineLocation() { update { $0.declineLocation() } }
+    func markCurrencyPromptHandled() { update { $0.markCurrencyPromptHandled() } }
+    func beginLocationDetection() { update { $0.beginLocationDetection() } }
 
     private func update(_ change: (inout RegionalPreferences) -> Void) {
         var next = preferences

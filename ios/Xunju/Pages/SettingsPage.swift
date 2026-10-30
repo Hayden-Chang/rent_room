@@ -21,6 +21,8 @@ struct SettingsPage: View {
     @State private var feedback = false
     @State private var applePreparationRevision = 0
     @State private var preparingApple = false
+    @State private var choosingLanguage = false
+    @State private var choosingCurrency = false
     @State private var api: AuthenticationAPI = {
         #if DEBUG
         if let api = AppleLoginFixture.api() { return api }
@@ -40,25 +42,25 @@ struct SettingsPage: View {
                                         if let avatar { Image(uiImage: avatar).resizable().scaledToFill() }
                                         else { MPAccountIcon() }
                                     }.frame(width: 54, height: 54).background(XJTheme.soft).clipShape(Circle())
-                                }.buttonStyle(.plain).accessibilityLabel("选择头像").accessibilityIdentifier("settings.avatar")
+                                }.buttonStyle(.plain).accessibilityLabel(AppCopy.text("选择头像")).accessibilityIdentifier("settings.avatar")
                                 VStack(alignment: .leading, spacing: 2) {
-                                    TextField("昵称", text: $nickname, prompt: Text("昵称").foregroundStyle(XJTheme.ink))
+                                    TextField(AppCopy.text("昵称"), text: $nickname, prompt: AppText("昵称").foregroundStyle(XJTheme.ink))
                                         .font(.system(size: 20, weight: .semibold)).frame(height: 30).focused($editingNickname)
                                         .accessibilityIdentifier("settings.nickname")
                                         .onSubmit(saveNickname).onChange(of: editingNickname) { if !editingNickname { saveNickname() } }
-                                    Text(session.provider == "apple" ? "已通过 Apple 登录" : "已登录")
+                                    AppText(session.provider == "apple" ? "已通过 Apple 登录" : "已登录")
                                         .font(.system(size: 13)).foregroundStyle(XJTheme.primary).frame(height: 19.5)
                                 }
                             }.padding(.bottom, 16)
                             XJTheme.line.frame(height: 1)
                             Button { capacity = true } label: {
                                 HStack {
-                                    Text("房源容量")
+                                    AppText("房源容量")
                                     Spacer()
-                                    Text("\(workspace.store.capacity.used) / \(workspace.store.capacity.limit) 套 ›").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                                    AppText("\(workspace.store.capacity.used) / \(workspace.store.capacity.limit) 套 ›").font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                                 }.font(.system(size: 14, weight: .medium)).padding(.top, 14).frame(minHeight: 44).contentShape(Rectangle())
                             }.buttonStyle(.plain).accessibilityIdentifier("settings.capacity")
-                            if session.expiresAt <= Date() { Text("登录已过期，本机记录已保留，请重新登录后购买扩容。").font(.system(size: 13)).foregroundStyle(XJTheme.muted).padding(.top, 12) }
+                            if session.expiresAt <= Date() { AppText("登录已过期，本机记录已保留，请重新登录后购买扩容。").font(.system(size: 13)).foregroundStyle(XJTheme.muted).padding(.top, 12) }
                         }
                     }
                 } else {
@@ -66,30 +68,36 @@ struct SettingsPage: View {
                         appleRequest: { request in request.nonce = appleChallenge?.nonce },
                         appleCompletion: { result in finishApple(result) }, capacity: { capacity = true })
                     if preparingApple {
-                        ProgressView("正在准备 Apple 登录…").font(.system(size: 12))
+                        ProgressView(AppCopy.text("正在准备 Apple 登录…")).font(.system(size: 12))
                     } else if !appleError.isEmpty {
                         VStack(spacing: 8) {
-                            Text(appleError).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
+                            AppText(appleError).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                                 .accessibilityIdentifier("login.apple.error")
-                            Button("重试") { applePreparationRevision += 1 }
+                            Button(AppCopy.text("重试")) { applePreparationRevision += 1 }
                                 .font(.system(size: 14)).accessibilityIdentifier("login.apple.retry")
                         }
                     }
                 }
                 XJCard {
                     VStack(spacing: 0) {
-                        NavigationLink { WorkplacePage(workspace: workspace) } label: { menu("上班地点", detail: workspace.store.state["settings"]["workplace"].string.isEmpty ? "未设置" : workspace.store.state["settings"]["workplace"].string) }
+                        NavigationLink { WorkplacePage(workspace: workspace) } label: { menu("上班地点", detail: workspace.store.state["settings"]["workplace"].string.isEmpty ? "未设置" : workspace.store.state["settings"]["workplace"].string, rawDetail: !workspace.store.state["settings"]["workplace"].string.isEmpty) }
                             .accessibilityIdentifier("settings.workplace")
                         NavigationLink { ArchivePage(workspace: workspace) } label: { menu("归档房源", detail: "\(workspace.store.archivedHouses.count) 套") }
                             .accessibilityIdentifier("settings.archive")
                         NavigationLink { InspectionTemplatesPage(workspace: workspace) } label: { menu("模板") }
                             .accessibilityIdentifier("settings.templates")
-                        Toggle("小搭", isOn: Binding(get: { workspace.store.state["xiaoda"]["enabled"].bool }, set: { value in
+                        Toggle(AppCopy.text("小搭"), isOn: Binding(get: { workspace.store.state["xiaoda"]["enabled"].bool }, set: { value in
                             workspace.perform { try workspace.store.call("settings", ["property": .string("onboarding"), "value": .bool(value)]) }
                         })).accessibilityIdentifier("小搭引导").font(.system(size: 14, weight: .medium)).toggleStyle(MPSwitchStyle()).frame(minHeight: 60).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
                     }
                 }
-                Text("数据与备份").font(.system(size: 16, weight: .semibold)).foregroundStyle(XJTheme.ink).padding(.top, 8).frame(maxWidth: .infinity, alignment: .leading)
+                RegionalSettingsSection(preferences: workspace.regional.preferences,
+                    chooseLanguage: { choosingLanguage = true }, chooseCurrency: { choosingCurrency = true })
+                if !workspace.currencyLocation.messageKey.isEmpty {
+                    AppText(RegionalCopy.text(workspace.currencyLocation.messageKey, language: workspace.regional.language))
+                        .font(.system(size: 12)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("currency.location.message")
+                }
+                AppText("数据与备份").font(.system(size: 16, weight: .semibold)).foregroundStyle(XJTheme.ink).padding(.top, 8).frame(maxWidth: .infinity, alignment: .leading)
                 XJCard {
                     VStack(spacing: 0) {
                         NavigationLink { BackupPage(workspace: workspace, importing: true, imported: imported) } label: { menu("导入房源") }.accessibilityIdentifier("settings.import")
@@ -102,31 +110,39 @@ struct SettingsPage: View {
                 XJCard {
                     VStack(spacing: 0) {
                         Button { feedback = true } label: { menu("使用反馈") }.accessibilityIdentifier("settings.feedback")
-                        if let cover = Bundle.main.url(forResource: "InspectionShareCover", withExtension: "jpg") {
-                            ShareLink(item: cover, subject: Text("看房搭子｜看房清单，避坑指南"), message: Text("看房搭子｜看房清单，避坑指南")) { menu("分享看房搭子") }
+                        if let cover = AppCopy.shareCoverURL {
+                            ShareLink(item: cover, subject: AppText("看房搭子｜看房清单，避坑指南"), message: AppText("看房搭子｜看房清单，避坑指南")) { menu("分享看房搭子") }
                                 .accessibilityIdentifier("settings.share")
                         }
                     }
                 }
-                XJCard { HStack { Text("版本"); Spacer(); Text("0.1.0").foregroundStyle(XJTheme.muted) }.font(.system(size: 14)).frame(minHeight: 50).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) } }
+                XJCard { HStack { AppText("版本"); Spacer(); AppText("0.1.0").foregroundStyle(XJTheme.muted) }.font(.system(size: 14)).frame(minHeight: 50).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) } }
                 if workspace.session != nil {
-                    Button("退出登录") { loggingOut = true }.font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.danger)
+                    Button(AppCopy.text("退出登录")) { loggingOut = true }.font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.danger)
                         .frame(maxWidth: .infinity, minHeight: 48).background(.white).clipShape(RoundedRectangle(cornerRadius: 8)).padding(.top, 8)
                 }
             }.padding(16)
-        }.miniNavigation("我的", showsBack: showsBack)
+        }.miniNavigation(AppCopy.text("我的"), showsBack: showsBack)
             .navigationDestination(isPresented: $capacity) { CapacityPage(workspace: workspace) }
+            .navigationDestination(isPresented: $choosingLanguage) {
+                LanguageSelectionSurface(selection: workspace.regional.preferences.language, select: workspace.regional.selectLanguage)
+                    .miniNavigation(AppCopy.text(RegionalCopy.text("settings.language", language: workspace.regional.language)))
+            }
+            .navigationDestination(isPresented: $choosingCurrency) {
+                CurrencySelectionSurface(preferences: workspace.regional.preferences, select: workspace.currencyLocation.chooseCurrency)
+                    .miniNavigation(AppCopy.text(RegionalCopy.text("settings.currency", language: workspace.regional.language)))
+            }
             .onAppear(perform: loadProfile)
             .photosPicker(isPresented: $choosingAvatar, selection: $avatarItem, matching: .images)
             .task(id: avatarItem) { await saveAvatar() }
             .task(id: [workspace.identityRevision, applePreparationRevision]) { await prepareApple() }
             .onDisappear { saveNickname(); appleTask?.cancel(); appleChallenge = nil }
-            .confirmationDialog("退出登录？", isPresented: $loggingOut, titleVisibility: .visible) {
-                Button("退出登录") {
+            .confirmationDialog(AppCopy.text("退出登录？"), isPresented: $loggingOut, titleVisibility: .visible) {
+                Button(AppCopy.text("退出登录")) {
                     let token = workspace.session?.token
                     if workspace.perform({ try workspace.logout() }), let token { Task { try? await api.revoke(token) } }
                 }
-            } message: { Text("账号记录保留在本机，重新登录同一账号后可继续查看。") }
+            } message: { AppText("账号记录保留在本机，重新登录同一账号后可继续查看。") }
             .fullScreenCover(isPresented: $feedback) { FeedbackPage(workspace: workspace, completed: {}).presentationBackground(.clear) }
     }
     private func loadProfile() {
@@ -198,11 +214,11 @@ struct SettingsPage: View {
             } catch is CancellationError {} catch let error as ASAuthorizationError where error.code == .canceled {} catch { workspace.error = error.localizedDescription }
         }
     }
-    private func menu(_ title: String, detail: String = "") -> some View {
+    private func menu(_ title: String, detail: String = "", rawDetail: Bool = false) -> some View {
         HStack(spacing: 16) {
-            Text(title).fontWeight(.medium).foregroundStyle(XJTheme.ink).fixedSize()
+            AppText(title).fontWeight(.medium).foregroundStyle(XJTheme.ink).fixedSize()
             Spacer(minLength: 0)
-            Text(detail + (detail.isEmpty ? "›" : " ›")).font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).lineLimit(1)
+            Text(verbatim: (rawDetail ? detail : AppCopy.text(detail)) + (detail.isEmpty ? "›" : " ›")).font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).lineLimit(1)
         }.font(.system(size: 14)).frame(minHeight: 50).contentShape(Rectangle())
             .overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
     }
@@ -210,5 +226,5 @@ struct SettingsPage: View {
 
 struct CloseSheetButton: View {
     @Environment(\.dismiss) private var dismiss
-    var body: some View { Button("关闭") { dismiss() } }
+    var body: some View { Button(AppCopy.text("关闭")) { dismiss() } }
 }
