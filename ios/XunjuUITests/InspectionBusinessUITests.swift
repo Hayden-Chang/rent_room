@@ -89,6 +89,47 @@ import XCTest
     func testSimpleSwipeGuideTracksVisibleRow() {
         verifySwipeGuideGeometry(mode: "simple", fieldID: "simple_01")
     }
+    func testXiaodaCloseMatchesMiniProgramAndDismissesGuidance() {
+        let app = launch()
+        finishSetup(app, mode: "simple")
+        app.homeAddButton.tap()
+        XCTAssertTrue(app.buttons["prompt.confirm"].waitForExistence(timeout: 3))
+        app.buttons["prompt.confirm"].tap()
+        let next = app.buttons["coach.next"]
+        XCTAssertTrue(next.waitForExistence(timeout: 5))
+        next.tap(); next.tap()
+        let target = app.otherElements["coach.swipeTarget"]
+        XCTAssertTrue(target.waitForExistence(timeout: 4)); target.swipeLeft()
+        XCTAssertTrue(next.waitForExistence(timeout: 4)); next.tap()
+
+        let close = app.buttons["xiaoda.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 4))
+        let bubble = app.otherElements["xiaoda.bubble"].firstMatch
+        capture("xiaoda-close-position", app)
+        print("XIAODA close=\(close.frame) bubble=\(bubble.frame)")
+        XCTAssertTrue(close.isHittable)
+        XCTAssertEqual(close.frame.width, 44, accuracy: 1)
+        XCTAssertEqual(close.frame.height, 44, accuracy: 1)
+        // Mini-program: right -10, top -12, 44 pt hit area, 24 pt top padding.
+        XCTAssertEqual(close.frame.midX, bubble.frame.maxX - 12, accuracy: 1)
+        XCTAssertEqual(close.frame.midY, bubble.frame.minY - 14, accuracy: 1)
+        XCTAssertLessThanOrEqual(close.frame.maxY, bubble.frame.minY + 8)
+        close.tap()
+        let dismissHouse = app.buttons["当前房源关闭"]
+        XCTAssertTrue(dismissHouse.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["今天关闭"].exists)
+        XCTAssertTrue(app.buttons["永久关闭"].exists)
+        capture("xiaoda-close-options", app)
+        dismissHouse.tap()
+        XCTAssertTrue(close.waitForNonExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["xiaoda.accept"].exists)
+        capture("xiaoda-closed-house", app)
+        app.navigationBackButton.tap()
+        let house = app.buttons["house.第1套"]
+        XCTAssertTrue(house.waitForExistence(timeout: 4)); house.tap()
+        XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 4))
+        XCTAssertFalse(close.exists)
+    }
     private func verifySwipeGuideGeometry(mode: String, fieldID: String) {
         let app = launch()
         finishSetup(app, mode: mode)

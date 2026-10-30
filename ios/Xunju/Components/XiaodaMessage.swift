@@ -40,6 +40,7 @@ struct XiaodaMessage<Actions: View>: View {
                         .frame(width: 10, height: 18).rotationEffect(.degrees(hero ? -90 : 0))
                         .offset(x: hero ? 0 : -7, y: hero ? 12 : 0).allowsHitTesting(false)
                 }
+                .accessibilityElement(children: .contain).accessibilityIdentifier("xiaoda.bubble")
             if hero { character }
         }.frame(minHeight: hero ? 0 : 108).task(id: text) {
             completed = false; shown = ""
@@ -84,8 +85,15 @@ struct XiaodaGuidanceCard: View {
                     .buttonStyle(XJButtonStyle(primary: true)).accessibilityIdentifier("xiaoda.accept")
             }
         }.padding(.top, 24).overlay(alignment: .topTrailing) {
-            Button { closing = true } label: { Image(systemName: "xmark").frame(width: 44, height: 44) }
-                .foregroundStyle(XJTheme.muted).accessibilityLabel("关闭小搭").accessibilityIdentifier("xiaoda.close")
+            Button { closing = true } label: {
+                ZStack {
+                    Capsule().frame(width: 2, height: 16).rotationEffect(.degrees(45))
+                    Capsule().frame(width: 2, height: 16).rotationEffect(.degrees(-45))
+                }.frame(width: 16, height: 16)
+                    .foregroundStyle(Color(red: 114/255, green: 124/255, blue: 144/255))
+                    .frame(width: 44, height: 44).contentShape(Rectangle())
+            }.buttonStyle(.plain).offset(x: 10, y: -12)
+                .accessibilityLabel("关闭小搭").accessibilityIdentifier("xiaoda.close")
         }.confirmationDialog("关闭小搭", isPresented: $closing, titleVisibility: .visible) {
             Button("当前房源关闭") { action("house") }
             Button("今天关闭") { action("day") }
