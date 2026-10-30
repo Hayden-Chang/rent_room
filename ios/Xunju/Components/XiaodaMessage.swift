@@ -101,14 +101,11 @@ struct XiaodaTutorialOverlay: View {
     var decoratedSpeech = false
     var adjustScroll: (CGFloat) -> Void = { _ in }
     let next: () -> Void
-    @State private var measuredHeight: CGFloat?
     private var step: Int { guide["tutorial"].int }
     private var entry: JSONValue { guide["steps"].array.indices.contains(step - 1) ? guide["steps"].array[step - 1] : .null }
     var body: some View {
         GeometryReader { geometry in
             let rect = XiaodaTutorialLayout.spotlight(target, available: geometry.size)
-            let top = XiaodaTutorialLayout.cardTop(target: rect, height: measuredHeight ?? 260, available: geometry.size.height)
-            let adjustment = XiaodaTutorialLayout.scrollAdjustment(target: target, cardHeight: measuredHeight, available: geometry.size.height)
             ZStack(alignment: .topLeading) {
                 if let rect {
                     shade(width: geometry.size.width, height: max(0, rect.minY))
@@ -122,34 +119,41 @@ struct XiaodaTutorialOverlay: View {
                     XiaodaSwipeTarget(completed: swipeCompleted)
                         .frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
                 }
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack(spacing: 12) {
-                        Text("\(step) / 4").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(red: 112/255, green: 120/255, blue: 139/255))
-                        HStack(spacing: 6) {
-                            ForEach(1...4, id: \.self) { index in
-                                Capsule().fill(index <= step ? Color(red: 97/255, green: 89/255, blue: 232/255) : Color(red: 233/255, green: 234/255, blue: 242/255)).frame(height: 6)
-                            }
-                        }.accessibilityHidden(true)
-                    }
-                    Text(entry["title"].string).font(.system(size: 21, weight: .bold))
-                        .foregroundStyle(Color(red: 48/255, green: 57/255, blue: 76/255))
-                        .padding(.top, 12).padding(.bottom, 16).accessibilityIdentifier("coach.title")
-                    XiaodaMessage(text: entry["text"].string, pose: entry["pose"].string,
-                        highlights: decoratedSpeech ? entry["highlights"].array.map(\.string) : [],
-                        icons: decoratedSpeech ? XiaodaSpeech.iconMap(entry["icons"]) : [:], actionLayout: decoratedSpeech && !XiaodaSpeech.iconMap(entry["icons"]).isEmpty) { EmptyView() }
-                    if step != 3 {
-                        Button(step == 4 ? "我会啦" : "知道啦", action: next)
-                            .buttonStyle(XJButtonStyle(primary: true)).padding(.top, 20).accessibilityIdentifier("coach.next")
-                    }
-                }.padding(22).frame(width: max(0, geometry.size.width - 24), alignment: .leading)
+                XiaodaTutorialCardLayout(target: rect) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 12) {
+                            Text("\(step) / 4").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(red: 112/255, green: 120/255, blue: 139/255))
+                            HStack(spacing: 6) {
+                                ForEach(1...4, id: \.self) { index in
+                                    Capsule().fill(index <= step ? Color(red: 97/255, green: 89/255, blue: 232/255) : Color(red: 233/255, green: 234/255, blue: 242/255)).frame(height: 6)
+                                }
+                            }.accessibilityHidden(true)
+                        }
+                        Text(entry["title"].string).font(.system(size: 21, weight: .bold))
+                            .foregroundStyle(Color(red: 48/255, green: 57/255, blue: 76/255))
+                            .padding(.top, 12).padding(.bottom, 16).accessibilityIdentifier("coach.title")
+                        XiaodaMessage(text: entry["text"].string, pose: entry["pose"].string,
+                            highlights: decoratedSpeech ? entry["highlights"].array.map(\.string) : [],
+                            icons: decoratedSpeech ? XiaodaSpeech.iconMap(entry["icons"]) : [:], actionLayout: decoratedSpeech && !XiaodaSpeech.iconMap(entry["icons"]).isEmpty) { EmptyView() }
+                        if step != 3 {
+                            Button(step == 4 ? "我会啦" : "知道啦", action: next)
+                                .buttonStyle(XJButtonStyle(primary: true)).padding(.top, 20).accessibilityIdentifier("coach.next")
+                        }
+                    }.padding(22).frame(width: max(0, geometry.size.width - 24), alignment: .leading)
                     .background(.white, in: RoundedRectangle(cornerRadius: 24))
                     .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(Color(red: 226/255, green: 229/255, blue: 236/255), lineWidth: 2))
                     .accessibilityElement(children: .contain).accessibilityIdentifier("coach.card")
-                    .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { measuredHeight = $0 }
-                    .offset(x: 12, y: top)
+                    .background {
+                        GeometryReader { card in
+                            let adjustment = XiaodaTutorialLayout.scrollAdjustment(target: target, cardHeight: card.size.height, available: geometry.size.height)
+                            Color.clear.task(id: adjustment) {
+                                if abs(adjustment) > 2 { adjustScroll(adjustment) }
+                            }
+                        }
+                    }
+                }
             }.frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
                 .clipped()
-                .task(id: adjustment) { if abs(adjustment) > 2 { adjustScroll(adjustment) } }
         }
     }
     private func shade(width: CGFloat, height: CGFloat) -> some View {

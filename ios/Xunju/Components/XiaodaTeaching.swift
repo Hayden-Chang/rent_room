@@ -61,6 +61,22 @@ enum XiaodaTutorialLayout {
     }
 }
 
+// Measure and place in one layout pass, without feeding the card height back
+// through state inside the parent's anchor-preference overlay.
+struct XiaodaTutorialCardLayout: Layout {
+    let target: CGRect?
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        proposal.replacingUnspecifiedDimensions()
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard let card = subviews.first else { return }
+        let size = card.sizeThatFits(ProposedViewSize(width: max(0, bounds.width - 24), height: nil))
+        let top = XiaodaTutorialLayout.cardTop(target: target, height: size.height, available: bounds.height)
+        card.place(at: CGPoint(x: bounds.minX + 12, y: bounds.minY + top), anchor: .topLeading,
+            proposal: ProposedViewSize(width: size.width, height: size.height))
+    }
+}
+
 // Reuse the checklist's distance/velocity rules; a wrong direction cancels the
 // whole attempt, so returning left after an initial right/vertical drag is inert.
 struct XiaodaSwipeGesture {
