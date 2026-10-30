@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
@@ -11,7 +12,7 @@ it('runs built Page bundles with an authenticated fixture and shares one store',
  const id=app.service.store.add('运行验证');
  for(const name of ['home','detail','compare','settings','archive','templates']){
    vm.runInContext(fs.readFileSync(`dist/pages/${name}/index.js`,'utf8'),context);
-   page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};
+   page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){applyPageData(this.data,p);};
    page.onLoad?.({id});page.onShow?.();
    if(name==='home'){
      const originalApi=app.service.api,routes=[];const navigate=wx.navigateTo;

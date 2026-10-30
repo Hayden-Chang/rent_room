@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -48,13 +49,13 @@ it('round-trips all three none flags and previous text through storage and ZIP, 
 it('uses text input and the trailing none binding to update all three page rows',()=>{
  let page,spec,disk='';const store=createStore({read:()=>disk,write:v=>{disk=v;}}),id=store.add('配置按钮');
  vm.runInNewContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),pageContextFixture({Page:p=>page=p,getApp:()=>({service:{store}}),wx:{setNavigationBarTitle(){},showToast(){}},console,setTimeout,clearTimeout}));
- page.data=structuredClone(page.data);page.setData=function(p){Object.assign(this.data,p);};page.onLoad({id});page.search({detail:{value:'缺少的配置'}});
+ page.data=structuredClone(page.data);page.setData=function(p){applyPageData(this.data,p);};page.onLoad({id});page.search({detail:{value:'缺少的配置'}});
  vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date});
  const markup=fs.readFileSync('dist/components/field-row/index.wxml','utf8'),tag=markup.match(/<button[^>]*class="[^"]*cost-none[^>]*>/)[0],handler=tag.match(/catchtap="([^"]+)"/)[1];
  expect(markup).toMatch(/field.cost\|\|field.allowNone/);expect(markup).toMatch(/type="\{\{field.type==='n'\?'digit':'text'\}\}"/);
  for(const fieldId of ids){
   const get=()=>page.data.sections.flatMap(s=>s.rows).find(r=>r.id===fieldId);
-  const c={...spec.methods,data:{...structuredClone(spec.data),field:get()},setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){expect(name).toBe('answer');page.answer({detail});this.data.field=get();}};
+  const c={...spec.methods,data:{...structuredClone(spec.data),field:get()},setData(p){applyPageData(this.data,p);},triggerEvent(name,detail){expect(name).toBe('answer');page.answer({detail});this.data.field=get();}};
   c[handler]();expect(get().noneSelected).toBe(true);expect(store.house(id).answers[fieldId].none).toBe(true);
   c[handler]();expect(get().noneSelected).toBe(false);
   c.data.readonly=true;c[handler]();expect(store.house(id).answers[fieldId].none).toBe(false);

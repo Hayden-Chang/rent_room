@@ -1,3 +1,4 @@
+import {detailRenderPatch} from '../../lib/detail-render.js';
 import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {SPEED_FIELD_ID} from '../../lib/speed-test.js';
@@ -28,8 +29,10 @@ Page(withAppShare(protectedPage({data:{wheelField:null,id:'',house:null,mediaTyp
     this.setData({...patch,fillMinHeight:null,...this.checklistData(h,view)});
   },
   refresh(patch={},done){const h=service().store.house(this.data.id);if(!h){wx.navigateBack();return;}const view={phase:this.data.phase,query:this.data.query,filters:this.data.filters};
-    this.setData({...patch,house:h,...this.checklistData(h,view),visibleMedia:mediaWithIssues(h).filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:issueEntries(h).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]).map(i=>({...i,media:h.media.filter(m=>m.issueId===i.id),mediaCount:h.media.filter(m=>m.issueId===i.id).length})),saveError:service().store.status().error},done);
-    wx.setNavigationBarTitle({title:h.name});this.syncFilling();
+    const next={...patch,house:h,...this.checklistData(h,view),visibleMedia:mediaWithIssues(h).filter(m=>this.data.mediaType==='all'||m.type===this.data.mediaType),stats:stats(h),issueRows:issueEntries(h).map(e=>({...fieldView(h,e.field),category:e.topic.category})),manualIssues:(h.issues||[]).map(i=>({...i,media:h.media.filter(m=>m.issueId===i.id),mediaCount:h.media.filter(m=>m.issueId===i.id).length})),saveError:service().store.status().error};
+    const update=detailRenderPatch(this.data,next);
+    if(Object.keys(update).length||done)this.setData(update,done);
+    if(this.navigationTitle!==h.name){this.navigationTitle=h.name;wx.setNavigationBarTitle({title:h.name});}this.syncFilling();
   },
   retry(){if(service().store.save())this.refresh();},
   fold(e){if(this.dismissSwipe())return;this.inputFilling(e,true);const key=JSON.stringify({phase:this.data.phase,query:this.data.query,filters:this.data.filters});const folds=this.folds[key]||={};const {id,expanded}=e.detail?.id?e.detail:e.currentTarget.dataset;folds[id]=!expanded;this.refresh();},

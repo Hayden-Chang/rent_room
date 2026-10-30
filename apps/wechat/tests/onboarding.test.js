@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect,vi,afterEach} from 'vitest';
 import fs from 'node:fs';
@@ -11,7 +12,7 @@ function harness({disabled=false,legacy=false,mode='detailed'}={}){
  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
  app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.enabled=!disabled;s.settings.selectedTemplate=mode;if(legacy){s.xiaoda.legacy=true;s.xiaoda.tutorialStep=0;}});
  const id=app.service.store.add('第一套');
- function open(){vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p,cb){Object.assign(this.data,p);cb?.();};page.selectAllComponents=()=>[];
+ function open(){vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p,cb){applyPageData(this.data,p);cb?.();};page.selectAllComponents=()=>[];
   page.createSelectorQuery=()=>{let anchors=false;const q={select:selector=>{selectors.push(selector);return q;},selectAll:()=>{anchors=true;return q;},fields:()=>q,selectViewport:()=>q,boundingClientRect:()=>q,scrollOffset:()=>q,exec:cb=>cb(anchors?[{scrollTop:0},[]]:[{left:20,top:50,width:350,height:60,bottom:110},{height:250},{scrollTop:0}])};return q;};page.onLoad({id,new:'1'});page.onReady();return page;}
  return {app,id,open,wx,fail:v=>{fail=v;},disk,selectors};
 }
@@ -24,7 +25,7 @@ it('keeps the swipe spotlight attached after a late native scroll notification',
 function swipeHarness(mode='detailed'){
  const h=harness({mode}),p=h.open();reachSwipe(p);let spec;
  vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component(o){spec=o;},Date});
- const row={...spec.methods,data:{...JSON.parse(JSON.stringify(spec.data)),field:p.data.coachField,readonly:false},setData(v){Object.assign(this.data,v);},events:[],triggerEvent(name,detail){this.events.push({name,detail});if(name==='swipeopen')p.coachSwiped({detail});}};
+ const row={...spec.methods,data:{...JSON.parse(JSON.stringify(spec.data)),field:p.data.coachField,readonly:false},setData(v){applyPageData(this.data,v);},events:[],triggerEvent(name,detail){this.events.push({name,detail});if(name==='swipeopen')p.coachSwiped({detail});}};
  p.selectAllComponents=()=>[row];return {...h,p,row};
 }
 const touch=(x,y=80,timeStamp=0)=>({touches:[{clientX:x,clientY:y}],changedTouches:[{clientX:x,clientY:y}],timeStamp});

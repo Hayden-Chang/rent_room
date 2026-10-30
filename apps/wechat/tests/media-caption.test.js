@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect,describe} from 'vitest';
 import fs from 'node:fs';
@@ -15,7 +16,7 @@ function setup(){
  const service={store,preview:(...args)=>previews.push(args)};
  const context=vm.createContext(pageContextFixture({wx:{setNavigationBarTitle(){},navigateBack(){},showToast:o=>toasts.push(o.title)},getApp:()=>({service}),Page:o=>{page=o;},console,setTimeout,clearTimeout}));
  vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);
- page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){Object.assign(this.data,p);};page.onLoad({id});
+ page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){applyPageData(this.data,p);};page.onLoad({id});
  const edit=mediaId=>page.editMediaNote({currentTarget:{dataset:{id:mediaId}}});
  const input=value=>page.note({detail:{value}});
  return {page,store,id,edit,input,toasts,previews,reload:()=>createStore(adapter),full:v=>{full=v;}};

@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {pageContextFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import fs from 'node:fs';
@@ -16,7 +17,7 @@ function setup(){
  }));
  const updates=[];
  page.data=JSON.parse(JSON.stringify(page.data));page.data.id=house.id;page.folds={};
- page.setData=function(patch){updates.push(JSON.parse(JSON.stringify(patch)));Object.assign(this.data,patch);};
+ page.setData=function(patch){updates.push(JSON.parse(JSON.stringify(patch)));applyPageData(this.data,patch);};
  page.refresh();updates.length=0;titleCalls=0;
  return {page,house,updates,titleCalls:()=>titleCalls};
 }
