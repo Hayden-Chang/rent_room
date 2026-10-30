@@ -131,6 +131,19 @@ import XCTest
         XCTAssertTrue(workspace.billing.error.isEmpty)
         XCTAssertEqual(workspace.store.records.directory, directory); XCTAssertEqual(workspace.store.house(id)["name"].string, "本机记录")
     }
+    func testInvalidatedIdentityDuringHistoryCannotGrantOrFinish() async throws {
+        let (workspace, storefront, _) = try fixture()
+        await workspace.billing.load()
+        storefront.outstanding = [storefront.transaction]
+        let started = expectation(description: "history in flight")
+        storefront.historyStarted = { started.fulfill() }
+        let restore = Task { await workspace.billing.restore() }
+        await fulfillment(of: [started], timeout: 3)
+        workspace.billing.identityChanged()
+        storefront.historyStarted = nil; storefront.historyGate?.resume(); storefront.historyGate = nil
+        await restore.value
+        XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
+    }
     func testFixtureRequiresExplicitUUIDAndKnownMode() {
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: []))
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: ["--business-test", "invalid", "--capacity-business-fixture", "pending"]))

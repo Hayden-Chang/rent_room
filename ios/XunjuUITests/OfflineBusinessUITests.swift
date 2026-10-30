@@ -34,6 +34,10 @@ import XCTest
         XCTAssertFalse(app.staticTexts["place.message"].exists)
         capture("offline-business-saved-address", app)
         app.navigationBackButton.tap()
+        let review = app.buttons["settings.appStoreReview"]
+        for _ in 0..<3 where !review.isHittable { app.swipeUp() }
+        XCTAssertTrue(review.isHittable, "Keep the existing main-branch App Store review entry")
+        capture("offline-business-app-store-review", app)
         for page in ["privacy", "terms", "support"] {
             let row = app.buttons["legal.\(page)"]
             for _ in 0..<3 where !row.isHittable { app.swipeUp() }

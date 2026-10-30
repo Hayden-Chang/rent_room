@@ -27,6 +27,9 @@ struct PurchaseLedger: Codable {
     mutating func apply(_ transactions: [CapacityTransaction], identity: PurchaseIdentity,
                         snapshotStartedAt: Int?, minimumRevision: Int) throws {
         guard account == identity.account, environment == identity.environment else { throw CancellationError() }
+        guard revision >= 0, minimumRevision >= 0, max(revision, minimumRevision) < Int.max else {
+            throw CoreFailure(message: "购买记录版本无效，请恢复容量")
+        }
         let nextRevision = max(revision, minimumRevision) + 1
         var updated: [String: Entry] = snapshotStartedAt == nil ? entries : [:]
         for transaction in transactions where transaction.productID == Self.productID {
@@ -45,7 +48,11 @@ struct PurchaseLedger: Codable {
         if let started = snapshotStartedAt {
             // Transaction.updates may arrive while a full history is being enumerated.
             // Preserve those later writes even if the snapshot omitted the purchase.
-            for (id, entry) in entries where entry.revision > started { updated[id] = entry }
+            for (id, entry) in entries where entry.revision > started {
+                if let snapshot = updated[id], snapshot.transaction.signedDate > entry.transaction.signedDate ||
+                    (snapshot.transaction.signedDate == entry.transaction.signedDate && snapshot.transaction.revocationDate != nil) { continue }
+                updated[id] = entry
+            }
         }
         entries = updated; revision = nextRevision
     }

@@ -44,7 +44,7 @@ final class AppWorkspace {
             purchaseLedger = ledger
             cached = try ledger?.balance(policy: initialPolicy) ?? purchaseCache.read()
         }
-        catch { cached = nil; self.error = error.localizedDescription }
+        catch { purchaseLedger = nil; cached = try? purchaseCache.read(); self.error = error.localizedDescription }
         purchaseBalance = cached
         let effectivePolicy = cached?.capacity ?? initialPolicy
         capacityPolicy = effectivePolicy

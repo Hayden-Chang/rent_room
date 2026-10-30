@@ -18,6 +18,13 @@ final class PurchaseLedgerTests: XCTestCase {
             XCTAssertEqual(try ledger.balance(policy: .initial).packs, 3)
         }
     }
+    func testNewerRefundInSnapshotCannotBeOverwrittenByConcurrentOlderUpdate() throws {
+        var ledger = PurchaseLedger(account: identity.account, environment: "Sandbox")
+        let started = ledger.revision
+        try ledger.apply([transaction()], identity: identity, snapshotStartedAt: nil, minimumRevision: 0)
+        try ledger.apply([transaction(revoked: true, signed: 2)], identity: identity, snapshotStartedAt: started, minimumRevision: 0)
+        XCTAssertEqual(try ledger.balance(policy: .initial).packs, 0)
+    }
     func testForeignInvalidAndOtherProductHistoryCannotGrantCapacity() throws {
         var ledger = PurchaseLedger(account: identity.account, environment: "Sandbox")
         for value in [transaction(quantity: 0), transaction(quantity: -1), transaction(quantity: 10001)] {

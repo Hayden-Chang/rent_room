@@ -7,6 +7,7 @@ import Observation
     private(set) var product: CapacityProduct?
     @ObservationIgnored private weak var workspace: AppWorkspace?
     @ObservationIgnored private let storefront: any CapacityStorefront
+    @ObservationIgnored private var identityEpoch = 0
     @ObservationIgnored private var identity: PurchaseIdentity?
     @ObservationIgnored private var finished: Set<String> = []
     @ObservationIgnored private var pending = false
@@ -16,6 +17,7 @@ import Observation
         self.workspace = workspace; self.storefront = storefront
     }
     func identityChanged() {
+        identityEpoch += 1
         identity = nil; product = nil; pending = false; awaitingApproval = false; error = ""; activity = .idle
     }
     /// StoreKit is contacted only in the user-initiated capacity flow.
@@ -82,7 +84,9 @@ import Observation
     }
     private func current(_ value: PurchaseIdentity) -> Bool { identity?.account == value.account }
     private func prepare(refresh: Bool = false) async throws -> PurchaseIdentity {
+        let epoch = identityEpoch
         let value = try await storefront.identity(refresh: refresh).validated()
+        guard epoch == identityEpoch else { throw CancellationError() }
         try Task.checkCancellation()
         if let old = identity, old.account != value.account {
             product = nil; pending = false; awaitingApproval = false
