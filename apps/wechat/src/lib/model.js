@@ -219,7 +219,10 @@ export function inPhase(t,phase) {
 export function matches(h,t,f,view={}) {
   const a=answer(h,f),value=rules.fieldDisplayValue(f,a);
   if(!inPhase(t,view.phase))return false;
-  if(view.query&&!`${t.category} ${t.title} ${f.label} ${f.description||''} ${value} ${a.note||''}`.toLowerCase().includes(view.query.toLowerCase()))return false;
+  if(view.query){
+    const text=`${t.category} ${t.title} ${f.label} ${f.description||''} ${value} ${a.note||''}`.toLowerCase();
+    if(![view.query,...(view.queryTerms||[])].some(term=>typeof term==='string'&&term&&text.includes(term.toLowerCase())))return false;
+  }
   const filters=view.filters||[];
   return !filters.length||filters.some(s=>({未记录:!f.annotation&&!rules.fieldRecorded(f,a),已记录:!f.annotation&&rules.fieldRecorded(f,a),有问题:problem(f,a),有备注:!!a.note,有影像:(h.media||[]).some(m=>m.fieldId===f.id)})[s]);
 }

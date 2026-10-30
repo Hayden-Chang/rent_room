@@ -1,0 +1,46 @@
+{
+  "sourceSHA": "a8ef73671300c0565f29728dd9f3f67325b1e27e",
+  "preFixSHA": "4399c0b70e72dc1a286370135dbb71d6b660db02",
+  "worktree": "/private/tmp/rent-room-ios-language-currency-20261030",
+  "branch": "codex/ios-language-currency-20261030",
+  "pullRequest": 95,
+  "scope": "Only moneyLabel display: Chinese CNY uses 元, other currencies and English remain unchanged. No new English copy.",
+  "result": "not-merge-ready",
+  "unitTestsPassed": 3,
+  "uiTestsFailed": 2,
+  "preFixUnitFailure": "Six expected assertions failed for CNY versus 元 labels.",
+  "observations": [
+    "Chinese rent field rendered 租金（元/月） with amount 2000; assertion and screenshot captured.",
+    "After relaunch, house card still displayed CNY 2000; subsequent reopen did not reach checklist.",
+    "Existing GBP/EUR flow failed at settings currency navigation. The same boundary failed before the fix. Live sample shows SwiftUI navigation/layout preference work; exact cause unresolved."
+  ],
+  "beforeDevice": {
+    "architecture": "arm64",
+    "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+    "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+    "modelName": "iPhone 14 Pro",
+    "osBuildNumber": "22D8075",
+    "osVersion": "18.3.1",
+    "platform": "iOS Simulator"
+  },
+  "afterDevice": {
+    "architecture": "arm64",
+    "deviceId": "759E28A9-21EB-4AA1-9F4F-EF1850989C56",
+    "deviceName": "todo-pool-camera-20260717110121",
+    "modelName": "iPhone 16",
+    "osBuildNumber": "23F77",
+    "osVersion": "26.5",
+    "platform": "iOS Simulator"
+  },
+  "runnerConfig": "/Volumes/mac2/projects/git_repo/run_self/Simulator Management/config/runner.json",
+  "leasesReleased": true,
+  "xcresults": {
+    "before": "/Volumes/mac2/codex-builds/rent-room-cny-form-20261030-before.xcresult",
+    "after": "/Volumes/mac2/codex-builds/rent-room-cny-form-20261030-after.xcresult"
+  },
+  "evidenceDirectory": "/Users/pc/.codex/visualizations/2026/10/29/01a18878-d8ae-72f2-a0cf-3e4662baf2b2/ios-language-currency/cny-form-unit",
+  "screenshot": "cny-form-unit-20261030/chinese-rent-yuan.png",
+  "previousDeviceBuild": "d68ac07148eac35e621a5028f8f7ea1433a7a92d",
+  "deviceUpdated": false,
+  "reusedPriorEvidence": "Earlier f8f3f9a evidence is historical only for unaffected behavior; do not combine it with this failed campaign to declare the new head merge-ready."
+}

@@ -22,11 +22,11 @@ struct MPHeader: View {
     var back: (() -> Void)? = nil
     var body: some View {
         ZStack {
-            Text(title).font(.system(size: 17, weight: .semibold)).lineLimit(1).padding(.horizontal, 66)
+            AppText(title).font(.system(size: 17, weight: .semibold)).lineLimit(1).padding(.horizontal, 66)
             HStack {
                 if let back {
                     Button(action: back) { Image(systemName: "chevron.left").font(.system(size: 20)).frame(width: 44, height: 44).contentShape(Rectangle()) }
-                        .buttonStyle(.plain).accessibilityLabel("返回").accessibilityIdentifier("mp.back")
+                        .buttonStyle(.plain).accessibilityLabel(AppCopy.text("返回")).accessibilityIdentifier("mp.back")
                 }
                 Spacer()
             }
@@ -61,9 +61,9 @@ struct MPMenuRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 16) {
-                Text(title).fontWeight(.medium).fixedSize()
+                AppText(title).fontWeight(.medium).fixedSize()
                 Spacer(minLength: 0)
-                Text(detail + (detail.isEmpty ? "›" : " ›")).font(.system(size: 12)).foregroundStyle(XJTheme.muted).lineLimit(1)
+                AppText(detail + (detail.isEmpty ? "›" : " ›")).font(.system(size: 12)).foregroundStyle(XJTheme.muted).lineLimit(1)
             }.font(.system(size: 14)).frame(minHeight: 49).contentShape(Rectangle())
         }.buttonStyle(.plain).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
     }
@@ -72,7 +72,7 @@ struct MPMenuRow: View {
 struct MPCheckbox: View {
     let selected: Bool
     var body: some View {
-        Text(selected ? "✓" : "").font(.system(size: 15)).foregroundStyle(.white).frame(width: 22, height: 22)
+        AppText(selected ? "✓" : "").font(.system(size: 15)).foregroundStyle(.white).frame(width: 22, height: 22)
             .background(selected ? XJTheme.primary : .white)
             .clipShape(RoundedRectangle(cornerRadius: 6))
             .overlay(RoundedRectangle(cornerRadius: 6).stroke(selected ? XJTheme.primary : XJTheme.line))
@@ -87,7 +87,7 @@ struct MPFloatingButton: View {
     var body: some View {
         Button(action: action) { XJIcon(name: icon).frame(width: size, height: size).background(.white)
             .clipShape(Circle()).overlay(Circle().strokeBorder(XJTheme.line)).shadow(color: XJTheme.ink.opacity(0.10), radius: 6, y: 3) }
-            .buttonStyle(.plain).accessibilityLabel(label)
+            .buttonStyle(.plain).accessibilityLabel(AppCopy.text(label))
     }
 }
 
@@ -102,7 +102,7 @@ struct MPTabBar: View {
                 Button { selection = title } label: {
                     VStack(spacing: detail ? 1 : 3) {
                         XJIcon(name: icon + (selection == title ? "-selected" : "-default"))
-                        Text(title + (detail && title == "影像" ? " \(mediaCount)" : detail && title == "问题" ? " \(issueCount)" : ""))
+                        AppText(title + (detail && title == "影像" ? " \(mediaCount)" : detail && title == "问题" ? " \(issueCount)" : ""))
                             .font(.system(size: detail ? 13 : 10, weight: detail ? .medium : .regular))
                     }.frame(maxWidth: .infinity, minHeight: detail ? 48 : 50).contentShape(Rectangle())
                         .foregroundStyle(selection == title ? XJTheme.primary : Color(red: 141/255, green: 149/255, blue: 163/255))
@@ -121,14 +121,14 @@ struct MPInputDialog: View {
         ZStack {
             XJTheme.ink.opacity(0.38).ignoresSafeArea()
             VStack(spacing: 0) {
-                Text(title).font(.system(size: 17, weight: .semibold)).padding(.top, 24).padding(.bottom, 20)
-                TextField(placeholder, text: $text).font(.system(size: 14)).padding(12).background(XJTheme.background)
+                AppText(title).font(.system(size: 17, weight: .semibold)).padding(.top, 24).padding(.bottom, 20)
+                TextField(AppCopy.text(placeholder), text: $text).font(.system(size: 14)).padding(12).background(XJTheme.background)
                     .clipShape(RoundedRectangle(cornerRadius: 6)).padding(.horizontal, 24).accessibilityIdentifier("mp.prompt.text")
-                if !error.isEmpty { Text(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger).padding(12) }
+                if !error.isEmpty { AppText(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger).padding(12) }
                 HStack(spacing: 0) {
-                    Button("取消", action: cancel).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, minHeight: 52)
+                    Button(AppCopy.text("取消"), action: cancel).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, minHeight: 52)
                     XJTheme.line.frame(width: 1, height: 52)
-                    Button("保存", action: save).foregroundStyle(XJTheme.primary).frame(maxWidth: .infinity, minHeight: 52).accessibilityIdentifier("mp.prompt.save")
+                    Button(AppCopy.text("保存"), action: save).foregroundStyle(XJTheme.primary).frame(maxWidth: .infinity, minHeight: 52).accessibilityIdentifier("mp.prompt.save")
                 }.font(.system(size: 16, weight: .medium)).overlay(alignment: .top) { XJTheme.line.frame(height: 1) }.padding(.top, 24)
             }.background(.white).clipShape(RoundedRectangle(cornerRadius: 12)).padding(.horizontal, 40)
         }.accessibilityElement(children: .contain)
@@ -164,6 +164,7 @@ struct MPBottomSheet<Content: View>: View {
 
 struct MPNoteSheet: View {
     let title: String
+    var rawTitle = false
     @Binding var text: String
     var readonly = false, error = ""
     let close: () -> Void, save: () -> Void
@@ -174,15 +175,15 @@ struct MPNoteSheet: View {
     var body: some View {
         MPBottomSheet(topPadding: 12, bottomPadding: bottomInset, close: close) {
             VStack(alignment: .leading, spacing: 12) {
-                Text(title).font(.system(size: 17, weight: .semibold)).frame(minHeight: 25.5)
+                Text(verbatim: rawTitle ? title : AppCopy.text(title)).font(.system(size: 17, weight: .semibold)).frame(minHeight: 25.5)
                 TextEditor(text: $text).font(.system(size: 14)).frame(height: 136).scrollContentBackground(.hidden)
                     .padding(12).background(XJTheme.background).clipShape(RoundedRectangle(cornerRadius: 8))
                     .disabled(readonly).accessibilityIdentifier("mp.note.text")
                     .onChange(of: text) { if text.count > 10000 { text = String(text.prefix(10000)) } }
-                if !error.isEmpty { Text(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger) }
+                if !error.isEmpty { AppText(error).font(.system(size: 12)).foregroundStyle(XJTheme.danger) }
                 HStack(spacing: 8) {
-                    Button(readonly ? "关闭" : "取消", action: close).buttonStyle(MPButtonStyle())
-                    if !readonly { Button("保存备注", action: save).buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("mp.note.save") }
+                    Button(AppCopy.text(readonly ? "关闭" : "取消"), action: close).buttonStyle(MPButtonStyle())
+                    if !readonly { Button(AppCopy.text("保存备注"), action: save).buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("mp.note.save") }
                 }
             }
         }

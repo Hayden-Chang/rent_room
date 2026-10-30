@@ -1,0 +1,332 @@
+{
+  "headSHA": "f8f3f9ab920d65bde4102782d2112be6f7c62837",
+  "baseSHA": "ab9c02f55e5a3043bee5a74e7f8f6fd96f902d2a",
+  "plan": {
+    "schemaVersion": 1,
+    "runId": "rent-room-regional-integration-20261030-08",
+    "phase": "final-pr-head",
+    "taskName": "rent-room-regional-integration",
+    "sessionId": "01a18878-d8ae-72f2-a0cf-3e4662baf2b2",
+    "workspace": "/private/tmp/rent-room-ios-language-currency-20261030",
+    "unitTestTarget": "XunjuTests",
+    "uiTestTarget": "XunjuUITests",
+    "unitTests": [
+      {
+        "selector": "XunjuTests/RegionalPreferencesTests/testSystemLanguageMatchesPreferenceOrderAndFallsBackToEnglish",
+        "reason": "Locale resolution, country mapping, preference persistence and catalog boundaries",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/RegionalPreferencesTests/testCountryDetectionMapsSupportedCountriesAndFallsBackToUSD",
+        "reason": "Locale resolution, country mapping, preference persistence and catalog boundaries",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/RegionalPreferencesTests/testDetectionUpdatesOnlyAutomaticSelectionAndDenialUsesUSD",
+        "reason": "Locale resolution, country mapping, preference persistence and catalog boundaries",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/RegionalPreferencesTests/testChoicesPersistIndependentlyOfSystemLanguage",
+        "reason": "Locale resolution, country mapping, preference persistence and catalog boundaries",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/RegionalPreferencesTests/testBilingualCatalogHasMatchingKeysPlaceholdersAndSearchableCurrencies",
+        "reason": "Locale resolution, country mapping, preference persistence and catalog boundaries",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/RegionalPreferencesTests/testRegionalReviewRequiresExplicitKnownRoute",
+        "reason": "Locale resolution, country mapping, preference persistence and catalog boundaries",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/CurrencyIntegrationTests/testDefaultChangesOnlyNewHousesAndPersistsAmountsAndCurrency",
+        "reason": "Currency snapshots, legacy migration, backup, explicit location and cancellation",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/CurrencyIntegrationTests/testLegacyMigrationImportAndExportRetainCurrencyWithoutConversion",
+        "reason": "Currency snapshots, legacy migration, backup, explicit location and cancellation",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/CurrencyIntegrationTests/testComparisonShowsDifferentCurrenciesForSameAmountAndKeepsFreeTextRaw",
+        "reason": "Currency snapshots, legacy migration, backup, explicit location and cancellation",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/CurrencyIntegrationTests/testCurrencyPromptDoesNotLocateBeforeChoiceAndDeclineRemainsUSD",
+        "reason": "Currency snapshots, legacy migration, backup, explicit location and cancellation",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/CurrencyIntegrationTests/testExplicitLocationSuccessFailureAndManualChoiceWinOverLateResult",
+        "reason": "Currency snapshots, legacy migration, backup, explicit location and cancellation",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/CurrencyIntegrationTests/testBackgroundCancellationDoesNotOverwriteCurrencyOrRestartWithoutConsent",
+        "reason": "Currency snapshots, legacy migration, backup, explicit location and cancellation",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection",
+        "reason": "Currency add and read adapters must retain capacity, atomic save and recovery",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession",
+        "reason": "Currency add and read adapters must retain capacity, atomic save and recovery",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testCorruptFileBlocksWritesAndRecoveryPreservesOriginal",
+        "reason": "Currency add and read adapters must retain capacity, atomic save and recovery",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/CurrencyIntegrationTests/testCurrencyLabelsIncludeCodeWhenCanonicalCostHasNoUnit",
+        "reason": "Post-fix currency suffix and user-authored cost label preservation",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/AppCopyTests/testPackagedEnglishCatalogPermissionsAndMoneyUnits",
+        "reason": "English resource completeness, canonical interpolation, raw user data and localized search",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/AppCopyTests/testCanonicalTemplateArgumentsTranslateWhileUserNamesStayVerbatim",
+        "reason": "English resource completeness, canonical interpolation, raw user data and localized search",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/AppCopyTests/testEnglishSearchFindsCanonicalRentWithoutMutatingSavedAnswers",
+        "reason": "English resource completeness, canonical interpolation, raw user data and localized search",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/AppCopyTests/testCanonicalComparisonAndWheelUnitsPreserveCustomValues",
+        "source": "new-or-modified",
+        "reason": "Canonical options and wheel units translate; legacy/custom values and image locale remain intact"
+      },
+      {
+        "selector": "XunjuTests/ChecklistPresentationTests/testSharedChoiceAdapterPreservesMultipleOtherAndFlagAcrossRelaunch",
+        "source": "affected-existing",
+        "reason": "Localized labels must preserve canonical choice and Other data"
+      },
+      {
+        "selector": "XunjuTests/ChecklistPresentationTests/testDividersAndFieldTypesMatchRealFormIncludingDynamicCosts",
+        "source": "affected-existing",
+        "reason": "Currency label adapters consume canonical field types and dynamic costs"
+      },
+      {
+        "selector": "XunjuTests/WheelInputTests/testHistoricalValuesAndFormerOtherAreNeverClamped",
+        "source": "affected-existing",
+        "reason": "Translated wheel display must not alter historic raw input"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testIndependentIssueFlagFilteringAndCollapsedFormDoNotMutate",
+        "source": "affected-existing",
+        "reason": "Form queryTerms adapter must preserve filter and nonmutation behavior"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testManualIssueAndSummaryComparisonPersist",
+        "source": "affected-existing",
+        "reason": "Currency comparison adapter must preserve issues and summaries"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testImportIsAtomicAndPreservesGlobalSettings",
+        "source": "affected-existing",
+        "reason": "Currency normalization participates in atomic import"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testIncrementalReadsAndMutationReturnValuesKeepStoreCurrent",
+        "source": "affected-existing",
+        "reason": "Merged main incremental bridge dispatch with currency metadata"
+      },
+      {
+        "selector": "XunjuTests/TouchTrailTests/testInheritedPreferenceStoreEnablesAndDisablesMountedPresentation",
+        "source": "affected-existing",
+        "reason": "Merged AppRoot and Settings preserve main touch trail environment"
+      },
+      {
+        "selector": "XunjuTests/AppCopyTests/testEnglishComparisonCostLabelsAreFullyLocalized",
+        "reason": "Regression from final screenshot: stripped money labels must translate without losing rate/period meaning",
+        "source": "new-or-modified"
+      }
+    ],
+    "uiTests": [
+      {
+        "selector": "XunjuUITests/RegionalBusinessTests/testFirstChecklistPromptsOnceAndLiveCountryDetectionUsesGBP",
+        "reason": "New first-checklist trigger and live country geocoding, plus existing changed UI flows",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/RegionalBusinessTests/testDeclineUSDManualCurrencyNewHouseAndExistingAmountPersist",
+        "reason": "New first-checklist trigger and live country geocoding, plus existing changed UI flows",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/RegionalBusinessTests/testSystemLocationDenialUsesUSDAndDoesNotRepeatAfterRelaunch",
+        "reason": "New first-checklist trigger and live country geocoding, plus existing changed UI flows",
+        "source": "new-or-modified"
+      }
+    ],
+    "changedUITests": [
+      "XunjuUITests/RegionalBusinessTests/testFirstChecklistPromptsOnceAndLiveCountryDetectionUsesGBP",
+      "XunjuUITests/RegionalBusinessTests/testDeclineUSDManualCurrencyNewHouseAndExistingAmountPersist",
+      "XunjuUITests/RegionalBusinessTests/testSystemLocationDenialUsesUSDAndDoesNotRepeatAfterRelaunch"
+    ],
+    "headSha": "f8f3f9ab920d65bde4102782d2112be6f7c62837"
+  },
+  "summary": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+          "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+          "modelName": "iPhone 14 Pro",
+          "osBuildNumber": "22D8075",
+          "osVersion": "18.3.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 32,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "Xunju · Built with macOS 26.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1793329361.699,
+    "passedTests": 32,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1793329110.609,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - Xunju",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "47% of duration",
+        "text": "1 longest test run with outlier durations exceeding 1.92s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 32
+  },
+  "receipt": {
+    "runId": "rent-room-regional-integration-20261030-08",
+    "token": "b0f03c12-9788-49a9-b283-8bcf103a4e73",
+    "resultBundlePath": "/Volumes/mac2/codex-builds/rent-room-regional-integration-20261030-08.xcresult",
+    "requestedAt": 1793329045509,
+    "cacheWaitSeconds": 0.03,
+    "queueSeconds": 4.413,
+    "buildResultBundlePath": "/Volumes/mac2/codex-builds/rent-room-regional-integration-20261030-08.build.xcresult",
+    "stages": {
+      "build": {
+        "queuedAt": 1793329045539,
+        "startedAt": 1793329045803,
+        "queueSeconds": 0.264,
+        "finishedAt": 1793329090201,
+        "exitCode": 0
+      },
+      "test": {
+        "queuedAt": 1793329090215,
+        "startedAt": 1793329094364,
+        "queueSeconds": 4.149,
+        "finishedAt": 1793329365806,
+        "exitCode": 0
+      }
+    },
+    "commandStartedAt": 1793329094364,
+    "finishedAt": 1793329365829,
+    "exitCode": 0
+  },
+  "command": "/private/tmp/rent-room-node24-20261030/node_modules/node/bin/node '/Volumes/mac2/projects/git_repo/run_self/Simulator Management/bin/sim-test-run.mjs' --plan /private/tmp/rent-room-ios-language-currency-20261030/artifacts/localization-integration/plan-08.json -- /private/tmp/rent-room-ios-language-currency-20261030/scripts/run-xcodebuild.sh -project /private/tmp/rent-room-ios-language-currency-20261030/ios/Xunju.xcodeproj -scheme Xunju -destination 'platform=iOS Simulator,id=__SIM_UDID__' -derivedDataPath /Volumes/mac2/codex-builds/rent-room-regional-integration-20261030-08-dd-__SIM_UDID__ -resultBundlePath /Volumes/mac2/codex-builds/rent-room-regional-integration-20261030-08.xcresult test -only-testing:XunjuTests/RegionalPreferencesTests/testSystemLanguageMatchesPreferenceOrderAndFallsBackToEnglish -only-testing:XunjuTests/RegionalPreferencesTests/testCountryDetectionMapsSupportedCountriesAndFallsBackToUSD -only-testing:XunjuTests/RegionalPreferencesTests/testDetectionUpdatesOnlyAutomaticSelectionAndDenialUsesUSD -only-testing:XunjuTests/RegionalPreferencesTests/testChoicesPersistIndependentlyOfSystemLanguage -only-testing:XunjuTests/RegionalPreferencesTests/testBilingualCatalogHasMatchingKeysPlaceholdersAndSearchableCurrencies -only-testing:XunjuTests/RegionalPreferencesTests/testRegionalReviewRequiresExplicitKnownRoute -only-testing:XunjuTests/CurrencyIntegrationTests/testDefaultChangesOnlyNewHousesAndPersistsAmountsAndCurrency -only-testing:XunjuTests/CurrencyIntegrationTests/testLegacyMigrationImportAndExportRetainCurrencyWithoutConversion -only-testing:XunjuTests/CurrencyIntegrationTests/testComparisonShowsDifferentCurrenciesForSameAmountAndKeepsFreeTextRaw -only-testing:XunjuTests/CurrencyIntegrationTests/testCurrencyPromptDoesNotLocateBeforeChoiceAndDeclineRemainsUSD -only-testing:XunjuTests/CurrencyIntegrationTests/testExplicitLocationSuccessFailureAndManualChoiceWinOverLateResult -only-testing:XunjuTests/CurrencyIntegrationTests/testBackgroundCancellationDoesNotOverwriteCurrencyOrRestartWithoutConsent -only-testing:XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection -only-testing:XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession -only-testing:XunjuTests/NativeStoreTests/testCorruptFileBlocksWritesAndRecoveryPreservesOriginal -only-testing:XunjuTests/CurrencyIntegrationTests/testCurrencyLabelsIncludeCodeWhenCanonicalCostHasNoUnit -only-testing:XunjuTests/AppCopyTests/testPackagedEnglishCatalogPermissionsAndMoneyUnits -only-testing:XunjuTests/AppCopyTests/testCanonicalTemplateArgumentsTranslateWhileUserNamesStayVerbatim -only-testing:XunjuTests/AppCopyTests/testEnglishSearchFindsCanonicalRentWithoutMutatingSavedAnswers -only-testing:XunjuTests/AppCopyTests/testCanonicalComparisonAndWheelUnitsPreserveCustomValues -only-testing:XunjuTests/ChecklistPresentationTests/testSharedChoiceAdapterPreservesMultipleOtherAndFlagAcrossRelaunch -only-testing:XunjuTests/ChecklistPresentationTests/testDividersAndFieldTypesMatchRealFormIncludingDynamicCosts -only-testing:XunjuTests/WheelInputTests/testHistoricalValuesAndFormerOtherAreNeverClamped -only-testing:XunjuTests/NativeStoreTests/testIndependentIssueFlagFilteringAndCollapsedFormDoNotMutate -only-testing:XunjuTests/NativeStoreTests/testManualIssueAndSummaryComparisonPersist -only-testing:XunjuTests/NativeStoreTests/testImportIsAtomicAndPreservesGlobalSettings -only-testing:XunjuTests/PerformanceRegressionTests/testIncrementalReadsAndMutationReturnValuesKeepStoreCurrent -only-testing:XunjuTests/TouchTrailTests/testInheritedPreferenceStoreEnablesAndDisablesMountedPresentation -only-testing:XunjuTests/AppCopyTests/testEnglishComparisonCostLabelsAreFullyLocalized -only-testing:XunjuUITests/RegionalBusinessTests/testFirstChecklistPromptsOnceAndLiveCountryDetectionUsesGBP -only-testing:XunjuUITests/RegionalBusinessTests/testDeclineUSDManualCurrencyNewHouseAndExistingAmountPersist -only-testing:XunjuUITests/RegionalBusinessTests/testSystemLocationDenialUsesUSDAndDoesNotRepeatAfterRelaunch",
+  "fullLog": "/private/tmp/rent-room-ios-language-currency-20261030/artifacts/localization-integration/run-08.log",
+  "review": {
+    "candidateSHA": "f8f3f9ab920d65bde4102782d2112be6f7c62837",
+    "baseSHA": "a6a22807d73518b31cd88f06c4df21d52c856bcd",
+    "reviewer": "current Codex main agent",
+    "scope": [
+      "Final main diff; changes confined to iOS language/currency and optional shared model search terms",
+      "Canonical stored values and user-authored names/notes/addresses/custom costs remain raw",
+      "Legacy CNY normalization, atomic import/add, currency snapshots and ISO comparison",
+      "Manual preference and callback cancellation ordering",
+      "Main incremental bridge dispatch/cache and touch-trail AppRoot environment preserved",
+      "agy provenance and generation checks; no manually rewritten English product values",
+      "Debug review hosts guarded; production behavior uses app-wide shared workspace"
+    ],
+    "findings": [
+      {
+        "finding": "Unit-stripped cost headers were not in the English lookup",
+        "preFixEvidence": "run-07: AppCopyTests/testEnglishComparisonCostLabelsAreFullyLocalized failed for 17 headers",
+        "fix": "17 agy-generated context-aware translations added",
+        "status": "regression passed in run-08"
+      },
+      {
+        "finding": "English empty-home heading was constrained to one line",
+        "preFixEvidence": "run-07: UI measured 28.67pt text height, failed >45pt assertion",
+        "fix": "HomePage uses intrinsic vertical size and minimum height",
+        "status": "regression passed in run-08"
+      }
+    ],
+    "validationStatus": "29 UT and 3 business XCUITest passed on f8f3f9ab920d65bde4102782d2112be6f7c62837",
+    "remoteChecks": {
+      "statuses": [],
+      "workflow_runs": []
+    },
+    "limits": [
+      "Not a full UI/device-size audit",
+      "Native Apple controls follow device language",
+      "No physical GPS or StoreKit run",
+      "Existing map provider coverage unchanged"
+    ],
+    "visualReview": "Final comparison uses monthly rent; full empty-home title wraps; live GB auto-detection and currency settings reviewed. No remaining blocking finding."
+  },
+  "remoteCI": {
+    "statuses": [],
+    "workflow_runs": [],
+    "interpretation": "No reported remote checks; local results are separate evidence"
+  },
+  "javascriptEvidence": {
+    "nodeTests": 9,
+    "vitestTests": 2,
+    "equivalence": "After the merged JS checks, f8f3f9a changes only iOS display copy, HomePage layout and related tests/docs; JS sources, Node runtime and selected cases are unchanged"
+  },
+  "screenshots": [
+    {
+      "path": "docs/ios/evidence/language-currency-20261030/business-08-first-checklist-prompt.png",
+      "sha256": "fef08eb47b17f916b3e0d2408626cd45a903d387e079aa84447594c2281cdf9a"
+    },
+    {
+      "path": "docs/ios/evidence/language-currency-20261030/business-10-live-country-gbp.png",
+      "sha256": "508e9cb6a1c85ef41244840a6233d9a95da0cfdab177c2b40c49a624d370a6f3"
+    },
+    {
+      "path": "docs/ios/evidence/language-currency-20261030/business-12-english-settings.png",
+      "sha256": "c207091e8a6b8c01277c5079bdfccc70c61cb07f961aa90836b27c7fe5b19b55"
+    },
+    {
+      "path": "docs/ios/evidence/language-currency-20261030/business-14-english-homes-persisted.png",
+      "sha256": "96c4ec228480a8e2f735179eb71d923e1a8025b1e6181820d31d4781a9d98494"
+    },
+    {
+      "path": "docs/ios/evidence/language-currency-20261030/business-15-english-comparison.png",
+      "sha256": "859ef5b2abf1e579119b327fc4e24ab75d349342fb5a6016ee211c7d7fd1efc2"
+    },
+    {
+      "path": "docs/ios/evidence/language-currency-20261030/business-17-english-empty-home.png",
+      "sha256": "88301e9a46aed6f7002e1ab48d83471eb2d6737c2d85b4d96753e91d37ddd986"
+    }
+  ]
+}

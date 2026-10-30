@@ -11,6 +11,8 @@ extension SessionKeychain: SessionStorage {}
 /// One shared store for every page. Test data can only use a UUID-scoped sandbox.
 @MainActor @Observable
 final class AppWorkspace {
+    let regional: RegionalSettingsModel
+    let currencyLocation: CurrencyLocationFlow
     let scopes: LocalIdentityScopes
     private(set) var store: NativeStore
     private(set) var session: LocalSession?
@@ -26,7 +28,10 @@ final class AppWorkspace {
     private(set) var capacityPolicy: CapacityPolicy
     @ObservationIgnored private var purchaseLedger: PurchaseLedger?
 
-    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, places: NativePlaceService = NativePlaceService(), storefront: (any CapacityStorefront)? = nil) throws {
+    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, places: NativePlaceService = NativePlaceService(), storefront: (any CapacityStorefront)? = nil, regionalDefaults: UserDefaults? = nil, countryLocator: (any CountryLocating)? = nil) throws {
+        let regional = RegionalSettingsModel(defaults: regionalDefaults ?? (Self.isBusinessTest ? UserDefaults(suiteName: "regional-business." + root.lastPathComponent)! : .standard))
+        self.regional = regional
+        currencyLocation = CurrencyLocationFlow(settings: regional, locator: countryLocator ?? SystemCountryLocation())
         self.keychain = keychain
         self.mapTransport = mapTransport; self.mapKey = mapKey
         self.places = places
@@ -58,6 +63,7 @@ final class AppWorkspace {
         }
         try scopes.selectOfflineDirectory(directory)
         session = saved // migration compatibility only; no production login UI or network use
+        store.currencyProvider = { [regional] in regional.preferences.currencyCode }
         billing = CapacityController(workspace: self, storefront: storefront ?? NativeStorefront())
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
@@ -74,6 +80,7 @@ final class AppWorkspace {
             try PixelParityFixture.populate(store)
         }
         #endif
+        store.currencyProvider = { [regional] in regional.preferences.currencyCode }
     }
 
     static func dataRoot(arguments: [String] = ProcessInfo.processInfo.arguments) throws -> URL {
@@ -109,7 +116,7 @@ final class AppWorkspace {
         if let policy = receipt.capacity { try acceptPolicy(policy) }
         let target = try scopes.claim(account: verified.account, from: session == nil ? store : nil, packs: verified.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
         try scopes.selectOfflineDirectory(target.records.directory)
-        store = target; session = verified; identityRevision += 1; billing.identityChanged()
+        store = target; store.currencyProvider = { [regional] in regional.preferences.currencyCode }; session = verified; identityRevision += 1; billing.identityChanged()
     }
     func logout() throws {
         try store.call("save")
@@ -117,7 +124,7 @@ final class AppWorkspace {
         let guest = try NativeStore(directory: scopes.guestDirectory(), freeLimit: capacityPolicy.freeLimit, network: mapTransport)
         try keychain.remove()
         try scopes.selectOfflineDirectory(guest.records.directory)
-        store = guest; session = nil; identityRevision += 1; billing.identityChanged()
+        store = guest; store.currencyProvider = { [regional] in regional.preferences.currencyCode }; session = nil; identityRevision += 1; billing.identityChanged()
     }
     func applyPurchaseCapacity(_ balance: CapacityBalance, identity: PurchaseIdentity) throws {
         _ = try balance.validated()
