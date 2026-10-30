@@ -102,4 +102,26 @@ Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `
 
 [Apple TN3118](https://developer.apple.com/documentation/technotes/tn3118-debugging-your-apps-launch-screen) 将旧启动快照列为排查方向之一；当前证据不足以确认缓存为本问题根因。下一步是在共享设备空闲且获准改变设备生命周期后恢复模拟器环境，再完成正式标识的普通启动录像验证。
 
-PR 保持 Draft，未合并、部署或安装到真机。后续仅证据文档的提交可复用上述代码 SHA 的功能结果，不应标记冷启动视觉验收完成。
+上述诊断结束时 PR 保持 Draft，未合并、部署或安装到真机。后续仅证据文档的提交可复用上述代码 SHA 的功能结果，不应标记冷启动视觉验收完成。
+
+## 合入授权与主线适配（2026-10-30）
+
+用户在获知冷启动黑屏与视觉验收待完成的状态后，明确要求「合入到主线」。本次按该授权完成合并准备，继续保留 `RUNTIME_VISUAL_PENDING`；不将合并解释为冷启动视觉问题已修复，也不包含发布或真机部署。
+
+主线已前进至 `a4b47a1a3e05a42d4940e24f1155a14b66c5f2e5`。在任务分支解决 AppRoot、ComponentReviewHost 与 ComponentLogicTests 的冲突，保留主线语言与货币设置、触控轨迹、StoreKit 及所有已有评审入口。AppRoot 相对最新 main 仍仅将读取中的 ProgressView 换成 BrandLaunchSurface；配置仍以 project.yml 为真源，未提交生成工程。
+
+冲突使旧功能证据失效，重新按最终差异选择上表 3 UT + 3 UI。设置页观察点改用主线的 `local-settings.capacity`；首次设置与返回用户流程均通过真实按钮处理新增的货币选择。
+
+| 轮次与提交 | 实际结果 | 处理 |
+| --- | --- | --- |
+| `xunju-launch-merge-20261030-01`，`46ba10c619d00f3cf78187ceb96e4a95445ee076` | 4 通过、2 失败，退出 65 | 本地化名称导致旧构建配置断言失效；货币弹窗遮挡设置页导航 |
+| `xunju-launch-merge-20261030-02`，`2730c11a79ebf9fb8c90135842b3137cb0329d92` | 5 通过、1 失败，退出 65 | 3 UT、Logo、首次设置均通过；返回用户的三套房源夹具触发系统评分窗，阻断货币按钮点击 |
+| `xunju-launch-merge-20261030-03`，`96c9ad57deaaee1b7a3f4e97fd5129c252a8c6f4` | 唯一失败用例精确复验通过，退出 0 | 真实点击评分窗「以后」，再选择货币，验证已有房源、后台恢复仍在设置页、重启保留房源与货币选择 |
+
+三轮均通过共享 runner；实际测试设备为 iPhone 14 Pro / iOS 18.3.1（22D8075），UDID `8F178971-C203-4690-A83B-253046EACBB1`，正式 Bundle ID。后两轮配置只收窄到首轮同一设备，不改变共享池与并发上限。XcodeGen 2.45.4 确定性检查通过。
+
+最终采用单失败恢复规则：复用 `2730c11` 的 5 项通过结果，加上 `96c9ad5` 的返回用户精确复验，共覆盖 6 项必需用例。两提交之间仅在该失败测试中增加 5 行评分窗关闭步骤，生产源码、资源、配置和其他用例不变；无需重跑已通过用例。构建配置测试改用原始 infoDictionary 核对基础显示名称，保留主线的中文「寻居」和英文「Xunju」本地化资源。
+
+完整证据位于本 worktree 的 `artifacts/launch-merge-20261030/`：`merge-01/02/03.xcresult`、对应 `plan-*.json`、`run-*.sh`、`runner-*.log`，以及 `summary-02.json`、`summary-03.json`、`attachments-02/03/manifest.json`。现代 xcresult 摘要接口写入 TestReport 缓存遇到权限问题，改用受支持的 legacy 对象读取与附件导出接口；未改写原始结果。失败截图、层级及录像保留。
+
+主 agent 再次检查最终差异与原生截图：Logo 外观不变，后台返回仍停留「我的」，旧房源在重启后恢复。最终所需功能用例已通过；该结果不覆盖普通系统冷启动的无黑屏时序。所有本任务设备租约、执行槽和队列均已释放。合并前远程检查未发现 CI workflow、check run 或提交状态检查，main 未配置必需状态检查；这不等于远程 CI 通过。
