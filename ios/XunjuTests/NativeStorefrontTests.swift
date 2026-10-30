@@ -6,6 +6,8 @@ import StoreKitTest
     func testFinishedConsumableHistoryAndExistingPrivacyKeysReachBuiltApp() throws {
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "MinimumOSVersion") as? String, "18.0")
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "SKIncludeConsumableInAppPurchaseHistory") as? Bool, true)
+        // Validate the build setting separately from localized branding.
+        XCTAssertEqual(Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String, "看房搭子")
         let names = ["zh-Hans": "寻居", "en": "Xunju"]
         for (language, name) in names {
             let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "\(language).lproj"))

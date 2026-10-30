@@ -1,0 +1,56 @@
+[
+  {
+    "file": "before-fix-diagonal.png",
+    "sourceAttachment": "/private/tmp/rent-room-swipe-axis-evidence/red3-attachments/902395D4-977C-4C89-A695-1A92E75A3FE0.png",
+    "sourceSha": "b5a3b4d40d6476dffd17fcf30721d3b6383d4788",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "71d3d02d391abb0561e07390a0b841c60a4d94bad00ce09ff8c7b23c28b05527",
+    "bytes": 268404
+  },
+  {
+    "file": "after-diagonal-up.png",
+    "sourceAttachment": "/private/tmp/rent-room-swipe-axis-evidence/final2-attachments/1366A462-6864-43B2-A374-753FD22D0AB8.png",
+    "sourceSha": "7ee1e64eb81c950ce8b42903f6ec380534de19cf",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "bc0a41b347ef126e8029280de5b739194addb3a418a765d29cce38ed8e29c4a6",
+    "bytes": 267897
+  },
+  {
+    "file": "after-diagonal-down.png",
+    "sourceAttachment": "/private/tmp/rent-room-swipe-axis-evidence/final2-attachments/78EFF98B-7477-4AB6-B02B-4B0E09B95E0B.png",
+    "sourceSha": "7ee1e64eb81c950ce8b42903f6ec380534de19cf",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "bc0a41b347ef126e8029280de5b739194addb3a418a765d29cce38ed8e29c4a6",
+    "bytes": 267897
+  },
+  {
+    "file": "after-vertical-scroll.png",
+    "sourceAttachment": "/private/tmp/rent-room-swipe-axis-evidence/final2-attachments/19575B0E-3EC6-4B72-8049-D950CD8DE059.png",
+    "sourceSha": "7ee1e64eb81c950ce8b42903f6ec380534de19cf",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "010f9d665c3f95ed7978c80939b07d30231aaffa1f4950c26c32cf10b269590d",
+    "bytes": 230452
+  },
+  {
+    "file": "capture-action.png",
+    "sourceAttachment": "/private/tmp/rent-room-swipe-axis-evidence/final2-attachments/0E68BEE0-A802-4770-BA73-9E1832309579.png",
+    "sourceSha": "7ee1e64eb81c950ce8b42903f6ec380534de19cf",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "b3e3b9e3f1f6773634637d888c08d3c913712859ef51a6c0ff5b7102e69bba58",
+    "bytes": 193705
+  },
+  {
+    "file": "note-and-issue.png",
+    "sourceAttachment": "/private/tmp/rent-room-swipe-axis-evidence/final2-attachments/18713FA3-DD55-4576-8932-A173A2CF519A.png",
+    "sourceSha": "7ee1e64eb81c950ce8b42903f6ec380534de19cf",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "da8cd3a8c5f70a2cd3a12ab15d23412df34415b4908f630b1305f201decaf24a",
+    "bytes": 262504
+  }
+]
