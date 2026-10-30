@@ -50,7 +50,9 @@ struct AppUpdateSettingsCard: View {
                         .accessibilityIdentifier("settings.version")
                 }.fixedSize(horizontal: true, vertical: false)
                 Spacer(minLength: 0)
-                Button(action: offersUpdate ? onUpdate : onCheck) {
+                Button {
+                    if offersUpdate { onUpdate() } else { onCheck() }
+                } label: {
                     HStack(spacing: 6) {
                         if state == .checking { ProgressView().controlSize(.small).accessibilityHidden(true) }
                         Text(offersUpdate ? "去更新" : state.detail ?? "检查更新")

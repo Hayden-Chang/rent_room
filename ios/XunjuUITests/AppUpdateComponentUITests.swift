@@ -47,11 +47,6 @@ import XCTest
         let ready = expectation(for: NSPredicate(format: "isHittable == true"), evaluatedWith: row)
         wait(for: [ready], timeout: 4)
         row.tap()
-        capture("update-after-check-tap", app)
-        let diagnostic = XCTAttachment(string: app.debugDescription)
-        diagnostic.name = "update-after-check-tap-hierarchy"
-        diagnostic.lifetime = .keepAlways
-        add(diagnostic)
         expectValue("正在检查…", app)
         XCTAssertFalse(row.isEnabled)
         capture("update-02-checking", app)
