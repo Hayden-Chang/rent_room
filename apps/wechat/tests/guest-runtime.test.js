@@ -15,7 +15,7 @@ it('opens home without identity requests and permits the default one local recor
  expect(h.app.service).toBeTruthy();expect(home.data.accountReady).toBe(true);expect(h.m.calls.every(c=>c.url?.endsWith('/catalog'))).toBe(true);expect(h.m.tabBarVisible).toBe(true);
  h.m.wx.redirectTo=o=>h.m.routes.push(o.url);await home.add();expect(h.m.routes.at(-1)).toBe('/pages/new-house/index');const form=h.page('new-house');form.input({detail:{value:'未登录记录'}});form.create();const id=h.app.service.store.get().houses[0].id;
  h.app.service.store.answer(id,'f1_6','value','4200');
- expect(()=>h.app.service.store.add('第二条')).toThrow('容量');
+ expect(()=>h.app.service.store.add('第二条')).toThrow('点数');
  const detail=h.page('detail',{id});expect(detail.data.house.id).toBe(id);detail.onUnload();
  h.launch();expect(h.app.service.store.house(id).answers.f1_6.value).toBe('4200');expect(h.m.calls.every(c=>c.url?.endsWith('/catalog'))).toBe(true);
 });
@@ -47,7 +47,7 @@ it('failed login and failed persistence leave local recording usable and preserv
  expect(await h.app.auth.login()).toBe(true);expect(h.app.service.store.house(id)).toBeTruthy();
 });
 it('shows a guest settings login entry without avatar or nickname authorization controls',()=>{
- const h=harness(),page=h.page('settings');expect(page.data.authenticated).toBe(false);expect(page.data.used).toBe(0);
+ const h=harness(),page=h.page('settings');expect(page.data.authenticated).toBe(false);expect(page.data.remaining).toBe(1);
  const template=fs.readFileSync('dist/pages/settings/index.wxml','utf8');expect(template).toContain('wx:if="{{authenticated}}"');expect(template).toContain('id="account-login"');
 });
 it('keeps free pages reachable without identity and keeps navigation visible across login and logout',async()=>{

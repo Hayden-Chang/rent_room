@@ -21,7 +21,7 @@ it('applies changed free limits to growth without deleting or locking existing r
  const a=store.add('A'),b=store.add('B');store.add('C');store.archive(b,true);
  freeLimit=0;expect(store.capacity()).toMatchObject({limit:0,used:2,over:2,remaining:0});
  store.edit(a,h=>h.summary='仍可编辑');expect(store.house(a).summary).toBe('仍可编辑');
- const before=saved;expect(()=>store.add('D')).toThrow();expect(()=>store.archive(b,false)).toThrow();expect(saved).toBe(before);
+ const before=saved;expect(()=>store.add('D')).toThrow();expect(saved).toBe(before);store.archive(b,false);expect(store.capacity().remaining).toBe(0);
  freeLimit=4;store.archive(b,false);store.add('D');expect(store.capacity()).toMatchObject({used:4,limit:4});
  expect(capacityInfo([],2,3).limit).toBe(23);
 });
@@ -103,25 +103,25 @@ function pageFor(app,m,name,args={}){
 it('updates visible settings on policy arrival without replacing an in-progress profile field',async()=>{
  const m=accountWx(),app=launch(m),page=pageFor(app,m,'settings');m.freeCapacity(4);
  page.data.profile.nickname='正在编辑';await app.auth.refreshCapacity();
- expect(page.data.limit).toBe(4);expect(page.data.profile.nickname).toBe('正在编辑');
- page.onUnload();m.freeCapacity(2);await app.auth.refreshCapacity();expect(page.data.limit).toBe(4);
+ expect(page.data.remaining).toBe(4);expect(page.data.profile.nickname).toBe('正在编辑');
+ page.onUnload();m.freeCapacity(2);await app.auth.refreshCapacity();expect(page.data.remaining).toBe(4);
 });
 
 it.each(['create','restore'])('resumes a waiting guest %s when policy adds capacity without buying',async kind=>{
  const m=accountWx(),app=launch(m),store=app.service.store;
- const existing=store.add('已有');store.archive(existing,true);store.add('占用');
+ const existing=store.add('已有');store.archive(existing,true);
  store.change(s=>s.xiaoda.intent={kind,houseId:kind==='restore'?existing:'',name:'待新建'},true);
  m.freeCapacity(2);m.wx.redirectTo=options=>m.routes.push(options.url);
  const page=pageFor(app,m,'capacity',{intent:'1'});await tick();
- expect(page.data.limit).toBe(2);expect(m.calls.every(c=>c.url?.endsWith('/catalog'))).toBe(true);
- if(kind==='create'){expect(m.routes.at(-1)).toBe('/pages/new-house/index');expect(store.get().houses).toHaveLength(2);}
+ expect(page.data.remaining).toBe(1);expect(m.calls.every(c=>c.url?.endsWith('/catalog'))).toBe(true);
+ if(kind==='create'){expect(m.routes.at(-1)).toBe('/pages/new-house/index');expect(store.get().houses).toHaveLength(1);}
  else{expect(store.house(existing).archived).toBe(false);expect(m.routes.at(-1)).toBe('/pages/archive/index');}
  page.onUnload();
 });
 
-it('keeps import growth preflight blocked after policy decreases, while existing records remain usable',async()=>{
+it('keeps new creation blocked after policy decreases, while existing records remain usable',async()=>{
  const m=accountWx(),app=launch(m),store=app.service.store,id=store.add('保留');m.freeCapacity(0);await app.auth.refreshCapacity();
- expect(()=>store.checkCapacity(1)).toThrow('容量');store.edit(id,h=>h.summary='继续记录');expect(store.house(id).summary).toBe('继续记录');
+ expect(()=>store.checkCapacity(1)).toThrow('点数');store.edit(id,h=>h.summary='继续记录');expect(store.house(id).summary).toBe('继续记录');
 });
 
 it('keeps a live policy when disk is full without claiming it survived a restart',async()=>{

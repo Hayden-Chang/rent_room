@@ -22,7 +22,7 @@ struct LocalSettingsReviewHost: View {
             ScrollView {
                 VStack(spacing: 12) {
                     if route == .settings {
-                        LocalSettingsSurface(used: 1, limit: 1, archived: 2, workplace: "", version: "0.1.0",
+                        LocalSettingsSurface(remaining: 0, archived: 2, workplace: "", version: "0.1.0",
                             onboarding: $onboarding, action: { event = $0.title }, openLegal: openLegal)
                     } else {
                         Text("房源容量不够啦").font(.system(size: 24, weight: .bold))

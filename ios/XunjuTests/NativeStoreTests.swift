@@ -36,12 +36,14 @@ final class NativeStoreTests: XCTestCase {
         try store.archive(first, archived: true)
         XCTAssertEqual(store.capacity.used, 0)
         XCTAssertThrowsError(try store.answer(first, field: "f1_6", value: .string("100")))
-        _ = try store.add("第三套")
-        XCTAssertThrowsError(try store.archive(first, archived: false))
-        XCTAssertTrue(store.house(first)["archived"].bool)
+        XCTAssertThrowsError(try store.add("第三套"))
+        try store.archive(first, archived: false)
+        XCTAssertFalse(store.house(first)["archived"].bool)
+        XCTAssertEqual(store.capacity.remaining, 0)
+        try store.archive(first, archived: true)
         try store.call("remove", ["id": .string(first)])
-        XCTAssertEqual(store.houses.count, 1)
-        XCTAssertEqual(try NativeStore(directory: store.records.directory).houses.count, 1)
+        XCTAssertEqual(store.houses.count, 0)
+        XCTAssertEqual(try NativeStore(directory: store.records.directory).capacity.remaining, 0)
     }
 
     @MainActor

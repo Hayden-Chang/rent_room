@@ -29,6 +29,16 @@ final class LocalRecords {
         try data.write(to: current, options: .atomic)
     }
 
+    func readCredits() throws -> String {
+        let url = directory.appendingPathComponent("property-credits.json")
+        guard FileManager.default.fileExists(atPath: url.path) else { return "" }
+        return try String(contentsOf: url, encoding: .utf8)
+    }
+
+    func writeCredits(_ text: String) throws {
+        try Data(text.utf8).write(to: directory.appendingPathComponent("property-credits.json"), options: .atomic)
+    }
+
     func preserveCorrupt() throws {
         guard FileManager.default.fileExists(atPath: current.path) else { return }
         let copy = directory.appendingPathComponent("state.corrupt.\(UUID().uuidString).json")

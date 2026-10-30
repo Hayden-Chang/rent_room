@@ -34,7 +34,7 @@ Page(withAppShare(protectedPage({
   toggleAll(){if(this.data.busy)return;this.setData({houses:this.data.houses.map(h=>({...h,selected:!this.data.allSelected}))});return this.refresh();},
   mode(e){if(this.data.busy)return;const {id,mode}=e.currentTarget.dataset;this.setData({houses:this.data.houses.map(h=>h.id===id?{...h,mode}:h)});this.refresh();},
   start(label){this.job={cancelled:false,onProgress:bytes=>{if(!this.unloaded)this.setData({progress:label+' '+sizeLabel(bytes)});}};this.setData({busy:true,error:'',progress:label});return this.job;},
-  failure(error){if(error.code==='HOUSE_CAPACITY'){wx.navigateTo({url:'/pages/capacity/index?needed='+error.additional});return;}if(error.cause)console.error('房源文件发送失败',error.cause);if(this.unloaded)return;const message=error.message||error.errMsg||'文件操作失败，请重试';if(!/cancel|已取消/.test(message))this.setData({error:message});},
+  failure(error){if(error.cause)console.error('房源文件发送失败',error.cause);if(this.unloaded)return;const message=error.message||error.errMsg||'文件操作失败，请重试';if(!/cancel|已取消/.test(message))this.setData({error:message});},
   async chooseFile(){
     if(this.data.busy)return;const job=this.start('正在读取 ZIP');
     try{const pending=await this.transferService.selectImport(job);if(this.unloaded)return;this.pending=pending;this.setData({fileName:pending.fileName,houses:pending.houses.map(h=>this.row(h))});this.refresh();}

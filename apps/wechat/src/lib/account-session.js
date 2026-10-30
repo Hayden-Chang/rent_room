@@ -55,7 +55,7 @@ export function createAccountSession(wx) {
         // Persist the login preference before a record-claim transaction commits.
         remember(true);
         if(storage.needsClaim)storage.claim();
-        claimGuestRecords(wx,next.id,storage.root,!previousAccount?previous.root:null);
+        claimGuestRecords(wx,next.id,storage.root,!previousAccount?previous.root:null,{packs:identity.credentials.packs,freeLimit:identity.credentials.capacity?.freeLimit??1});
         const nextService=createPlatform(wx,{root:storage.root,session:identity.credentials,onExpired:()=>{
           if(active!==nextService)return;
           if(!active.store.status().blocked)active.store.save();

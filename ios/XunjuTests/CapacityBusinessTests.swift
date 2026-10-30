@@ -154,6 +154,42 @@ import XCTest
         let purchases = storefront.purchases; await workspace.billing.purchase()
         XCTAssertEqual(storefront.purchases, purchases); XCTAssertEqual(workspace.store.capacity.limit, 2)
     }
+    func testConsumedCreditsSurviveRestoreRelaunchRefundAndAppleAccountSwitch() async throws {
+        let (workspace, storefront, keychain) = try fixture()
+        await workspace.billing.load(); await workspace.billing.purchase()
+        for i in 1...4 { _ = try workspace.store.add("扣点\(i)") }
+        XCTAssertEqual(workspace.store.capacity.remaining, 8)
+        let first = workspace.store.houses[0].id
+        try workspace.store.archive(first, archived: true)
+        try workspace.store.call("remove", ["id": .string(first)])
+        await workspace.billing.restore(); await workspace.billing.restore()
+        XCTAssertEqual(workspace.store.capacity.remaining, 8)
+        let reopened = try AppWorkspace(root: workspace.scopes.root, keychain: keychain, storefront: storefront)
+        XCTAssertEqual(reopened.store.capacity.remaining, 8)
+        await reopened.billing.restore(); XCTAssertEqual(reopened.store.capacity.remaining, 8)
+        let originalIdentity = storefront.purchaseIdentity, original = storefront.transaction
+        storefront.purchaseIdentity = PurchaseIdentity(appTransactionID: "other-credit-account", bundleID: "test.xunju", environment: "Sandbox", signedAppTransaction: "other-proof")
+        storefront.outstanding = []; await reopened.billing.restore()
+        XCTAssertEqual(reopened.store.capacity.remaining, 0)
+        storefront.purchaseIdentity = originalIdentity; storefront.outstanding = [original]
+        await reopened.billing.restore(); XCTAssertEqual(reopened.store.capacity.remaining, 8)
+        var refund = original; refund.revocationDate = Date(); refund.signedDate = Date()
+        storefront.outstanding = [refund]; await reopened.billing.restore()
+        XCTAssertEqual(reopened.store.capacity.remaining, 0)
+        XCTAssertEqual(reopened.store.houses.count, 3)
+    }
+    func testCorruptRecordsRecoveryDoesNotRefundConsumedCredits() async throws {
+        let (workspace, storefront, keychain) = try fixture()
+        _ = try workspace.store.add("第一套"); _ = try workspace.store.add("第二套")
+        let file = workspace.store.records.directory.appending(path: "state.json")
+        try Data("broken".utf8).write(to: file)
+        let reopened = try AppWorkspace(root: workspace.scopes.root, keychain: keychain, storefront: storefront)
+        XCTAssertTrue(reopened.store.status.blocked)
+        try reopened.store.call("recover")
+        XCTAssertEqual(reopened.store.houses.count, 1)
+        XCTAssertEqual(reopened.store.capacity.remaining, 0)
+        XCTAssertThrowsError(try reopened.store.add("不可退点"))
+    }
     func testFixtureRequiresExplicitUUIDAndKnownMode() {
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: []))
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: ["--business-test", "invalid", "--capacity-business-fixture", "pending"]))

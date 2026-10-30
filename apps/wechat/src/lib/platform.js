@@ -2,7 +2,6 @@ import {createFeedback} from './feedback.js';
 import {createPlaces} from './places.js';
 import {createCommute} from './commute.js';
 import {createStore} from './store.js';
-import {activeHouseCount} from './capacity.js';
 import {uid,clone} from './model.js';
 import {writeBackup,readBackup,checkTransfer,CHUNK_BYTES} from './files.js';
 import {writeIssue} from './issues.js';
@@ -15,7 +14,10 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
   try{fs.mkdirSync(root,true);}catch{}
   try{fs.mkdirSync(root+'/media',true);}catch{}
   const exists=p=>{try{fs.accessSync(p);return true;}catch{return false;}};
-  const adapter={read:()=>exists(current)?fs.readFileSync(current,'utf8'):null,previous:()=>exists(previous)?fs.readFileSync(previous,'utf8'):null,
+  const creditsPath=root+'/property-credits.json';
+  const adapter={readCredits:()=>exists(creditsPath)?fs.readFileSync(creditsPath,'utf8'):null,
+    writeCredits(text){const tmp=creditsPath+'.pending';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,creditsPath);},
+    read:()=>exists(current)?fs.readFileSync(current,'utf8'):null,previous:()=>exists(previous)?fs.readFileSync(previous,'utf8'):null,
     write(text,{keepPrevious=false}={}){const tmp=root+'/state.pending.json';fs.writeFileSync(tmp,text,'utf8');if(exists(current)&&!keepPrevious)fs.copyFileSync(current,previous);fs.renameSync(tmp,current);},
     preserveCorrupt(){if(exists(current))fs.copyFileSync(current,root+'/preserved-'+Date.now()+'.json');}
   };
@@ -151,8 +153,6 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
         if(selection.mode==='replace'){replaceIds.push(h.id);oldMedia.push(...existing.media);}
         houses.push(h);
       }
-      const additional=activeHouseCount(houses)-activeHouseCount(replaceIds.map(id=>store.house(id)));
-      store.checkCapacity(Math.max(0,additional));
       for(const h of houses)for(const m of h.media||[]) {
           const archive=m.path;m.id=uid();m.path=root+'/media/'+m.id+(m.type==='video'?'.mp4':'.jpg');
           created.push(m.path);fs.writeFileSync(m.path,new ArrayBuffer(0));sinks.set(archive,chunk=>append(m.path,chunk));

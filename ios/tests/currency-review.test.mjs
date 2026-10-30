@@ -6,7 +6,8 @@ import test from 'node:test';
 const source = readFileSync(process.env.XUNJU_CORE_TEST_BUNDLE || new URL('../Xunju/Resources/XunjuCore.js', import.meta.url), 'utf8');
 function fixture(raw = '', free = 1) {
   let saved = raw, fail = false;
-  const context = vm.createContext({nativeWrite(text) { if (fail) return 'disk full'; saved = text; return ''; },
+  let credits = "";
+  const context = vm.createContext({nativeReadCredits: () => JSON.stringify({value: credits}), nativeWriteCredits: text => { credits = text; return ""; },nativeWrite(text) { if (fail) return 'disk full'; saved = text; return ''; },
     nativePrevious: () => JSON.stringify({value: saved}), nativePreserveCorrupt: () => ''});
   vm.runInContext(source, context);
   context.XunjuCore.initialize(raw, 0, free);

@@ -75,7 +75,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       if(product.product?.id!==HOUSE_PACK.id||product.product?.price!==HOUSE_PACK.price||product.product?.size!==HOUSE_PACK.size)throw Error('房源包信息已更新，请稍后重试');
       const old=await orderState();
       if(old?.status==='paid')return snapshot();
-      if(old&&['pending','unpaid'].includes(old.status))throw Error('上一笔支付正在确认，请点击刷新容量查询，避免重复付款');
+      if(old&&['pending','unpaid'].includes(old.status))throw Error('上一笔支付正在确认，请点击刷新点数查询，避免重复付款');
       cached.pending={requestId:'cp'+Date.now().toString(36)+Math.random().toString(36).slice(2,14)};persist();
       const order=await request('/orders','POST',{requestId:cached.pending.requestId,productId:HOUSE_PACK.id,platform:platform()});
       if(order.capacity!==undefined)accept(order);
@@ -92,11 +92,11 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       for(let n=0;n<(failure?1:4);n++){
         const result=await orderState();
         if(result?.status==='paid')return snapshot();
-        if(result?.status==='refunded')throw Error('该订单已退款，房源容量未增加');
+        if(result?.status==='refunded')throw Error('该订单已退款，房源点数未增加');
         if(n<3&&!failure)await wait(600);
       }
       if(failure)throw failure;
-      throw Error('支付结果正在确认，请点击刷新容量查询，避免重复付款');
+      throw Error('支付结果正在确认，请点击刷新点数查询，避免重复付款');
     }finally{busy=false;}
   }
   return {snapshot,refresh,refreshRules,purchase};
