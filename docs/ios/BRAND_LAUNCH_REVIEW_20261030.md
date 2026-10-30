@@ -29,6 +29,29 @@ Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `
 
 ## 证据
 
-状态：`COMPONENT_BUILDING`。上一稿的小搭和文字截图已失效，本次需要重新生成原生证据并由用户确认。
+状态：`REVIEW_READY`，等待用户明确确认此版视觉。
 
-原始证据将保存在任务 worktree 下 `artifacts/launch-icon-20261030/`，不提交构建产物。完成后记录实际 SHA、设备、结果包与图片尺寸。
+- 证据代码 SHA：`c9136a274c1f3ea22432f50b8ae4b7eaf7ff6469`，基线 `eb75079b3e46726e5742cc4c861dc7a278d9dd31`。
+- 运行：`xunju-brand-launch-icon-20261030-01`。1 条单测 + 1 条 UI 测试，**2 passed / 0 failed / 0 skipped**。
+- 设备：iPhone 16，iOS 26.5（23F77），arm64；UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`。
+- 原始 PNG 为 **1178 × 2556 px**，未缩放或裁切。图标画布 96 × 96 pt，测试验证其中心与应用全屏中心一致，误差不超过 1 pt。
+- XcodeGen 2.45.4 两次生成一致；未修改 `project.yml` 或提交生成工程。现有共享构建缓存复用成功。
+- 共享 runner 退出码 0；本轮设备租约、执行槽位与队列条目均已释放。未自动重试测试。
+- GitHub 查询未返回此提交的 PR workflow runs，不能将本地通过称为远端 CI 通过。
+
+产物均位于任务 worktree `/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/ios-launch-page-20261030`：
+
+| 产物 | 路径 |
+| --- | --- |
+| 完整测试结果 | `artifacts/launch-icon-20261030/review-01.xcresult` |
+| 原始日志 | `artifacts/launch-icon-20261030/runner-01.log` |
+| 精确计划与复现命令 | `artifacts/launch-icon-20261030/plan-01.json`、`run-01.sh` |
+| 结果、截图哈希与附件映射 | `artifacts/launch-icon-20261030/evidence-01.json` |
+| 原始附件清单 | `artifacts/launch-icon-20261030/attachments-01/manifest.json` |
+| 纯图标原生截图 | `artifacts/launch-icon-20261030/brand-launch-icon-only.png` |
+
+主 agent 已查看原生截图：浅灰白背景覆盖全屏，蓝紫色房屋轮廓清晰、居中；不显示小搭或品牌文案。系统状态栏仍显示。截图来自 XCUITest 的 Debug 组件宿主，不证明正式冷启动切页或启动时长。
+
+已复核本次完整 diff：只涉及独立组件、其矢量资源、Debug 入口、定向测试和本说明，无业务工作区、数据或导航改动。后续文档证据提交不改变源码、资源、测试或配置，可复用上述 SHA 的截图；不把它称为文档提交生成的截图。PR 保持 Draft，未合并或部署。
+
+上一稿的素材与文字截图仅作历史记录，不用于验收本次修订。本次未覆盖小屏、iPad、VoiceOver 实际朗读、深色模式或真实冷启动。Figma 尚未同步。
