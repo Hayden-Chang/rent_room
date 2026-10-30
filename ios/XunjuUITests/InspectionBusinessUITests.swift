@@ -115,6 +115,9 @@ import XCTest
         app.launchArguments = ["--business-test", UUID().uuidString, "--filling-guide-fixture", mode,
                                "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 5)); currency.tap()
+        XCTAssertTrue(currency.waitForNonExistence(timeout: 3))
         let house = app.buttons["house.首次填写"].firstMatch
         XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
         XCTAssertTrue(app.scrollViews["mp.checklist.scroll"].buttons["xiaoda.accept"].firstMatch.waitForExistence(timeout: 5))
