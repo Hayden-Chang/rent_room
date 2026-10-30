@@ -9,11 +9,13 @@ import XCTest
         XCTAssertTrue(app.buttons["house.示例·地铁一居"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["house.示例·阳光两居"].exists)
         capture("examples-ios-home", app)
+        assertCardsFit(app, prefix: "house.")
         app.buttons["tab.对比"].tap()
         for name in ["示例·地铁一居", "示例·阳光两居"] {
             let card = app.buttons["compare.select.\(name)"]; XCTAssertTrue(card.waitForExistence(timeout: 3)); card.tap()
         }
         capture("examples-ios-selected", app)
+        assertCardsFit(app, prefix: "compare.select.")
         app.buttons["compare.start"].tap()
         let differences = app.switches["隐藏相同属性"]
         XCTAssertTrue(differences.waitForExistence(timeout: 3))
@@ -27,6 +29,13 @@ import XCTest
         XCTAssertTrue(app.buttons["house.示例·地铁一居"].waitForExistence(timeout: 10))
         XCTAssertEqual(app.buttons.matching(identifier: "house.示例·地铁一居").count, 1)
         XCTAssertEqual(app.buttons.matching(identifier: "house.示例·阳光两居").count, 1)
+    }
+    private func assertCardsFit(_ app: XCUIApplication, prefix: String) {
+        let left = app.buttons[prefix + "示例·地铁一居"].frame
+        let right = app.buttons[prefix + "示例·阳光两居"].frame
+        XCTAssertGreaterThanOrEqual(right.minX - left.maxX, 9, "照片不能撑宽卡片或挤掉两列间距")
+        XCTAssertGreaterThanOrEqual(left.minX, app.frame.minX + 15)
+        XCTAssertLessThanOrEqual(right.maxX, app.frame.maxX - 15)
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
         let image = XCTAttachment(screenshot: app.screenshot()); image.name = name; image.lifetime = .keepAlways; add(image)

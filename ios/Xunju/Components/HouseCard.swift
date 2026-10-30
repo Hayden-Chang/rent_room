@@ -21,14 +21,10 @@ struct HouseCard: View {
         Button(action: open) {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
-                    XJTheme.soft
-                    if let cover {
-                        Image(uiImage: cover).resizable().scaledToFill()
-                            .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
-                    } else {
-                        XJIcon(name: "home-selected", size: 46)
-                            .opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
+                    XJTheme.soft.overlay {
+                        if let cover { Image(uiImage: cover).resizable().scaledToFill() }
+                        else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
+                    }.clipped()
                     AppText(house.decision.isEmpty ? "待检查" : house.decision)
                         .font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.primary)
                         .padding(.horizontal, 8).padding(.vertical, 3)

@@ -54,9 +54,10 @@ struct MPHouseCard: View {
         Button(action: open) {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
-                    XJTheme.soft
-                    if let image = item.cover { Image(uiImage: image).resizable().scaledToFill().frame(maxWidth: .infinity, maxHeight: .infinity).clipped() }
-                    else { XJIcon(name: "home-selected", size: 46).opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity) }
+                    XJTheme.soft.overlay {
+                        if let image = item.cover { Image(uiImage: image).resizable().scaledToFill() }
+                        else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
+                    }.clipped()
                     AppText(archived ? "已归档" : item.card.decision.isEmpty ? "待检查" : item.card.decision)
                         .font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.primary).padding(.horizontal, 8).padding(.vertical, 3)
                         .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)).padding(10)
@@ -114,9 +115,10 @@ struct MPComparisonSelection: View {
                             Button { if selected.contains(house.id) { selected.remove(house.id) } else if selected.count < 3 { selected.insert(house.id) } } label: {
                                 VStack(alignment: .leading, spacing: 0) {
                                     ZStack(alignment: .bottomLeading) {
-                                        XJTheme.soft
-                                        if let image = house.cover { Image(uiImage: image).resizable().scaledToFill() }
-                                        else { XJIcon(name: "home-selected", size: 46).opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity) }
+                                        XJTheme.soft.overlay {
+                                            if let image = house.cover { Image(uiImage: image).resizable().scaledToFill() }
+                                            else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
+                                        }.clipped()
                                         AppText(selected.contains(house.id) ? "✓" : "").font(.system(size: 18)).foregroundStyle(.white)
                                             .frame(width: 28, height: 28).background(selected.contains(house.id) ? XJTheme.primary : .white)
                                             .clipShape(RoundedRectangle(cornerRadius: 9))

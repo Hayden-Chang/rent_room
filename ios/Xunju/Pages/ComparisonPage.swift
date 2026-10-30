@@ -95,9 +95,10 @@ private struct ComparisonHouseCard: View {
         Button(action: toggle) {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .bottomLeading) {
-                    XJTheme.soft
-                    if let cover { Image(uiImage: cover).resizable().scaledToFill() }
-                    else { XJIcon(name: "home-selected", size: 46).opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity) }
+                    XJTheme.soft.overlay {
+                        if let cover { Image(uiImage: cover).resizable().scaledToFill() }
+                        else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
+                    }.clipped()
                     AppText(selected ? "✓" : "").font(.system(size: 18)).foregroundStyle(.white).frame(width: 28, height: 28)
                         .background(selected ? XJTheme.primary : .white).clipShape(RoundedRectangle(cornerRadius: 9))
                         .overlay(RoundedRectangle(cornerRadius: 9).stroke(selected ? XJTheme.primary : Color(red: 196 / 255, green: 202 / 255, blue: 213 / 255)))
