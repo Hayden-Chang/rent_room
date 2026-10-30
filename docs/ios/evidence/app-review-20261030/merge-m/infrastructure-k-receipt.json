@@ -1,0 +1,24 @@
+{
+  "runId": "rent-room-rating-merge-20261030-k",
+  "token": "efd127be-781d-49f9-b9ba-93cb2d86eca3",
+  "resultBundlePath": "/private/tmp/rent-room-rating-20261030/merge-k.xcresult",
+  "requestedAt": 1793326896713,
+  "cacheWaitSeconds": 0.046,
+  "queueSeconds": 42.709,
+  "buildResultBundlePath": "/private/tmp/rent-room-rating-20261030/merge-k.build.xcresult",
+  "stages": {
+    "build": {
+      "queuedAt": 1793326896759,
+      "startedAt": 1793326939468,
+      "queueSeconds": 42.709,
+      "finishedAt": 1793327087845,
+      "exitCode": 0
+    },
+    "test": {
+      "queuedAt": 1793327087852
+    }
+  },
+  "commandStartedAt": null,
+  "finishedAt": 1793327146840,
+  "exitCode": 2
+}

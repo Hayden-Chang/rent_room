@@ -1,0 +1,28 @@
+{
+  "runId": "rent-room-rating-name-20261030-j",
+  "token": "7d712766-01fd-47a0-bb0f-3f8b5ab0de57",
+  "resultBundlePath": "/private/tmp/rent-room-rating-20261030/name-j.xcresult",
+  "requestedAt": 1793326169210,
+  "cacheWaitSeconds": 0.091,
+  "queueSeconds": 26.676,
+  "buildResultBundlePath": "/private/tmp/rent-room-rating-20261030/name-j.build.xcresult",
+  "stages": {
+    "build": {
+      "queuedAt": 1793326169301,
+      "startedAt": 1793326170332,
+      "queueSeconds": 1.031,
+      "finishedAt": 1793326249424,
+      "exitCode": 0
+    },
+    "test": {
+      "queuedAt": 1793326249563,
+      "startedAt": 1793326275208,
+      "queueSeconds": 25.645,
+      "finishedAt": 1793326466315,
+      "exitCode": 0
+    }
+  },
+  "commandStartedAt": 1793326275208,
+  "finishedAt": 1793326466333,
+  "exitCode": 0
+}

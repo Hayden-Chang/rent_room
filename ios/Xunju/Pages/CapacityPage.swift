@@ -39,6 +39,8 @@ struct CapacityPage: View {
                 thanking = false; resume()
             }
             .sheet(isPresented: $login) { NavigationStack { SettingsPage(workspace: workspace, showsBack: true) } }
+            .modifier(AppReviewPrompt(workspace: workspace, ready: continued == nil && !login && !thanking
+                && workspace.billing.activity == .idle && workspace.billing.error.isEmpty))
     }
     private func resume() {
         guard continued != nil, workspace.store.capacity.remaining > 0, workspace.store.state["xiaoda"]["intent"] != .null else { return }

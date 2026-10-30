@@ -1,0 +1,22 @@
+✔ third successful creation survives deletion and relaunch; either condition requests only once (1862.412458ms)
+✔ failed creation, import and restore never inflate the creation count (1114.466167ms)
+✔ guest transfer combines counts once, including already requested state (3909.138667ms)
+✔ request consumption is durable and rolls back when saving fails (148.699667ms)
+✔ legacy records and feedback drafts do not fabricate creation history or satisfaction gates (3685.084708ms)
+✔ mini-program default store keeps its existing state contract (1281.510875ms)
+✔ read-only bridge replies omit the unchanged snapshot but preserve query results (1288.485625ms)
+✔ mutations transfer state once and keep legacy result semantics via valueIsState (591.291792ms)
+✔ save failures report fresh status without replacing a rolled-back snapshot (458.937ms)
+✔ capacity-only updates and rejected reads never resend records (29.520458ms)
+✔ initialization resets snapshot tracking and durable removal updates summaries (69.929125ms)
+✔ cached queries preserve filter and house parameters and invalidate on every mutation (1604.505792ms)
+✔ cached guidance expires when the local day changes (3272.079958ms)
+✔ house deltas reconstruct the full snapshot across edits, removals, rollback and reinitialization (6094.233958ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14745.541375
