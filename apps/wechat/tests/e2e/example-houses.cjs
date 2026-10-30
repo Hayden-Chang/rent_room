@@ -29,10 +29,12 @@ if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared instance pool');
   const compared=await state();
   for(const [id,values] of Object.entries({f1_1:['示例地址·地铁站旁','示例地址·花园小区'],f1_2:['一室一厅','两室一厅'],f1_6:['2800','3600'],simple_01:['是','否']}))assert.deepEqual(compared.data.rows.find(r=>r.id===id).values,values);
   await shot('examples-wechat-comparison');write('comparison',compared);
-  const persisted=await bounded(()=>mini.evaluate(()=>{
-   const service=getApp().service,fs=wx.getFileSystemManager();return JSON.parse(fs.readFileSync(service.root+'/state.json','utf8')).houses.map(h=>h.id);
-  }));assert.deepEqual(persisted,ids);
-  write('assertions',{passed:true,ids,persisted,interaction:'native DevTools controls; observer only reads state',reviewBuild:true,productionStartupEnabled:false});
+  const reloaded=await until(s=>s.route==='pages/home/index'&&s.root===initial.root,'点击开发者工具 Compile 重载应用，核对存档');
+  assert.deepEqual(reloaded.houses.map(h=>h.id),ids);
+  assert.deepEqual(reloaded.houses,initial.houses);
+  assert.equal(reloaded.data.houses.length,2);
+  await shot('examples-wechat-reloaded');
+  write('assertions',{passed:true,ids,reloadedIds:reloaded.houses.map(h=>h.id),sameRoot:true,allHouseFieldsPreserved:true,interaction:'native DevTools controls and Compile reload; observer only reads state',reviewBuild:true,productionStartupEnabled:false});
  }catch(error){console.error(error);try{write('failure-state',await state());await shot('failure');}catch{}throw error;}
  finally{mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});
