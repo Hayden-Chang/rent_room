@@ -18,10 +18,10 @@ const timeout=setTimeout(()=>{console.error('Property credits component review t
   assert.equal((await page.data()).remaining,7);
   assert.equal((await page.data()).busy,true);
   await mini.screenshot({path:path.join(output,'credits-wechat-purchasing.png')});
-  await (await page.$('button[bindtap="empty"]')).tap();
+  await (await page.$('.empty-state')).tap();
   assert.equal((await page.data()).remaining,0);
   await mini.screenshot({path:path.join(output,'credits-wechat-empty.png')});
-  await (await page.$('button[bindtap="guest"]')).tap();
+  await (await page.$('.guest-state')).tap();
   assert.equal((await page.data()).authenticated,false);
   await mini.screenshot({path:path.join(output,'credits-wechat-guest.png')});
   fs.writeFileSync(path.join(output,'credits-scope.json'),JSON.stringify({component:true,realTaps:true,fixtureBalance:7,livePayment:false,productionIntegration:false},null,2));
