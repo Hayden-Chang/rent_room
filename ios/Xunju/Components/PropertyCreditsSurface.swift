@@ -8,67 +8,66 @@ struct PropertyCreditsSurface: View {
     var error = ""
     let purchase: () -> Void
     let restore: () -> Void
-    let cancel: () -> Void
+    @ScaledMetric(relativeTo: .largeTitle) private var balanceSize = 64
 
     private var english: Bool { AppLanguage.shared.value == .english }
     private func copy(_ zh: String, _ en: String) -> String { english ? en : zh }
     private var canPurchase: Bool { price != nil && !activity.busy && activity != .pending }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
+        VStack(alignment: .leading, spacing: 24) {
+            VStack(spacing: 12) {
                 Text(copy("剩余房源点数", "Property credits remaining"))
-                    .font(.system(size: 16, weight: .semibold)).fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 0)
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(verbatim: "\(remaining)").font(.system(size: 32, weight: .bold)).foregroundStyle(XJTheme.primary)
-                    Text(copy("点", "credits")).font(.system(size: 14)).foregroundStyle(XJTheme.muted)
-                }.fixedSize().accessibilityElement(children: .combine).accessibilityIdentifier("credits.balance")
-            }.padding(20).frame(maxWidth: .infinity)
-                .background(.white).clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(XJTheme.line, lineWidth: 2))
+                    .font(.subheadline).foregroundStyle(XJTheme.muted)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(verbatim: "\(remaining)")
+                        .font(.system(size: balanceSize, weight: .bold, design: .rounded))
+                        .monospacedDigit().foregroundStyle(XJTheme.primary)
+                        .lineLimit(1).minimumScaleFactor(0.5)
+                    Text(copy("点", "credits")).font(.body).foregroundStyle(XJTheme.muted)
+                }.accessibilityElement(children: .combine).accessibilityIdentifier("credits.balance")
+            }.padding(.top, 24).padding(.bottom, 16).frame(maxWidth: .infinity)
 
-            VStack(alignment: .leading, spacing: 18) {
-                Text(copy("10 个房源点数", "10 property credits"))
-                    .font(.system(size: 17, weight: .bold)).fixedSize(horizontal: false, vertical: true)
-                Text(copy("新建 1 套房源消耗 1 点", "Creating a property uses 1 credit"))
-                    .font(.system(size: 14)).foregroundStyle(XJTheme.muted)
-                    .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("credits.rules")
-                HStack(spacing: 12) {
-                    Button(copy("先等等", "Not now"), action: cancel)
-                        .font(.system(size: 15, weight: .semibold)).foregroundStyle(XJTheme.primary)
-                        .frame(minWidth: 72, minHeight: 48).disabled(activity.busy)
-                    Button(action: purchase) {
-                        HStack(spacing: 8) {
-                            if activity == .purchasing { ProgressView().tint(.white) }
-                            Text(purchaseTitle).font(.system(size: 15, weight: .bold))
-                                .fixedSize(horizontal: false, vertical: true)
-                        }.frame(maxWidth: .infinity, minHeight: 48)
-                    }.buttonStyle(SetupButtonStyle()).disabled(!canPurchase).opacity(canPurchase ? 1 : 0.45)
-                        .accessibilityIdentifier("credits.purchase")
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(copy("10 个房源点数", "10 property credits"))
+                        .font(.title3.weight(.bold)).fixedSize(horizontal: false, vertical: true)
+                    Text(copy("新建 1 套房源消耗 1 点", "Creating a property uses 1 credit"))
+                        .font(.subheadline).foregroundStyle(XJTheme.muted)
+                        .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("credits.rules")
                 }
+                Button(action: purchase) {
+                    HStack(spacing: 8) {
+                        if activity == .purchasing { ProgressView().tint(.white) }
+                        Text(purchaseTitle).font(.headline)
+                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    }.padding(.horizontal, 12).padding(.vertical, 14)
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                }.buttonStyle(PropertyCreditsPurchaseStyle()).disabled(!canPurchase)
+                    .accessibilityIdentifier("credits.purchase")
             }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(red: 248/255, green: 247/255, blue: 1))
+                .background(XJTheme.soft.opacity(0.55))
                 .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Color(red: 217/255, green: 214/255, blue: 251/255), lineWidth: 2))
+                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(XJTheme.primary.opacity(0.12), lineWidth: 1))
 
             if activity == .pending {
                 Text(copy("支付结果正在确认，点数到账前不会增加余额。", "Payment is pending. Credits will appear after confirmation."))
-                    .font(.system(size: 14)).foregroundStyle(XJTheme.primary)
+                    .font(.subheadline).foregroundStyle(XJTheme.primary)
                     .accessibilityIdentifier("credits.pending")
             }
             if !error.isEmpty {
-                Text(verbatim: error).font(.system(size: 14)).foregroundStyle(XJTheme.danger)
+                Text(verbatim: error).font(.subheadline).foregroundStyle(XJTheme.danger)
                     .accessibilityIdentifier("credits.error")
             }
             Button(action: restore) {
                 HStack(spacing: 8) {
                     if activity == .restoring { ProgressView() }
                     Text(activity == .restoring ? copy("正在恢复购买记录…", "Restoring purchases…") : copy("恢复购买记录", "Restore purchases"))
-                }.font(.system(size: 14, weight: .semibold)).frame(maxWidth: .infinity, minHeight: 44)
-            }.buttonStyle(.plain).foregroundStyle(XJTheme.primary).disabled(activity.busy)
+                }.font(.subheadline).frame(maxWidth: .infinity, minHeight: 44)
+            }.buttonStyle(.plain).foregroundStyle(XJTheme.muted).disabled(activity.busy)
                 .accessibilityIdentifier("credits.restore")
-        }.foregroundStyle(XJTheme.ink)
+        }.frame(maxWidth: 480).foregroundStyle(XJTheme.ink)
     }
 
     private var purchaseTitle: String {
@@ -78,5 +77,14 @@ struct PropertyCreditsSurface: View {
         case .pending: return copy("等待购买结果", "Payment pending")
         default: return price.map { copy("\($0) 购买 10 点", "\($0) Buy 10 credits") } ?? copy("点数包暂未开放", "Credits unavailable")
         }
+    }
+}
+
+private struct PropertyCreditsPurchaseStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.foregroundStyle(.white)
+            .background(XJTheme.primary, in: RoundedRectangle(cornerRadius: 14))
+            .opacity(enabled ? (configuration.isPressed ? 0.8 : 1) : 0.45)
     }
 }

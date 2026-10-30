@@ -3,7 +3,7 @@
  <view class="pack">
   <view class="pack-title">10 个房源点数</view>
   <view class="rules"><view>新建 1 套房源消耗 1 点</view></view>
-  <view class="actions"><button class="cancel" disabled="{{busy}}" bindtap="cancel">先等等</button><button class="purchase" loading="{{busy}}" disabled="{{busy||pending}}" bindtap="purchase">{{pending?'等待购买结果':authenticated?'¥1.99 购买 10 点':'微信登录后购买'}}</button></view>
+  <button class="purchase" hover-class="purchase-pressed" loading="{{busy}}" disabled="{{busy||pending}}" bindtap="purchase">{{pending?'等待购买结果':authenticated?'¥1.99 购买 10 点':'微信登录后购买'}}</button>
  </view>
  <view wx:if="{{pending}}" class="pending">支付结果正在确认，点数到账前不会增加余额。</view>
  <view wx:if="{{error}}" class="error">{{error}}</view>

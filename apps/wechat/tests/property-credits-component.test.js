@@ -18,7 +18,7 @@ describe('property credits presentation boundary',()=>{
   expect(f.events).toEqual(['restore']);expect(f.component.data.remaining).toBe(7);
  });
  it('blocks all conflicting actions while busy',()=>{
-  const f=fixture({busy:true});for(const name of ['purchase','restore','cancel'])f.act(name);
+  const f=fixture({busy:true});for(const name of ['purchase','restore'])f.act(name);
   expect(f.events).toEqual([]);expect(f.component.data.remaining).toBe(7);
  });
 });

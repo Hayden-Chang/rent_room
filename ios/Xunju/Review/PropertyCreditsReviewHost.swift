@@ -16,7 +16,7 @@ struct PropertyCreditsReviewHost: View {
                 VStack(spacing: 20) {
                     PropertyCreditsSurface(remaining: remaining, price: price, activity: activity, error: error,
                         purchase: { purchases += 1; activity = .purchasing },
-                        restore: { restores += 1; activity = .restoring }, cancel: {})
+                        restore: { restores += 1; activity = .restoring })
                     Text("组件预览 · 测试余额与价格 · 购买回调 \(purchases) 次 · 恢复回调 \(restores) 次")
                         .font(.system(size: 12)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("review.credits.events")
                 }.padding(20)
