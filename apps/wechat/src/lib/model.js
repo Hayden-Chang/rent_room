@@ -27,7 +27,8 @@ export const costGroups={'019886c9-e108-45b4-a0c5-c20d594379e5':'周期费用','
 const costLabels=Object.fromEntries(topics.filter(t=>t.path?.some(p=>costGroups[p.id])).flatMap(t=>t.fields.map(f=>[f.id,f.label])));
 const costOrder=Object.fromEntries(topics.filter(t=>t.path?.some(p=>costGroups[p.id]==='周期费用')).flatMap(t=>t.fields).map((f,i)=>[f.id,i]));
 const costName=label=>label.replace(/（元(?:\/[^）]+)?）$/,'').trim();
-export const customCostGroup=id=>Object.keys(costGroups).find(group=>new RegExp(`^cost_${group}_[a-zA-Z0-9]+$`).test(id));
+const costPatterns=Object.keys(costGroups).map(group=>[group,new RegExp(`^cost_${group}_[a-zA-Z0-9]+$`)]);
+export const customCostGroup=id=>costPatterns.find(([,pattern])=>pattern.test(id))?.[0];
 const parkingCostTopic=topics.find(t=>t.fields.some(f=>f.id==='f11_1'));
 function relocateParkingCost(ts) {
  const groupId=parkingCostTopic.path.at(-1).id;
@@ -228,11 +229,14 @@ export function fieldView(h,f) {
 }
 export function formView(h,view={},folds={}) {
   const ts=houseTopics(h),groups=rules.inspectionGroups(ts),filtered=!!view.query||(view.filters||[]).length>0;
-  const issueIds=new Set(issueEntries(h).map(e=>e.field.id));
+  const issues=issueEntries(h),issueIds=new Set(issues.map(e=>e.field.id));
   const detailVisibility={includeUnanswered:true},nodes=annotationEntries(h,ts).map(e=>({...e,field:{...e.field,inheritedIssue:issueIds.has(e.field.id)}})),nodeById=new Map(nodes.map(e=>[e.field.id,e.field]));
+  // These depend on this house, not the category. Reuse them for this render only;
+  // callers may mutate answers, groups and custom fields between renders.
+  const active=activeEntries(h),details=[...activeEntries(h,detailVisibility),...nodes];
   const result=[];
   for(const cat of [...new Set(ts.map(t=>t.category))]) {
-    const entries=[...activeEntries(h,detailVisibility),...nodes].filter(e=>e.topic.category===cat&&matches(h,e.topic,e.field,view));
+    const entries=details.filter(e=>e.topic.category===cat&&matches(h,e.topic,e.field,view));
     const catTopics=ts.filter(t=>t.category===cat&&inPhase(t,view.phase)&&rules.topicAvailable(t,h));
     if(filtered&&!entries.length||!catTopics.length)continue;
     const root={children:[],map:new Map()};
@@ -263,7 +267,9 @@ export function formView(h,view={},folds={}) {
     }
     const expanded=folds[cat]??!!filtered;
     if(expanded)for(const n of root.children)visit(n);
-    const summary=stats(h,cat),header={...fieldView(h,nodeById.get('node:category:'+cat)),expanded,stats:summary};
+    const categoryEntries=active.filter(e=>e.topic.category===cat);
+    const summary={total:categoryEntries.length,done:categoryEntries.filter(e=>rules.fieldRecorded(e.field,answer(h,e.field))).length,issues:issues.filter(e=>e.topic.category===cat).length};
+    const header={...fieldView(h,nodeById.get('node:category:'+cat)),expanded,stats:summary};
     result.push({id:'cat-'+result.length,title:cat,expanded,rows,stats:summary,header});
   }
   return result;

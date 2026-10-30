@@ -1,0 +1,1170 @@
+{
+  "baselineProductHead": "8bb9a3b33e8de69f9678a9b706a6653ee83db3bc",
+  "validatedProductAndTestHead": "e0aa560ef651daba15aacf62eb32c6e4263326c4",
+  "device": {
+    "name": "iPhone 14 Pro",
+    "os": "iOS 18.3.1",
+    "udid": "8F178971-C203-4690-A83B-253046EACBB1",
+    "configuration": "Debug -O"
+  },
+  "measurementBoundary": "ChecklistPresentation.write (choose), synchronous durable save, form and inspectionGuide; excludes touch dispatch and frame presentation",
+  "measurements": {
+    "before": [
+      {
+        "houses": 1,
+        "samplesMs": [
+          {
+            "total": 71.72608375549316,
+            "save": 19.03998851776123,
+            "guide": 28.51700782775879,
+            "form": 24.169087409973145
+          },
+          {
+            "total": 75.16694068908691,
+            "form": 22.181987762451172,
+            "save": 15.429973602294922,
+            "guide": 37.55497932434082
+          },
+          {
+            "guide": 23.042917251586914,
+            "total": 70.62792778015137,
+            "save": 20.489931106567383,
+            "form": 27.09507942199707
+          },
+          {
+            "total": 62.74402141571045,
+            "guide": 25.93696117401123,
+            "save": 14.16003704071045,
+            "form": 22.64702320098877
+          },
+          {
+            "guide": 31.04996681213379,
+            "total": 64.38088417053223,
+            "save": 12.794971466064453,
+            "form": 20.535945892333984
+          },
+          {
+            "guide": 36.448001861572266,
+            "save": 22.558927536010742,
+            "total": 83.21595191955566,
+            "form": 24.209022521972656
+          },
+          {
+            "total": 57.668089866638184,
+            "guide": 24.296998977661133,
+            "save": 13.351082801818848,
+            "form": 20.020008087158203
+          },
+          {
+            "form": 20.704030990600586,
+            "total": 67.06106662750244,
+            "save": 14.587998390197754,
+            "guide": 31.7690372467041
+          },
+          {
+            "guide": 23.28801155090332,
+            "total": 59.343934059143066,
+            "save": 13.132929801940918,
+            "form": 22.922992706298828
+          },
+          {
+            "form": 20.291924476623535,
+            "total": 57.24000930786133,
+            "guide": 21.845102310180664,
+            "save": 15.102982521057129
+          }
+        ],
+        "medianMs": {
+          "save": 14.845490455627441,
+          "form": 22.41450548171997,
+          "guide": 27.22698450088501,
+          "total": 65.72097539901733
+        }
+      },
+      {
+        "houses": 30,
+        "samplesMs": [
+          {
+            "guide": 27.973055839538574,
+            "form": 21.063923835754395,
+            "save": 205.65807819366455,
+            "total": 254.69505786895752
+          },
+          {
+            "total": 222.88310527801514,
+            "form": 20.25306224822998,
+            "save": 176.51402950286865,
+            "guide": 26.116013526916504
+          },
+          {
+            "save": 184.02791023254395,
+            "guide": 21.64602279663086,
+            "form": 18.494009971618652,
+            "total": 224.16794300079346
+          },
+          {
+            "total": 209.87999439239502,
+            "save": 169.59702968597412,
+            "form": 18.303990364074707,
+            "guide": 21.97897434234619
+          },
+          {
+            "save": 173.07496070861816,
+            "form": 18.290042877197266,
+            "total": 212.99099922180176,
+            "guide": 21.625995635986328
+          },
+          {
+            "guide": 20.327091217041016,
+            "save": 171.90301418304443,
+            "total": 209.24508571624756,
+            "form": 17.01498031616211
+          },
+          {
+            "guide": 21.816015243530273,
+            "total": 201.95496082305908,
+            "save": 162.43493556976318,
+            "form": 17.704010009765625
+          },
+          {
+            "guide": 19.801974296569824,
+            "total": 204.32090759277344,
+            "save": 165.26293754577637,
+            "form": 19.255995750427246
+          },
+          {
+            "guide": 19.15299892425537,
+            "total": 203.89199256896973,
+            "save": 161.7809534072876,
+            "form": 22.958040237426758
+          },
+          {
+            "save": 162.34302520751953,
+            "form": 17.87400245666504,
+            "guide": 20.576000213623047,
+            "total": 200.79302787780762
+          }
+        ],
+        "medianMs": {
+          "save": 170.75002193450928,
+          "form": 18.39900016784668,
+          "guide": 21.636009216308594,
+          "total": 209.5625400543213
+        }
+      }
+    ],
+    "after": [
+      {
+        "houses": 1,
+        "samplesMs": [
+          {
+            "total": 20.8510160446167,
+            "guide": 1.0631084442138672,
+            "save": 15.867948532104492,
+            "form": 3.91995906829834
+          },
+          {
+            "guide": 1.8169879913330078,
+            "form": 3.1189918518066406,
+            "total": 15.697002410888672,
+            "save": 10.761022567749023
+          },
+          {
+            "guide": 0.7590055465698242,
+            "total": 15.439987182617188,
+            "form": 2.9309988021850586,
+            "save": 11.749982833862305
+          },
+          {
+            "total": 15.187978744506836,
+            "guide": 0.7270574569702148,
+            "form": 2.775907516479492,
+            "save": 11.685013771057129
+          },
+          {
+            "save": 11.479020118713379,
+            "total": 15.715956687927246,
+            "guide": 1.4989376068115234,
+            "form": 2.7379989624023438
+          },
+          {
+            "form": 3.381013870239258,
+            "save": 9.630084037780762,
+            "total": 13.71002197265625,
+            "guide": 0.6989240646362305
+          },
+          {
+            "total": 12.562990188598633,
+            "form": 2.608060836791992,
+            "save": 9.264945983886719,
+            "guide": 0.6899833679199219
+          },
+          {
+            "save": 9.742021560668945,
+            "total": 12.88306713104248,
+            "form": 2.4770498275756836,
+            "guide": 0.6639957427978516
+          },
+          {
+            "total": 12.565970420837402,
+            "form": 2.555966377258301,
+            "save": 9.325027465820312,
+            "guide": 0.6849765777587891
+          },
+          {
+            "form": 2.5489330291748047,
+            "guide": 5.330085754394531,
+            "total": 17.745018005371094,
+            "save": 9.865999221801758
+          }
+        ],
+        "medianMs": {
+          "save": 10.31351089477539,
+          "form": 2.756953239440918,
+          "guide": 0.7430315017700195,
+          "total": 15.313982963562012
+        }
+      },
+      {
+        "houses": 30,
+        "samplesMs": [
+          {
+            "form": 2.9979944229125977,
+            "total": 54.40497398376465,
+            "guide": 0.8170604705810547,
+            "save": 50.589919090270996
+          },
+          {
+            "save": 48.26807975769043,
+            "total": 51.90908908843994,
+            "guide": 0.7230043411254883,
+            "form": 2.9180049896240234
+          },
+          {
+            "total": 63.879966735839844,
+            "form": 2.841949462890625,
+            "save": 60.31298637390137,
+            "guide": 0.7250308990478516
+          },
+          {
+            "form": 2.562999725341797,
+            "guide": 0.6730556488037109,
+            "save": 51.370978355407715,
+            "total": 54.60703372955322
+          },
+          {
+            "form": 2.5910139083862305,
+            "total": 48.2029914855957,
+            "save": 44.918060302734375,
+            "guide": 0.6939172744750977
+          },
+          {
+            "total": 55.871009826660156,
+            "form": 2.5229454040527344,
+            "save": 52.662014961242676,
+            "guide": 0.6860494613647461
+          },
+          {
+            "form": 2.5129318237304688,
+            "save": 48.139095306396484,
+            "total": 51.319003105163574,
+            "guide": 0.6669759750366211
+          },
+          {
+            "total": 49.15595054626465,
+            "guide": 0.661015510559082,
+            "save": 46.04995250701904,
+            "form": 2.4449825286865234
+          },
+          {
+            "save": 42.50502586364746,
+            "form": 2.5130510330200195,
+            "guide": 0.6819963455200195,
+            "total": 45.7000732421875
+          },
+          {
+            "guide": 0.6771087646484375,
+            "form": 2.700924873352051,
+            "save": 50.51898956298828,
+            "total": 53.89702320098877
+          }
+        ],
+        "medianMs": {
+          "save": 49.393534660339355,
+          "form": 2.5770068168640137,
+          "guide": 0.6840229034423828,
+          "total": 52.903056144714355
+        }
+      }
+    ],
+    "final": [
+      {
+        "houses": 1,
+        "samplesMs": [
+          {
+            "guide": 2.281069755554199,
+            "save": 38.87605667114258,
+            "form": 17.36295223236084,
+            "total": 58.52007865905762
+          },
+          {
+            "form": 3.0670166015625,
+            "save": 20.892024040222168,
+            "guide": 0.7539987564086914,
+            "total": 24.71303939819336
+          },
+          {
+            "form": 3.0080080032348633,
+            "guide": 15.80500602722168,
+            "total": 46.15795612335205,
+            "save": 27.344942092895508
+          },
+          {
+            "total": 19.456982612609863,
+            "form": 9.348034858703613,
+            "guide": 0.7649660110473633,
+            "save": 9.343981742858887
+          },
+          {
+            "save": 23.303985595703125,
+            "form": 3.7059783935546875,
+            "guide": 13.517022132873535,
+            "total": 40.52698612213135
+          },
+          {
+            "save": 10.432958602905273,
+            "guide": 0.7998943328857422,
+            "form": 12.557029724121094,
+            "total": 23.78988265991211
+          },
+          {
+            "guide": 0.697016716003418,
+            "total": 21.661043167114258,
+            "form": 2.722024917602539,
+            "save": 18.2420015335083
+          },
+          {
+            "form": 3.696918487548828,
+            "save": 18.89204978942871,
+            "total": 23.329973220825195,
+            "guide": 0.7410049438476562
+          },
+          {
+            "form": 2.6230812072753906,
+            "guide": 0.738978385925293,
+            "total": 24.960041046142578,
+            "save": 21.597981452941895
+          },
+          {
+            "guide": 0.9620189666748047,
+            "form": 7.563948631286621,
+            "save": 18.033981323242188,
+            "total": 26.559948921203613
+          }
+        ],
+        "medianMs": {
+          "save": 19.89203691482544,
+          "form": 3.701448440551758,
+          "guide": 0.7824301719665527,
+          "total": 24.83654022216797
+        }
+      },
+      {
+        "houses": 30,
+        "samplesMs": [
+          {
+            "save": 71.03002071380615,
+            "form": 5.416989326477051,
+            "guide": 1.103043556213379,
+            "total": 77.55005359649658
+          },
+          {
+            "form": 3.0519962310791016,
+            "save": 43.54596138000488,
+            "total": 47.38199710845947,
+            "guide": 0.7840394973754883
+          },
+          {
+            "guide": 0.8139610290527344,
+            "total": 62.626004219055176,
+            "form": 2.982020378112793,
+            "save": 58.83002281188965
+          },
+          {
+            "total": 65.25003910064697,
+            "guide": 0.7499456405639648,
+            "form": 2.9621124267578125,
+            "save": 61.537981033325195
+          },
+          {
+            "form": 3.944993019104004,
+            "guide": 0.8480548858642578,
+            "save": 48.85399341583252,
+            "total": 53.64704132080078
+          },
+          {
+            "form": 2.8989315032958984,
+            "save": 77.63409614562988,
+            "guide": 0.738978385925293,
+            "total": 81.27200603485107
+          },
+          {
+            "form": 2.696990966796875,
+            "save": 65.62197208404541,
+            "total": 69.04900074005127,
+            "guide": 0.7300376892089844
+          },
+          {
+            "guide": 0.7100105285644531,
+            "total": 48.52902889251709,
+            "form": 2.624988555908203,
+            "save": 45.194029808044434
+          },
+          {
+            "total": 78.66406440734863,
+            "guide": 0.7790327072143555,
+            "form": 2.7829408645629883,
+            "save": 75.10209083557129
+          },
+          {
+            "total": 104.53999042510986,
+            "guide": 0.7410049438476562,
+            "form": 2.7730464935302734,
+            "save": 101.02593898773193
+          }
+        ],
+        "medianMs": {
+          "save": 63.5799765586853,
+          "form": 2.9305219650268555,
+          "guide": 0.7644891738891602,
+          "total": 67.14951992034912
+        }
+      }
+    ]
+  },
+  "payload": {
+    "houses": 30,
+    "beforeResponseBytes": 2165224,
+    "afterResponseBytes": 77756,
+    "persistedBytes": 2160208,
+    "identicalDurableData": true,
+    "identicalFullSnapshot": true,
+    "changedHouses": [
+      "choice-0"
+    ]
+  },
+  "tests": {
+    "preFix": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+            "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+            "modelName": "iPhone 14 Pro",
+            "osBuildNumber": "22D8075",
+            "osVersion": "18.3.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 1,
+          "passedTests": 2,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "Xunju · Built with macOS 26.2",
+      "expectedFailures": 0,
+      "failedTests": 1,
+      "finishTime": 1793300356.091,
+      "passedTests": 2,
+      "result": "Failed",
+      "skippedTests": 0,
+      "startTime": 1793300325.928,
+      "statistics": [],
+      "testFailures": [
+        {
+          "failureText": "XCTAssertEqual failed: (\"object([\"field\": Xunju.JSONValue.object([\"kind\": Xunju.JSONValue.string(\"field\"), \"inline\": Xunju.JSONValue.bool(true), \"noCost\": Xunju.JSONValue.bool(false), \"map\": Xunju.JSONValue.bool(false), \"wheelDisplay\": Xunju.JSONValue.string(\"未填写\"), \"note\": Xunju.JSONValue.string(\"\"), \"display\": Xunju.JSONValue.string(\"\"), \"inputType\": Xunju.JSONValue.string(\"text\"), \"id\": Xunju.JSONValue.string(\"f56_1\"), \"depth\": Xunju.JSONValue.number(1.0), \"other\": Xunju.JSONValue.bool(false), \"thumbnails\": Xunju.JSONValue.array([]), \"noneSelected\": Xunju.JSONValue.bool(false), \"fact\": Xunju.JSONValue.bool(false), \"label\": Xunju.JSONValue.string(\"空调出风味道正常\"), \"heading\": Xunju.JSONValue.string(\"\"), \"wheel\": Xunju.JSONValue.bool(false), \"invertLegacyYes\": Xunju.JSONValue.bool(false), \"problem\": Xunju.JSONValue.bool(false), \"otherText\": Xunju.JSONValue.string(\"\"), \"photoRef\": Xunju.JSONValue.string(\"\"), \"type\": Xunju.JSONValue.string(\"y\"), \"value\": Xunju.JSONValue.string(\"\"), \"key\": Xunju.JSONValue.string(\"f-f56_1\"), \"badValue\": Xunju.JSONValue.string(\"否\"), \"media\": Xunju.JSONValue.array([]), \"options\": Xunju.JSONValue.array([Xunju.JSONValue.object([\"selected\": Xunju.JSONValue.bool(false), \"label\": Xunju.JSONValue.string(\"是\"), \"value\": Xunju.JSONValue.string(\"是\")]), Xunju.JSONValue.object([\"selected\": Xunju.JSONValue.bool(false), \"label\": Xunju.JSONValue.string(\"否\"), \"value\": Xunju.JSONValue.string(\"否\")])])]), \"folds\": Xunju.JSONValue.object([\"家电\": Xunju.JSONValue.bool(true), \"topic_55\": Xunju.JSONValue.bool(true), \"category_6\": Xunju.JSONValue.bool(true)])])\") is not equal to (\"null\") - Ordinary choices must not prepare the full teaching checklist",
+          "targetName": "XunjuTests",
+          "testIdentifier": 1,
+          "testIdentifierString": "ChoicePerformanceTests/testInactiveTeachingDoesNotBuildAnExpandedChecklistTarget()",
+          "testIdentifierURL": "test://com.apple.xcode/Xunju/XunjuTests/ChoicePerformanceTests/testInactiveTeachingDoesNotBuildAnExpandedChecklistTarget",
+          "testName": "testInactiveTeachingDoesNotBuildAnExpandedChecklistTarget()"
+        }
+      ],
+      "title": "Test - Xunju",
+      "topInsights": [],
+      "totalTestCount": 3
+    },
+    "development": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+            "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+            "modelName": "iPhone 14 Pro",
+            "osBuildNumber": "22D8075",
+            "osVersion": "18.3.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 6,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "Xunju · Built with macOS 26.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1793300614.903,
+      "passedTests": 6,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1793300538.582,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - Xunju",
+      "topInsights": [],
+      "totalTestCount": 6
+    },
+    "finalIOS18": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+            "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+            "modelName": "iPhone 14 Pro",
+            "osBuildNumber": "22D8075",
+            "osVersion": "18.3.1",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 99,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "Xunju · Built with macOS 26.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1793301037.951,
+      "passedTests": 99,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1793300762.913,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - Xunju",
+      "topInsights": [
+        {
+          "category": "Longest Test Runs",
+          "impact": "21% of duration",
+          "text": "3 longest test runs with outlier durations exceeding 0.88s (three standard deviations)"
+        }
+      ],
+      "totalTestCount": 99
+    },
+    "sharedRules": {
+      "testFiles": 20,
+      "passed": 328,
+      "failed": 0
+    },
+    "nodeBridgeAndRunner": {
+      "passed": 12,
+      "failed": 0
+    },
+    "compatibilityIOS26": {
+      "devicesAndConfigurations": [
+        {
+          "device": {
+            "architecture": "arm64",
+            "deviceId": "759E28A9-21EB-4AA1-9F4F-EF1850989C56",
+            "deviceName": "todo-pool-camera-20260717110121",
+            "modelName": "iPhone 16",
+            "osBuildNumber": "23F77",
+            "osVersion": "26.5",
+            "platform": "iOS Simulator"
+          },
+          "expectedFailures": 0,
+          "failedTests": 0,
+          "passedTests": 1,
+          "skippedTests": 0,
+          "testPlanConfiguration": {
+            "configurationId": "1",
+            "configurationName": "Test Scheme Action"
+          }
+        }
+      ],
+      "environmentDescription": "Xunju · Built with macOS 26.2",
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "finishTime": 1793301135.484,
+      "passedTests": 1,
+      "result": "Passed",
+      "skippedTests": 0,
+      "startTime": 1793301053.791,
+      "statistics": [],
+      "testFailures": [],
+      "title": "Test - Xunju",
+      "topInsights": [],
+      "totalTestCount": 1
+    }
+  },
+  "plan": {
+    "schemaVersion": 1,
+    "runId": "xunju-choice-final-20261030-01",
+    "phase": "final-pr-head",
+    "headSha": "e0aa560ef651daba15aacf62eb32c6e4263326c4",
+    "taskName": "PR 87 final choice latency and incremental state validation",
+    "sessionId": "01a1886e-e64e-7e32-b1e9-ee161b317039",
+    "workspace": "/Users/pc/.codex/worktrees/ios-performance-20261030/rent_room",
+    "unitTestTarget": "XunjuTests",
+    "uiTestTarget": "XunjuUITests",
+    "unitTests": [
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testRepeatedThumbnailReadsReuseDecodedImage",
+        "reason": "新增回归及同数据性能对比",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testThumbnailReplacementDeletionAndIdentityIsolation",
+        "reason": "新增回归及同数据性能对比",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testPhotoImportAllowsMainActorProgress",
+        "reason": "新增回归及同数据性能对比",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testCancellingAnInFlightPhotoImportLeavesNoFile",
+        "reason": "异步照片编码进行中取消仍必须清理文件",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testIncrementalReadsAndMutationReturnValuesKeepStoreCurrent",
+        "reason": "新增回归及同数据性能对比",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testThirtyHouseReadBenchmark",
+        "reason": "新增回归及同数据性能对比",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/PerformanceRegressionTests/testWarmThumbnailBenchmark",
+        "reason": "新增回归及同数据性能对比",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/BridgeJSONTests/testFoundationConversionMatchesCodableForNestedSchema",
+        "reason": "新解析器保留数字布尔空值与未知字段",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/BridgeJSONTests/testScalarAndEmptyPayloadsRemainLossless",
+        "reason": "新解析器保留数字布尔空值与未知字段",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/ThumbnailCacheTests/testByteBudgetEvictsAndMemoryWarningClearsCache",
+        "reason": "缩略图预算失效方向与内存压力",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/ThumbnailCacheTests/testDownsamplingPreservesEXIFOrientationAndRejectsInvalidImage",
+        "reason": "缩略图预算失效方向与内存压力",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testCanonicalCatalogAndRoundTripRetainAnswersAndZero",
+        "reason": "桥接所有读写保存失败与恢复边界",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection",
+        "reason": "桥接所有读写保存失败与恢复边界",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testConditionalGroupKeepsHiddenAnswersNotesAndProblemFlag",
+        "reason": "桥接所有读写保存失败与恢复边界",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testIndependentIssueFlagFilteringAndCollapsedFormDoNotMutate",
+        "reason": "桥接所有读写保存失败与恢复边界",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testManualIssueAndSummaryComparisonPersist",
+        "reason": "桥接所有读写保存失败与恢复边界",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testImportIsAtomicAndPreservesGlobalSettings",
+        "reason": "桥接所有读写保存失败与恢复边界",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testCorruptFileBlocksWritesAndRecoveryPreservesOriginal",
+        "reason": "桥接所有读写保存失败与恢复边界",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession",
+        "reason": "桥接所有读写保存失败与恢复边界",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testSetupDraftStepAndSelectionSurviveRelaunch",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testTemplateChangesApplyOnlyToNewHouseSnapshots",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testLegacySaveSkipsSetupAndRetainsDetailedSnapshot",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testSimpleDescriptionResultsAndNotesCountOnce",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testTutorialRequiresActualSwipeAndResumesStoredStep",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testSetupFailureKeepsDraftAndCanRetry",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testTutorialSaveFailureRollsBackAndDuplicateSwipeCannotSkipStepFour",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testRentFreeNumberPreservesHistoricalValuesMetadataAndArchive",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testCompletionOnlyGuidesForwardAndDoesNotRepeatAfterClearing",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testOtherHousesShowsReturnGuideBeforeLeavingAndStaleActionsDoNotDismissIt",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testGuideCloseScopesAndFeedbackRequestAreDurable",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testNonePreservesHiddenValueAndCountsAsRecorded",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testZeroCapacityKeepsOldRecordsAndRejectsNetNewImportOrRestore",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testCreateIntentRetainsEnteredNameAcrossCapacityChangeAndRelaunch",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/InspectionBusinessTests/testNineMediaBatchPreservesOrderAndRejectsPartialWrites",
+        "reason": "桥接设置模板引导跨日问题标记及媒体批量",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/RelatedMediaIntegrationTests/testAutomaticAndChecklistShareOrderedFieldMediaNotesAndIndependentFlag",
+        "reason": "影像关联与备注的增量快照更新",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/RelatedMediaIntegrationTests/testParentAnnotationsKeepMediaAndNeverBecomeEditableChildValues",
+        "reason": "影像关联与备注的增量快照更新",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/RelatedMediaIntegrationTests/testRelatedMediaCaptionWriteFailurePreservesOriginalAndRetryDoesNotDuplicate",
+        "reason": "影像关联与备注的增量快照更新",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IdentityScopeTests/testGuestClaimIsIdempotentAndLogoutStartsFreshGuest",
+        "reason": "账号隔离与 guest 认领快照",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IdentityScopeTests/testClaimPreservesOverCapacityRecordsWithoutGrantingCapacity",
+        "reason": "账号隔离与 guest 认领快照",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IdentityScopeTests/testFirstClaimKeepsGuestSettingsAndCopiesMediaWithoutChangingOriginal",
+        "reason": "账号隔离与 guest 认领快照",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IdentityScopeTests/testFailedMediaClaimRetainsJournalAndCanResumeOnce",
+        "reason": "账号隔离与 guest 认领快照",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IdentityScopeTests/testDuplicateHouseIDsReceiveNewIDWithoutOverwritingAccount",
+        "reason": "账号隔离与 guest 认领快照",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IdentityScopeTests/testMalformedScopePointerAndMediaPathsNeverEscapeRoot",
+        "reason": "账号隔离与 guest 认领快照",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BusinessIntegrationTests/testGuestWorkspaceRelaunchRetainsRealRecordsAndScopes",
+        "reason": "登录重启导入与损坏账号恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BusinessIntegrationTests/testChoiceCommandRetainsMultipleValuesAndOtherDetailAcrossRelaunch",
+        "reason": "登录重启导入与损坏账号恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BusinessIntegrationTests/testVerifiedLoginClaimLogoutAndSameAccountResumeKeepGuestPrivate",
+        "reason": "登录重启导入与损坏账号恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BusinessIntegrationTests/testKeychainFailureDoesNotClaimGuestOrChangeCurrentStore",
+        "reason": "登录重启导入与损坏账号恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BusinessIntegrationTests/testImportCopyUsesNewIDKeepsOriginalAndFailsAtomicallyAtCapacity",
+        "reason": "登录重启导入与损坏账号恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BusinessIntegrationTests/testCorruptSignedInAccountStillOpensRecoveryAndRetainsOriginalFile",
+        "reason": "登录重启导入与损坏账号恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IssueDraftTests/testSaveCommitsTextAndOrderedMediaOnceAndRelaunches",
+        "reason": "问题草稿及媒体保存回滚",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IssueDraftTests/testDiscardAndRemovalCleanOnlyNewDraftFiles",
+        "reason": "问题草稿及媒体保存回滚",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IssueDraftTests/testSaveFailureRetainsDraftFilesAndCanRetryWithoutDuplication",
+        "reason": "问题草稿及媒体保存回滚",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IssueDraftTests/testValidationMissingFileAndDuplicateNeverPartiallySave",
+        "reason": "问题草稿及媒体保存回滚",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IssueDraftTests/testArchiveOrAccountChangeRejectsDraftWriteAndImport",
+        "reason": "问题草稿及媒体保存回滚",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IssueDraftTests/testCleanupPreservesCurrentAndPreviousReferencesAndFailsClosed",
+        "reason": "问题草稿及媒体保存回滚",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IssueDraftTests/testGroupSkipRestorePreservesChildAnswerHeadingNotesFlagsAndMedia",
+        "reason": "问题草稿及媒体保存回滚",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/IssueDraftTests/testAliasCannotBeOwnedOrDeleteReferencedTarget",
+        "reason": "问题草稿及媒体保存回滚",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/WheelBusinessTests/testRemovedWheelsUseManualNumbersOrNativeChoices",
+        "reason": "清单缓存和答案变化失效",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/WheelBusinessTests/testRealFormRoutesNineWheelsAndKeepsMoneyManual",
+        "reason": "清单缓存和答案变化失效",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/WheelBusinessTests/testConfirmedAnswersReloadKeepAnnotationsOtherAndEmptyZero",
+        "reason": "清单缓存和答案变化失效",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/WheelBusinessTests/testCancelUntouchedLegacyAndReadonlyIdentityGuards",
+        "reason": "清单缓存和答案变化失效",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeMediaImportTests/testImageStagesValidJPEGWithoutMutatingHouseAndScopeFailuresCleanUp",
+        "reason": "照片编码异步化及取消账号变化清理",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeMediaImportTests/testVideoExportsRealMP4AndInvalidSourceDoesNotLeavePartialFiles",
+        "reason": "照片编码异步化及取消账号变化清理",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/NativeMediaImportTests/testCancellationAndInvalidPayloadCreateNoMedia",
+        "reason": "照片编码异步化及取消账号变化清理",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/CapacityBusinessTests/testUnconfirmedPurchaseRetainsRecordsAndRestoresExactlyOnceAfterRelaunch",
+        "reason": "容量元数据与无快照回复后的购买恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/CapacityBusinessTests/testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct",
+        "reason": "容量元数据与无快照回复后的购买恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/CapacityBusinessTests/testRefundAndOlderSnapshotsKeepAllHousesAndRejectInconsistentOrForeignBalances",
+        "reason": "容量元数据与无快照回复后的购买恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/CapacityBusinessTests/testDuplicateForegroundAndBackgroundVerificationSharesOneGrantAndFinish",
+        "reason": "容量元数据与无快照回复后的购买恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/CapacityBusinessTests/testKeychainFailureKeepsPurchaseUnfinishedUntilCapacityCacheCanBeSaved",
+        "reason": "容量元数据与无快照回复后的购买恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/CapacityBusinessTests/testIdentityChangeDuringServerConfirmationCannotGrantOrFinish",
+        "reason": "容量元数据与无快照回复后的购买恢复",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/CapacityPolicyTests/testPublicPolicyCacheSurvivesOfflineAndDoesNotExportIdentity",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BackupTests/testZIPRoundTripStreamsMediaAndKeepsSettingsAndAssociations",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BackupTests/testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BackupTests/testReplacementImportUsesNetCapacityAndRetainsGlobalSettings",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BackupTests/testActualMiniProgramZIPImportsMediaAndIssueAssociations",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BackupTests/testAccountChangeDuringImportDiscardsStaging",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/MapCoreTests/testPlaceSearchUsesCanonicalParsingAndCoordinateBoundaryWithoutMutation",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/MapCoreTests/testRouteQueryAndConfirmedWriteRetainNotesAndRejectChangedEndpointsOrValue",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/MapCoreTests/testCoachPreferenceAndTargetPreserveAnswersAndPersist",
+        "reason": "保留引导写入与重启检查，对齐基线已有的新版标题",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/MapCoreTests/testComputedValueFailureRollsBackAndPreservesPreviousAnswer",
+        "reason": "桥接快照与导入容量坐标相关直接消费者",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/ChoicePerformanceTests/testInactiveTeachingDoesNotBuildAnExpandedChecklistTarget",
+        "reason": "New actual choice save and refresh measurements; inactive teaching regression",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/ChoicePerformanceTests/testOneHouseChoiceSaveAndRefreshBenchmark",
+        "reason": "New actual choice save and refresh measurements; inactive teaching regression",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/ChoicePerformanceTests/testThirtyHouseChoiceSaveAndRefreshBenchmark",
+        "reason": "New actual choice save and refresh measurements; inactive teaching regression",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/StateDeltaTests/testChangeReorderRemoveAndMetadataReplacementAreLossless",
+        "reason": "New atomic incremental snapshot reconstruction and rejection",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/StateDeltaTests/testMalformedDeltaRejectsWithoutChangingPriorState",
+        "reason": "New atomic incremental snapshot reconstruction and rejection",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuTests/ChecklistPresentationTests/testEveryCategoryAndGroupFoldsOnlyItsDescendantsWithoutWritingAnswers",
+        "reason": "Shared form rendering, category counts, fold and choice adapter",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/ChecklistPresentationTests/testSharedChoiceAdapterPreservesMultipleOtherAndFlagAcrossRelaunch",
+        "reason": "Shared form rendering, category counts, fold and choice adapter",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/ChecklistPresentationTests/testDividersAndFieldTypesMatchRealFormIncludingDynamicCosts",
+        "reason": "Shared form rendering, category counts, fold and choice adapter",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/AutomaticChoiceIssueTests/testAllSixChoicesCreateIssuesAndKeepManualPriorityAcrossReload",
+        "reason": "Choice issue statistics and manual priority",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/AutomaticChoiceIssueTests/testExistingAnswersAndNotesAreRecognizedWithoutRewritingTheSnapshot",
+        "reason": "Choice issue statistics and manual priority",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/TopFloorTests/testYesFlagsAndPresenterCancellationPersistsWithoutChangingAnswer",
+        "reason": "Yes/no toggle, migration and automatic issue retention",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/TopFloorTests/testLegacyNegativeQuestionMigratesOnceOnDiskAndThroughImport",
+        "reason": "Yes/no toggle, migration and automatic issue retention",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BalconyIssueTests/testChoiceAdapterAutomaticallyFlagsNoAndClearsYesOrUnansweredAcrossReload",
+        "reason": "Choice answer, issue and note persistence",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/BalconyIssueTests/testLegacySnapshotAndManualOverridesPreserveOriginalAnswerAndNote",
+        "reason": "Choice answer, issue and note persistence",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/ElevatorRatioTests/testNativeChoicesFlagHighestRatioAndKeepManualPriorityAcrossReload",
+        "reason": "Conditional group and legacy choice compatibility",
+        "source": "affected-existing"
+      },
+      {
+        "selector": "XunjuTests/ElevatorRatioTests/testLegacyTemplateAndAnswerDisplayNewChoiceWithoutErasingOriginalData",
+        "reason": "Conditional group and legacy choice compatibility",
+        "source": "affected-existing"
+      }
+    ],
+    "uiTests": [
+      {
+        "selector": "XunjuUITests/ChoiceResponseUITests/testYesNoAndGroupResultsUpdateAndSurviveRelaunch",
+        "reason": "Rank 1: user-reported choice feedback, group result changes, reload",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+        "reason": "最高风险：真实清单输入筛选备注重启模板与归档保存",
+        "source": "new-or-modified"
+      },
+      {
+        "selector": "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+        "reason": "照片后台导入，缩略图与问题影像保存取消重启",
+        "source": "new-or-modified"
+      }
+    ],
+    "changedUITests": [
+      "XunjuUITests/InspectionBusinessUITests/testDetailedNoneTemplateChangesAndArchivedSnapshot",
+      "XunjuUITests/BusinessFlowTests/testIssueMediaSaveDiscardCaptionAndRelaunch",
+      "XunjuUITests/PixelParityAuditTests/testReferencePagesAndArchivedState",
+      "XunjuUITests/ChoiceResponseUITests/testYesNoAndGroupResultsUpdateAndSurviveRelaunch"
+    ]
+  },
+  "ci": {
+    "statuses": [],
+    "workflowRuns": [],
+    "checkedHead": "e0aa560ef651daba15aacf62eb32c6e4263326c4"
+  },
+  "review": {
+    "agent": "current primary agent",
+    "findings": []
+  },
+  "release": {
+    "merged": false,
+    "physicalDeviceInstalled": false,
+    "published": false
+  },
+  "artifacts": {
+    "root": "/Volumes/mac2/codex-builds/xunju-choice-evidence-20261030",
+    "xcresults": {
+      "before": "/Volumes/mac2/codex-builds/xunju-choice-before-20261030-01.xcresult",
+      "after": "/Volumes/mac2/codex-builds/xunju-choice-after-20261030-01.xcresult",
+      "final": "/Volumes/mac2/codex-builds/xunju-choice-final-20261030-01.xcresult",
+      "ios26": "/Volumes/mac2/codex-builds/xunju-choice-ios26-20261030-01.xcresult"
+    }
+  },
+  "evidenceReuse": {
+    "codeHead": "e0aa560ef651daba15aacf62eb32c6e4263326c4",
+    "subsequentChangeScope": "docs only",
+    "reason": "No source, test, configuration, generated input or environment change after final validation"
+  }
+}
