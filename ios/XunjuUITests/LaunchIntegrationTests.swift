@@ -18,6 +18,13 @@ final class LaunchIntegrationTests: XCTestCase {
         add(attachment)
     }
 
+    private func chooseDefaultCurrency(_ app: XCUIApplication) {
+        let decline = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(decline.waitForExistence(timeout: 5))
+        decline.tap()
+        XCTAssertTrue(app.staticTexts["currency.prompt.title"].waitForNonExistence(timeout: 5))
+    }
+
     func testFirstLaunchReachesSetupAndRelaunchRetainsChoice() {
         let app = application()
         app.launch()
@@ -37,13 +44,16 @@ final class LaunchIntegrationTests: XCTestCase {
         app.buttons["setup.next"].tap()
         XCTAssertTrue(app.buttons["setup.mode.simple"].waitForExistence(timeout: 3))
         app.buttons["setup.next"].tap()
+        chooseDefaultCurrency(app)
         XCTAssertTrue(app.buttons["home.first"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["home.first"].isHittable)
         capture("launch-setup-completed-home", app)
     }
 
     func testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage() {
         let app = application(returning: true)
         app.launch()
+        chooseDefaultCurrency(app)
         XCTAssertTrue(app.buttons["house.阳光小区"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["house.新城公寓"].exists)
         XCTAssertFalse(app.images["brandLaunch.icon"].exists)
@@ -63,6 +73,7 @@ final class LaunchIntegrationTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["house.阳光小区"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["house.新城公寓"].exists)
+        XCTAssertFalse(app.staticTexts["currency.prompt.title"].exists)
         XCTAssertFalse(app.images["brandLaunch.icon"].exists)
         capture("launch-returning-home-restored", app)
     }
