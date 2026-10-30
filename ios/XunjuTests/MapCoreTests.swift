@@ -102,7 +102,7 @@ private actor DeferredRouteTransport: MapTransport {
         let store = try NativeStore(directory: directory()), id = try store.add("引导房源")
         try store.answer(id, field: "f1_6", value: .string("2800"))
         let answers = store.house(id)["answers"], coach = try store.call("coach", ["id": .string(id)])
-        XCTAssertEqual(coach["steps"].array.map { $0["title"].string }, ["房源信息", "现场检查", "询问与签约", "左滑检查项"])
+        XCTAssertEqual(coach["steps"].array.map { $0["title"].string }, ["看房的三个阶段", "找到你想看的内容", "向左滑，试试看", "随手记下房屋细节"])
         XCTAssertFalse(coach["target"]["field"].id.isEmpty)
         try store.call("coachFinish", ["value": .bool(true)])
         let restored = try NativeStore(directory: store.records.directory)

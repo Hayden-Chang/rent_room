@@ -12,9 +12,17 @@ it('expands, collapses and reopens every unanswered presence group without recor
   for(const expanded of [true,false,true]){
    folds[g.id]=expanded;
    const result=rows(h,folds),header=result.find(r=>r.id===g.id);
-   expect(header.expanded,g.title).toBe(expanded);
-   expect(header.options.some(o=>o.selected),g.title).toBe(false);
-   expect(result.some(r=>r.kind==='field'&&ids.includes(r.id)),g.title).toBe(expanded);
+   // Conditional groups (e.g. elevator) stay hidden until their controlling
+   // answer exists; folding alone must never make them available.
+   if(!g.topics.some(t=>rules.topicAvailable(t,h))) {
+    expect(header,g.title).toBeUndefined();
+    expect(result.some(r=>r.kind==='field'&&ids.includes(r.id)),g.title).toBe(false);
+   } else {
+    expect(header,g.title).toBeDefined();
+    expect(header.expanded,g.title).toBe(expanded);
+    expect(header.options.some(o=>o.selected),g.title).toBe(false);
+    expect(result.some(r=>r.kind==='field'&&ids.includes(r.id)),g.title).toBe(expanded);
+   }
    expect(JSON.stringify(h)).toBe(before);
    expect(stats(h)).toEqual(counts);
   }
