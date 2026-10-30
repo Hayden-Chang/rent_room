@@ -39,10 +39,28 @@ Apple 原生登录按钮、授权框、相册等系统控件的语言由 iOS 管
 | integration run-05 | 19 单测中 17 通过，另外两项是测试夹具/读取方式错误：使用不存在的“基本信息”类别、把编译后的二进制 strings 当 UTF-8。3 个 UI 中英文录入/对比/重启和中文系统拒绝通过；英文首次流程在错误的 StaticText 选择器停止，截图证实页面已英文，未据此宣称后续授权已验证。上述观测方式均已修正。 |
 | integration run-06 | 候选 `d88d648d2e9ea96059036c038fa15844dd314100`，28 单测 + 3 业务 UI 全通过。逐张看实际截图后发现自动断言未覆盖的两个问题：货币表头去掉单位后漏译，英文首页标题仍被固定单行高度截断；因此不以本轮全绿作为交付终点。 |
 | integration run-07 | 修复前新增 `AppCopyTests/testEnglishComparisonCostLabelsAreFullyLocalized` 确认 17 个去单位后的表头仍有中文；首次业务 UI 新增高度断言确认标题文字高 28.67，未达到换行要求 45。两项均为预期行为失败。随后通过 agy 补齐这些表头（保留单价/周期语义），首页允许按内容增长，并保留相同回归断言。 |
-| JS 搜索 | `apps/wechat/tests/model.test.js` 的 `localized display search` 单例通过，20 例未选；未运行整个共享模型套件。 |
+| JS 搜索与合并统计 | `model.test.js` / `form-derived-stats.test.js` 精确选择 `localized display search` 与 `per-render statistics match`，2 例通过，20 例未选；未运行整个共享模型套件。 |
 | 旧选项回归 | `legacy-wheel-before.log` 断言实际 `[true,true]` 与预期 `[false,true]` 不符，旧自定义「放弃」会被翻译。修复后同一断言通过；永久用例 `ios/tests/currency-localization.test.mjs` 与 Native AppCopy 测试共同保护用户原文及固定天数单位。 |
 
-已合并主线 `ab9c02f55e5a3043bee5a74e7f8f6fd96f902d2a`：保留增量桥接缓存、移除自动通勤查询、触摸轨迹设置；手工冲突限于桥接摘要添加币种、AppRoot 合并环境与触摸图层、设置页同时保留两个功能，JS bundle 从源码重建。合并后的 8 个桥接增量/缓存回归及 1 个币种 JS 用例通过，最终单测补选增量状态、字段适配和触摸偏好集成。当前完整功能最终 PR head 验证待运行；不能把以上阶段证据称作最终全绿。最终候选 SHA、选例、结果及截图将在通过后补充。
+已合并主线 `ab9c02f55e5a3043bee5a74e7f8f6fd96f902d2a`：保留增量桥接缓存、移除自动通勤查询、触摸轨迹设置；手工冲突限于桥接摘要添加币种、AppRoot 合并环境与触摸图层、设置页同时保留两个功能，JS bundle 从源码重建。合并后的 8 个桥接增量/缓存回归及 1 个币种 JS 用例通过，最终单测补选增量状态、字段适配和触摸偏好集成。最终候选 `f8f3f9ab920d65bde4102782d2112be6f7c62837` 已通过 integration run-08：29 项定向单测和 3 条业务 UI，32 passed / 0 failed / 0 skipped。完整计划、精确命令、选例理由、设备与回执见 [机器可读证据](evidence/language-currency-20261030.json)。主 agent 已复核最终 diff 与截图，费用表头和首页标题的两项视觉问题已关闭。GitHub 当前未返回 status 或 workflow run，未将此表述为远程 CI 通过。
+
+最终全绿后只补交本说明和 `docs/ios/evidence/` 的结果数据及截图；这些文件不参与应用源码、XcodeGen、资源生成、依赖或测试选例，复用上述已验证业务提交的证据，不再重跑。JS/Vitest 证据复用前核对其源文件、Node 24 环境及命令均未改变。全部最终新增/修改单测已执行；3 个组件 UI 在开发阶段通过，3 个业务 UI 在最终阶段通过。没有使用单失败重跑豁免。
+
+### 最终实际截图
+
+以下均来自 run-08 原始截图；英文系统偏好、手动英文、首次说明、原文房源名、多币种和首页换行均可直接核对。完整 13 张原图和英文分享图位于本机 `ios-language-currency/integration/gallery.html`，不是设计稿。
+
+| 自动识别 GBP | 手动英文与 EUR |
+| --- | --- |
+| ![自动识别](evidence/language-currency-20261030/business-10-live-country-gbp.png) | ![英文设置](evidence/language-currency-20261030/business-12-english-settings.png) |
+
+| 多币种房源 | 英文费用对比 |
+| --- | --- |
+| ![保留原值](evidence/language-currency-20261030/business-14-english-homes-persisted.png) | ![月租对比](evidence/language-currency-20261030/business-15-english-comparison.png) |
+
+| 首次清单后的说明 | 首页完整换行 |
+| --- | --- |
+| ![定位说明](evidence/language-currency-20261030/business-08-first-checklist-prompt.png) | ![英文首页](evidence/language-currency-20261030/business-17-english-empty-home.png) |
 
 ### 最终选例依据
 
@@ -63,4 +81,4 @@ Apple 原生登录按钮、授权框、相册等系统控件的语言由 iOS 管
 - 本次支持中英操作、海外币种记录和国家识别。保留最新主线移除自动通勤查询的行为；既有天地图地点服务没有扩展为全球地点服务。海外地址可手动记录，海外地点检索、路线、各国租金周期/面积单位不在此次已验证范围。
 - 定位成功证据使用模拟器坐标及真实系统权限、真实 Apple 地理编码，不是真机 GPS；无后台定位验收。系统权限、相机、实拍和商店购买未做真机测试。
 - 未覆盖所有设备尺寸和辅助功能字号；最终 3 个 UI 用例不证明所有页面视觉完全一致。
-- 未合并、未安装到真机、未发布。组件已有视觉批准，完整业务截图将作为本次交付证据。
+- 未合并、未安装到真机、未发布。组件已有视觉批准，完整业务截图已作为本次交付证据；本次未执行合并。
