@@ -16,6 +16,8 @@ struct XunjuApp: App {
                 ComponentReviewHost(surface: surface)
                     .environment(\.locale, Locale(identifier: "zh_CN"))
                     .preferredColorScheme(.light)
+            } else if AppWorkspace.isBusinessTest && ProcessInfo.processInfo.arguments.contains("--review-settings") {
+                AppStoreReviewHost(usesSettingsPage: true)
             } else {
                 AppRoot()
             }
