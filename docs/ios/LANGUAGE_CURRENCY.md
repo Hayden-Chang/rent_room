@@ -94,3 +94,22 @@ Apple 原生登录按钮、授权框、相册等系统控件的语言由 iOS 管
 ![中文表单使用元](evidence/cny-form-unit-20261030/chinese-rent-yuan.png)
 
 本任务此前已按用户授权将 d68ac07 Release 独立副本安装并启动至华为p10002；本次文字修正尚未更新真机。PR 保持 Draft，未合并。
+
+
+## 2026-10-30 主线整合后的最终验证
+
+用户已明确要求合入主线。候选 `44d860816fc947d6694c6804dec757a388296428` 已整合最新主线 `b07512cbeb62071e526f4ef8c528da91924c1221`，保留本地 StoreKit、评分入口、评分计数、离线目录和隐私清单。语言与货币入口接入主线单一 item 导航；新设置页、法律入口和购买说明的 21 条英文继续由 agy 生成，保留 prompt、原始结果和哈希，AppCopy 共 1343 条。
+
+整合时发现多币种创建绕过了主线评分计数，新增 `currency-review.test.mjs` 在 `2f86a59` 按预期失败（应为 1，实际 undefined），修复后验证保存失败回滚、三次创建、重启和评分只请求一次。诊断第一轮还发现冲突处理遗漏了返回用户测试夹具重建 store 后的币种绑定；已恢复原绑定。第二轮新增文案测试误用 AppCopy 检查实际来自 RegionalCopy 的两个标题，已按真实渲染路径修正观测，未删除业务断言。
+
+最终完整 campaign `rent-room-regional-merge-20261030-final-01`：**41 单测 + 3 UI = 44 passed / 0 failed / 0 skipped**。全部新增/修改单测均在精确选例中，UI 依风险选择中文元与重开、GBP/EUR 与中英设置/比较、首次清单和真实地理编码。另有 16 个 JS 检查及 2 个定向 Vitest 用例通过（20 个未选）。无全量单测或 UI 套件，无单失败豁免。新增中文单位 UI 在移除诊断探针后的最终候选再次通过。
+
+实际设备为 iPhone 14 Pro / iOS 18.3.1 (22D8075)，原图 1178×2556。历史 iOS 26.5 房源点击失败保留于上节证据；本轮不宣称已在该系统复现或修复，也不以一轮通过抹去历史失败。实际系统拒绝 UI 曾在 f8f3f9a 通过，本轮三例排序未重跑该方法，拒绝/取消仍由本轮单测覆盖。
+
+主 agent 单独复核最新 diff、源文案溯源、选择映射、金额与原文保存、截图和远程检查。截图确认重启重开后的“租金（元/月）2000”、英文设置/条款入口、EUR 输入和 GBP/EUR 对比、系统默认英文、自动 GBP 及首页完整换行。GitHub 未返回 status/workflow run；不将此表述为远程 CI 通过。运行已结束，slot 和设备 lease 释放。
+
+[最终机器证据](evidence/language-currency-merge-20261030.json) 包含完整方法、原因、命令文件、日志、xcresult、runner 回执和截图；持久目录 `/Users/pc/.codex/visualizations/2026/10/29/01a18878-d8ae-72f2-a0cf-3e4662baf2b2/ios-language-currency/merge-final-20261030`。本说明及截图是最终绿灯后的文档补充，不参与源码、资源生成或测试行为；文档提交复用 `44d860816fc947d6694c6804dec757a388296428` 证据。此前“not merge-ready”属于旧候选记录，本节为当前状态。未重新安装真机或发布。
+
+![重启后的中文元](evidence/language-currency-merge-20261030/cny-form-chinese-rent-persisted.png)
+
+![最新英文设置](evidence/language-currency-merge-20261030/regional-business-12-english-settings.png)
