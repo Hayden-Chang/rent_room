@@ -12,7 +12,17 @@ if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared instance pool');
   catch(error){if(attempt===2)throw error;mini.disconnect();mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});}
  };
  const until=async(predicate,label)=>{console.log('NATIVE_READY: '+label);const deadline=Date.now()+120000;while(Date.now()<deadline){const s=await state();write('last-state',s);if(predicate(s))return s;await new Promise(r=>setTimeout(r,300));}throw Error('Expected page state did not appear: '+label);};
- const shot=async name=>{await bounded(()=>mini.screenshot({path:path.join(out,name+'.png')}));};
+ const shot=async(name,{confirmPaint=true}={})=>{
+  if(confirmPaint){
+   console.log('CAPTURE_READY: '+name+' (confirm visible controls, then create '+name+'.ready in WECHAT_ARTIFACT_DIR)');
+   const deadline=Date.now()+120000;
+   while(!fs.existsSync(path.join(out,name+'.ready'))){
+    if(Date.now()>deadline)throw Error('Native render confirmation timed out: '+name);
+    await new Promise(r=>setTimeout(r,300));
+   }
+  }
+  await bounded(()=>mini.screenshot({path:path.join(out,name+'.png')}));
+ };
  try{
   const initial=await until(s=>s.route==='pages/welcome/index'&&s.data.step==='sort','等待首次欢迎页');
   assert.ok(initial.root.includes('/xunju-test-examples-'));assert.equal(initial.houses.length,2);
@@ -35,6 +45,6 @@ if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared instance pool');
   assert.equal(reloaded.data.houses.length,2);
   await shot('examples-wechat-reloaded');
   write('assertions',{passed:true,ids,reloadedIds:reloaded.houses.map(h=>h.id),sameRoot:true,allHouseFieldsPreserved:true,interaction:'native DevTools controls and Compile reload; observer only reads state',reviewBuild:true,productionStartupEnabled:false});
- }catch(error){console.error(error);try{write('failure-state',await state());await shot('failure');}catch{}throw error;}
+ }catch(error){console.error(error);try{write('failure-state',await state());await shot('failure',{confirmPaint:false});}catch{}throw error;}
  finally{mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});
