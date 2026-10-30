@@ -99,7 +99,7 @@ struct XiaodaTutorialOverlay: View {
     let target: CGRect?
     var swipeCompleted: (() -> Void)? = nil
     var decoratedSpeech = false
-    var adjustScroll: (CGFloat) -> Void = { _ in }
+    var adjustScroll: (CGFloat, UnitPoint) -> Void = { _, _ in }
     let next: () -> Void
     private var step: Int { guide["tutorial"].int }
     private var entry: JSONValue { guide["steps"].array.indices.contains(step - 1) ? guide["steps"].array[step - 1] : .null }
@@ -147,7 +147,10 @@ struct XiaodaTutorialOverlay: View {
                         GeometryReader { card in
                             let adjustment = XiaodaTutorialLayout.scrollAdjustment(target: target, cardHeight: card.size.height, available: geometry.size.height)
                             Color.clear.task(id: adjustment) {
-                                if abs(adjustment) > 2 { adjustScroll(adjustment) }
+                                if abs(adjustment) > 2,
+                                   let anchor = XiaodaTutorialLayout.scrollAnchor(target: target, cardHeight: card.size.height, available: geometry.size.height) {
+                                    adjustScroll(adjustment, anchor)
+                                }
                             }
                         }
                     }

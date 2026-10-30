@@ -50,13 +50,18 @@ final class XiaodaTeachingTests: XCTestCase {
         let edge = try XCTUnwrap(XiaodaTutorialLayout.spotlight(CGRect(x: 2, y: 20, width: 389, height: 48), available: viewport))
         XCTAssertEqual(edge.minX, 0); XCTAssertEqual(edge.maxX, 393)
     }
-    func testTutorialScrollKeepsContextAndReservesMeasuredCardSpace() {
+    func testTutorialScrollKeepsContextAndReservesMeasuredCardSpace() throws {
         let field = CGRect(x: 44, y: 1800, width: 317, height: 48)
         XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: field, cardHeight: nil, available: 650), 0)
         let adjustment = XiaodaTutorialLayout.scrollAdjustment(target: field, cardHeight: 230, available: 650)
         XCTAssertEqual(field.minY - adjustment, 336)
         let visible = field.offsetBy(dx: 0, dy: -adjustment)
         XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: visible, cardHeight: 230, available: 650), 0)
+        let anchor = try XCTUnwrap(XiaodaTutorialLayout.scrollAnchor(target: field, cardHeight: 230, available: 650))
+        XCTAssertEqual(anchor.y * (650 - field.height), visible.minY, accuracy: 0.001)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAnchor(target: visible, cardHeight: 230, available: 650), anchor)
+        let tallerCardAnchor = try XCTUnwrap(XiaodaTutorialLayout.scrollAnchor(target: visible, cardHeight: 330, available: 650))
+        XCTAssertEqual(tallerCardAnchor.y * (650 - field.height), 236, accuracy: 0.001)
         XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: visible, cardHeight: 330, available: 650), 100)
         XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: CGRect(x: 44, y: 0, width: 317, height: 48), cardHeight: 230, available: 650), -20)
     }

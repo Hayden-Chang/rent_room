@@ -54,6 +54,11 @@ enum XiaodaTutorialLayout {
         let desired = max(20, min(target.minY, available - cardHeight - target.height - 36))
         return target.minY - desired
     }
+    static func scrollAnchor(target: CGRect?, cardHeight: CGFloat, available: CGFloat) -> UnitPoint? {
+        guard let target, available > target.height else { return nil }
+        let top = target.minY - scrollAdjustment(target: target, cardHeight: cardHeight, available: available)
+        return UnitPoint(x: 0, y: min(1, max(0, top / (available - target.height))))
+    }
     static func cardTop(target: CGRect?, height: CGFloat, available: CGFloat) -> CGFloat {
         guard let target else { return max(12, (available - height) / 2) }
         if target.maxY + height + 16 < available { return target.maxY + 16 }

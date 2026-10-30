@@ -65,6 +65,7 @@ struct ChecklistPage: View {
     @State private var sections: [JSONValue] = []
     @State private var coordinator = MPSwipeCoordinator()
     @State private var scrollTarget = ""
+    @State private var coachScrollRequest: MPChecklistScrollRequest?
     @State private var noteText = ""
     @State private var noteError = ""
     @State private var costText = ""
@@ -89,7 +90,7 @@ struct ChecklistPage: View {
     var body: some View {
         MPChecklistSurface(done: stats?.done ?? 0, total: stats?.total ?? 0, issues: stats?.issues ?? 0,
             phase: $phase, query: $query, filters: $filters, showFilters: $showFilters, readonly: readonly,
-            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollLocked: showCoach && coachStep >= 3, floatingActionsVisible: editingField == nil, scrollPosition: scrollPosition,
+            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollRequest: coachScrollRequest, scrollLocked: showCoach && coachStep >= 3, floatingActionsVisible: editingField == nil, scrollPosition: scrollPosition,
             guidance: prompt != .null && !sections.contains(where: { $0["title"].string == prompt["target"].string }) ? prompt : .null,
             guidanceAction: guideAction, capture: { mediaTarget = "" }) {
             VStack(spacing: 12) {
@@ -120,8 +121,12 @@ struct ChecklistPage: View {
                 GeometryReader { geometry in
                     XiaodaTutorialOverlay(guide: guidance, target: anchors[coachStep].map { geometry[$0] },
                         swipeCompleted: { advanceCoach(swiped: true) }, decoratedSpeech: true,
-                        adjustScroll: { delta in
-                            if let offset = scrollPosition.offset { scrollPosition.restore(offset + delta) }
+                        adjustScroll: { delta, anchor in
+                            if coachStep >= 3 {
+                                // Resolve the expanded row through SwiftUI instead of clamping
+                                // against a UIScrollView content size from the previous layout.
+                                coachScrollRequest = MPChecklistScrollRequest(id: coachTarget["field"].id, anchor: anchor)
+                            } else if let offset = scrollPosition.offset { scrollPosition.restore(offset + delta) }
                             if coachStep == 4 { coordinator.reveal(coachTarget["field"].id) }
                         }) { advanceCoach() }
                 }
@@ -243,7 +248,7 @@ struct ChecklistPage: View {
                 phase = "全部"; query = ""; filters = []; showFilters = false
                 if case .object(let expanded) = coachTarget["folds"] { folds[viewKey, default: [:]].merge(expanded.mapValues(\.bool), uniquingKeysWith: { _, new in new }) }
                 // Let the measured guide keep the target and card together in view.
-                refresh(); scrollTarget = ""
+                refresh(); scrollTarget = ""; coachScrollRequest = nil
                 if coachStep == 4 { coordinator.reveal(coachTarget["field"].id) }
             }
         } catch { workspace.error = error.localizedDescription }

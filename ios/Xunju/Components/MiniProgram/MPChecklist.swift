@@ -263,6 +263,11 @@ struct MPFieldRow: View {
     }
 }
 
+struct MPChecklistScrollRequest: Equatable {
+    let id: String
+    let anchor: UnitPoint
+}
+
 struct MPChecklistSurface<Content: View>: View {
     var done: Int, total: Int, issues: Int
     @Binding var phase: String
@@ -273,6 +278,7 @@ struct MPChecklistSurface<Content: View>: View {
     var coordinator: MPSwipeCoordinator
     var scrollTarget = ""
     var scrollAnchor: UnitPoint = .center
+    var scrollRequest: MPChecklistScrollRequest? = nil
     var scrollLocked = false
     var floatingActionsVisible = true
     var scrollPosition: NativeScrollPosition? = nil
@@ -347,6 +353,9 @@ struct MPChecklistSurface<Content: View>: View {
                     lastScrollY = y
                 }.accessibilityIdentifier("mp.checklist.scroll")
                 .onChange(of: scrollTarget) { if !scrollTarget.isEmpty { proxy.scrollTo(scrollTarget, anchor: scrollTarget == "top" ? .top : scrollAnchor) } }
+                .onChange(of: scrollRequest) {
+                    if let request = scrollRequest { proxy.scrollTo(request.id, anchor: request.anchor) }
+                }
                 .overlay(alignment: .bottomTrailing) {
                     if floatingActionsVisible {
                         VStack(spacing: 12) {
