@@ -29,14 +29,28 @@ node scripts/check.mjs
 
 最终 PR head、完整命令及结果记录在 PR 与本地 `apps/wechat/artifacts/quiet-guidance/`。VM 测试和官方编译不替代实际开发者工具交互。
 
-## 待完成的实际界面验收
+## 实际界面验收
 
-截至本次准备，三槽池全部因健康检查失败处于隔离状态，仍有常驻进程。按照仓库维护规则保留现场，尚未重启或抢用槽位，尚无当前代码的实际截图及用户视觉批准；PR 保持草稿。
+用户明确授权恢复一个隔离槽位后，通过维护入口恢复第 3 槽。其他槽位未操作；排队、启动失败及首次教学拖动受阻的记录保留。最终执行 `tests/e2e/quiet-guidance-native.cjs`，共享池 run `a3e667d704cf4bb68de4fc4de65d24f3` 通过，源码 HEAD 为 `3962f27ada2c613118456dba54e5d9778abed623`，工作树干净。工具版本为 Stable 2.01.2510290，基础库 3.17.3；结束时完成隔离数据清理及项目关闭，常驻进程保留、槽位归还为 idle。
 
-维护恢复后，在共享池租约及隔离数据内执行以下最小场景：
+```sh
+WECHAT_POOL_UI_REVIEW=1 WECHAT_NODE=/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node \
+python3 /Volumes/mac2/codex-builds/wechat-instance-pool/runner/pool.py \
+  --root /Volumes/mac2/codex-builds/wechat-instance-pool run \
+  --project "$PWD/dist" --wait 600 --timeout 1800 -- \
+  /Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node \
+  "$PWD/tests/e2e/quiet-guidance-native.cjs"
+```
 
-1. 首次新建房源，确认原阶段/筛选/左滑教学和新房源引导可见。
-2. 逐项真实点击完成现场 C、D、E，确认没有填写推荐或自动跳动；完成 F 后确认跨阶段提示仍出现，最后完成全部时确认结束提示；重开核对记录。
-3. 打开额度不足页，截图确认新文案、按钮可读且没有“小饼干”。成功态仅可用隔离夹具检查布局，不把夹具当作真实支付证据。
+精简/详细模式使用各自房源的隔离夹具，含基本信息、现场 C/D/E/F、费用和合同，共 7 个一级项、每项一个可填写字段，未声称完整生产模板验收。SDK 仅设置前置夹具、导航、观察和截图；所有答案、展开和引导按钮由原生可访问性点击触发，没有直接调用被测 handler。
 
-旧 `tests/e2e/xiaoda-forward-native.cjs` 等历史验收脚本含同阶段推荐假设，不能用其旧断言验收本需求；恢复工具后需按以上新场景调整所选脚本并实际执行。未运行全量单测、全量 E2E 或真机测试，未合并、上传或发布。
+- 新房源引导 → 基本信息 → 现场 C：气泡保留，实际点击可进入目标。
+- 完成 C、D、E 后无填写推荐，下一项保持折叠；费用项完成后也不推荐同阶段合同项。没有自动滚动的断言由 VM 测试覆盖，实际 UI 验证气泡与折叠结果。
+- 完成 F 后显示进入费用和合同的提示，实际点击可继续；全部完成后显示结束提示，返回列表后重开答案、原有备注和问题标记一致。
+- 额度页截图确认完整新文案和购买按钮，无“小饼干”，无溢出。额度 1/1 来自隔离目录响应夹具；已登录按钮仅为展示状态夹具，没有真实登录或支付。
+
+首次教学另有真实阶段截图；阶段/筛选“知道啦”按钮实际点击成功。原生拖动接口两次返回 `noWindowsAvailable`，所以完整首次左滑流程不作通过声明；相应逻辑未修改，并由定向 VM 测试覆盖。失败 run `33be2cd829a14a1ba0d44a412d0a3721` 保留，后来重新领用遇到的健康超时和排队超时也保留。
+
+最终 153 项 VM 单测及官方编译通过于 `466baf4403ea76f61240c245933aee4054aec32a`；到实际 UI head 的唯一差异为独立原生验收回调移除上述不可执行手势前置步骤，业务源码、单测、构建输入、配置及选择器未变，因此复用这些结果。等价检查记录在 `artifacts/quiet-guidance/evidence-equivalence-3962f27.json`，实际截图、assertions、test.log 及 receipt 见 `artifacts/quiet-guidance/native-final/`。本记录的后续更新仅为文档，不改变执行输入。
+
+旧 `xiaoda-forward-native.cjs` 等历史脚本含同阶段推荐假设，本需求以新增专用脚本为验收入口。未运行全量单测、全量 E2E 或真机测试；用户视觉批准仍待确认，PR 保持草稿，未合并、上传或发布。
