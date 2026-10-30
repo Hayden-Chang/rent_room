@@ -10,6 +10,7 @@ enum ReviewSurface: String {
     case issueCards = "issue-cards", fieldMedia = "field-media", capacity
     case topFloor = "top-floor"
     case inspectionSetup = "inspection-setup", inspectionTeaching = "inspection-teaching"
+    case appUpdate = "app-update"
     case brandLaunch = "brand-launch"
     case regionalSettings = "regional-settings"
     case appStoreReview = "app-store-review"
@@ -35,7 +36,9 @@ struct ComponentReviewHost: View {
     @State private var event = ""
 
     var body: some View {
-        if surface == .brandLaunch {
+        if surface == .appUpdate {
+            AppUpdateReviewHost()
+        } else if surface == .brandLaunch {
             BrandLaunchSurface()
         } else if surface == .regionalSettings {
             RegionalSettingsReviewHost()
@@ -69,7 +72,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching, .brandLaunch, .regionalSettings, .appStoreReview: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching, .appUpdate, .brandLaunch, .regionalSettings, .appStoreReview: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -94,6 +97,7 @@ struct ComponentReviewHost: View {
 
     private var title: String {
         switch surface {
+        case .appUpdate: "我的"
         case .appStoreReview: "我的"
         case .inspectionTeaching: "小搭教学组件"
         case .wheels: "清单轮盘组件"
