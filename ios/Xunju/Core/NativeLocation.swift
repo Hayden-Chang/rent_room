@@ -11,6 +11,8 @@ enum LocationFailure: LocalizedError, Equatable {
     private var timeout: Task<Void, Never>?
     override init() { super.init(); manager.delegate = self; manager.desiredAccuracy = kCLLocationAccuracyHundredMeters }
 
+    var isAuthorized: Bool { [.authorizedAlways, .authorizedWhenInUse].contains(manager.authorizationStatus) }
+
     func request() async throws -> GeographicPoint {
         guard reply == nil else { throw LocationFailure.unavailable }
         return try await withTaskCancellationHandler {

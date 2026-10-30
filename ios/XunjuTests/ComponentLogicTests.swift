@@ -49,6 +49,7 @@ final class ComponentLogicTests: XCTestCase {
         XCTAssertNil(ReviewSurface.parse(["Xunju", "--component-review", "unknown"]))
         XCTAssertEqual(ReviewSurface.parse(["Xunju", "--component-review", "homes"]), .homes)
         XCTAssertEqual(ReviewSurface.parse(["Xunju", "--component-review", "corridor"]), .corridor)
+        XCTAssertEqual(ReviewSurface.parse(["Xunju", "--component-review", "app-store-review"]), .appStoreReview)
     }
     #endif
 }

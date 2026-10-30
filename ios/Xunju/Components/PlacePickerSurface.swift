@@ -45,10 +45,10 @@ struct PlacePickerSurface: View {
         VStack(spacing: 0) {
             if !readonly {
             HStack(spacing: 4) {
-                TextField("搜索地址，更快填写", text: Binding(get: { query }, set: {
+                TextField(AppCopy.text("搜索地址，更快填写"), text: Binding(get: { query }, set: {
                     guard query != $0 else { return }
                     expandForSearch(); query = $0
-                }), prompt: Text("搜索地址，更快填写").foregroundStyle(Color(white: 0.5)))
+                }), prompt: AppText("搜索地址，更快填写").foregroundStyle(Color(white: 0.5)))
                     .font(.system(size: 14)).submitLabel(.search)
                     .focused($searchFocused).onSubmit { searchFocused = false; search() }
                     .onChange(of: query) {
@@ -57,10 +57,10 @@ struct PlacePickerSurface: View {
                         if !interacted && !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { collapsed = true }
                     }
                     .onChange(of: searchFocused) { if searchFocused && !readonly { expandForSearch() } }
-                    .accessibilityLabel("搜索地址").accessibilityIdentifier("place.query")
+                    .accessibilityLabel(AppCopy.text("搜索地址")).accessibilityIdentifier("place.query")
                 if !query.isEmpty {
                     Button { expandForSearch(); query = ""; search() } label: { Image(systemName: "xmark").font(.system(size: 14)).frame(width: 32, height: 42) }
-                        .accessibilityLabel("清空搜索").accessibilityIdentifier("place.clear")
+                        .accessibilityLabel(AppCopy.text("清空搜索")).accessibilityIdentifier("place.clear")
                 }
             }.padding(.horizontal, 12).frame(minHeight: 44)
                 .background(.white).clipShape(RoundedRectangle(cornerRadius: 8))
@@ -70,15 +70,16 @@ struct PlacePickerSurface: View {
                 results(nearby: false).frame(height: 230).clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).padding(.bottom, 10)
             }
-            if !readonly {
+            Group {
                 Button {
                     interacted = true
                     searchFocused = false
                     if collapsed, let camera { position = .camera(camera) }
                     collapsed.toggle()
+                    if !collapsed && !readonly { search() }
                 } label: {
                     HStack {
-                        Text(collapsed ? "展开地图" : "收起地图")
+                        AppText(collapsed ? "展开地图" : "收起地图")
                         Spacer()
                         Image(systemName: collapsed ? "chevron.down" : "chevron.up")
                     }.font(.system(size: 13, weight: .medium)).padding(.horizontal, 12).frame(minHeight: 44)
@@ -87,29 +88,29 @@ struct PlacePickerSurface: View {
                 }.buttonStyle(.plain).foregroundStyle(XJTheme.primary).accessibilityIdentifier("place.mapToggle")
             }
             ZStack(alignment: .topTrailing) {
-                if center != nil || hasMapPosition {
+                if interacted && !collapsed && (center != nil || hasMapPosition) {
                     Map(position: $position, interactionModes: readonly ? [.zoom] : [.pan, .zoom]) {}
                         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
                         .mapControlVisibility(.hidden)
                         .onMapCameraChange(frequency: .onEnd) { context in
-                            guard !collapsed || readonly else { return }
+                            guard !collapsed else { return }
                             camera = context.camera
                             #if DEBUG
                             reviewCameraChanged?(context.camera.distance)
                             #endif
                             if !readonly { moved(GeographicPoint(latitude: context.region.center.latitude, longitude: context.region.center.longitude)) }
                         }.accessibilityIdentifier("place.map")
-                    Text("●").font(.system(size: 22)).foregroundStyle(XJTheme.primary)
+                    AppText("●").font(.system(size: 22)).foregroundStyle(XJTheme.primary)
                         .frame(width: 24, height: 24).background(.white).clipShape(Circle())
                         .frame(maxWidth: .infinity, maxHeight: .infinity).allowsHitTesting(false).accessibilityHidden(true)
                 } else {
-                    Text(busy ? "正在匹配地址位置" : emptyText).font(.system(size: 13)).foregroundStyle(XJTheme.muted)
+                    AppText(busy ? "正在匹配地址位置" : emptyText).font(.system(size: 13)).foregroundStyle(XJTheme.muted)
                         .multilineTextAlignment(.center).padding(.horizontal, 20).padding(.top, 65)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
                 if !readonly {
-                Button(action: locate) {
-                    Text("定位").font(.system(size: 13, weight: .medium)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
+                Button { interacted = true; collapsed = false; locate() } label: {
+                    AppText("定位").font(.system(size: 13, weight: .medium)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                         .contentShape(Rectangle())
                 }.buttonStyle(.plain)
@@ -121,26 +122,26 @@ struct PlacePickerSurface: View {
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
             }.frame(height: 300)
-                .frame(height: collapsed && !readonly ? 0 : 300, alignment: .top).clipped()
-                .allowsHitTesting(!collapsed || readonly).accessibilityHidden(collapsed && !readonly)
+                .frame(height: collapsed ? 0 : 300, alignment: .top).clipped()
+                .allowsHitTesting(!collapsed).accessibilityHidden(collapsed)
                 .background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
-            if busy && !readonly { Text("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
-            if (!collapsed || readonly) && (center != nil || !places.isEmpty) {
-                Text("地点信息来源：\(attribution)").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
+            if busy && !readonly { AppText("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
+            if !collapsed && (center != nil || !places.isEmpty) {
+                AppText("地点信息来源：\(AppCopy.text(attribution))").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             if !message.isEmpty && !readonly {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(message).font(.system(size: 12)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("place.message")
-                    Button(permissionDenied ? "去设置开启" : "重试", action: permissionDenied ? settings : retry)
+                    AppText(message).font(.system(size: 12)).foregroundStyle(XJTheme.muted).accessibilityIdentifier("place.message")
+                    Button(AppCopy.text(permissionDenied ? "去设置开启" : "重试"), action: permissionDenied ? settings : retry)
                         .font(.system(size: 13)).foregroundStyle(XJTheme.primary).padding(.horizontal, 14).frame(minHeight: 36).background(XJTheme.soft)
                         .clipShape(RoundedRectangle(cornerRadius: 8)).accessibilityIdentifier("place.retry")
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }.padding(.top, 4).padding(.bottom, 10).foregroundStyle(XJTheme.ink).tint(XJTheme.primary)
             .onAppear {
-                collapsed = !readonly && (center != nil || !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                collapsed = readonly || (center != nil || !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 recenter()
             }.onChange(of: center) { recenter() }
             .onChange(of: address) { if !readonly { collapsed = true } }
@@ -152,8 +153,7 @@ struct PlacePickerSurface: View {
 
     private func recenter() {
         if let center {
-            // A manual address edit can clear stored coordinates before MapKit
-            // reports a camera. Keep the existing map and its position mounted.
+            // Preserve the last camera locally; MapKit is mounted only after interaction.
             hasMapPosition = true
             if let camera {
                 let next = MapCamera(centerCoordinate: center.coordinate, distance: camera.distance, heading: camera.heading, pitch: camera.pitch)
@@ -175,7 +175,7 @@ struct PlacePickerSurface: View {
                     if nearby {
                         resultRow(place) {
                             Button { use(place) } label: {
-                                Text("使用")
+                                AppText("使用")
                                 .font(.system(size: 13)).foregroundStyle(XJTheme.primary)
                                 .padding(.horizontal, 12).frame(minHeight: 32).background(XJTheme.soft)
                                 .clipShape(RoundedRectangle(cornerRadius: 6)).contentShape(Rectangle())
@@ -183,7 +183,7 @@ struct PlacePickerSurface: View {
                         }
                     } else {
                         Button { use(place) } label: {
-                            resultRow(place) { Text("选择").font(.system(size: 13)).foregroundStyle(XJTheme.primary).frame(minHeight: 32) }
+                            resultRow(place) { AppText("选择").font(.system(size: 13)).foregroundStyle(XJTheme.primary).frame(minHeight: 32) }
                                 .contentShape(Rectangle())
                         }.buttonStyle(.plain).accessibilityIdentifier("place.result.\(place.id)")
                     }
@@ -194,8 +194,8 @@ struct PlacePickerSurface: View {
     private func resultRow<Action: View>(_ place: PlaceChoice, @ViewBuilder action: () -> Action) -> some View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
-                Text(place.name).font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.ink)
-                Text([place.distance, place.address].filter { !$0.isEmpty }.joined(separator: " "))
+                Text(verbatim: place.name).font(.system(size: 14, weight: .medium)).foregroundStyle(XJTheme.ink)
+                Text(verbatim: [place.distance, place.address].filter { !$0.isEmpty }.joined(separator: " "))
                     .font(.system(size: 12)).foregroundStyle(XJTheme.muted).lineLimit(2)
             }.frame(maxWidth: .infinity, alignment: .leading)
             action()

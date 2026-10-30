@@ -240,6 +240,50 @@ import XCTest
             capture("47-capacity-\(state == "error" ? "restoring" : state)", app); app.terminate()
         }
     }
+    func testDiagonalSwipeKeepsListStillAndVerticalDragClosesActions() {
+        let app = launch("detail")
+        let row = app.otherElements["mp.field.seal"]
+        let title = app.staticTexts["mp.field.title.seal"]
+        wait(app.buttons["mp.field.choice.seal.是"])
+        label(app.buttons["mp.tab.影像"], equals: "影像 4")
+        capture("swipe-axis-before", app)
+
+        for drift in [-55.0, 55.0] {
+            let before = title.frame.minY
+            let start = row.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.3))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: -155, dy: drift)),
+                        withVelocity: .slow, thenHoldForDuration: 0)
+            capture("swipe-axis-diagonal-\(Int(drift))", app)
+            XCTAssertEqual(title.frame.minY, before, accuracy: 2, "Horizontal intent must not scroll the checklist")
+            wait(app.buttons["mp.field.action.seal.备注"])
+            for action in ["标记问题", "备注", "拍摄"] {
+                XCTAssertTrue(app.buttons["mp.field.action.seal.\(action)"].isHittable)
+            }
+            let reverse = row.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.3))
+            reverse.press(forDuration: 0.05, thenDragTo: reverse.withOffset(CGVector(dx: 150, dy: -drift)),
+                          withVelocity: .slow, thenHoldForDuration: 0)
+            XCTAssertFalse(app.buttons["mp.field.action.seal.备注"].exists)
+            XCTAssertEqual(title.frame.minY, before, accuracy: 2)
+            XCTAssertTrue(app.buttons["mp.field.choice.seal.是"].isSelected)
+        }
+
+        row.swipeLeft()
+        wait(app.buttons["mp.field.action.seal.拍摄"])
+        app.buttons["mp.field.action.seal.拍摄"].tap()
+        wait(app.buttons["从相册选择照片或视频"])
+        capture("swipe-axis-capture-action", app)
+        app.buttons["取消"].tap()
+        XCTAssertTrue(app.buttons["mp.field.choice.seal.是"].isHittable)
+
+        row.swipeLeft()
+        wait(app.buttons["mp.field.action.seal.备注"])
+        let beforeScroll = title.frame.minY
+        row.swipeUp()
+        XCTAssertLessThan(title.frame.minY, beforeScroll - 20, "Vertical intent must still scroll")
+        XCTAssertFalse(app.buttons["mp.field.action.seal.备注"].exists)
+        capture("swipe-axis-vertical-scroll", app)
+    }
+
     func testChecklistVerticalScrollAndCostButton() {
         let app = launch("detail")
         let answer = app.buttons["mp.field.choice.seal.是"]

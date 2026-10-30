@@ -1,0 +1,11 @@
+{
+  "model": "gemini-3.8-flash-high",
+  "generator": "agy -p",
+  "sourceSHA256": "51b3ccf0a717952caf92276a48d2852eed6649afdccdefb499785aef68890dd9",
+  "englishSHA256": "461783596b66e6da216837ff3cb0e3cdea523a98b3aa17e2300366b9710be79e",
+  "promptSHA256": "82fa99a5f550b937937b0235063d5b15c80837e8868b0c34883ecc0e476cd773",
+  "rawResponseSHA256": "461783596b66e6da216837ff3cb0e3cdea523a98b3aa17e2300366b9710be79e",
+  "imageGenerator": "image_gen built-in",
+  "imagePromptSHA256": "344de4c7c0937e21858cde42defa316331c3dc61234c257cf110b03ea849cb6f",
+  "imageSHA256": "070d5f058bf114067b7437d997416afe82898730027bb7812e9874a7818fa62c"
+}

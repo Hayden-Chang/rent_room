@@ -13,19 +13,20 @@ struct XiaodaMessage<Actions: View>: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shown = ""
     @State private var completed = false
+    private var localizedText: String { AppCopy.text(text, translatingArguments: true) }
     var body: some View {
         let layout = hero ? AnyLayout(VStackLayout(spacing: 20)) : AnyLayout(HStackLayout(alignment: .center, spacing: compact ? 12 : 14))
         layout {
             if !hero { character }
             VStack(alignment: .leading, spacing: 12) {
-                speech(text).frame(maxWidth: .infinity, alignment: hero ? .center : .leading).hidden().overlay(alignment: .topLeading) {
+                speech(localizedText).frame(maxWidth: .infinity, alignment: hero ? .center : .leading).hidden().overlay(alignment: .topLeading) {
                     speech(shown).frame(maxWidth: .infinity, alignment: hero ? .center : .leading)
                 }
                     .padding(.vertical, max(0, ((actionLayout ? 34 : (compact ? 15 : 16) * 1.65) - UIFont.systemFont(ofSize: compact ? 15 : 16).lineHeight) / 2))
                     .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityElement(children: .ignore).accessibilityLabel(text)
-                    .accessibilityValue(completed ? "完整显示" : "正在显示").accessibilityIdentifier("xiaoda.message")
-                    .contentShape(Rectangle()).onTapGesture { completed = true; shown = text }
+                    .accessibilityElement(children: .ignore).accessibilityLabel(localizedText)
+                    .accessibilityValue(AppCopy.text(completed ? "完整显示" : "正在显示")).accessibilityIdentifier("xiaoda.message")
+                    .contentShape(Rectangle()).onTapGesture { completed = true; shown = localizedText }
                 actions
             }.padding(.horizontal, (compact ? 14 : 16) + 2).padding(.vertical, (actionLayout ? 18 : compact ? 14 : 16) + 2)
                 .frame(maxWidth: .infinity, alignment: hero ? .center : .leading)
@@ -40,10 +41,10 @@ struct XiaodaMessage<Actions: View>: View {
                 }
                 .accessibilityElement(children: .contain).accessibilityIdentifier("xiaoda.bubble")
             if hero { character }
-        }.frame(minHeight: hero ? 0 : 108).task(id: text) {
+        }.frame(minHeight: hero ? 0 : 108).task(id: localizedText) {
             completed = false; shown = ""
-            if reduceMotion { shown = text; completed = true; return }
-            for character in text {
+            if reduceMotion { shown = localizedText; completed = true; return }
+            for character in localizedText {
                 if Task.isCancelled || completed { return }
                 shown.append(character)
                 do { try await Task.sleep(for: .milliseconds(24)) } catch { return }
@@ -56,7 +57,7 @@ struct XiaodaMessage<Actions: View>: View {
             .frame(width: hero ? 144 : compact ? 72 : 88, height: hero ? 156 : compact ? 84 : 104).accessibilityHidden(true)
     }
     private func speech(_ value: String) -> XiaodaSpeechText {
-        XiaodaSpeechText(attributedText: XiaodaSpeech.attributed(value, highlights: highlights, icons: icons,
+        XiaodaSpeechText(attributedText: XiaodaSpeech.attributed(value, highlights: highlights.map { AppCopy.text($0) }, icons: icons,
             fontSize: compact ? 15 : 16, lineHeight: actionLayout ? 34 : (compact ? 15 : 16) * 1.65,
             centered: hero, highlightColor: UIColor(highlightColor)))
     }
@@ -88,11 +89,11 @@ struct XiaodaGuidanceCard: View {
         XiaodaMessage(text: prompt["text"].string, pose: prompt["kind"].string == "return" ? "bye" : "think") {
             HStack(spacing: 8) {
                 if prompt["kind"].string != "intro" {
-                    Button(prompt["kind"].string == "phase" ? "看看其他房子" : prompt["kind"].string == "return" ? "先等等" : "再等等") {
+                    Button(AppCopy.text(prompt["kind"].string == "phase" ? "看看其他房子" : prompt["kind"].string == "return" ? "先等等" : "再等等")) {
                         action(prompt["kind"].string == "phase" ? "other" : "later")
                     }.font(.system(size: 13)).accessibilityIdentifier("xiaoda.later")
                 }
-                Button(prompt["kind"].string == "return" ? "返回房源列表" : "去填写") { action("accept") }
+                Button(AppCopy.text(prompt["kind"].string == "return" ? "返回房源列表" : "去填写")) { action("accept") }
                     .buttonStyle(XJButtonStyle(primary: true)).accessibilityIdentifier("xiaoda.accept")
             }
         }.padding(.top, 24).overlay(alignment: .topTrailing) {
@@ -104,11 +105,11 @@ struct XiaodaGuidanceCard: View {
                     .foregroundStyle(Color(red: 114/255, green: 124/255, blue: 144/255))
                     .frame(width: 44, height: 44).contentShape(Rectangle())
             }.buttonStyle(.plain).offset(x: 10, y: -12)
-                .accessibilityLabel("关闭小搭").accessibilityIdentifier("xiaoda.close")
-        }.confirmationDialog("关闭小搭", isPresented: $closing, titleVisibility: .visible) {
-            Button("当前房源关闭") { action("house") }
-            Button("今天关闭") { action("day") }
-            Button("永久关闭") { action("permanent") }
+                .accessibilityLabel(AppCopy.text("关闭小搭")).accessibilityIdentifier("xiaoda.close")
+        }.confirmationDialog(AppCopy.text("关闭小搭"), isPresented: $closing, titleVisibility: .visible) {
+            Button(AppCopy.text("当前房源关闭")) { action("house") }
+            Button(AppCopy.text("今天关闭")) { action("day") }
+            Button(AppCopy.text("永久关闭")) { action("permanent") }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("xiaoda.guide")
     }
 }
@@ -141,21 +142,21 @@ struct XiaodaTutorialOverlay: View {
                 XiaodaTutorialCardLayout(target: rect) {
                     VStack(alignment: .leading, spacing: 0) {
                         HStack(spacing: 12) {
-                            Text("\(step) / 4").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(red: 112/255, green: 120/255, blue: 139/255))
+                            AppText("\(step) / 4").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(red: 112/255, green: 120/255, blue: 139/255))
                             HStack(spacing: 6) {
                                 ForEach(1...4, id: \.self) { index in
                                     Capsule().fill(index <= step ? Color(red: 97/255, green: 89/255, blue: 232/255) : Color(red: 233/255, green: 234/255, blue: 242/255)).frame(height: 6)
                                 }
                             }.accessibilityHidden(true)
                         }
-                        Text(entry["title"].string).font(.system(size: 21, weight: .bold))
+                        AppText(entry["title"].string).font(.system(size: 21, weight: .bold))
                             .foregroundStyle(Color(red: 48/255, green: 57/255, blue: 76/255))
                             .padding(.top, 12).padding(.bottom, 16).accessibilityIdentifier("coach.title")
                         XiaodaMessage(text: entry["text"].string, pose: entry["pose"].string,
                             highlights: decoratedSpeech ? entry["highlights"].array.map(\.string) : [],
                             icons: decoratedSpeech ? XiaodaSpeech.iconMap(entry["icons"]) : [:], actionLayout: decoratedSpeech && !XiaodaSpeech.iconMap(entry["icons"]).isEmpty) { EmptyView() }
                         if step != 3 {
-                            Button(step == 4 ? "我会啦" : "知道啦", action: next)
+                            Button(AppCopy.text(step == 4 ? "我会啦" : "知道啦"), action: next)
                                 .buttonStyle(XJButtonStyle(primary: true)).padding(.top, 20).accessibilityIdentifier("coach.next")
                         }
                     }.padding(22).frame(width: max(0, geometry.size.width - 24), alignment: .leading)

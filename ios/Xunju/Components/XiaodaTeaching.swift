@@ -163,9 +163,9 @@ struct XiaodaSwipeTarget: View {
                 .onEnded { value in
                     if gesture.end(x: value.translation.width, y: value.translation.height, time: value.time.timeIntervalSinceReferenceDate) { completed() }
                 })
-            .accessibilityElement(children: .ignore).accessibilityLabel("在此检查项上向左滑")
+            .accessibilityElement(children: .ignore).accessibilityLabel(AppCopy.text("在此检查项上向左滑"))
             .accessibilityIdentifier("coach.swipeTarget")
-            .accessibilityAction(named: "向左滑") { completed() }
+            .accessibilityAction(named: AppCopy.text("向左滑")) { completed() }
             .onChange(of: scenePhase) { _, _ in gesture = XiaodaSwipeGesture() }
             .onDisappear { gesture = XiaodaSwipeGesture() }
     }

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-swipe-axis-final2-01a18ae4",
+  "phase": "final-pr-head",
+  "headSha": "7ee1e64eb81c950ce8b42903f6ec380534de19cf",
+  "taskName": "iOS swipe axis fix validation",
+  "sessionId": "01a18ae4-8e6a-7540-b653-233b5a49e9fb",
+  "workspace": "/private/tmp/rent-room-ios-swipe-axis-lock-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/SwipeGestureTests/testHorizontalPanExcludesParentScrollingAndOnlyPrioritizesItsScrollPan",
+      "reason": "Ancestor scroll priority and unrelated recognizer boundaries",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/SwipeGestureTests/testVerticalIntentFailsBeforeRecognitionAndClosesActions",
+      "reason": "Horizontal versus vertical recognition and closing actions",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/MiniProgramComponentTests/testSwipeFollowsFingerAndHandlesReverseAndVerticalScroll",
+      "reason": "Changed gesture delivery must preserve axis lock, reverse and one active row",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/MiniProgramComponentTests/testSwipeFastShortFlickAndClampedTravel",
+      "reason": "Keep short flick and clamped travel semantics",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/MiniProgramComponentTests/testNativeShortFlickUsesRecognizedVelocity",
+      "reason": "Keep native velocity handling after arbitration",
+      "source": "affected-existing"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/MiniProgramReviewTests/testDiagonalSwipeKeepsListStillAndVerticalDragClosesActions",
+      "reason": "Primary regression: real diagonal drag keeps list still; reverse, vertical and capture still work",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/MiniProgramReviewTests/testChecklistSwipeNoteAndRetainedTabs",
+      "reason": "Existing issue and note actions still work after gesture arbitration changes",
+      "source": "affected-existing"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/MiniProgramReviewTests/testDiagonalSwipeKeepsListStillAndVerticalDragClosesActions"
+  ]
+}

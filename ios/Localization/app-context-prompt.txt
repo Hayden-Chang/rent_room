@@ -1,0 +1,15 @@
+Refine these iOS rental-viewing app English UI labels with context. Return only JSON, identical keys, concise native English. 我的 is the app tab and page containing account, preferences and settings, not an ownership pronoun. 归档房源 is a navigation row opening a list of already archived homes, not an archive action. 模板 opens a list of checklist templates. 房源容量 is the maximum number of active home records, and expansion purchases buy more home slots, NOT generic data storage or cloud space. The login description should be short and accurate: login is needed only to buy more home slots or restore purchases; logging visits works offline without login. 通过 Apple 登录 must use the standard Apple button wording Sign in with Apple exactly. Preserve placeholders. Do not call tools or read files.
+{
+  "s0483": "归档房源",
+  "s0530": "我的",
+  "s0558": "房源容量",
+  "s0799": "模板",
+  "s0954": "登录后可购买扩容或恢复已购容量",
+  "s0955": "登录后购买",
+  "s0956": "登录已过期，本机记录已保留，请重新登录后购买扩容。",
+  "s0957": "登录已过期，请重新登录后购买扩容",
+  "s1127": "请登录购买时使用的账号后恢复容量",
+  "s1153": "购买或恢复已购容量需登录，免费记录可继续使用。",
+  "s1156": "购买环境已变化，请重新登录后恢复容量",
+  "s1301": "通过 Apple 登录"
+}
