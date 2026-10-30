@@ -27,7 +27,7 @@ private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
     func testExpiredLegacyAccountKeepsOriginalMediaDirectoryAndNeedsNoKeychainAfterMigration() throws {
         let root = root(), keychain = VolatileSessionStorage(), scopes = try LocalIdentityScopes(root: root)
         let receipt = LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "apple", expiresIn: 1, packs: 1, limit: 12)
-        let legacy = try LocalSession(receipt: receipt); keychain.write(legacy)
+        let legacy = try LocalSession(receipt: receipt, now: Date(timeIntervalSince1970: 0)); keychain.write(legacy)
         let directory = try scopes.accountDirectory(legacy.account), old = try NativeStore(directory: directory, packs: 1)
         let id = try old.add("原账号房源")
         let image = directory.appending(path: "media/photo.jpg")
