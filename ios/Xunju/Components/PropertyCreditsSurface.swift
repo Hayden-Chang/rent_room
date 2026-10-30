@@ -27,29 +27,21 @@ struct PropertyCreditsSurface: View {
                         .lineLimit(1).minimumScaleFactor(0.5)
                     Text(copy("点", "credits")).font(.body).foregroundStyle(XJTheme.muted)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("credits.balance")
+                Text(copy("1 点 = 1 套新增房源", "1 credit = 1 new property"))
+                    .font(.subheadline).foregroundStyle(XJTheme.muted)
+                    .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 8).accessibilityIdentifier("credits.rules")
             }.padding(.top, 24).padding(.bottom, 16).frame(maxWidth: .infinity)
 
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(copy("10 个房源点数", "10 property credits"))
-                        .font(.title3.weight(.bold)).fixedSize(horizontal: false, vertical: true)
-                    Text(copy("新建 1 套房源消耗 1 点", "Creating a property uses 1 credit"))
-                        .font(.subheadline).foregroundStyle(XJTheme.muted)
-                        .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("credits.rules")
-                }
-                Button(action: purchase) {
-                    HStack(spacing: 8) {
-                        if activity == .purchasing { ProgressView().tint(.white) }
-                        Text(purchaseTitle).font(.headline)
-                            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-                    }.padding(.horizontal, 12).padding(.vertical, 14)
-                        .frame(maxWidth: .infinity, minHeight: 52)
-                }.buttonStyle(PropertyCreditsPurchaseStyle()).disabled(!canPurchase)
-                    .accessibilityIdentifier("credits.purchase")
-            }.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-                .background(XJTheme.soft.opacity(0.55))
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(XJTheme.primary.opacity(0.12), lineWidth: 1))
+            Button(action: purchase) {
+                HStack(spacing: 8) {
+                    if activity == .purchasing { ProgressView().tint(.white) }
+                    Text(purchaseTitle).font(.headline)
+                        .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                }.padding(.horizontal, 12).padding(.vertical, 14)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+            }.buttonStyle(PropertyCreditsPurchaseStyle()).disabled(!canPurchase)
+                .padding(.horizontal, 20).accessibilityIdentifier("credits.purchase")
 
             if activity == .pending {
                 Text(copy("支付结果正在确认，点数到账前不会增加余额。", "Payment is pending. Credits will appear after confirmation."))
