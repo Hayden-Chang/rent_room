@@ -3,7 +3,6 @@ import SwiftUI
 
 enum ReviewSurface: String {
     case homes, checklist, account, fields, summary, place, routes, speed, coach, wheels
-    case soundToggle = "sound-toggle"
     case speedConsent = "speed-consent"
     case measurements
     case media, headings, corridor
@@ -33,9 +32,7 @@ struct ComponentReviewHost: View {
     @State private var event = ""
 
     var body: some View {
-        if surface == .soundToggle {
-            ChecklistSoundToggleReviewHost()
-        } else if surface == .inspectionSetup {
+        if surface == .inspectionSetup {
             InspectionSetupReviewHost()
         } else if surface == .inspectionTeaching {
             InspectionTeachingReviewHost()
@@ -63,7 +60,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching, .soundToggle: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -88,7 +85,6 @@ struct ComponentReviewHost: View {
 
     private var title: String {
         switch surface {
-        case .soundToggle: "声音开关"
         case .inspectionTeaching: "小搭教学组件"
         case .wheels: "清单轮盘组件"
         case .homes: "我的房源"

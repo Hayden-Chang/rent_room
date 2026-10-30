@@ -26,10 +26,7 @@ struct InspectionFieldRow: View {
                 MPFieldRow(item: ChecklistPresentation.item(field, hideDivider: hideDivider),
                     state: Binding(get: { ChecklistPresentation.state(field) }, set: { value in
                         interaction(field.id, nil)
-                        workspace.perform {
-                            let sound = try ChecklistPresentation.write(value, from: field, houseID: houseID, store: workspace.store)
-                            sound?.play()
-                        }
+                        workspace.perform { try ChecklistPresentation.write(value, from: field, houseID: houseID, store: workspace.store) }
                     }), readonly: readonly, coordinator: coordinator,
                     note: {
                         interaction(field.id, nil)

@@ -30,10 +30,7 @@ struct HouseDetailPage: View {
                 default: EmptyView()
                 } }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
-        }.background(XJTheme.background)
-            .miniNavigation(workspace.store.house(id)["name"].string, showsBack: !showCoach, trailing: {
-                ChecklistSoundControl()
-            })
+        }.background(XJTheme.background).miniNavigation(workspace.store.house(id)["name"].string, showsBack: !showCoach)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 XJTabBar(selection: $tab, items: [("清单", "checklist"), ("影像", "media"), ("问题", "issues"), ("总结", "summary")],
                     mediaCount: workspace.store.house(id)["media"].array.count,
@@ -215,10 +212,7 @@ struct ChecklistPage: View {
         } catch { costError = error.localizedDescription }
     }
     private func group(_ row: JSONValue, operation: String, value: String = "") {
-        if workspace.perform({
-            let sound = try ChecklistPresentation.writeGroup(row.id, operation: operation, value: value, houseID: id, store: workspace.store)
-            sound?.play()
-        }) {
+        if workspace.perform({ try workspace.store.call("group", ["id": .string(id), "group": .string(row.id), "property": .string(operation), "value": .string(value)]) }) {
             setFold(row.id, true)
         }
     }
