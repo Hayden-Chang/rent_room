@@ -77,7 +77,7 @@ struct MPHouseCard: View {
                     } else { AppText("检查 \(item.card.done) / \(item.card.total)").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted) }
                     Spacer(minLength: 0)
                 }.padding(12).frame(height: 144).frame(maxWidth: .infinity, alignment: .leading)
-            }.foregroundStyle(XJTheme.ink).background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
+            }.foregroundStyle(XJTheme.ink).background(.white).clipShape(RoundedRectangle(cornerRadius: 16)).contentShape(.interaction, RoundedRectangle(cornerRadius: 16))
         }.buttonStyle(.plain)
     }
 }
@@ -141,7 +141,7 @@ struct MPComparisonSelection: View {
                                         Text(verbatim: "\(house.card.area)m² · \(AppCopy.text(house.card.decision.isEmpty ? "待检查" : house.card.decision))").font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.muted)
                                         Spacer(minLength: 0)
                                     }.padding(.horizontal, 11).padding(.vertical, 12).frame(height: 126).frame(maxWidth: .infinity, alignment: .leading)
-                                }.background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
+                                }.background(.white).clipShape(RoundedRectangle(cornerRadius: 16)).contentShape(.interaction, RoundedRectangle(cornerRadius: 16))
                                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(selected.contains(house.id) ? XJTheme.primary : XJTheme.line))
                             }.buttonStyle(.plain).accessibilityIdentifier("mp.compare.\(house.id)").accessibilityAddTraits(selected.contains(house.id) ? .isSelected : [])
                         }

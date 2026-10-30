@@ -57,7 +57,7 @@ struct HouseCard: View {
                 }.padding(12).frame(height: 144, alignment: .topLeading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }.foregroundStyle(XJTheme.ink).background(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
+                .clipShape(RoundedRectangle(cornerRadius: 16)).contentShape(.interaction, RoundedRectangle(cornerRadius: 16))
         }.buttonStyle(.plain)
     }
 }

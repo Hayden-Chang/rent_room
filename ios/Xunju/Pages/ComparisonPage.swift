@@ -115,7 +115,7 @@ private struct ComparisonHouseCard: View {
                     Text(verbatim: "\(house.area)m² · \(AppCopy.text(house.decision.isEmpty ? "待检查" : house.decision))").font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.muted).lineLimit(1)
                     Spacer(minLength: 0)
                 }.padding(.horizontal, 11).padding(.vertical, 12).frame(height: 126).frame(maxWidth: .infinity, alignment: .leading)
-            }.foregroundStyle(XJTheme.ink).background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
+            }.foregroundStyle(XJTheme.ink).background(.white).clipShape(RoundedRectangle(cornerRadius: 16)).contentShape(.interaction, RoundedRectangle(cornerRadius: 16))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(selected ? XJTheme.primary : XJTheme.line).allowsHitTesting(false))
         }.buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
     }
