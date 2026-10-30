@@ -56,7 +56,7 @@ import UIKit
         let ids = source.houses.map(\.id)
         try await transfers.export(ids: ids, store: source, to: archive)
         let preview = try await transfers.preview(archive, store: target)
-        try await transfers.importSelected(archive, preview: preview, selectedIDs: ids, replacing: [], store: target, isCurrent: { true })
+        try await transfers.importSelected(archive, preview: preview, selectedIDs: Set(ids), replacing: [], store: target, isCurrent: { true })
         XCTAssertEqual(target.houses.map(\.id), ids)
         for id in ids {
             let before = source.house(id)["media"].array[0], after = target.house(id)["media"].array[0]
