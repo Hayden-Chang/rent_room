@@ -10,7 +10,7 @@ const showGuide=()=>vi.advanceTimersByTimeAsync(1600);
 function harness(){
  vi.useFakeTimers();const disk=new Map(),scrolls=[],pending=[];
  let app,page,top=0,defer=false,fail=false,height=3000;
- const anchors=[{key:'category-A',top:200},{key:'field-test_a_0',top:260},{key:'field-test_a_1',top:360},{key:'category-B',top:1700},{key:'field-test_b_0',top:1800},{key:'field-test_b_1',top:1900},{key:'category-C',top:2400}];
+ const anchors=[{key:'category-A',top:200},{key:'field-test_a_0',top:260},{key:'field-test_a_1',top:360},{key:'category-房源基本信息',top:1700},{key:'field-test_b_0',top:1800},{key:'field-test_b_1',top:1900},{key:'category-C',top:2400}];
  const guideHeight=()=>page.data.fillPrompt?(page.data.fillHeight??230):0;
  const clamp=()=>{top=Math.min(top,Math.max(0,Math.max(height+guideHeight(),page.data.fillMinHeight||0)-600));};
  const rects=()=>anchors.map(a=>({dataset:{scrollKey:a.key},top:a.top+(a.top>=2400?guideHeight():0)-top,bottom:a.top+(a.top>=2400?guideHeight():0)+80-top}));
@@ -21,7 +21,9 @@ function harness(){
  vm.runInContext(fs.readFileSync('dist/app.js','utf8'),context);app.onLaunch();localPageFixture(app,wx);
  app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.tutorialStep=0;});
  const id=app.service.store.add('位置回归');
- app.service.store.edit(id,h=>{h.xiaoda.intro='done';h.checklistOrder=['A','B','C'];h.templateTopics=['A','B','C'].map((category,i)=>({id:'t'+i,title:category,category,phase:'现场看房',path:[],fields:[0,1].map(n=>({id:`test_${category.toLowerCase()}_${n}`,label:`检查${n}`,type:'s',options:['是','否'],fact:true}))}));});
+ // B's fixture position represents basic information, so the retained prompt
+ // crosses into onsite C. Same-phase transitions now have dedicated quiet tests.
+ app.service.store.edit(id,h=>{h.xiaoda.intro='done';h.checklistOrder=['A','房源基本信息','C'];h.templateTopics=['A','B','C'].map((category,i)=>({id:'t'+i,title:i===1?'房源基本信息':category,category:i===1?'房源基本信息':category,phase:'现场看房',path:[],fields:[0,1].map(n=>({id:`test_${category.toLowerCase()}_${n}`,label:`检查${n}`,type:'s',options:['是','否'],fact:true}))}));});
  function open(){
   vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));
   page.setData=function(p,cb){applyPageData(this.data,p);clamp();cb?.();};page.selectAllComponents=()=>[];
@@ -33,7 +35,7 @@ function harness(){
   }));if(defer)pending.push(run);else run();}};return q;};
   page.onLoad({id});page.onReady();return page;
  }
- const p=open();p.phase({currentTarget:{dataset:{value:'现场'}}});p.folds[JSON.stringify({phase:'现场',query:'',filters:[]})]={A:true,B:true,C:true};p.refresh();
+ const p=open();p.folds[JSON.stringify({phase:'全部',query:'',filters:[]})]={A:true,'房源基本信息':true,C:true};p.refresh();
  const choose=(field,value='是')=>page.choose({detail:{id:field,value}});
  choose('test_a_0');choose('test_b_0');top=1780;
  return {app,id,wx,disk,scrolls,anchors,open,choose,get page(){return page;},get top(){return top;},get house(){return app.service.store.house(id);},fieldTop:()=>rects().find(r=>r.dataset.scrollKey==='field-test_b_1')?.top,
@@ -46,7 +48,7 @@ it('returns to the just-completed B field after postponing the forward C recomme
  p.refresh();p.refresh();await settle();const answers=JSON.stringify(h.house.answers);
  p.waitFilling();await settle();
  expect(h.fieldTop()).toBe(position);expect(p.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeUndefined();
- expect(p.data).toMatchObject({phase:'现场',query:'',filters:[]});expect(JSON.stringify(p.folds)).toBe(folds);expect(h.house.displayCategoryOrder).toBeUndefined();expect(JSON.stringify(h.house.answers)).toBe(answers);
+ expect(p.data).toMatchObject({phase:'全部',query:'',filters:[]});expect(JSON.stringify(p.folds)).toBe(folds);expect(h.house.displayCategoryOrder).toBeUndefined();expect(JSON.stringify(h.house.answers)).toBe(answers);
  p.onUnload();h.open();expect(h.page.data.fillPrompt).toBeNull();
 });
 
@@ -58,7 +60,7 @@ it('restores the B anchor after the bubble is removed even if preceding layout c
 
 it('enters C when accepted and preserves the earlier A answer',async()=>{
  const h=harness();h.choose('test_b_1');await showGuide();h.page.acceptFilling();await vi.advanceTimersByTimeAsync(440);
- expect(h.page.data.fillPrompt).toBeNull();expect(h.page.data.sections[2]).toMatchObject({title:'C',expanded:true});expect(h.house.displayCategoryOrder).toBeUndefined();expect(h.page.data.sections.map(s=>s.title)).toEqual(['A','B','C']);expect(h.house.answers.test_a_0.value).toBe('是');expect(h.top).toBe(2388);
+ expect(h.page.data.fillPrompt).toBeNull();expect(h.page.data.sections[2]).toMatchObject({title:'C',expanded:true});expect(h.house.displayCategoryOrder).toBeUndefined();expect(h.page.data.sections.map(s=>s.title)).toEqual(['A','房源基本信息','C']);expect(h.house.answers.test_a_0.value).toBe('是');expect(h.top).toBe(2388);
 });
 
 it('keeps the prompt and its original position available after a failed dismissal save',async()=>{
@@ -102,7 +104,7 @@ it('does not restart completed B after C was completed and cleared',async()=>{
 });
 
 it('cancels the first completion if B becomes incomplete before the guide arrives',async()=>{
- const h=harness();h.choose('test_b_1','否');expect(h.page.fillCompleted).toBe('B');h.choose('test_b_1','否');
+ const h=harness();h.choose('test_b_1','否');expect(h.page.fillCompleted).toBe('房源基本信息');h.choose('test_b_1','否');
  await showGuide();expect(h.page.data.fillPrompt).toBeNull();expect(h.house.answers.test_b_1.value).toBe('');
 });
 
@@ -115,7 +117,7 @@ it.each(['A','C'])('discards a legacy saved completion targeting %s without repl
  expect(JSON.stringify(h.house.answers)).toBe(answers);expect(JSON.stringify(h.house.xiaoda.seenCompleted)).toBe(history);
  p.onUnload();h.open();await showGuide();expect(h.page.data.fillPrompt).toBeNull();
  h.choose('test_b_0','否');await showGuide();expect(h.page.data.fillPrompt).toBeNull();
- h.choose('test_a_1');await showGuide();expect(h.page.data.fillPrompt).toMatchObject({completed:'A',target:'C'});
+ h.choose('test_a_1');await showGuide();expect(h.page.data.fillPrompt).toBeNull();expect(h.house.xiaoda.seenCompleted).toContain('A');
 });
 
 it.each([false,true])('cancels a visible completion when another category changes during save failure (complete=%s)',async complete=>{
@@ -125,8 +127,7 @@ it.each([false,true])('cancels a visible completion when another category change
  expect(h.house.answers[complete?'test_a_1':'test_a_0'].value).toBe(complete?'是':'否');
  const answers=JSON.stringify(h.house.answers),history=JSON.stringify(h.house.xiaoda.seenCompleted);
  h.fail(false);h.page.retry();await showGuide();
- if(complete)expect(h.page.data.fillPrompt).toMatchObject({completed:'A',target:'C'});
- else expect(h.page.data.fillPrompt).toBeNull();
+ expect(h.page.data.fillPrompt).toBeNull();
  expect(JSON.stringify(h.house.answers)).toBe(answers);expect(JSON.stringify(h.house.xiaoda.seenCompleted)).toBe(history);
  const persisted=JSON.parse(h.disk.get(h.app.service.root+'/state.json')).houses.find(row=>row.id===h.id);
  expect(JSON.stringify(persisted.answers)).toBe(answers);expect(JSON.stringify(persisted.xiaoda.seenCompleted)).toBe(history);
@@ -153,11 +154,11 @@ it('keeps a legacy saved prompt hidden when its removal cannot be saved and retr
  const answers=JSON.stringify(h.house.answers);h.fail(true);h.open();await showGuide();
  expect(h.page.data.fillPrompt).toBeNull();expect(h.app.service.store.status().error).toContain('保存失败');
  h.fail(false);h.page.retry();await showGuide();expect(h.page.data.fillPrompt).toBeNull();expect(h.house.xiaoda.prompt).toBeUndefined();
- expect(JSON.stringify(h.house.answers)).toBe(answers);expect(h.house.xiaoda.seenCompleted).toContain('B');
+ expect(JSON.stringify(h.house.answers)).toBe(answers);expect(h.house.xiaoda.seenCompleted).toContain('房源基本信息');
 });
 
 it('never accepts a canceled visible completion after a direct save recovery',async()=>{
- const h=harness(),key=JSON.stringify({phase:'现场',query:'',filters:[]});h.page.folds[key].C=false;h.page.refresh();
+ const h=harness(),key=JSON.stringify({phase:'全部',query:'',filters:[]});h.page.folds[key].C=false;h.page.refresh();
  h.choose('test_b_1');await showGuide();h.fail(true);h.choose('test_a_0','否');
  h.fail(false);h.app.service.store.save();const scrollCount=h.scrolls.length,folds=JSON.stringify(h.page.folds);h.page.acceptFilling();await showGuide();
  expect(h.page.data.fillPrompt).toBeNull();expect(h.scrolls).toHaveLength(scrollCount);expect(h.house.answers.test_a_0.value).toBe('否');
