@@ -21,6 +21,7 @@ struct AppRoot: View {
                 else if !AppWorkspace.isBusinessTest { Task { await workspace?.refreshPolicy(); await workspace?.billing.load() } }
             }
             .environment(\.locale, Locale(identifier: "zh_CN")).preferredColorScheme(.light)
+            .overlay { TouchTrailPresentation() }
     }
     private func load() {
         do {

@@ -124,16 +124,17 @@ final class TouchTrailTests: XCTestCase {
     }
 
     #if DEBUG
-    func testReviewRequiresExplicitUUIDAndUsesSeparatePreferences() {
+    func testOnlyExplicitBusinessUUIDIsolatesPreferences() {
         let id = UUID()
-        XCTAssertNil(TouchTrailReviewHost.sessionID(["Xunju"]))
-        XCTAssertNil(TouchTrailReviewHost.sessionID(["--touch-trail-review"]))
-        XCTAssertNil(TouchTrailReviewHost.sessionID(["--touch-trail-review", "invalid"]))
-        XCTAssertEqual(TouchTrailReviewHost.sessionID(["--touch-trail-review", id.uuidString]), id)
-        let defaults = TouchTrailReviewHost.defaults(for: id)
+        let arguments = ["--business-test", id.uuidString]
+        let defaults = TouchTrailPreference.defaults(arguments: arguments)
+        defer { defaults.removePersistentDomain(forName: "TouchTrailBusinessTests." + id.uuidString) }
         defaults.set(true, forKey: TouchTrailPreference.key)
-        XCTAssertFalse(TouchTrailReviewHost.defaults(for: UUID()).bool(forKey: TouchTrailPreference.key))
-        defaults.removePersistentDomain(forName: "TouchTrailReview." + id.uuidString)
+        XCTAssertTrue(TouchTrailPreference.defaults(arguments: arguments).bool(forKey: TouchTrailPreference.key))
+        XCTAssertFalse(TouchTrailPreference.defaults(arguments: ["--business-test", UUID().uuidString]).bool(forKey: TouchTrailPreference.key))
+        for arguments in [[], ["--business-test"], ["--business-test", "invalid"], ["--touch-trail-review", id.uuidString]] {
+            XCTAssertTrue(TouchTrailPreference.defaults(arguments: arguments) === UserDefaults.standard)
+        }
     }
     #endif
 }

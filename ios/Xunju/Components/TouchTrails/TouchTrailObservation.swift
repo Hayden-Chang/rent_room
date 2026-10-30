@@ -199,7 +199,7 @@ struct TouchTrailObservation: UIViewRepresentable {
 struct TouchTrailPresentation: View {
     @AppStorage(TouchTrailPreference.key) private var isEnabled = TouchTrailPreference.defaultValue
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = TouchTrailPreference.defaults()) {
         _isEnabled = AppStorage(wrappedValue: TouchTrailPreference.defaultValue, TouchTrailPreference.key, store: defaults)
     }
 
