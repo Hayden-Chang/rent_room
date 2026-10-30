@@ -98,8 +98,12 @@ export const coachMethods={
    this.setData({fillPrompt:null,fillAnchor:null,fillStage:'ready',fillHeight:null});
   }
   if(this.fillingEntering()||service().store.status().error)return;
+  // Keep phase changes, but do not interrupt work between categories within a
+  // phase. Apply this at the WeChat presenter, including saved recommendations.
+  const rows=prompt?.kind==='next'?progress(h):[],source=rows.find(r=>r.category===prompt?.completed),target=rows.find(r=>r.category===prompt?.target);
+  const samePhase=source&&target&&source.phase===target.phase;
   // Old saved completions used backward recommendations; never replay them.
-  if(prompt&&!prompt.completed){try{service().store.edit(h.id,h=>delete h.xiaoda.prompt,true);}catch(error){notify(error);}return;}
+  if(prompt&&(!prompt.completed||samePhase)){try{service().store.edit(h.id,h=>delete h.xiaoda.prompt,true);}catch(error){notify(error);}return;}
   if(prompt&&prompt.id!==this.lastPrompt&&xiaodaEnabled(state,h)){this.lastPrompt=prompt.id;this.queueFilling(prompt);}
   else if(this.data.fillPrompt)this.showFilling(this.data.fillPrompt);
   this.scheduleFilling();

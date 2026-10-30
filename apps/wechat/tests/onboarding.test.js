@@ -97,6 +97,42 @@ it('allows continuing from the filter explanation without selecting or expanding
 });
 
 function intro(h){h.app.service.store.change(s=>s.xiaoda.tutorialStep=0);return h.open();}
+function quietPhaseFixture(mode='detailed'){
+ const h=harness({mode});h.app.service.store.change(s=>s.xiaoda.tutorialStep=0);
+ h.app.service.store.edit(h.id,house=>{
+  house.xiaoda.intro='done';house.checklistOrder=['C','D','E','F','费用与付款','身份与合同'];
+  house.templateTopics=house.checklistOrder.map((category,i)=>({id:'quiet-'+i,title:category,category,phase:i<4?'现场看房':'询问与签约',path:[],fields:[{id:'quiet_'+i,label:'检查'+i,type:'s',options:['是','否'],fact:true}]}));
+  house.answers.quiet_0={note:'保留备注',issueFlag:true};house.media=[{id:'quiet-photo',type:'image',path:'/photo',fieldId:'quiet_0'}];
+ });
+ const p=h.open();h.wx.pageScrollTo.mockClear();return {...h,p};
+}
+it.each(['simple','detailed'])('keeps intra-phase C-D-E-F transitions quiet but retains phase and whole-house guidance in %s',mode=>{
+ const h=quietPhaseFixture(mode),p=h.p,folds=JSON.stringify(p.folds);
+ for(let i=0;i<3;i++){
+  p.choose({detail:{id:'quiet_'+i,value:'是'}});vi.advanceTimersByTime(2000);
+  expect(p.data.fillPrompt).toBeNull();expect(p.fillPending).toBeFalsy();
+  expect(h.wx.pageScrollTo).not.toHaveBeenCalled();expect(JSON.stringify(p.folds)).toBe(folds);
+ }
+ p.choose({detail:{id:'quiet_3',value:'是'}});vi.advanceTimersByTime(2000);
+ expect(p.data.fillPrompt).toMatchObject({kind:'phase',target:'费用与付款',completed:'F'});
+ p.waitFilling();h.wx.pageScrollTo.mockClear();
+ p.choose({detail:{id:'quiet_4',value:'是'}});vi.advanceTimersByTime(2000);
+ expect(p.data.fillPrompt).toBeNull();expect(h.wx.pageScrollTo).not.toHaveBeenCalled();
+ p.choose({detail:{id:'quiet_5',value:'是'}});vi.advanceTimersByTime(2000);
+ expect(p.data.fillPrompt).toMatchObject({kind:'return',text:'这套房子记录好啦！再添加一套房源，对比看看吧。'});
+ const house=h.app.service.store.house(h.id);
+ expect(house.answers.quiet_0).toMatchObject({value:'是',note:'保留备注',issueFlag:true});expect(house.media).toHaveLength(1);
+ p.onUnload();const reopened=h.open();vi.advanceTimersByTime(2000);
+ expect(reopened.data.fillPrompt).toBeNull();expect(h.app.service.store.house(h.id).answers).toEqual(house.answers);
+});
+it('discards a saved intra-phase recommendation on reopen without changing recorded content',()=>{
+ const h=quietPhaseFixture();h.p.coachHidden=true;
+ h.app.service.store.answer(h.id,'quiet_0','value','是');
+ expect(h.app.service.store.house(h.id).xiaoda.prompt).toMatchObject({kind:'next',target:'D'});
+ const before=JSON.stringify(h.app.service.store.house(h.id).answers),p=h.open();vi.advanceTimersByTime(2000);
+ expect(p.data.fillPrompt).toBeNull();expect(h.app.service.store.house(h.id).xiaoda.prompt).toBeUndefined();
+ expect(JSON.stringify(h.app.service.store.house(h.id).answers)).toBe(before);expect(h.wx.pageScrollTo).not.toHaveBeenCalled();
+});
 it.each([['隔音与噪音','现场'],['费用与付款','询问签约']])('accepts guidance for %s by scrolling and expanding without reordering the checklist', (target,phase)=>{
  const h=harness();h.app.service.store.change(s=>s.xiaoda.tutorialStep=0);
  h.app.service.store.edit(h.id,house=>{house.xiaoda.intro='done';house.templateTopics=house.templateTopics.filter(t=>['房源基本信息',target].includes(t.category)).map(t=>t.category==='房源基本信息'?{...t,fields:t.fields.filter(f=>f.id==='f1_6')}:t);});
