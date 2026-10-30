@@ -19,10 +19,6 @@ enum TouchTrailPreference {
 struct TouchTrailSettingsRow: View {
     @AppStorage(TouchTrailPreference.key) private var isEnabled = TouchTrailPreference.defaultValue
 
-    init(defaults: UserDefaults = TouchTrailPreference.defaults()) {
-        _isEnabled = AppStorage(wrappedValue: TouchTrailPreference.defaultValue, TouchTrailPreference.key, store: defaults)
-    }
-
     var body: some View {
         Toggle("显示触摸轨迹", isOn: $isEnabled)
             .font(.system(size: 14, weight: .medium))

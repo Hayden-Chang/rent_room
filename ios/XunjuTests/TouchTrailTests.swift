@@ -123,6 +123,38 @@ final class TouchTrailTests: XCTestCase {
         XCTAssertTrue(canvas.layer.sublayers?.isEmpty != false)
     }
 
+    func testInheritedPreferenceStoreEnablesAndDisablesMountedPresentation() async {
+        let suite = "TouchTrailPresentationTests." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 300, height: 500))
+        window.rootViewController = UIHostingController(rootView:
+            TouchTrailPresentation().defaultAppStorage(defaults))
+        window.makeKeyAndVisible()
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+            defaults.removePersistentDomain(forName: suite)
+        }
+        let mounted = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            MainActor.assumeIsolated { window.rootViewController?.view.window === window }
+        }, object: nil)
+        mounted.expectationDescription = "Hosting view is attached to the window"
+        await fulfillment(of: [mounted], timeout: 3)
+        XCTAssertFalse(window.subviews.contains { $0 is TouchTrailCanvas })
+        defaults.set(true, forKey: TouchTrailPreference.key)
+        let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            MainActor.assumeIsolated { window.subviews.contains { $0 is TouchTrailCanvas } }
+        }, object: nil)
+        enabled.expectationDescription = "Preference change attaches the actual touch canvas"
+        await fulfillment(of: [enabled], timeout: 3)
+        defaults.set(false, forKey: TouchTrailPreference.key)
+        let disabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            MainActor.assumeIsolated { !window.subviews.contains { $0 is TouchTrailCanvas } }
+        }, object: nil)
+        disabled.expectationDescription = "Turning the preference off removes the touch canvas"
+        await fulfillment(of: [disabled], timeout: 3)
+    }
+
     #if DEBUG
     func testOnlyExplicitBusinessUUIDIsolatesPreferences() {
         let id = UUID()
