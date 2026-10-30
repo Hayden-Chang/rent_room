@@ -54,7 +54,7 @@ import XCTest
         XCTAssertTrue(app.buttons["house.评分房源3"].waitForExistence(timeout: 10))
         assertNoDelayedReview(app)
         app.buttons["tab.我的"].tap()
-        let feedback = app.buttons["settings.feedback"]
+        let feedback = app.buttons["local-settings.feedback"]
         for _ in 0..<4 { if feedback.isHittable { break }; app.swipeUp() }
         feedback.tap(); XCTAssertTrue(app.buttons["feedback.ease.方便"].waitForExistence(timeout: 3))
         capture("review-manual-feedback-retained")
@@ -64,7 +64,7 @@ import XCTest
     }
     func testVerifiedPurchaseRequestsSystemReviewAfterThankYou() {
         let app = launch(purchase: true)
-        app.buttons["tab.我的"].tap(); app.buttons["settings.capacity"].tap()
+        app.buttons["tab.我的"].tap(); app.buttons["local-settings.capacity"].tap()
         let purchase = app.buttons["capacity.purchase"]
         let enabled = expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: purchase)
         wait(for: [enabled], timeout: 8); purchase.tap()

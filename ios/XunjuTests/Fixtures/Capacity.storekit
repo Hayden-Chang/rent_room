@@ -2,7 +2,7 @@
   "identifier": "XUNJU-LOCAL-TEST",
   "products": [
     {
-      "displayPrice": "0.99",
+      "displayPrice": "1.99",
       "familyShareable": false,
       "internalID": "XUNJU10",
       "localizations": [
@@ -12,7 +12,7 @@
           "locale": "en_US"
         }
       ],
-      "productID": "test.capacity.10",
+      "productID": "com.keeline.xunju.ios.capacity10",
       "referenceName": "Local capacity test",
       "type": "Consumable"
     }

@@ -39,8 +39,9 @@ extension GeographicPoint {
         try store.call("coordinate", ["property": .string("toMap"), "value": value.json])
     }
     func start(address: String = "") {
-        if center != nil { submit() }
-        else if !address.isEmpty { query = address; submit() }
+        // Appearance seeds local text only. Requests require an explicit search,
+        // location request or map expansion, including previously saved addresses.
+        if center == nil, !address.isEmpty { query = address }
     }
     @discardableResult func submit(debounce: Bool = false) -> Task<Void, Never>? {
         cancel(); permissionDenied = false; message = ""; choices = []; results = [:]
