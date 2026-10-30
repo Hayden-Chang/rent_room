@@ -123,23 +123,30 @@ final class TouchTrailTests: XCTestCase {
         XCTAssertTrue(canvas.layer.sublayers?.isEmpty != false)
     }
 
-    func testInheritedPreferenceStoreEnablesAndDisablesMountedPresentation() async {
+    func testInheritedPreferenceStoreEnablesAndDisablesMountedPresentation() async throws {
         let suite = "TouchTrailPresentationTests." + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 300, height: 500))
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let previousKeyWindow = scene.windows.first { $0.isKeyWindow }
+        let window = UIWindow(windowScene: scene)
+        window.frame = CGRect(x: 0, y: 0, width: 300, height: 500)
         window.rootViewController = UIHostingController(rootView:
             TouchTrailPresentation().defaultAppStorage(defaults))
         window.makeKeyAndVisible()
         defer {
             window.isHidden = true
             window.rootViewController = nil
+            previousKeyWindow?.makeKey()
             defaults.removePersistentDomain(forName: suite)
         }
+        window.layoutIfNeeded()
         let mounted = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            MainActor.assumeIsolated { window.rootViewController?.view.window === window }
+            MainActor.assumeIsolated { self.touchObserver(in: window) != nil }
         }, object: nil)
-        mounted.expectationDescription = "Hosting view is attached to the window"
+        mounted.expectationDescription = "Actual representable observer is mounted in a connected scene"
         await fulfillment(of: [mounted], timeout: 3)
+        let observer = try XCTUnwrap(touchObserver(in: window))
+        XCTAssertTrue(observer.window === window)
         XCTAssertFalse(window.subviews.contains { $0 is TouchTrailCanvas })
         defaults.set(true, forKey: TouchTrailPreference.key)
         let enabled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
@@ -153,6 +160,14 @@ final class TouchTrailTests: XCTestCase {
         }, object: nil)
         disabled.expectationDescription = "Turning the preference off removes the touch canvas"
         await fulfillment(of: [disabled], timeout: 3)
+    }
+
+    private func touchObserver(in view: UIView) -> TouchTrailObserverView? {
+        if let observer = view as? TouchTrailObserverView { return observer }
+        for child in view.subviews {
+            if let observer = touchObserver(in: child) { return observer }
+        }
+        return nil
     }
 
     #if DEBUG
