@@ -36,36 +36,33 @@ struct AppUpdateSettingsCard: View {
     let onCheck: () -> Void
     let onUpdate: () -> Void
 
+    private var offersUpdate: Bool {
+        if case .available = state { return true }
+        return false
+    }
+
     var body: some View {
         XJCard {
-            VStack(spacing: 0) {
-                HStack(spacing: 16) {
-                    Text("版本")
-                    Spacer(minLength: 0)
+            HStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    Text("版本").accessibilityIdentifier("settings.versionLabel")
                     Text(installedVersion).foregroundStyle(XJTheme.muted)
                         .accessibilityIdentifier("settings.version")
-                }.font(.system(size: 14)).frame(minHeight: 50)
-                XJTheme.line.frame(height: 1)
-                Button(action: onCheck) {
-                    HStack(spacing: 12) {
-                        Text("检查更新").fontWeight(.medium).foregroundStyle(XJTheme.ink)
-                            .fixedSize(horizontal: true, vertical: false)
-                        Spacer(minLength: 0)
+                }.fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: 0)
+                Button(action: offersUpdate ? onUpdate : onCheck) {
+                    HStack(spacing: 6) {
                         if state == .checking { ProgressView().controlSize(.small).accessibilityHidden(true) }
-                        if let detail = state.detail {
-                            Text(detail).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
-                                .multilineTextAlignment(.trailing).fixedSize(horizontal: false, vertical: true)
-                        }
-                        if state != .checking {
-                            Text("›").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted)
-                                .accessibilityHidden(true)
-                        }
-                    }.font(.system(size: 14)).frame(minHeight: 50).contentShape(Rectangle())
+                        Text(offersUpdate ? "去更新" : state.detail ?? "检查更新")
+                            .font(.system(size: state == .idle || offersUpdate ? 14 : 12))
+                            .foregroundStyle(state == .idle || offersUpdate ? XJTheme.primary : XJTheme.muted)
+                            .multilineTextAlignment(.trailing).fixedSize(horizontal: false, vertical: true)
+                    }.frame(minHeight: 50).contentShape(Rectangle())
                 }.buttonStyle(.plain).disabled(state == .checking)
-                    .accessibilityLabel("检查更新")
+                    .accessibilityLabel(offersUpdate ? "去更新" : "检查更新")
                     .accessibilityValue(state.detail ?? "")
                     .accessibilityIdentifier("settings.checkUpdate")
-            }
+            }.font(.system(size: 14)).frame(minHeight: 50)
         }
         .alert("发现新版本", isPresented: Binding(
             get: { promptVersion != nil },

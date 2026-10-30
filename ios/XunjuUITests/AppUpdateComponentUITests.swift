@@ -30,11 +30,19 @@ import XCTest
         expectValue(expected, app)
         XCTAssertFalse(app.alerts.firstMatch.exists)
         XCTAssertTrue(app.buttons["settings.checkUpdate"].isEnabled)
+        XCTAssertEqual(app.buttons["settings.checkUpdate"].label, "检查更新")
     }
 
     func testCheckingNewVersionLaterAndStoreHandoffFailure() {
         let app = launch(), row = app.buttons["settings.checkUpdate"]
-        XCTAssertTrue(app.staticTexts["settings.version"].exists)
+        let version = app.staticTexts["settings.version"], title = app.staticTexts["settings.versionLabel"]
+        XCTAssertTrue(version.exists)
+        XCTAssertEqual(row.label, "检查更新")
+        XCTAssertEqual(title.frame.midY, version.frame.midY, accuracy: 1)
+        XCTAssertEqual(version.frame.midY, row.frame.midY, accuracy: 1)
+        XCTAssertGreaterThan(version.frame.minX, title.frame.maxX)
+        XCTAssertLessThanOrEqual(version.frame.minX - title.frame.maxX, 9)
+        XCTAssertGreaterThan(row.frame.minX, version.frame.maxX)
         capture("update-01-idle", app)
         row.tap()
         expectValue("正在检查…", app)
@@ -48,8 +56,14 @@ import XCTest
         alert.buttons["稍后"].tap()
         XCTAssertTrue(alert.waitForNonExistence(timeout: 3))
         expectValue("新版本 1.2.0", app)
+        XCTAssertEqual(row.label, "去更新")
         XCTAssertEqual(app.staticTexts["review.update.events"].label, "检查 1 次 · 商店跳转回调 0 次")
         capture("update-04-later", app)
+        row.tap()
+        expectValue("无法打开 App Store，请重试", app)
+        XCTAssertEqual(app.staticTexts["review.update.events"].label, "检查 1 次 · 商店跳转回调 1 次")
+        XCTAssertFalse(app.buttons["review.update.finish"].exists)
+        capture("update-05-store-failure", app)
         row.tap()
         XCTAssertTrue(app.buttons["review.update.finish"].waitForExistence(timeout: 3))
         app.buttons["review.update.finish"].tap()
@@ -57,8 +71,7 @@ import XCTest
         alert.buttons["去更新"].tap()
         XCTAssertTrue(alert.waitForNonExistence(timeout: 3))
         expectValue("无法打开 App Store，请重试", app)
-        XCTAssertEqual(app.staticTexts["review.update.events"].label, "检查 2 次 · 商店跳转回调 1 次")
-        capture("update-05-store-failure", app)
+        XCTAssertEqual(app.staticTexts["review.update.events"].label, "检查 2 次 · 商店跳转回调 2 次")
     }
 
     func testCurrentUnavailableAndNetworkFailureCanRetry() {
