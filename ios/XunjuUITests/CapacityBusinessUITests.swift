@@ -5,7 +5,7 @@ import XCTest
     private func launch(_ id: String, mode: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--returning-business-fixture", "--business-test", id, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
-        if let mode { app.launchArguments += ["--capacity-business-fixture", mode] }
+        if let mode { app.launchArguments += ["--capacity-business-fixture", mode, "--stub-system-review"] }
         app.launch(); XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 10))
         app.buttons["tab.我的"].tap(); app.buttons["local-settings.capacity"].tap()
         XCTAssertTrue(app.buttons["capacity.purchase"].waitForExistence(timeout: 5))

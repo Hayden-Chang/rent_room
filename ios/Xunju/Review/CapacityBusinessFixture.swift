@@ -11,6 +11,9 @@ enum CapacityBusinessFixture {
               ["pending", "refund", "unavailable", "zero", "success"].contains(arguments[index + 1]) else { return nil }
         return arguments[index + 1]
     }
+    static func suppressesSystemReview(arguments: [String] = ProcessInfo.processInfo.arguments) -> Bool {
+        mode(arguments: arguments) != nil && arguments.contains("--stub-system-review")
+    }
     @MainActor static func workspace(root: URL, mode: String) throws -> AppWorkspace {
         let transport = try CapacityFixtureHTTP(root: root, mode: mode)
         let storefront = CapacityFixtureStorefront(root: root, mode: mode)

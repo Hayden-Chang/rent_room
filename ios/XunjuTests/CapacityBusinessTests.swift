@@ -157,6 +157,11 @@ actor CapacityTestAPI: CapacityServicing {
         XCTAssertEqual(workspace.store.capacity.limit, 11); XCTAssertEqual(storefront.finished, ["10001"])
     }
     func testFixtureRequiresExplicitUUIDAndKnownMode() {
+        XCTAssertFalse(CapacityBusinessFixture.suppressesSystemReview(arguments: ["--stub-system-review"]))
+        let fixture = ["--business-test", UUID().uuidString, "--capacity-business-fixture", "pending"]
+        XCTAssertFalse(CapacityBusinessFixture.suppressesSystemReview(arguments: fixture))
+        XCTAssertTrue(CapacityBusinessFixture.suppressesSystemReview(arguments: fixture + ["--stub-system-review"]))
+        XCTAssertFalse(CapacityBusinessFixture.suppressesSystemReview(arguments: ["--business-test", "invalid", "--capacity-business-fixture", "pending", "--stub-system-review"]))
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: []))
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: ["--capacity-business-fixture", "pending"]))
         XCTAssertNil(CapacityBusinessFixture.mode(arguments: ["--business-test", "invalid", "--capacity-business-fixture", "pending"]))

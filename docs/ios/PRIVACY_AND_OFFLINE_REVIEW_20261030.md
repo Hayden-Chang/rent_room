@@ -133,3 +133,7 @@ run-09（`9f6f79b`）证实退款夹具隔离后完整用例通过（115.145 秒
 run-10（`99649ca`、iOS 18.3.1）28 UT 通过，3 UI 未通过：容量已确认 0/11 后额外加入的评分文字等待失败；离线用例重开详情时发生 App event loop idle notification 缺失及可访问性快照超时，原因未定位；定位用例显示“定位权限未开启，请在设置中允许访问位置”，未到地图断言。保留结果包、完整日志及附件，不把该批当作最终通过。
 
 依据 [Apple WWDC20 授权测试说明](https://developer.apple.com/videos/play/wwdc2020/10220/) 和 [XCUIApplication.resetAuthorizationStatus](https://developer.apple.com/documentation/xcuiautomation/xcuiapplication/resetauthorizationstatus(for:))，首次定位测试在 app.launch 前仅重置本次租约中本测试 App 的 `.location` 权限。购买 UI 回归恢复“到账/持久化/幂等”原范围，移除本轮临时加入的系统评分弹窗必出现断言；生产评分代码不变，7 项评分单测、主线独立评分 UI 测试保留，run-08 已有实际评分展示证据。Apple [RequestReviewAction](https://developer.apple.com/documentation/storekit/requestreviewaction) 对开发环境描述为应显示，因此不将 run-10 未显示简单解释为生产评分频率限制，保留为未定位平台交互异常。下一批完整重跑 28 UT+3 UI，未扩大超时或删除任何容量、离线保存及地图断言。
+
+run-11（`dc0988b`）28 UT 通过；离线记录 UI（124.266 秒）和定位授权/显示地图/保存/重启 UI（74.159 秒）通过，run-09 的首次定位回归已得到修复后证据。容量用例已完成 0/1→0/11，但重启后系统评分窗口再次干扰设置导航，仅这一 UI 方法失败（56.658 秒）。
+
+单例恢复修正：容量 UI 的受控 StoreKit 场景新增显式 `--stub-system-review`，必须同时具备 DEBUG、有效 UUID 与已知 capacity fixture 才生效；评分资格/持久化仍走原业务，唯一隔离的是平台评分窗口的展示调用。正式版和主线独立 `AppReviewUITests` 不带该标记，仍调用真实 StoreKit。新增 guard 断言，保留 run-08 的真实评分窗口证据。run-12 重跑该一个失败 UI，并补查构造器直接消费者：既有记录/旧身份目录/错误恢复、容量策略离线缓存、工作地点保存及目录保护。旧损坏账号用例的“session 必须存在”断言按当前已明确的免登录契约改为 session 为空，其数据保留与恢复断言不变。App 源码与 run-11 的差异仅 DEBUG 评分展示隔离，离线/地图 UI 不带标记；其结果可复用，不增加第四个最终 UI 场景。
