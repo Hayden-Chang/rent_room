@@ -6,7 +6,8 @@ import StoreKitTest
     func testFinishedConsumableHistoryAndExistingPrivacyKeysReachBuiltApp() {
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "MinimumOSVersion") as? String, "18.0")
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "SKIncludeConsumableInAppPurchaseHistory") as? Bool, true)
-        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "看房搭子")
+        // Validate the build setting; object(forInfoDictionaryKey:) applies localized branding.
+        XCTAssertEqual(Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String, "看房搭子")
         for key in ["NSCameraUsageDescription", "NSMicrophoneUsageDescription", "NSLocationWhenInUseUsageDescription"] {
             XCTAssertFalse((Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "").isEmpty)
         }
