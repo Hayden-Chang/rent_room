@@ -34,7 +34,7 @@ struct NativePlace: Equatable, Sendable {
         let location = CLLocation(latitude: point.latitude, longitude: point.longitude)
         if #available(iOS 26.0, *) {
             guard let request = MKReverseGeocodingRequest(location: location) else { return nil }
-            request.preferredLocale = Locale(identifier: "zh_CN")
+            request.preferredLocale = AppLanguage.shared.value.locale
             let cancel: @MainActor @Sendable () -> Void = { request.cancel() }
             return try await perform(cancel: cancel) {
                 try await request.mapItems.compactMap(Self.place).first
@@ -43,7 +43,7 @@ struct NativePlace: Equatable, Sendable {
             let geocoder = CLGeocoder()
             let cancel: @MainActor @Sendable () -> Void = { geocoder.cancelGeocode() }
             return try await perform(cancel: cancel) {
-                let values = try await geocoder.reverseGeocodeLocation(location, preferredLocale: Locale(identifier: "zh_CN"))
+                let values = try await geocoder.reverseGeocodeLocation(location, preferredLocale: AppLanguage.shared.value.locale)
                 return values.first.map { NativePlace(name: $0.name ?? "", address: Self.address($0), point: point) }
             }
         }
@@ -100,7 +100,7 @@ struct NativePlace: Equatable, Sendable {
             guard let center else { return [] }
             guard CLLocationCoordinate2DIsValid(center.coordinate) else { throw CoreFailure(message: "地点无效") }
             async let address = outcome { try await client.reverse(center) }
-            async let nearby = outcome { try await client.search("小区", center: center) }
+            async let nearby = outcome { try await client.search(AppCopy.text("小区"), center: center) }
             let (resolved, candidates) = await (address, nearby)
             try Task.checkCancellation()
             let places = choices((try? candidates.get()) ?? [], center: center)

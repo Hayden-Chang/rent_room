@@ -52,6 +52,12 @@ struct WheelFieldSpec: Decodable {
         let label = value.isEmpty ? "未填写" : values != nil || !numeric || (format == "refund" && value == "当天") ? value : key(value) + " " + (unit ?? "")
         return WheelChoice(value: value, label: label, wheelLabel: format == "deposit" && numeric ? key(value) + " 个月" : label)
     }
+    @MainActor func display(_ value: String, wheel: Bool = false) -> String {
+        let item = choices(preserving: value).first { key($0.value) == key(value) }
+        let label = wheel ? item?.wheelLabel ?? value : item?.label ?? value
+        let canonical = value.isEmpty || (values?.contains(value) ?? (Double(key(value)) != nil))
+        return canonical ? AppCopy.text(label) : label
+    }
     func choices(preserving value: String) -> [WheelChoice] {
         var items = choices
         if !value.isEmpty, !items.contains(where: { key($0.value) == key(value) }) {
@@ -102,15 +108,15 @@ struct WheelInputDialog: View {
     var body: some View {
         ZStack {
             Color.black.opacity(0.32).ignoresSafeArea().contentShape(Rectangle())
-                .onTapGesture(perform: cancel).accessibilityLabel("取消选择").accessibilityIdentifier("wheel.mask")
+                .onTapGesture(perform: cancel).accessibilityLabel(AppCopy.text("取消选择")).accessibilityIdentifier("wheel.mask")
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 8) {
-                    Text(draft.spec.title).font(.system(size: 18, weight: .semibold))
+                    AppText(draft.spec.title).font(.system(size: 18, weight: .semibold))
                     Spacer(minLength: 0)
                     Button(action: cancel) {
                         Image(systemName: "xmark").font(.system(size: 17)).foregroundStyle(XJTheme.muted)
                             .frame(width: 44, height: 44).contentShape(Rectangle())
-                    }.buttonStyle(.plain).accessibilityLabel("取消").accessibilityIdentifier("wheel.close")
+                    }.buttonStyle(.plain).accessibilityLabel(AppCopy.text("取消")).accessibilityIdentifier("wheel.close")
                 }
                 HStack(spacing: 0) {
                     if draft.spec.fixedSuffix.isEmpty { picker }
@@ -118,14 +124,14 @@ struct WheelInputDialog: View {
                         picker.frame(width: 160)
                         Group {
                             if draft.choices[draft.index].wheelLabel != draft.choices[draft.index].label {
-                                Text(draft.spec.fixedSuffix).font(.system(size: 20)).accessibilityIdentifier("wheel.suffix")
+                                AppText(draft.spec.fixedSuffix).font(.system(size: 20)).accessibilityIdentifier("wheel.suffix")
                             } else { Color.clear.accessibilityHidden(true) }
-                        }.frame(width: 48, height: 24, alignment: .leading).padding(.leading, -16)
+                        }.frame(width: AppLanguage.shared.value == .english ? 84 : 48, height: 24, alignment: .leading).padding(.leading, -16)
                     }
                 }.frame(maxWidth: .infinity).padding(.top, 8).padding(.bottom, 16)
                 HStack(spacing: 12) {
-                    Button("清空") { draft.clear() }.buttonStyle(MPButtonStyle(kind: .soft)).accessibilityIdentifier("wheel.clear")
-                    Button("确定") { save(draft.value) }.buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("wheel.confirm")
+                    Button(AppCopy.text("清空")) { draft.clear() }.buttonStyle(MPButtonStyle(kind: .soft)).accessibilityIdentifier("wheel.clear")
+                    Button(AppCopy.text("确定")) { save(draft.value) }.buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("wheel.confirm")
                 }
             }.padding(.horizontal, 20).padding(.top, 16).padding(.bottom, 20)
                 .background(.white).clipShape(RoundedRectangle(cornerRadius: 20))
@@ -136,11 +142,11 @@ struct WheelInputDialog: View {
             if discarding {
                 Color.black.opacity(0.18).ignoresSafeArea().onTapGesture { discarding = false }
                 VStack(spacing: 0) {
-                    Text("是否放弃修改？").font(.system(size: 18, weight: .semibold))
-                    Text("本次选择尚未保存").font(.system(size: 13)).foregroundStyle(XJTheme.muted).padding(.top, 10).padding(.bottom, 24)
+                    AppText("是否放弃修改？").font(.system(size: 18, weight: .semibold))
+                    AppText("本次选择尚未保存").font(.system(size: 13)).foregroundStyle(XJTheme.muted).padding(.top, 10).padding(.bottom, 24)
                     HStack(spacing: 12) {
-                        Button("继续编辑") { discarding = false }.buttonStyle(MPButtonStyle(kind: .soft)).accessibilityIdentifier("wheel.keep")
-                        Button("放弃修改", action: close).buttonStyle(MPButtonStyle(kind: .danger)).accessibilityIdentifier("wheel.discard")
+                        Button(AppCopy.text("继续编辑")) { discarding = false }.buttonStyle(MPButtonStyle(kind: .soft)).accessibilityIdentifier("wheel.keep")
+                        Button(AppCopy.text("放弃修改"), action: close).buttonStyle(MPButtonStyle(kind: .danger)).accessibilityIdentifier("wheel.discard")
                     }
                 }.padding(.horizontal, 20).padding(.top, 24).padding(.bottom, 20)
                     .background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
@@ -150,9 +156,9 @@ struct WheelInputDialog: View {
         }.foregroundStyle(XJTheme.ink)
     }
     private var picker: some View {
-        Picker(draft.spec.title, selection: Binding(get: { draft.index }, set: { draft.select($0) })) {
+        Picker(AppCopy.text(draft.spec.title), selection: Binding(get: { draft.index }, set: { draft.select($0) })) {
             ForEach(draft.choices.indices, id: \.self) { index in
-                Text(draft.choices[index].wheelLabel).font(.system(size: 20)).tag(index)
+                Text(verbatim: draft.spec.display(draft.choices[index].value, wheel: true)).font(.system(size: 20)).tag(index)
             }
         }.pickerStyle(.wheel).labelsHidden().frame(height: 220).clipped().contentShape(Rectangle())
             .accessibilityIdentifier("wheel.picker")

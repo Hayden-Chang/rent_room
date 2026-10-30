@@ -115,7 +115,7 @@ final class TouchTrailBusinessTests: XCTestCase {
     func testEnabledTrailsPreserveFeedbackFullScreenAndNavigation() {
         let app = launch()
         enable(app)
-        let feedback = app.buttons["settings.feedback"]
+        let feedback = app.buttons["local-settings.feedback"]
         XCTAssertTrue(feedback.isHittable); feedback.tap()
         let choice = app.buttons["feedback.ease.方便"]
         XCTAssertTrue(choice.waitForExistence(timeout: 3)); choice.tap()

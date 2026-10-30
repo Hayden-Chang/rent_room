@@ -49,15 +49,15 @@ struct MediaThumbnail: View {
                         .frame(width: geometry.size.width, height: height).clipped()
                 } else if item.kind == .video {
                     VStack(spacing: 4) {
-                        Text("▶").font(.system(size: 30))
-                        Text("视频").font(.system(size: 11))
+                        AppText("▶").font(.system(size: 30))
+                        AppText("视频").font(.system(size: 11))
                     }.foregroundStyle(XJTheme.primary).frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     Image(systemName: "photo").foregroundStyle(XJTheme.muted)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 if showsRelation && !item.relation.isEmpty {
-                    Text(item.relation).font(.system(size: 10)).lineLimit(1)
+                    AppText(item.relation).font(.system(size: 10)).lineLimit(1)
                         .foregroundStyle(.white).padding(4).frame(maxWidth: .infinity)
                         .background(XJTheme.ink.opacity(0.53))
                 }
@@ -79,7 +79,7 @@ struct MediaGallerySurface: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 ForEach(MediaFilter.allCases, id: \.self) { value in
-                    Button(value.rawValue) { filter = value }
+                    Button(AppCopy.text(value.rawValue)) { filter = value }
                         .font(.system(size: 13)).padding(.horizontal, 18).frame(minHeight: 36)
                         .foregroundStyle(filter == value ? XJTheme.primary : XJTheme.ink)
                         .background(filter == value ? XJTheme.soft : .white)
@@ -90,8 +90,8 @@ struct MediaGallerySurface: View {
             }
             if visible.isEmpty {
                 VStack(spacing: 12) {
-                    Text("还没有影像").font(.system(size: 17, weight: .semibold)).frame(height: 25.5)
-                    Text("把房间、细节和需要确认的地方拍下来。")
+                    AppText("还没有影像").font(.system(size: 17, weight: .semibold)).frame(height: 25.5)
+                    AppText("把房间、细节和需要确认的地方拍下来。")
                         .font(.system(size: 14)).foregroundStyle(XJTheme.muted).frame(height: 21)
                 }.frame(maxWidth: .infinity).padding(.horizontal, 24).padding(.vertical, 56)
                     .accessibilityIdentifier("gallery.empty")
@@ -102,15 +102,15 @@ struct MediaGallerySurface: View {
                             Button { preview(item) } label: { MediaThumbnail(item: item) }
                                 .buttonStyle(.plain).contentShape(Rectangle()).accessibilityElement(children: .ignore)
                                 .accessibilityAddTraits(.isButton).accessibilityAction { preview(item) }
-                                .accessibilityLabel(item.kind == .image ? "预览照片" : "播放视频")
+                                .accessibilityLabel(AppCopy.text(item.kind == .image ? "预览照片" : "播放视频"))
                                 .accessibilityIdentifier("gallery.preview.\(item.id)")
                             if !readonly || !item.caption.isEmpty { Button { caption(item) } label: {
-                                Text(item.caption.isEmpty ? "＋" : item.caption)
+                                Text(verbatim: item.caption.isEmpty ? "＋" : item.caption)
                                     .font(.system(size: item.caption.isEmpty ? 22 : 13))
                                     .foregroundStyle(item.caption.isEmpty ? XJTheme.muted : XJTheme.ink)
                                     .multilineTextAlignment(.leading).padding(.horizontal, 2).padding(.vertical, 8)
                                     .frame(maxWidth: .infinity, minHeight: 44, alignment: item.caption.isEmpty ? .center : .topLeading)
-                            }.buttonStyle(.plain).accessibilityLabel(item.caption.isEmpty ? "添加影像备注" : item.caption)
+                            }.buttonStyle(.plain).accessibilityLabel(AppCopy.text(item.caption.isEmpty ? "添加影像备注" : item.caption))
                                 .accessibilityIdentifier("gallery.caption.\(item.id)")
                             }
                         }

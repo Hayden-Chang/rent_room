@@ -26,7 +26,14 @@ struct AppReviewPrompt: ViewModifier {
                 do { try await Task.sleep(for: .seconds(2)) } catch { return }
                 guard !Task.isCancelled, canRequest, workspace.store === store else { return }
                 // Persist before calling: there is no display/completion callback.
-                if (try? store.call("reviewRequest"))?.bool == true { requestReview() }
+                if (try? store.call("reviewRequest"))?.bool == true {
+                    #if DEBUG
+                    // Capacity UI tests retain eligibility/persistence while isolating
+                    // the external StoreKit rating window, like their payment service.
+                    if CapacityBusinessFixture.suppressesSystemReview() { return }
+                    #endif
+                    requestReview()
+                }
             }
     }
 }

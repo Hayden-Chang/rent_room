@@ -1,0 +1,2 @@
+Translate these five text labels printed on a rental viewing checklist app sharing image into natural concise English. Title is a renter inspecting a prospective home, subtitle is avoiding rental pitfalls, bottom three labels describe checking each item, recording issues, and comparing homes. Keep bottom labels very short (two words each) to fit image badges. Return ONLY a valid JSON object with the same keys. Do not call tools or access files.
+{"title": "看房清单", "subtitle": "避坑指南", "check": "逐项检查", "record": "记录问题", "compare": "多房对比"}

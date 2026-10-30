@@ -16,15 +16,15 @@ struct FeedbackPage: View {
             MPBottomSheet(cornerRadius: 28, bottomPadding: 20 + (keyboardHeight == 0 ? geometry.safeAreaInsets.bottom : 0), close: {}) {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(alignment: .top, spacing: 8) {
-                        Text("说说你的使用感受").font(.system(size: 22, weight: .bold)).foregroundStyle(Color(red: 48/255, green: 57/255, blue: 76/255)).frame(maxWidth: .infinity, alignment: .leading)
+                        AppText("说说你的使用感受").font(.system(size: 22, weight: .bold)).foregroundStyle(Color(red: 48/255, green: 57/255, blue: 76/255)).frame(maxWidth: .infinity, alignment: .leading)
                         Button(action: skip) { Image(systemName: "xmark").font(.system(size: 17)).foregroundStyle(XJTheme.muted).frame(width: 44, height: 44) }
-                            .buttonStyle(.plain).accessibilityLabel("关闭反馈").offset(x: 10, y: -10)
+                            .buttonStyle(.plain).accessibilityLabel(AppCopy.text("关闭反馈")).offset(x: 10, y: -10)
                     }.frame(height: 31, alignment: .top).padding(.bottom, 20)
                     XiaodaMessage(text: "刚才用起来怎么样？说说你的感受吧！", pose: "greet", compact: false) { EmptyView() }
                     ScrollView {
                         VStack(alignment: .leading, spacing: 0) {
                             ForEach(questions, id: \.0) { key, title, options in
-                                Text(title).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(red: 64/255, green: 73/255, blue: 93/255)).padding(.top, 16).padding(.bottom, 10)
+                                AppText(title).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(red: 64/255, green: 73/255, blue: 93/255)).padding(.top, 16).padding(.bottom, 10)
                                 ChoiceFlow {
                                     ForEach(options, id: \.self) { option in
                                         let chosen = binding(key).wrappedValue == option
@@ -33,9 +33,9 @@ struct FeedbackPage: View {
                                                 ZStack {
                                                     Circle().fill(chosen ? XJTheme.primary : .white)
                                                     Circle().strokeBorder(chosen ? XJTheme.primary : Color(white: 0.84))
-                                                    if chosen { Text("✓").font(.system(size: 13)).foregroundStyle(.white) }
+                                                    if chosen { AppText("✓").font(.system(size: 13)).foregroundStyle(.white) }
                                                 }.frame(width: 18, height: 18)
-                                                Text(option).font(.system(size: 13))
+                                                AppText(option).font(.system(size: 13))
                                             }.padding(.horizontal, 10).frame(minHeight: 44)
                                                 .foregroundStyle(chosen ? Color(red: 82/255, green: 80/255, blue: 220/255) : XJTheme.ink)
                                                 .background(chosen ? SetupStyle.soft : .white, in: RoundedRectangle(cornerRadius: 12))
@@ -45,21 +45,21 @@ struct FeedbackPage: View {
                                     }
                                 }
                             }
-                            Text("你的使用感受或想要的功能").font(.system(size: 15, weight: .semibold)).padding(.top, 16).padding(.bottom, 8)
+                            AppText("你的使用感受或想要的功能").font(.system(size: 15, weight: .semibold)).padding(.top, 16).padding(.bottom, 8)
                             ZStack(alignment: .topLeading) {
-                                if binding("message").wrappedValue.isEmpty { Text("哪里不好用，或者希望增加什么功能？").font(.system(size: 14)).foregroundStyle(XJTheme.muted).padding(12).allowsHitTesting(false) }
+                                if binding("message").wrappedValue.isEmpty { AppText("哪里不好用，或者希望增加什么功能？").font(.system(size: 14)).foregroundStyle(XJTheme.muted).padding(12).allowsHitTesting(false) }
                                 TextEditor(text: binding("message")).font(.system(size: 14)).scrollContentBackground(.hidden).padding(7).accessibilityIdentifier("feedback.message")
                             }.frame(height: 100).background(Color(red: 248/255, green: 249/255, blue: 252/255), in: RoundedRectangle(cornerRadius: 14))
                                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(SetupStyle.border, lineWidth: 2))
                         }.padding(.bottom, 8)
                     }.frame(height: max(110, min(geometry.size.height * 0.44, geometry.size.height - keyboardHeight - 300)))
                         .padding(.top, 8).padding(.bottom, 16).scrollDismissesKeyboard(.interactively)
-                    if !error.isEmpty { Text(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger).padding(.bottom, 12).accessibilityIdentifier("feedback.error") }
+                    if !error.isEmpty { AppText(error).font(.system(size: 13)).foregroundStyle(XJTheme.danger).padding(.bottom, 12).accessibilityIdentifier("feedback.error") }
                     GeometryReader { actions in
                         HStack(spacing: 12) {
-                            Button("先跳过", action: skip).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(red: 85/255, green: 91/255, blue: 193/255))
+                            Button(AppCopy.text("先跳过"), action: skip).font(.system(size: 15, weight: .semibold)).foregroundStyle(Color(red: 85/255, green: 91/255, blue: 193/255))
                                 .frame(width: (actions.size.width - 12) / 3, height: 48).accessibilityIdentifier("feedback.skip")
-                            Button(busy ? "正在提交…" : "提交反馈", action: submit).buttonStyle(SetupButtonStyle()).accessibilityIdentifier("feedback.submit")
+                            Button(AppCopy.text(busy ? "正在提交…" : "提交反馈"), action: submit).buttonStyle(SetupButtonStyle()).accessibilityIdentifier("feedback.submit")
                         }
                     }.frame(height: 50)
                 }.disabled(busy)

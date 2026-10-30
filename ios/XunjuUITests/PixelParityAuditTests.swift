@@ -12,7 +12,7 @@ import XCTest
         return app
     }
     private func shot(_ name: String, _ app: XCUIApplication) {
-        let ids = ["home.add", "house.阳光小区", "house.新城公寓", "tab.房源", "tab.对比", "tab.我的", "tab.清单", "tab.影像", "tab.问题", "tab.总结", "settings.capacity", "settings.archive", "settings.templates", "settings.workplace", "settings.export", "capacity.total", "capacity.title", "capacity.purchase", "templates.confirm", "template.save", "prompt.text", "prompt.confirm", "backup.commit", "backup.share", "issueEditor.title", "issueEditor.save", "xiaoda.message"]
+        let ids = ["home.add", "house.阳光小区", "house.新城公寓", "tab.房源", "tab.对比", "tab.我的", "tab.清单", "tab.影像", "tab.问题", "tab.总结", "local-settings.capacity", "local-settings.archive", "local-settings.templates", "local-settings.workplace", "local-settings.export", "capacity.total", "capacity.title", "capacity.purchase", "templates.confirm", "template.save", "prompt.text", "prompt.confirm", "backup.commit", "backup.share", "issueEditor.title", "issueEditor.save", "xiaoda.message"]
         var geometry: [[String: Any]] = []
         func collect(_ element: XCUIElementSnapshot) {
             if ids.contains(element.identifier) {
@@ -45,9 +45,9 @@ import XCTest
         app.buttons["compare.select.阳光小区"].tap(); app.buttons["compare.select.新城公寓"].tap()
         app.buttons["compare.start"].tap(); XCTAssertTrue(app.switches["隐藏相同属性"].waitForExistence(timeout: 3)); shot("02b-compare-results", app)
         app.buttons["tab.我的"].tap(); shot("03-settings", app)
-        tap("settings.archive", app); XCTAssertTrue(app.buttons["archive.open.已归档房源"].waitForExistence(timeout: 3)); shot("04-archive", app)
+        tap("local-settings.archive", app); XCTAssertTrue(app.buttons["archive.open.已归档房源"].waitForExistence(timeout: 3)); shot("04-archive", app)
         app.buttons["archive.open.已归档房源"].tap(); XCTAssertTrue(app.staticTexts["house.readonly"].waitForExistence(timeout: 3)); shot("04b-archive-readonly", app); back(app); back(app)
-        tap("settings.templates", app); XCTAssertTrue(app.buttons["templates.confirm"].waitForExistence(timeout: 3)); shot("05-templates", app)
+        tap("local-settings.templates", app); XCTAssertTrue(app.buttons["templates.confirm"].waitForExistence(timeout: 3)); shot("05-templates", app)
         app.buttons["templates.edit.simple"].tap(); XCTAssertTrue(app.buttons["template.save"].waitForExistence(timeout: 3)); shot("06-template-simple", app)
         let templateToggle = app.buttons["setup.toggle.周边与小区"]
         XCTAssertEqual(templateToggle.label, "停用周边与小区"); templateToggle.tap()
@@ -59,16 +59,16 @@ import XCTest
         XCTAssertEqual(templateToggle.label, "恢复周边与小区"); shot("06b-template-simple-reopened", app)
         templateToggle.tap(); app.buttons["template.save"].tap()
         XCTAssertTrue(app.buttons["templates.confirm"].waitForExistence(timeout: 3)); back(app)
-        tap("settings.workplace", app); XCTAssertTrue(app.textFields["workplace.address"].waitForExistence(timeout: 3)); shot("10-workplace", app); back(app)
-        tap("settings.export", app); XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10)); shot("14-export", app); back(app)
-        tap("settings.import", app)
+        tap("local-settings.workplace", app); XCTAssertTrue(app.textFields["workplace.address"].waitForExistence(timeout: 3)); shot("10-workplace", app); back(app)
+        tap("local-settings.export", app); XCTAssertTrue(app.buttons["backup.share"].waitForExistence(timeout: 10)); shot("14-export", app); back(app)
+        tap("local-settings.importFile", app)
         dismissImportPicker(app)
         XCTAssertTrue(app.buttons["选择 ZIP 文件"].waitForExistence(timeout: 3)); shot("15-import-empty", app); back(app)
-        tap("settings.feedback", app)
+        tap("local-settings.feedback", app)
         XCTAssertTrue(app.buttons["feedback.ease.方便"].waitForExistence(timeout: 3)); shot("16-feedback", app)
         app.buttons["关闭反馈"].tap()
         for _ in 0..<3 { app.swipeDown() }
-        tap("settings.capacity", app); XCTAssertTrue(app.buttons["capacity.purchase"].waitForExistence(timeout: 3))
+        tap("local-settings.capacity", app); XCTAssertTrue(app.buttons["capacity.purchase"].waitForExistence(timeout: 3))
         let message = app.staticTexts["xiaoda.message"]
         if message.exists { let complete = expectation(for: NSPredicate(format: "value == %@", "完整显示"), evaluatedWith: message); wait(for: [complete], timeout: 5) }
         shot("09-capacity", app)
@@ -84,14 +84,14 @@ import XCTest
     }
     func testImportPickerCancellationReturnsToSettings() {
         let app = launch()
-        app.buttons["tab.我的"].tap(); tap("settings.import", app)
+        app.buttons["tab.我的"].tap(); tap("local-settings.importFile", app)
         dismissImportPicker(app)
         XCTAssertTrue(app.buttons["选择 ZIP 文件"].exists)
         shot("15-import-empty", app)
         app.buttons["选择 ZIP 文件"].tap()
         dismissImportPicker(app)
         app.buttons["navigation.back"].tap()
-        XCTAssertTrue(app.buttons["settings.import"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["local-settings.importFile"].waitForExistence(timeout: 3))
     }
     func testNamingAndDetailTabGeometry() {
         let app = launch(fixture: false)
