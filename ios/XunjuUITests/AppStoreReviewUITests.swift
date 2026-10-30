@@ -9,6 +9,10 @@ import XCTest
         app.launchArguments = route + ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"] + extra
         app.launch()
         if settings {
+            let currencyPrompt = app.buttons["currency.prompt.decline"]
+            XCTAssertTrue(currencyPrompt.waitForExistence(timeout: 10))
+            currencyPrompt.tap()
+            XCTAssertTrue(currencyPrompt.waitForNonExistence(timeout: 5))
             let tab = app.buttons["tab.我的"]
             XCTAssertTrue(tab.waitForExistence(timeout: 10)); tab.tap()
             let row = app.buttons["settings.appStoreReview"]
@@ -26,10 +30,17 @@ import XCTest
     func testReviewRowOpensWriteReviewURLOnEveryTap() {
         let app = launch()
         let row = app.buttons["settings.appStoreReview"]
+        // iOS 18 can report an offscreen scroll child as hittable below the tab bar.
+        let tabBarTop = app.buttons["tab.我的"].frame.minY
+        for _ in 0..<4 {
+            if row.frame.maxY < tabBarTop { break }
+            app.swipeUp()
+        }
+        XCTAssertLessThan(row.frame.maxY, tabBarTop)
         XCTAssertTrue(row.isHittable)
         XCTAssertTrue(row.label.contains("在 App Store 中评价"))
-        XCTAssertTrue(app.buttons["settings.feedback"].exists)
-        XCTAssertTrue(app.buttons["settings.share"].exists)
+        XCTAssertTrue(app.buttons["local-settings.feedback"].exists)
+        XCTAssertTrue(app.buttons["local-settings.share"].exists)
         capture("app-store-review-row", app)
         row.tap()
         let destination = app.staticTexts["review.openedURL"]

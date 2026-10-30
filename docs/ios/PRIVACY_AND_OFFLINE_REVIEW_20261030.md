@@ -1,12 +1,65 @@
 # iOS 公开页面、隐私清单与免登录组件（2026-10-30）
 
-## 最新决策
+## 用户授权合入主线后的复核
 
-后续用户确认最低 iOS 18，支付和容量全部本机处理，详见 [iOS 18 本地支付与容量](LOCAL_PURCHASES_20261030.md)。正式 App（6828695680）与消耗型商品已创建；旧的服务端购买方案、待创建 App 和服务端部署要求已被替代，隐私清单也不再声明自有服务收集购买历史/UserID。下文保留为当时的交付和组件批准记录，不作为当前支付架构说明。
+用户明确本次只合入主线。合并前远程 main 已前进至 `70078074d4e27a63b6b11bdc4c2dec3a8ef3a308`，新增启动屏、清单手势/轻震动/填写引导。模拟合并发现 `NativeStorefrontTests` 的应用名称断言冲突，已保留主线原始 Info.plist 名称检查和本分支中英文资源检查。生产文件全部采用主线，未变更启动时机、清单业务或购买行为。
 
-## 先前交付状态（历史记录）
+因此不将 run-02 直接视作新组合的最终门禁。run-03 按最终差异重新映射为 5 UT + 3 UI：修改的包内名称/隐私/消耗型历史配置，真实 StoreKitTest SDK，同一主线更新的包内 LaunchScreen 加载，新 DEBUG 启动屏路由，以及生成 App 中的隐私清单；UI 仍为本分支改动的待确认/恢复幂等、退款/不可售保留房源、评价入口两次点击，均从新增启动屏后的真实 App 入口进入。主线其余独立清单交互没有本 PR 的业务修改，不扩大为全量测试；run-02 的本机账本/离线数据等结果保留为历史补充。测试冻结期间不修改工作区。
 
-2026-10-30：用户已批准设置/扩容组件接入和公开页面发布，三个公开页面已上线。正式 iOS 页面的无登录与离线接入、独立 Apple 购买身份与后端账本已实现，已完成下文列出的定向业务回归。后端草稿 PR 为 https://github.com/Hayden-Chang/model_server/pull/98 （137 项回归通过，未部署）。本地 App 的 Bundle ID `com.keeline.xunju.ios` 在当前 App Store Connect 凭据下查询结果为空，真实沙盒付款需先建立对应 App 与内购商品并配置服务端。App Privacy 标签仍需单独填写。
+run-03 在 `26ff5fe5df04c1a276bf5fc4ce4f6e45ae88ca8d` 完成，**5 UT + 3 UI 全部通过，0 失败、0 跳过、退出 0**；iPhone 14 Pro / iOS 18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`。结果包 `/Volumes/mac2/codex-builds/xunju-offline-main-sync-20261030-03.xcresult`；完整计划/命令/日志/汇总、7 张原始截图、来源和去令牌收据保存在本任务可视化目录 `ios-offline-main-sync/merge-03/`。主 agent 已复核最终差异、实际包内配置及结果，并查看购买重启保持 0/12 与正式评价入口的当前截图。未将 StoreKitTest 或受控 UI 夹具称为 Apple Sandbox 付款，未运行全量套件。GitHub 当前候选无 check-runs/statuses，未宣称远程 CI 通过。
+
+随后 main 又前进至 `3cfe4d7dd95bcc674701dfc284c209a356370c4a`，仅增加独立检查更新组件和显式 DEBUG 路由，尚未接入正式设置页；已阅读完整差异，原路由解析、购买/设置入口、项目配置、依赖与选定测试不变。`git merge-tree --write-tree` 无冲突，生成树 `87c5ad8d441079cec4a2cc662cd1f2a709894944`；相对新主线的完整二进制 diff 与验证候选相对 `7007807` 的 diff 逐字节一致（SHA256 `b8a3900f06fc664a8c7b7a3cc795471364162478f5300a04248534220df1ac0e`）。按主线前进等价规则复用 run-03，不重复运行。后续只补本文档，执行输入不变；用户授权范围仅为 PR #92 合入 main。
+
+## 当前状态：合入最新本机 StoreKit 与价格主线
+
+用户明确要求把价格和购买方式更新后的主线合入本任务分支。已获取并整合远程 `main` 的 `46f6ff384d1fe549883bcf4cc1ecf3c271087681`，包含本机支付 #100 与语言/币种 #95。支付控制器、身份、账本、策略、设置、隐私清单及冲突测试均采用核实后的主线版本；生产源码、资源、工程配置及脚本与该主线逐文件一致。保留本任务历史证据，以及 App Store 评价 UI 测试的正确选择器和先滚动到 Tab 栏上方的修正。
+
+当前购买契约以 [本机支付说明](LOCAL_PURCHASES_20261030.md) 为准：最低 iOS 18，免费 2 套，每个消耗型商品永久增加 10 套，页面使用 `Product.displayPrice`；Apple 已验证交易在本机账本去重/恢复，落盘后才 finish，不再请求自有购买接口。此前 model_server #98 不再是该 iOS 版本的支付前置条件。语言和币种保留主线实现；本次不改 ASC 商品配置或公开站点。
+
+重新验证计划 `xunju-offline-main-sync-20261030-01`：31 项定向单测（本机支付/账本/策略/离线迁移/清单/原生 StoreKitTest 28 项，加评价链接与 DEBUG 路由 3 项），3 项 UI 按风险选择价格和待确认/重启恢复、退款保留超额房源/不可售、评价入口两次点击。既往服务端方案的通过结果不能证明本机支付，本次不复用它作为支付验证。脚本与计划位于 `/private/tmp/xunju-offline-main-sync-20261030/`。原有公共页面仍在线，后续发布前需复核其购买说明与 App Privacy 标签；真实 Apple 沙盒扣款仍须独立验收。
+
+run-01（`46f5bb5`、iPhone 14 Pro / iOS 18.3.1）30 UT 通过、1 UT 与 3 UI 失败。包内名称已按主线本地化为“寻居”/“Xunju”，旧测试仍断言“看房搭子”；三个 UI 均在首次币种提示未处理时尝试进入设置，截图、层级和完整流程确认未到购买或评价断言。真实 StoreKitTest 的购买、finish 前后历史及重复购买已通过。保留原始失败结果，测试维护只改包内中英文名称校验、真实点击“使用美元”并等待提示消失，重启断言选择仍保留；不改生产代码、支付断言或延长原有业务超时。run-02 在新提交上完整复验同一 31 UT + 3 UI 选择，不复用本次失败批次作为最终通过。
+
+run-02 已在 `5bce3ee4a6ba5bc66f5408eff8d3539e5726b431` 完成：**31 UT + 3 UI 全部通过，0 失败、0 跳过，runner 退出 0**。设备 iPhone 14 Pro / iOS 18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`。评价入口用例 18.647 秒、退款/不可售 41.503 秒、待确认/重启恢复 42.442 秒；本任务租约与执行槽已释放。
+
+证据包括 `/private/tmp/xunju-offline-main-sync-20261030/{plan,run,summary}-02.*`、`/Volumes/mac2/codex-builds/xunju-offline-main-sync-20261030-02.xcresult`，以及 `/Users/pc/.codex/visualizations/2026/10/29/01a18886-1bc3-7922-9396-c73515b59cbf/ios-offline-main-sync/` 的 7 张未修改截图、逐图 SHA256/测试/源码/设备来源、去令牌 runner receipt、整合一致性证明。主 agent 已逐张查看：待确认保持 0/2、确认和重启恢复均为 0/12、退款及不可售保持 3/2；评价行可见并连续请求同一正式 URL 两次。待确认/不可售状态的底部说明与法律链接仍需滚动，评价 URL/次数为 DEBUG 回显。截图 ¥9.90 来自受控 storefront 夹具，SDK 测试使用真实 StoreKitTest；均不证明 Apple Sandbox 扣款或当前商店售价。
+
+主 agent 在推送后另行复核最终差异及证据：相对主线仅剩本历史文档和三个测试文件，生产源码、资源、工程配置、依赖及脚本完全一致；本次没有重新引入旧支付接口或登录流程。31 项定向单测的精确映射保留在 plan-02；UI 只选上述三个最高风险方法，未全量复跑其他使用启动辅助方法的 UI 用例或语言/币种流程。GitHub 对该验证提交返回 0 check-runs、0 commit statuses，不能称远程 CI 通过。后续提交仅补本文档，不改变执行输入。PR #92 继续为草稿，本次授权的主线合入已完成，未合并回 main 或部署。
+
+下方均为此前服务端购买方案的历史记录，保留原始失败、修复与截图来源，不代表当前购买实现。
+
+## 前一版本定向验证结果（历史）
+
+**41 UT + 3 UI 分批通过**。生产源码为 `6c57f510f04db44c25a323042fdff23282a3ab5f`（已整合 main `b5a3b4d`）；复验提交为 `e29e58e951cdd6926ecb0f35c55149d5d3a6f920`。两者差异只有下面记录的一个 UI 方法增加滚动前提与文档，App 源码、资源、依赖、配置及其他测试不变。
+
+| 批次 | 精确结果 | 环境与复用依据 |
+| --- | --- | --- |
+| run-13 / `6c57f51` | 41 UT 通过；离线记录 UI 175.660 秒、购买恢复 UI 58.439 秒通过；评价 UI 失败，原结果保留 | iPhone 14 Pro / iOS 18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1` |
+| run-14 / `e29e58e` | 仅复跑评价 UI，30.127 秒通过，0 失败、0 跳过、runner 退出 0 | 同一池设备和系统。按单失败恢复规则与 run-13 通过项合并；未重新运行已通过项 |
+
+41 项单测映射：OfflineWorkspace 5（启动不联网、原目录、身份分离）；BusinessIntegration 4 + IdentityScope 2（既有调用方、迁移、损坏恢复和目录保护）；CapacityBusiness 7 + CapacityAPI 2 + CapacityPolicy 1（交易确认、签名证明、缓存和幂等）；AppReview 7 + TouchTrail 2（保留主线评分及本机偏好）；LegalResources 3（URL、包内清单和显式路由）；UtilityFlow 5（主动查询、手填地点及持久化）；AppStoreReview 2 + ComponentLogic 1（正式评价 URL、非法配置及调试路由）。精确 selector 均在计划文件，不以整个 target 或全量 suite 代替映射。
+
+最终三个 UI 方法为 OfflineBusinessUITests 的记录/设置/地址/法律入口、CapacityBusinessUITests 的待确认/到账/重启去重、AppStoreReviewUITests 的评价入口两次点击。首次定位修复和退款保留超额房源为先前独立证据；主线真实评分窗口展示有 run-08 证据。容量 UI 使用显式 DEBUG 交易/服务夹具，并隔离平台评分窗口，仅证明业务与持久化流程。未验证真实 Apple 付款、实体设备 GPS、飞行模式实机或地图瓦片内容。仅同步选择器的其他历史 UI 长流程未全量重跑，不能据此声称完整 UI 门禁或支付发布验收。
+
+原始计划、命令、日志、汇总和附件：`/private/tmp/xunju-offline-privacy-20261030/{plan,run,summary}-13.*`、同目录 `*-14.*` 与 `attachments-{13,14}/`。结果包：`/Volumes/mac2/codex-builds/xunju-offline-business-20261030-{13,14}.xcresult`。共享 runner 已退出并释放本任务资源。
+
+持久原图及逐图 SHA256/源码/设备来源：`/Users/pc/.codex/visualizations/2026/10/29/01a18886-1bc3-7922-9396-c73515b59cbf/ios-offline-final/`。主 agent 已查看当前设置、法律入口、购买重启恢复和评价两次打开截图。`settings-current.png`、`legal-links-current.png`、`purchase-restored-once.png` 来自 run-13；`settings-review-row.png`、`settings-review-url.png` 来自 run-14。评价 URL/次数为 DEBUG 宿主的可见回显，不是正式界面；¥1.99 与交易是夹具。目录还保留未修改的失败图、summary、去除令牌的 runner receipt、ASC 当前回读和历史定位/退款证据。
+
+最终生产差异已由主 agent 在 PR 创建及更新后复核：旧数据迁移不切空目录，购买证明不进入房源备份或日志，先持久化再 finish，沙盒与正式环境隔离，主线评价入口及隐私理由保留。后续提交仅更新本验收文档，不改变执行输入。没有云端 check-run/status 通过记录，不能把空检查列表称为 CI 通过。iOS #92 和后端 #98 继续保留草稿，未合并/部署；真实支付、商品资料与 App Privacy 标签为独立发布前事项。
+
+## 最新评价入口整合与最终复验
+
+run-13（`6c57f510f04db44c25a323042fdff23282a3ab5f`、iPhone 14 Pro / iOS 18.3.1）41 UT 与离线记录、购买恢复两项 UI 通过，仅评价入口 UI 失败。原始截图 `6F3B907A-2082-43C0-B148-46A2F42557A6.png` 显示评价行尚在屏幕下方；AX hierarchy 给出评价行 y=810.3、高50，而 Tab 栏顶部 y=768；合成 tap 实际落在 (196.5, 835.33)。`isHittable` 错误地让测试跳过滚动，未真正点击评价行。修正只在该失败方法里先滚动并断言行底部位于 Tab 栏之上，保留两次点击、正式 URL 和计数断言，不改生产代码或延长超时。run-14 仅复跑这一个方法；41 UT 和另外两项 UI 按单失败恢复规则复用，原失败保留。
+
+run-12（`2696c0f`）构建通过后等待共享执行槽；期间主线合入 `b5a3b4d40d6476dffd17fcf30721d3b6383d4788`，新增已批准的 App Store 评价入口并记录正式 App ID。为避免继续验证旧基线，向本任务 runner 发送 SIGTERM；它恰已取得设备并进入测试命令准备，但尚无 Test Case 执行记录，退出 143 并清理本任务资源。该批不计为通过或测试失败。
+
+在本任务分支解决设置页冲突，将主线原有 `AppStoreReviewRow` 保留在“使用反馈”与“分享看房搭子”之间；保持主线 DEBUG 评价路由，只同步其测试中的反馈/分享选择器。未重新引入登录。ASC 只读回查确认 App ID `6828695680` 与商品 `6828697996` 已存在，后者为 `MISSING_METADATA`，未执行任何 ASC 写操作。证据 `ios-offline-final/asc-app-current.json` 和 `asc-iap-current.json` 替代早先空列表结论。
+
+由于冲突需要手工整合，run-13 重新执行合并后候选上的 41 项定向单测：run-11 的 28 项、run-12 新补的 10 项直接消费者、主线评价链接和 DEBUG 路由的 3 项。最终 UI 风险重新排序为本机记录/免登录设置/法律入口、容量确认与重启恢复、整合后的评价入口实际点击；恰好 3 个方法。首次定位修复由 run-09 失败/run-11 通过提供补充证据，退款由 run-09 提供补充证据；未运行全量 UI 套件。完整精确选择器与命令在 `plan-13.json`、`run-13.sh`。
+
+## 此前服务端方案交付状态（历史）
+
+2026-10-30：用户已批准设置/扩容组件接入和公开页面发布，三个公开页面已上线。正式 iOS 页面的无登录与离线接入、独立 Apple 购买身份与后端账本已实现，已完成下文列出的定向业务回归。后端草稿 PR 为 https://github.com/Hayden-Chang/model_server/pull/98 （137 项回归通过，未部署）。最新只读回查已确认 App ID `6828695680`（`RentVisit: Viewing Checklist`、Bundle ID `com.keeline.xunju.ios`），及消耗型商品 `com.keeline.xunju.ios.capacity10`（IAP ID `6828697996`，状态 `MISSING_METADATA`）。早先空查询已过时；真实沙盒付款仍需补齐商品资料并配置、部署服务端。App Privacy 标签仍需单独填写。
 
 以下“组件预审”记录为批准前的历史证据，不代表当前仍在等待同一次 UI 批准。
 
@@ -101,7 +154,7 @@
 
 ## 业务验证交付（2026-10-30）
 
-最终覆盖为 **17 条单测 + 3 条真实页面 UI 用例分批通过**，不是全量测试，也不是实际 Apple 付款：
+主线整合前覆盖为 **17 条单测 + 3 条真实页面 UI 用例分批通过**，不是全量测试，也不是实际 Apple 付款：
 
 | 批次 | 源码 | 设备 | 结果 |
 | --- | --- | --- | --- |
