@@ -15,7 +15,7 @@ import XCTest
 
     func testRealChoicesAndGroupUndoEmitCorrectSoundWhileSilentActionsStaySilent() {
         let app = XCUIApplication()
-        app.launchArguments = ["--component-review", "parity-feedback", "--parity-state", "sound", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launchArguments = ["--component-review", "parity-feedback", "--parity-trace", "--parity-state", "sound", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
         XCTAssertTrue(app.staticTexts["sound.ready"].waitForExistence(timeout: 10))
         counts(app, 0, 0)
@@ -27,7 +27,7 @@ import XCTest
         capture(app, "sound-automatic-problem")
         yes.tap(); counts(app, 1, 1)
         yes.tap(); counts(app, 1, 1)
-        XCTAssertFalse(yes.isSelected)
+        XCTAssertFalse(yes.isSelected, app.debugDescription)
         app.buttons["mp.field.choice.f77_0.不涉及"].tap(); counts(app, 1, 1)
 
         let parent = "node:group:topic_37"
@@ -49,5 +49,7 @@ import XCTest
         XCTAssertEqual(XCTWaiter.wait(for: [disabled], timeout: 3), .completed)
         yes.tap(); counts(app, 3, 3)
         capture(app, "sound-readonly-silent")
+        let trace = XCTAttachment(string: app.debugDescription)
+        trace.name = "sound-gesture-trace"; trace.lifetime = .keepAlways; add(trace)
     }
 }
