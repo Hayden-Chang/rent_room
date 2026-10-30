@@ -69,3 +69,10 @@ it('does not allow stale refresh responses to increase a reserved balance',async
  const create=a.service.createHouse('并发刷新');await Promise.resolve();expect(m.calls.filter(c=>c.data?.action==='reserve')).toHaveLength(0);
  release();await Promise.all([refresh,create]);expect(a.service.store.capacity().remaining).toBe(0);
 });
+
+it('does not return the ID of a deleted house when retrying the same name after settlement',async()=>{
+ const m=accountWx(),a=app(m);await a.auth.login();m.respond(o=>o.data?.action==='commit'?Promise.reject(Error('offline')):m.defaultResponse(o));
+ const id=await a.service.createHouse('同名房源');a.service.store.archive(id,true);a.service.store.remove(id);
+ m.respond(null);await expect(a.service.createHouse('同名房源')).rejects.toThrow('不足');
+ expect(a.service.store.get().houses).toHaveLength(0);expect(a.service.store.capacity().remaining).toBe(0);
+});

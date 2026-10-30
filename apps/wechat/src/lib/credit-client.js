@@ -31,11 +31,13 @@ export function createCreditClient({fs,root,billing,createLocal,ensureActive,mig
   async function recover() {
     ensureActive();const value=pending();if(!value)return null;
     // Durable local state decides the outcome, never a timed-out HTTP response.
-    const state=value.saved?null:io.read('state.json');
-    const exists=value.saved||!!(state&&(validateState(state)._creditCreation===value.requestId||state.houses.some(h=>h.id===value.houseId)));
+    let state;
+    try{const raw=io.read('state.json');state=raw?validateState(raw):null;}catch(error){if(!value.saved)throw error;}
+    const present=!!state?.houses.some(h=>h.id===value.houseId);
+    const exists=value.saved||state?._creditCreation===value.requestId||present;
     const result=await billing.creditOperation(value.requestId,exists?'commit':'cancel');ensureActive();
     if(!['committed',...(exists?[]:['cancelled'])].includes(result.operation.state))throw Error('新建结果尚未确认，请重试');
-    save(null);return exists?value:null;
+    save(null);return present?value:null;
   }
   async function initialize() {
     ensureActive();await billing.migrateCredits(migrationActive);ensureActive();// Settlement can wait while offline; existing local records remain usable.

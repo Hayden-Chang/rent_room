@@ -8,8 +8,9 @@ const output=process.env.WECHAT_ARTIFACT_DIR;
 async function step(name,fn){let timer;console.log(name);try{return await Promise.race([fn(),new Promise((_,reject)=>timer=setTimeout(()=>reject(Error('Timed out: '+name)),18000))]);}finally{clearTimeout(timer);}}
 (async()=>{
  const mini=await step('connect',()=>automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT}));
+ const evaluate=(fn,...args)=>mini.evaluate('function(){return ('+fn.toString()+').apply(null,arguments);}',...args);
  const capture=name=>mini.screenshot({path:path.join(output,name+'.png')});
- async function ready(){return mini.evaluate(()=>new Promise((resolve,reject)=>{
+ async function ready(){return evaluate(()=>new Promise((resolve,reject)=>{
   let tries=0;function check(){const page=getCurrentPages().slice(-1)[0],component=page.selectComponent('property-credits');
    if(component)component.createSelectorQuery().select('.purchase').boundingClientRect(rect=>{if(rect?.width){wx.nextTick(()=>resolve(component.data));return;}retry();}).exec();else retry();
   }function retry(){if(++tries>40)return reject(Error('Credits page not rendered'));setTimeout(check,100);}check();
@@ -19,7 +20,7 @@ async function step(name,fn){let timer;console.log(name);try{return await Promis
    await mini.mockWxMethod('login',{code:'credits-ui-fixture'});
    await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:1,limit:12,capacity:{version:2,freeLimit:2},credits:{version:1,migrated:true,remaining:7},creditVersion:1,available:false}});
   });
-  await step('prepare isolated records',()=>mini.evaluate(async()=>{
+  await step('prepare isolated records',()=>evaluate(async()=>{
    const app=getApp();if(!app.service.root.includes('/xunju-test-property-credits-'))throw Error('Isolated data root required');
    const guest=app.service.store,first=guest.add('测试房源');
    guest.change(state=>{const h=state.houses.find(h=>h.id===first);state.houses=Array.from({length:5},(_,n)=>({...JSON.parse(JSON.stringify(h)),id:first+n,name:'测试房源'+n}));});
@@ -34,16 +35,16 @@ async function step(name,fn){let timer;console.log(name);try{return await Promis
   const buy=await step('find purchase button',()=>component.$('.purchase'));
   assert.equal(await step('read price',()=>buy.text()),'¥1.99 购买 10 点');
   await step('tap unavailable purchase',()=>buy.tap());
-  await step('wait for purchase result',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{
+  await step('wait for purchase result',()=>evaluate(()=>new Promise((resolve,reject)=>{
    let tries=0;function check(){const p=getCurrentPages().slice(-1)[0];if(!p.data.busy&&p.data.error)return resolve(p.data.error);if(++tries>50)return reject(Error('Purchase result missing'));setTimeout(check,100);}check();
   })));
   await step('capture failed purchase',()=>capture('credits-wechat-unavailable'));
   const restore=await step('find refresh',()=>component.$('.restore'));
   await step('tap refresh credits',()=>restore.tap());
-  await step('wait for refresh',()=>mini.evaluate(()=>new Promise((resolve,reject)=>{
+  await step('wait for refresh',()=>evaluate(()=>new Promise((resolve,reject)=>{
    let tries=0;function check(){const p=getCurrentPages().slice(-1)[0];if(!p.data.busy&&!p.data.error)return resolve(p.data.remaining);if(++tries>50)return reject(Error('Refresh did not finish'));setTimeout(check,100);}check();
   })));
-  assert.equal(await mini.evaluate(()=>getApp().service.store.capacity().remaining),7);
+  assert.equal(await evaluate(()=>getApp().service.store.capacity().remaining),7);
   await step('capture restored balance',()=>capture('credits-wechat-restored'));
   await step('open settings',()=>mini.switchTab('/pages/settings/index'));
   await step('capture settings',()=>capture('credits-wechat-settings'));
