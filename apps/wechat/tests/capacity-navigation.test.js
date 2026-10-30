@@ -70,7 +70,8 @@ it('leaves failed login on the existing page without losing the pending name or 
 
 it('routes exhausted new-property creation to the shared credits page and preserves back navigation',()=>{
  const r=runtime(['/pages/home/index']);
- r.app.service.store.add('原有房源一');r.app.service.store.add('原有房源二');
+ const initialCredits=r.app.service.store.capacity().remaining;expect(initialCredits).toBeGreaterThan(0);
+ for(let i=0;i<initialCredits;i++)r.app.service.store.add(`原有房源${i+1}`);
  const before=r.app.service.store.get().houses;
  r.page('home').add();
  expect(r.stack).toEqual(['/pages/home/index','/pages/capacity/index?intent=1']);
