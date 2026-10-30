@@ -170,7 +170,7 @@ struct BackupPage: View {
                 } else {
                     let directory = FileManager.default.temporaryDirectory.appending(path: "XunjuTransfers/\(UUID().uuidString)")
                     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-                    let url = directory.appending(path: "寻居房源备份.zip")
+                    let url = directory.appending(path: "看房搭子房源备份.zip")
                     try await transfers.export(ids: Array(ids).sorted(), store: store, to: url, progress: progress)
                     try Task.checkCancellation()
                     output = url; message = "ZIP 已生成，包含 \(ids.count) 套房源及其影像"

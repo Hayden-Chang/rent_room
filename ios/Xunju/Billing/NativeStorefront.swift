@@ -2,9 +2,18 @@ import Foundation
 import StoreKit
 
 struct CapacityProduct: Sendable { let id: String; let displayPrice: String }
-struct CapacityTransaction: Sendable { let id: String; let productID: String; let accountToken: UUID?; let environment: String }
+struct CapacityTransaction: Codable, Sendable, Equatable {
+    let id: String; let productID: String; let accountToken: UUID?; let environment: String
+    var appTransactionID: String = ""
+    var purchaseDate: Date? = nil
+    var quantity: Int = 1
+    var revocationDate: Date? = nil
+    var signedDate: Date = .distantPast
+}
 enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(CapacityTransaction) }
 @MainActor protocol CapacityStorefront: AnyObject {
+    func identity(refresh: Bool) async throws -> PurchaseIdentity
+    func stopObserving()
     func product(_ id: String) async throws -> CapacityProduct
     func purchase(_ product: CapacityProduct, accountToken: UUID) async throws -> CapacityPurchaseResult
     func transactions(synchronize: Bool) async throws -> [CapacityTransaction]
@@ -12,12 +21,29 @@ enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(Capaci
     func observe(_ receive: @escaping @MainActor (CapacityTransaction) async -> Void)
 }
 
-/// Local StoreKit verification is necessary, but never grants capacity by itself.
+/// Only StoreKit-verified transactions cross this boundary into the local ledger.
 @MainActor final class NativeStorefront: CapacityStorefront {
     private var products: [String: Product] = [:]
     private var verified: [String: StoreKit.Transaction] = [:]
     private var observer: Task<Void, Never>?
     deinit { observer?.cancel() }
+    func stopObserving() { observer?.cancel(); observer = nil }
+    func identity(refresh: Bool) async throws -> PurchaseIdentity {
+        var result: VerificationResult<AppTransaction>
+        if refresh { result = try await AppTransaction.refresh() }
+        else { result = try await AppTransaction.shared }
+        if case .verified(let value) = result, value.appTransactionID.isEmpty, !refresh {
+            result = try await AppTransaction.refresh()
+        }
+        guard case .verified(let value) = result else {
+            throw CoreFailure(message: "App Store 购买身份未通过校验，请稍后恢复容量")
+        }
+        guard value.bundleID == Bundle.main.bundleIdentifier else {
+            throw CoreFailure(message: "App Store 购买身份与当前应用不一致")
+        }
+        return try PurchaseIdentity(appTransactionID: value.appTransactionID, bundleID: value.bundleID,
+            environment: value.environment.rawValue, signedAppTransaction: result.jwsRepresentation).validated()
+    }
     func product(_ id: String) async throws -> CapacityProduct {
         guard let product = try await Product.products(for: [id]).first(where: { $0.id == id && $0.type == .consumable }) else {
             throw CoreFailure(message: "房源包暂未开放购买，请稍后再试")
@@ -37,14 +63,11 @@ enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(Capaci
     func transactions(synchronize: Bool) async throws -> [CapacityTransaction] {
         if synchronize { try await AppStore.sync() }
         var result: [String: CapacityTransaction] = [:]
-        // iOS17 recovery uses unfinished purchases plus the server's durable ledger.
-        for await value in StoreKit.Transaction.unfinished {
+        // iOS 18 + SKIncludeConsumableInAppPurchaseHistory includes finished purchases.
+        // Reject the entire snapshot on failed verification; never erase cached capacity
+        // using a partially verified history.
+        for await value in StoreKit.Transaction.all {
             let transaction = try remember(value); result[transaction.id] = transaction
-        }
-        if synchronize {
-            for await value in StoreKit.Transaction.all {
-                let transaction = try remember(value); result[transaction.id] = transaction
-            }
         }
         return Array(result.values)
     }
@@ -64,7 +87,7 @@ enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(Capaci
     }
     private func remember(_ result: VerificationResult<StoreKit.Transaction>) throws -> CapacityTransaction {
         guard case .verified(let value) = result else { throw CoreFailure(message: "购买凭证未通过校验，请稍后恢复容量") }
-        let record = CapacityTransaction(id: String(value.id), productID: value.productID, accountToken: value.appAccountToken, environment: value.environment.rawValue)
+        let record = CapacityTransaction(id: String(value.id), productID: value.productID, accountToken: value.appAccountToken, environment: value.environment.rawValue, appTransactionID: value.appTransactionID, purchaseDate: value.purchaseDate, quantity: value.purchasedQuantity, revocationDate: value.revocationDate, signedDate: value.signedDate)
         verified[record.id] = value
         return record
     }

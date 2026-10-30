@@ -19,7 +19,6 @@ struct AppRoot: View {
             .task { if workspace == nil { load() } }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { workspace?.save() }
-                else if !AppWorkspace.isBusinessTest { Task { await workspace?.refreshPolicy(); await workspace?.billing.load() } }
                 if phase == .background { workspace?.currencyLocation.enterBackground() }
                 if phase == .active {
                     workspace?.regional.updateSystemLanguages(Locale.preferredLanguages)
@@ -90,7 +89,6 @@ private struct WorkspaceRoot: View {
             }
             .task(id: workspace.identityRevision) {
                 workspace.currencyLocation.refreshOnForeground()
-                if !AppWorkspace.isBusinessTest { workspace.billing.start(); await workspace.refreshPolicy(); await workspace.billing.load() }
             }
             .toolbarBackground(XJTheme.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
             .alert(AppCopy.text("提示"), isPresented: Binding(get: { !workspace.error.isEmpty }, set: { if !$0 { workspace.error = "" } })) {

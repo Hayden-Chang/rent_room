@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {it,expect,vi,afterEach} from 'vitest';
 import fs from 'node:fs';
 import vm from 'node:vm';
@@ -23,7 +24,7 @@ function harness(){
  app.service.store.edit(id,h=>{h.xiaoda.intro='done';h.checklistOrder=['A','B','C'];h.templateTopics=['A','B','C'].map((category,i)=>({id:'t'+i,title:category,category,phase:'现场看房',path:[],fields:[0,1].map(n=>({id:`test_${category.toLowerCase()}_${n}`,label:`检查${n}`,type:'s',options:['是','否'],fact:true}))}));});
  function open(){
   vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);page.data=JSON.parse(JSON.stringify(page.data));
-  page.setData=function(p,cb){Object.assign(this.data,p);clamp();cb?.();};page.selectAllComponents=()=>[];
+  page.setData=function(p,cb){applyPageData(this.data,p);clamp();cb?.();};page.selectAllComponents=()=>[];
   page.createSelectorQuery=()=>{const kinds=[],q={select(s){kinds.push(s);return q;},boundingClientRect(){return q;},selectViewport(){kinds.push('viewport');return q;},scrollOffset(){return q;},selectAll(){kinds.push('anchors');return q;},fields(){return q;},exec(cb){const run=()=>cb(kinds.map(k=>{
    if(k==='viewport')return {scrollTop:top};if(k==='anchors')return rects();
    if(k==='.detail')return {top:-top,height:Math.max(height+guideHeight(),page.data.fillMinHeight||0)};

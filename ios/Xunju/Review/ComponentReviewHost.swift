@@ -11,6 +11,7 @@ enum ReviewSurface: String {
     case topFloor = "top-floor"
     case inspectionSetup = "inspection-setup", inspectionTeaching = "inspection-teaching"
     case regionalSettings = "regional-settings"
+    case appStoreReview = "app-store-review"
 
     var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent, .measurements].contains(self) }
 
@@ -35,6 +36,8 @@ struct ComponentReviewHost: View {
     var body: some View {
         if surface == .regionalSettings {
             RegionalSettingsReviewHost()
+        } else if surface == .appStoreReview {
+            AppStoreReviewHost()
         } else if surface == .inspectionSetup {
             InspectionSetupReviewHost()
         } else if surface == .inspectionTeaching {
@@ -63,7 +66,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching, .regionalSettings: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching, .regionalSettings, .appStoreReview: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -88,6 +91,7 @@ struct ComponentReviewHost: View {
 
     private var title: String {
         switch surface {
+        case .appStoreReview: "我的"
         case .inspectionTeaching: "小搭教学组件"
         case .wheels: "清单轮盘组件"
         case .homes: "我的房源"

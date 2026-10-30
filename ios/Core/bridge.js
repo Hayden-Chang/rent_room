@@ -10,6 +10,7 @@ import {updateWorkplace, selectWorkplace, clearWorkplace} from '../../apps/wecha
 import {coachSteps, coachTarget} from '../../apps/wechat/src/lib/onboarding.js';
 import {inspectionActions} from './inspection.js';
 import {currencyState,normalizeCurrency,addCurrencyHouse,currencyComparison} from './currency.js';
+import {recordHouseCreated, mergeReviewProgress, reviewActions} from './app-review.js';
 import {localDay} from '../../apps/wechat/src/lib/xiaoda-state.js';
 
 let store, sessionPacks = 0, claimPacks = null, freeLimit = 1;
@@ -38,7 +39,7 @@ export function initialize(raw, packs = 0, free = 1) {
       const error = nativeWrite(text, !!options?.keepPrevious);
       if (error) throw Error(error);
     }
-  }, {getPacks: () => claimPacks ?? sessionPacks, getFreeLimit: () => freeLimit});
+  }, {getPacks: () => claimPacks ?? sessionPacks, getFreeLimit: () => freeLimit, onHouseCreated: recordHouseCreated});
   return dispatch('{"operation":"snapshot"}');
 }
 
@@ -55,6 +56,7 @@ function appendMedia(h, value) {
 }
 function execute({operation, id, name, field, property, value, group, view, folds, ids, differences, draft, issueId, isNew, houses, replaceIds, currencyCode}) {
   if (Object.hasOwn(inspectionActions, operation)) return inspectionActions[operation](store, {id,name,property,value});
+  if (Object.hasOwn(reviewActions, operation)) return reviewActions[operation](store, {value});
   switch (operation) {
     case 'snapshot': return null;
     case 'setPacks': {
@@ -162,6 +164,7 @@ function execute({operation, id, name, field, property, value, group, view, fold
       claimPacks = Math.max(sessionPacks, Math.ceil(Math.max(0, [...store.get().houses, ...incoming.houses].filter(h => !h.archived).length - freeLimit) / 10));
       try {
         return store.change(state => {
+          mergeReviewProgress(state, incoming);
           const existing = new Set(state.houses.map(h => h.id));
           for (const h of incoming.houses) {
             if (existing.has(h.id)) h.id = model.uid();

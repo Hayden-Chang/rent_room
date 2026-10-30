@@ -11,9 +11,7 @@ struct HomePage: View {
     @State private var capacity = false
     @State private var continueCreate = false
     @State private var capacityAfterName = false
-    @State private var feedback = false
     @State private var homeMessage = ""
-    @State private var thankYou = false
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
@@ -30,19 +28,17 @@ struct HomePage: View {
                 else {
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                         ForEach(workspace.store.activeHouses) { house in
-                            HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { path.append(house.id) }
+                            HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { traceNavigation("card action"); path.append(house.id) }
                                 .accessibilityIdentifier("house.\(house.name)")
-                                .modifier(MPPressActions(tap: { path.append(house.id) }, hold: { managed = house }))
+                                .modifier(MPPressActions(tap: { traceNavigation("card action"); path.append(house.id) }, hold: { managed = house }))
                         }
                     }
                 }
                 if !workspace.store.activeHouses.isEmpty && !homeMessage.isEmpty {
-                    XiaodaMessage(text: homeMessage, pose: thankYou ? "success" : "point-down-right") {
-                        if !thankYou {
-                            HStack {
-                                Button(AppCopy.text("再等等")) { workspace.perform { try workspace.store.call("waitSecondHouse") }; refreshGuide() }
-                                Button(AppCopy.text("去添加"), action: add).buttonStyle(XJButtonStyle(primary: true))
-                            }
+                    XiaodaMessage(text: homeMessage, pose: "point-down-right") {
+                        HStack {
+                            Button(AppCopy.text("再等等")) { workspace.perform { try workspace.store.call("waitSecondHouse") }; refreshGuide() }
+                            Button(AppCopy.text("去添加"), action: add).buttonStyle(XJButtonStyle(primary: true))
                         }
                     }
                 }
@@ -54,7 +50,7 @@ struct HomePage: View {
                         .padding(16).accessibilityIdentifier("home.add")
                 }
             }
-            .navigationDestination(isPresented: Binding(get: { !path.isEmpty }, set: { if !$0 {
+            .navigationDestination(isPresented: Binding(get: { !path.isEmpty }, set: { traceNavigation("presentation setter \($0)"); if !$0 {
                 closeHouse()
             } })) {
                 if let id = path.last { HouseDetailPage(workspace: workspace, id: id, newHouse: newHouseID == id, returnToHouses: closeHouse) }
@@ -85,16 +81,15 @@ struct HomePage: View {
             }) {
                 NavigationStack { CapacityPage(workspace: workspace, continued: { result in continueCreate = result["kind"].string == "create" }) }
             }
-            .fullScreenCover(isPresented: $feedback) {
-                FeedbackPage(workspace: workspace) { thankYou = true; homeMessage = "收到啦，谢谢你的反馈！" }.presentationBackground(.clear)
-            }
+            .onChange(of: path) { _, value in traceNavigation("path count \(value.count)") }
             .onAppear(perform: refreshGuide)
-            .onChange(of: workspace.store.state["xiaoda"]["feedback"]) { _, _ in if path.isEmpty { refreshGuide() } }
-            .task(id: thankYou) {
-                guard thankYou else { return }
-                do { try await Task.sleep(for: .seconds(3)) } catch { return }
-                thankYou = false; refreshGuide()
-            }
+            .modifier(AppReviewPrompt(workspace: workspace, ready: path.isEmpty && !adding && managed == nil
+                && exporting == nil && !capacity && !capacityAfterName && !continueCreate))
+    }
+    private func traceNavigation(_ event: String) {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--regional-navigation-trace") { print("[RegionalNavigation] " + event) }
+        #endif
     }
     private func closeHouse() {
         if let id = path.last { workspace.perform { try workspace.store.call("leaveInspection", ["id": .string(id)]) } }
@@ -110,8 +105,7 @@ struct HomePage: View {
         guard !workspace.store.status.blocked else { return }
         workspace.perform {
             let value = try workspace.store.call("homeGuide")
-            feedback = value["feedback"].bool
-            if !thankYou { homeMessage = value["message"].string }
+            homeMessage = value["message"].string
         }
     }
 }

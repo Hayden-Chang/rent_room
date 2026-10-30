@@ -70,12 +70,13 @@ struct PlacePickerSurface: View {
                 results(nearby: false).frame(height: 230).clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line)).padding(.bottom, 10)
             }
-            if !readonly {
+            Group {
                 Button {
                     interacted = true
                     searchFocused = false
                     if collapsed, let camera { position = .camera(camera) }
                     collapsed.toggle()
+                    if !collapsed && !readonly { search() }
                 } label: {
                     HStack {
                         AppText(collapsed ? "展开地图" : "收起地图")
@@ -87,12 +88,12 @@ struct PlacePickerSurface: View {
                 }.buttonStyle(.plain).foregroundStyle(XJTheme.primary).accessibilityIdentifier("place.mapToggle")
             }
             ZStack(alignment: .topTrailing) {
-                if center != nil || hasMapPosition {
+                if interacted && !collapsed && (center != nil || hasMapPosition) {
                     Map(position: $position, interactionModes: readonly ? [.zoom] : [.pan, .zoom]) {}
                         .mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll, showsTraffic: false))
                         .mapControlVisibility(.hidden)
                         .onMapCameraChange(frequency: .onEnd) { context in
-                            guard !collapsed || readonly else { return }
+                            guard !collapsed else { return }
                             camera = context.camera
                             #if DEBUG
                             reviewCameraChanged?(context.camera.distance)
@@ -108,7 +109,7 @@ struct PlacePickerSurface: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
                 if !readonly {
-                Button(action: locate) {
+                Button { interacted = true; collapsed = false; locate() } label: {
                     AppText("定位").font(.system(size: 13, weight: .medium)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                         .contentShape(Rectangle())
@@ -121,12 +122,12 @@ struct PlacePickerSurface: View {
                         .frame(maxHeight: .infinity, alignment: .bottom)
                 }
             }.frame(height: 300)
-                .frame(height: collapsed && !readonly ? 0 : 300, alignment: .top).clipped()
-                .allowsHitTesting(!collapsed || readonly).accessibilityHidden(collapsed && !readonly)
+                .frame(height: collapsed ? 0 : 300, alignment: .top).clipped()
+                .allowsHitTesting(!collapsed).accessibilityHidden(collapsed)
                 .background(Color(red: 242 / 255, green: 244 / 255, blue: 247 / 255))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             if busy && !readonly { AppText("正在查找地点…").font(.system(size: 12)).foregroundStyle(XJTheme.muted).frame(maxWidth: .infinity, alignment: .leading) }
-            if (!collapsed || readonly) && (center != nil || !places.isEmpty) {
+            if !collapsed && (center != nil || !places.isEmpty) {
                 AppText("地点信息来源：\(AppCopy.text(attribution))").font(.system(size: 10)).foregroundStyle(XJTheme.muted)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
@@ -140,7 +141,7 @@ struct PlacePickerSurface: View {
             }
         }.padding(.top, 4).padding(.bottom, 10).foregroundStyle(XJTheme.ink).tint(XJTheme.primary)
             .onAppear {
-                collapsed = !readonly && (center != nil || !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                collapsed = readonly || (center != nil || !address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 recenter()
             }.onChange(of: center) { recenter() }
             .onChange(of: address) { if !readonly { collapsed = true } }
@@ -152,8 +153,7 @@ struct PlacePickerSurface: View {
 
     private func recenter() {
         if let center {
-            // A manual address edit can clear stored coordinates before MapKit
-            // reports a camera. Keep the existing map and its position mounted.
+            // Preserve the last camera locally; MapKit is mounted only after interaction.
             hasMapPosition = true
             if let camera {
                 let next = MapCamera(centerCoordinate: center.coordinate, distance: camera.distance, heading: camera.heading, pitch: camera.pitch)

@@ -5,7 +5,7 @@ import CoreLocation
     override func setUpWithError() throws { continueAfterFailure = false }
     private func launch(returning: Bool = false, english: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", english ? "(en)" : "(zh-Hans)", "-AppleLocale", english ? "en_GB" : "zh_CN"]
+        app.launchArguments = ["--business-test", UUID().uuidString, "--regional-navigation-trace", "-AppleLanguages", english ? "(en)" : "(zh-Hans)", "-AppleLocale", english ? "en_GB" : "zh_CN"]
         if returning { app.launchArguments += ["--returning-business-fixture", "--two-room-policy-fixture"] }
         app.resetAuthorizationStatus(for: .location)
         app.launch(); return app

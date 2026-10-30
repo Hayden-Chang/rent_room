@@ -1,3 +1,4 @@
+import {applyPageData} from './helpers/page-data.js';
 import {localPageFixture} from './helpers/account-fixture.js';
 import {it,expect} from 'vitest';
 import {TRANSIT_FIELD_ID,DRIVING_FIELD_ID} from '../src/lib/commute-fields.js';
@@ -22,7 +23,7 @@ function harness(){
     scrollTop=0;
     vm.runInContext(fs.readFileSync('dist/pages/detail/index.js','utf8'),context);
     page.data=JSON.parse(JSON.stringify(page.data));
-    page.setData=function(p,cb){Object.assign(this.data,p);scrollTop=p.accountReady===false?0:Math.min(scrollTop,heights[this.data.tab]);cb?.();};
+    page.setData=function(p,cb){applyPageData(this.data,p);scrollTop=p.accountReady===false?0:Math.min(scrollTop,heights[this.data.tab]);cb?.();};
     page.createSelectorQuery=()=>{
       const kinds=[];
       const query={selectViewport(){kinds.push('viewport');return query;},scrollOffset(){return query;},selectAll(){kinds.push('anchors');return query;},fields(){return query;},exec(cb){const run=()=>cb(kinds.map(kind=>kind==='viewport'?{scrollTop}:(anchors[page.data.tab]||[]).map(a=>({dataset:{scrollKey:a.key},top:a.top-scrollTop,bottom:a.top+a.height-scrollTop}))));if(defer)queries.push(run);else run();}};
