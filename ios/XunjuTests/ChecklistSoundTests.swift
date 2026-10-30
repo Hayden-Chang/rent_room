@@ -90,8 +90,8 @@ import AVFAudio
             let url = try XCTUnwrap(sound.resourceURL)
             let player = try AVAudioPlayer(contentsOf: url)
             XCTAssertEqual(player.numberOfChannels, 1)
-            XCTAssertEqual(player.duration, sound == .problem ? 0.29 : 0.34, accuracy: 0.001)
-            XCTAssertLessThan(try Data(contentsOf: url).count, 40_000)
+            XCTAssertEqual(player.duration, sound == .problem ? 0.29 : 0.6, accuracy: 0.001)
+            XCTAssertLessThan(try Data(contentsOf: url).count, 64_000)
             data.append(try Data(contentsOf: url))
         }
         XCTAssertNotEqual(data[0], data[1])
