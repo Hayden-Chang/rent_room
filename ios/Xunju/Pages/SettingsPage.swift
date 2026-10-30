@@ -102,6 +102,7 @@ struct SettingsPage: View {
                 XJCard {
                     VStack(spacing: 0) {
                         Button { feedback = true } label: { menu("使用反馈") }.accessibilityIdentifier("settings.feedback")
+                        AppStoreReviewRow(appID: AppStoreReview.appID)
                         if let cover = Bundle.main.url(forResource: "InspectionShareCover", withExtension: "jpg") {
                             ShareLink(item: cover, subject: Text("看房搭子｜看房清单，避坑指南"), message: Text("看房搭子｜看房清单，避坑指南")) { menu("分享看房搭子") }
                                 .accessibilityIdentifier("settings.share")

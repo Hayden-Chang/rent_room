@@ -3,11 +3,11 @@ import XCTest
 
 final class AppStoreReviewTests: XCTestCase {
     func testReviewURLTargetsWritingReviewWithoutPinningStorefront() throws {
-        let url = try XCTUnwrap(AppStoreReview.url(appID: "1234567890"))
+        let url = try XCTUnwrap(AppStoreReview.url(appID: AppStoreReview.appID))
         let components = try XCTUnwrap(URLComponents(url: url, resolvingAgainstBaseURL: false))
         XCTAssertEqual(components.scheme, "https")
         XCTAssertEqual(components.host, "apps.apple.com")
-        XCTAssertEqual(components.path, "/app/id1234567890")
+        XCTAssertEqual(components.path, "/app/id6828695680")
         XCTAssertEqual(components.queryItems, [URLQueryItem(name: "action", value: "write-review")])
     }
 

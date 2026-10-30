@@ -1,6 +1,8 @@
 import SwiftUI
 
 enum AppStoreReview {
+    static let appID = "6828695680"
+
     static func url(appID: String?) -> URL? {
         guard let appID, !appID.isEmpty, appID.first != "0",
               appID.utf8.allSatisfy({ (48...57).contains($0) }) else { return nil }

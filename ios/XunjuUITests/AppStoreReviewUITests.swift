@@ -3,10 +3,17 @@ import XCTest
 @MainActor final class AppStoreReviewUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
 
-    private func launch(_ extra: [String] = []) -> XCUIApplication {
+    private func launch(_ extra: [String] = [], settings: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--component-review", "app-store-review", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"] + extra
+        let route = settings ? ["--returning-business-fixture", "--business-test", UUID().uuidString, "--review-settings"] : ["--component-review", "app-store-review"]
+        app.launchArguments = route + ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"] + extra
         app.launch()
+        if settings {
+            let tab = app.buttons["tab.我的"]
+            XCTAssertTrue(tab.waitForExistence(timeout: 10)); tab.tap()
+            let row = app.buttons["settings.appStoreReview"]
+            for _ in 0..<4 { if row.isHittable { break }; app.swipeUp() }
+        }
         XCTAssertTrue(app.buttons["settings.appStoreReview"].waitForExistence(timeout: 10))
         return app
     }
@@ -21,11 +28,13 @@ import XCTest
         let row = app.buttons["settings.appStoreReview"]
         XCTAssertTrue(row.isHittable)
         XCTAssertTrue(row.label.contains("在 App Store 中评价"))
+        XCTAssertTrue(app.buttons["settings.feedback"].exists)
+        XCTAssertTrue(app.buttons["settings.share"].exists)
         capture("app-store-review-row", app)
         row.tap()
         let destination = app.staticTexts["review.openedURL"]
         XCTAssertTrue(destination.waitForExistence(timeout: 3))
-        XCTAssertEqual(destination.label, "https://apps.apple.com/app/id1234567890?action=write-review")
+        XCTAssertEqual(destination.label, "https://apps.apple.com/app/id6828695680?action=write-review")
         XCTAssertEqual(app.staticTexts["review.openCount"].label, "打开次数：1")
         row.tap()
         XCTAssertEqual(app.staticTexts["review.openCount"].label, "打开次数：2")
@@ -51,7 +60,7 @@ import XCTest
     }
 
     func testMissingAppIDShowsErrorWithoutOpeningURL() {
-        let app = launch(["--review-missing-id"])
+        let app = launch(["--review-missing-id"], settings: false)
         app.buttons["settings.appStoreReview"].tap()
         XCTAssertTrue(app.alerts["无法打开 App Store"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["review.openedURL"].exists)
