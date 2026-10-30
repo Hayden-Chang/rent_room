@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the problem cue and validate the licensed success bell (48 kHz, mono, PCM16)."""
+"""Generate the problem cue and validate the user-selected success cue (48 kHz, mono, PCM16)."""
 import hashlib
 import io
 import math
@@ -39,9 +39,9 @@ else:
     path.write_bytes(output.getvalue())
 print(f"problem: {len(output.getvalue())} bytes")
 
-# Curated CC0 asset, intentionally not overwritten by the oscillator generator.
+# User-selected asset, intentionally not overwritten by the oscillator generator.
 # Source, editing command and original checksum: docs/ios/CHECKLIST_SOUNDS.md.
 positive = ROOT / "checklist-positive.wav"
 assert hashlib.sha256(positive.read_bytes()).hexdigest() == \
-    "9b7fd96cd0165e27007ff3c78ad258eb02d23bb66b311e401d865015068e47fc", "Success bell has changed"
-print(f"positive: {positive.stat().st_size} bytes (licensed bell verified)")
+    "49691766db58ec115cb02380b6a89c8dd802d16eeef19eb619ed8081e02d7b53", "Success bell has changed"
+print(f"positive: {positive.stat().st_size} bytes (selected cue verified)")
