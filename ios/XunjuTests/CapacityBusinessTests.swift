@@ -2,7 +2,7 @@ import XCTest
 @testable import Xunju
 
 actor CapacityTestAPI: CapacityServicing {
-    let account = String(repeating: "a", count: 64)
+    let account = CapacityTestStorefront.testIdentity.account
     let accountToken = UUID(uuidString: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")!
     var packs = 0, revision = 0, calls = 0
     var unavailable = false, failVerification = false, failRestore = false
@@ -11,15 +11,15 @@ actor CapacityTestAPI: CapacityServicing {
     var blockVerification = false
     var started: (() -> Void)?
     func balance() -> CapacityBalance { CapacityBalance(account: account, environment: "Sandbox", packs: packs, limit: 2 + 10 * packs, revision: revision) }
-    func context(token: String) -> CapacityContext { CapacityContext(available: !unavailable, productID: "test.capacity.10", appAccountToken: accountToken, balance: balance()) }
-    func verify(_ transactionID: String, token: String) async throws -> CapacityConfirmation {
+    func context(proof: String) -> CapacityContext { CapacityContext(available: !unavailable, productID: "test.capacity.10", appAccountToken: accountToken, balance: balance()) }
+    func verify(_ transactionID: String, proof: String) async throws -> CapacityConfirmation {
         calls += 1
         if blockVerification { await withCheckedContinuation { verificationGate = $0; started?() } }
         if failVerification { throw CoreFailure(message: "购买记录暂时无法确认，请稍后重试") }
         if granted.insert(transactionID).inserted { packs += 1; revision += 1 }
         return CapacityConfirmation(transactionID: transactionID, status: "verified", balance: balance())
     }
-    func restore(token: String) throws -> CapacityBalance {
+    func restore(proof: String) throws -> CapacityBalance {
         if failRestore { throw CoreFailure(message: "恢复失败，请重试") }
         return balance()
     }
@@ -32,6 +32,10 @@ actor CapacityTestAPI: CapacityServicing {
 }
 
 @MainActor final class CapacityTestStorefront: CapacityStorefront {
+    nonisolated static let testIdentity = PurchaseIdentity(appTransactionID: "9001", bundleID: "test.xunju", environment: "Sandbox", signedAppTransaction: "signed-app-proof")
+    var purchaseIdentity = testIdentity
+    func identity(refresh: Bool) -> PurchaseIdentity { purchaseIdentity }
+    func stopObserving() { receive = nil }
     let accountToken = UUID(uuidString: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")!
     var result: CapacityPurchaseResult?
     var outstanding: [CapacityTransaction] = []
@@ -39,7 +43,7 @@ actor CapacityTestAPI: CapacityServicing {
     var syncs = 0, purchases = 0
     var productFails = false
     var receive: (@MainActor (CapacityTransaction) async -> Void)?
-    var transaction: CapacityTransaction { CapacityTransaction(id: "10001", productID: "test.capacity.10", accountToken: accountToken, environment: "Sandbox") }
+    var transaction: CapacityTransaction { CapacityTransaction(id: "10001", productID: "test.capacity.10", accountToken: accountToken, environment: "Sandbox", appTransactionID: purchaseIdentity.appTransactionID) }
     func product(_ id: String) throws -> CapacityProduct {
         if productFails { throw CoreFailure(message: "商品暂不可用") }
         return CapacityProduct(id: id, displayPrice: "$0.99")
@@ -61,7 +65,6 @@ actor CapacityTestAPI: CapacityServicing {
         addTeardownBlock { try? FileManager.default.removeItem(at: root) }
         let keychain = VolatileSessionStorage(), api = CapacityTestAPI(), storefront = CapacityTestStorefront()
         let workspace = try AppWorkspace(root: root, keychain: keychain, capacityAPI: api, storefront: storefront)
-        try workspace.accept(LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "phone", expiresIn: 7200, packs: 0, limit: 2))
         return (workspace, api, storefront, keychain)
     }
     func testUnconfirmedPurchaseRetainsRecordsAndRestoresExactlyOnceAfterRelaunch() async throws {
@@ -72,15 +75,15 @@ actor CapacityTestAPI: CapacityServicing {
         await workspace.billing.load(); await workspace.billing.purchase()
         XCTAssertEqual(workspace.billing.activity, .pending); XCTAssertFalse(workspace.billing.error.isEmpty)
         XCTAssertEqual(store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
-        let expiry = try XCTUnwrap(workspace.session?.expiresAt)
+        XCTAssertNil(workspace.session)
         // Process death leaves the StoreKit transaction unfinished, ready to retry.
         let reopened = try AppWorkspace(root: workspace.scopes.root, keychain: keychain, capacityAPI: api, storefront: storefront)
         await api.configure()
         await reopened.billing.load(); await reopened.billing.restore(); await reopened.billing.restore()
         XCTAssertEqual(reopened.store.capacity.limit, 11); XCTAssertEqual(storefront.finished, ["10001"])
         XCTAssertEqual(reopened.store.house(id)["answers"]["f1_6"]["value"].string, "0")
-        XCTAssertEqual(reopened.session?.expiresAt, expiry)
-        XCTAssertEqual(keychain.read()?.packs, 1)
+        XCTAssertNil(reopened.session); XCTAssertNil(keychain.read())
+        XCTAssertEqual(reopened.purchaseBalance?.packs, 1)
     }
     func testCancellationApprovalAndDisabledProductNeverGrantAndRestoreDoesNotNeedProduct() async throws {
         let (workspace, api, storefront, _) = try fixture()
@@ -103,13 +106,13 @@ actor CapacityTestAPI: CapacityServicing {
         await workspace.billing.load(); await workspace.billing.purchase()
         let store = workspace.store
         for index in 0..<3 { _ = try store.add("房源\(index)") }
-        let old = try await api.restore(token: "test")
+        let old = try await api.restore(proof: "test")
         await api.refund(); await workspace.billing.restore()
         XCTAssertTrue(workspace.store === store); XCTAssertEqual(store.capacity.used, 3); XCTAssertEqual(store.capacity.limit, 1)
         XCTAssertThrowsError(try store.add("超额")); XCTAssertEqual(store.houses.count, 3)
-        try workspace.applyCapacity(old); XCTAssertEqual(store.capacity.limit, 1)
-        XCTAssertThrowsError(try workspace.applyCapacity(CapacityBalance(account: old.account, environment: "Sandbox", packs: 1, limit: 12, revision: 2)))
-        XCTAssertThrowsError(try workspace.applyCapacity(CapacityBalance(account: String(repeating: "b", count: 64), environment: "Sandbox", packs: 1, limit: 12, revision: 3)))
+        try workspace.applyPurchaseCapacity(old, identity: CapacityTestStorefront.testIdentity); XCTAssertEqual(store.capacity.limit, 1)
+        XCTAssertThrowsError(try workspace.applyPurchaseCapacity(CapacityBalance(account: old.account, environment: "Sandbox", packs: 1, limit: 12, revision: 2), identity: CapacityTestStorefront.testIdentity))
+        XCTAssertThrowsError(try workspace.applyPurchaseCapacity(CapacityBalance(account: String(repeating: "b", count: 64), environment: "Sandbox", packs: 1, limit: 12, revision: 3), identity: CapacityTestStorefront.testIdentity))
         XCTAssertThrowsError(try store.call("setPacks", ["value": .number(-1)]))
         let restored = try NativeStore(directory: store.records.directory, packs: 0)
         XCTAssertEqual(restored.houses.count, 3)
@@ -129,28 +132,21 @@ actor CapacityTestAPI: CapacityServicing {
         XCTAssertEqual(storefront.finished, ["10001"])
         let calls = await api.calls; XCTAssertEqual(calls, 1)
     }
-    func testKeychainFailureKeepsPurchaseUnfinishedUntilCapacityCacheCanBeSaved() async throws {
-        final class FailingSessions: SessionStorage {
-            var value: LocalSession?; var fail = false
-            func read() -> LocalSession? { value }
-            func write(_ session: LocalSession) throws { if fail { throw CoreFailure(message: "保存失败") }; value = session }
-            func remove() { value = nil }
-        }
-        let root = FileManager.default.temporaryDirectory.appending(path: "CapacityTests/\(UUID())")
-        defer { try? FileManager.default.removeItem(at: root) }
-        let sessions = FailingSessions(), api = CapacityTestAPI(), storefront = CapacityTestStorefront()
-        let workspace = try AppWorkspace(root: root, keychain: sessions, capacityAPI: api, storefront: storefront)
-        try workspace.accept(LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "phone", expiresIn: 7200, packs: 0, limit: 2))
+    func testCacheFailureKeepsPurchaseUnfinishedUntilCapacityCanBeSaved() async throws {
+        let (workspace, api, storefront, _) = try fixture()
         await workspace.billing.load()
-        // Fail only when saving the confirmed increment, after the preflight context.
         let waiting = expectation(description: "server confirming")
         await api.gate { waiting.fulfill() }
         let purchase = Task { await workspace.billing.purchase() }
         await fulfillment(of: [waiting], timeout: 5)
-        sessions.fail = true; await api.resume(); await purchase.value
+        let cache = workspace.scopes.root.appending(path: "purchase-capacity.json")
+        try FileManager.default.removeItem(at: cache)
+        try FileManager.default.createDirectory(at: cache, withIntermediateDirectories: false)
+        await api.resume(); await purchase.value
         XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
         XCTAssertEqual(workspace.billing.activity, .pending)
-        sessions.fail = false; await workspace.billing.restore()
+        try FileManager.default.removeItem(at: cache)
+        await workspace.billing.restore()
         XCTAssertEqual(workspace.store.capacity.limit, 11); XCTAssertEqual(storefront.finished, ["10001"])
     }
     func testFixtureRequiresExplicitUUIDAndKnownMode() {
@@ -167,8 +163,7 @@ actor CapacityTestAPI: CapacityServicing {
         await api.gate { waiting.fulfill() }
         let purchase = Task { await workspace.billing.purchase() }
         await fulfillment(of: [waiting], timeout: 5)
-        try workspace.logout()
-        try workspace.accept(LoginReceipt(account: String(repeating: "b", count: 64), token: String(repeating: "u", count: 40), provider: "apple", expiresIn: 7200, packs: 0, limit: 2))
+        workspace.billing.identityChanged()
         await api.resume(); await purchase.value
         XCTAssertEqual(workspace.store.capacity.limit, 1); XCTAssertEqual(storefront.finished, [])
         XCTAssertEqual(workspace.billing.activity, .idle)

@@ -44,9 +44,7 @@ targets:
       - package: ZIPFoundation
     entitlements:
       path: Xunju/Xunju.entitlements
-      properties:
-        com.apple.developer.applesignin:
-          - Default
+      properties: {}
   XunjuTests:
     type: bundle.unit-test
     platform: iOS

@@ -4,6 +4,7 @@ import Foundation
 /// An explicit UUID sandbox replaces only external services, retaining the real
 /// CapacityAPI decoder, controller, identity store, persistence and pages.
 enum CapacityBusinessFixture {
+    static let identity = PurchaseIdentity(appTransactionID: "9001", bundleID: "test.xunju", environment: "Sandbox", signedAppTransaction: "fixture-app-proof")
     static func mode(arguments: [String] = ProcessInfo.processInfo.arguments) -> String? {
         guard let test = arguments.firstIndex(of: "--business-test"), arguments.indices.contains(test + 1), UUID(uuidString: arguments[test + 1]) != nil,
               let index = arguments.firstIndex(of: "--capacity-business-fixture"), arguments.indices.contains(index + 1),
@@ -15,7 +16,9 @@ enum CapacityBusinessFixture {
         let storefront = CapacityFixtureStorefront(root: root, mode: mode)
         let workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), capacityAPI: CapacityAPI(transport: transport), storefront: storefront)
         let packs = mode == "refund" ? 1 : 0
-        try workspace.accept(LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "apple", expiresIn: 7200, packs: packs, limit: 2 + 10 * packs))
+        if workspace.purchaseBalance == nil {
+            try workspace.applyPurchaseCapacity(CapacityBalance(account: identity.account, environment: "Sandbox", packs: packs, limit: 2 + 10 * packs, revision: 0), identity: identity)
+        }
         if mode == "refund", workspace.store.houses.isEmpty {
             for i in 1...3 { _ = try workspace.store.add("退款保留\(i)") }
         }
@@ -61,16 +64,18 @@ private actor CapacityFixtureHTTP: AuthTransport {
         try JSONEncoder().encode(state).write(to: file, options: .atomic)
         if status == 200 {
             let free = mode == "zero" ? 0 : 1
-            value.merge(["account": String(repeating: "a", count: 64), "environment": "Sandbox", "packs": state.packs, "limit": free + 10 * state.packs, "revision": state.revision,
+            value.merge(["account": CapacityBusinessFixture.identity.account, "environment": "Sandbox", "packs": state.packs, "limit": free + 10 * state.packs, "revision": state.revision,
                          "capacity": ["version": 2, "freeLimit": free]]) { _, new in new }
         }
         return HTTPPayload(data: try JSONSerialization.data(withJSONObject: value), status: status)
     }
 }
 @MainActor private final class CapacityFixtureStorefront: CapacityStorefront {
+    func identity(refresh: Bool) -> PurchaseIdentity { CapacityBusinessFixture.identity }
+    func stopObserving() {}
     let file: URL; let mode: String
     init(root: URL, mode: String) { file = root.appending(path: "fixture-storekit-unfinished"); self.mode = mode }
-    var transaction: CapacityTransaction { CapacityTransaction(id: "10001", productID: "fixture.capacity.10", accountToken: UUID(uuidString: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"), environment: "Sandbox") }
+    var transaction: CapacityTransaction { CapacityTransaction(id: "10001", productID: "fixture.capacity.10", accountToken: UUID(uuidString: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"), environment: "Sandbox", appTransactionID: CapacityBusinessFixture.identity.appTransactionID) }
     func product(_ id: String) -> CapacityProduct { CapacityProduct(id: id, displayPrice: "¥1.99") }
     func purchase(_ product: CapacityProduct, accountToken: UUID) throws -> CapacityPurchaseResult {
         if mode == "refund" { return .cancelled }

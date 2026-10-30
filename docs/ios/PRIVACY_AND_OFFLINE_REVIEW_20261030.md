@@ -74,3 +74,15 @@
 主 agent 已逐张查看并在会话展示 5 张未经修改的 XCUITest 截图。设备为 iPhone 16 / iOS 26.5，UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56`，每张 1178×2556。设置菜单对齐、法律入口和扩容文案清晰；待确认按钮禁用，错误提示出现后显示容量仍为 1/1。¥1.99 与 1/1 为测试数据；设置页底部“房源容量”为 DEBUG 宿主的动作回显。待确认及错误状态的底部法律链接需要滚动查看。本批没有验证其他屏幕尺寸或动态字体。
 
 组件状态为 **REVIEW_READY**，已向用户请求明确批准，尚未获得。正文后续只追加验证结果，未改动 Swift、资源、配置或测试，截图继续归属 `4cfae1e`，不冒称来自文档提交后的 HEAD。PR 创建后已由主 agent 另行复核差异、范围和证据；GitHub check-runs/statuses 为空，不能称云端 CI 通过。
+
+## 用户确认后的业务接入（2026-10-30）
+
+用户回复“是的，没问题”，批准已展示的无登录设置/扩容页面接入，并批准三个公开页面发布。support PR #14 已合并（e74ddcfa9db08c6ac55479b7cbb380b560b4b7eb），三个 HTTPS 页面已逐一验证 HTTP 200。
+
+本轮接入：正式设置页采用已批准组件，移除 Apple 登录、头像/昵称编辑、退出登录和登录准备请求；移除启动/回前台时的容量联网；购买观察器仅在扩容页面启用。首次离线启动固定当前本机记录目录，并保留历史账号目录、媒体及原缓存容量；后续启动不需要 Keychain 登录记录。切换 Apple 购买身份只替换容量缓存，不切换或删除房源目录。
+
+免登录扩容使用本机 StoreKit 验证过的 AppTransaction 签名证明。服务端再次使用 Apple 官方库验证，按 bundle/environment/appTransactionID 派生独立购买身份；iOS 17 可用已回移植的 appTransactionID 属性。三条 POST 接口位于 `/api/rent-room/ios/purchases/{context,verify,restore}`，无 App 登录 Bearer token。消耗型订单只有在服务端持久化及本机容量保存完成后才 finish；失败保留 unfinished，下次主动恢复补发；服务端账本支持已 finish 的订单在重装后恢复。Sandbox 与 Production 分开。签名证明仅在内存及 TLS 请求中使用，不进入房源备份或日志。
+
+后端实现位于 model_server 独立分支 `codex/rent-room-account-free-purchases-20261030`，默认不开启销售。真实 App Store 商品、App ID、服务端密钥、部署和 Apple 沙盒交易仍是独立验收项；下面的 HTTP/StoreKit 注入测试不能代替真实付款。此次确认不作为 iOS/后端合并或部署授权。
+
+本轮验证计划：13 条业务/迁移/API 单测，实际包内隐私清单单测，3 条真实页面交互（本机记录重启/无登录设置/公开链接入口；未确认购买恢复且不重复发放；退款保留超额房源/商品不可用）。其他已有 UI 文件仅同步设置入口选择器，移除已废弃登录/账号资料 UI 测试，保留旧账号数据模型与迁移单测。

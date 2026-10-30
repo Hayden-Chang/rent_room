@@ -7,7 +7,7 @@ import XCTest
         app.launchArguments = ["--returning-business-fixture", "--business-test", id, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         if let mode { app.launchArguments += ["--capacity-business-fixture", mode] }
         app.launch(); XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 10))
-        app.buttons["tab.我的"].tap(); app.buttons["settings.capacity"].tap()
+        app.buttons["tab.我的"].tap(); app.buttons["local-settings.capacity"].tap()
         XCTAssertTrue(app.buttons["capacity.purchase"].waitForExistence(timeout: 5))
         return app
     }
@@ -21,15 +21,6 @@ import XCTest
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
-    }
-    func testGuestCapacityOpensAppleOnlyLogin() {
-        let app = launch(UUID().uuidString)
-        XCTAssertEqual(app.buttons["capacity.purchase"].label, "登录后购买")
-        waitTotal("0 / 1 套", app); app.buttons["capacity.purchase"].tap()
-        XCTAssertTrue(app.buttons["login.apple"].waitForExistence(timeout: 5))
-        XCTAssertFalse(app.buttons["login.wechat"].exists)
-        XCTAssertFalse(app.buttons["login.phone"].exists)
-        capture("94-capacity-guest-apple-login", app)
     }
     func testPendingPurchaseDoesNotGrantAndRestoresOnceAcrossProcessRelaunch() {
         let id = UUID().uuidString, app = launch(id, mode: "pending")
@@ -73,7 +64,7 @@ import XCTest
         app.navigationBackButton.tap(); app.buttons["home.add"].tap()
         waitTotal("1 / 0 套", app); XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)
         capture("business-zero-capacity-create-blocked", app)
-        app.navigationBackButton.tap(); app.buttons["tab.我的"].tap(); app.buttons["settings.archive"].tap()
+        app.navigationBackButton.tap(); app.buttons["tab.我的"].tap(); app.buttons["local-settings.archive"].tap()
         app.buttons["archive.open.零额度待恢复"].press(forDuration: 1)
         app.buttons["archive.restore.零额度待恢复"].tap()
         waitTotal("1 / 0 套", app); XCTAssertFalse(app.buttons["capacity.continue"].isEnabled)

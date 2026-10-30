@@ -27,12 +27,12 @@ struct CapacityConfirmation: Sendable {
     let balance: CapacityBalance
 }
 protocol CapacityServicing: Sendable {
-    func context(token: String) async throws -> CapacityContext
-    func verify(_ transactionID: String, token: String) async throws -> CapacityConfirmation
-    func restore(token: String) async throws -> CapacityBalance
+    func context(proof: String) async throws -> CapacityContext
+    func verify(_ transactionID: String, proof: String) async throws -> CapacityConfirmation
+    func restore(proof: String) async throws -> CapacityBalance
 }
 struct CapacityAPI: CapacityServicing {
-    var baseURL = URL(string: "https://api.keeline.xyz/api/rent-room/ios/storekit")!
+    var baseURL = URL(string: "https://api.keeline.xyz/api/rent-room/ios/purchases")!
     var transport: any AuthTransport = URLSessionAuthTransport()
     private struct Envelope: Decodable {
         let account: String; let environment: String; let packs: Int; let limit: Int; let revision: Int
@@ -41,28 +41,26 @@ struct CapacityAPI: CapacityServicing {
         let capacity: CapacityPolicy?
         var balance: CapacityBalance { get throws { try CapacityBalance(account: account, environment: environment, packs: packs, limit: limit, revision: revision, capacity: capacity).validated() } }
     }
-    func context(token: String) async throws -> CapacityContext {
-        let value = try await request("context", token: token)
+    func context(proof: String) async throws -> CapacityContext {
+        let value = try await request("context", proof: proof)
         guard let available = value.available, value.packSize == 10, let accountToken = value.appAccountToken,
               !available || !(value.productId ?? "").isEmpty else { throw CoreFailure(message: "房源包信息无效，请重试") }
         return try CapacityContext(available: available, productID: value.productId, appAccountToken: accountToken, balance: value.balance)
     }
-    func verify(_ transactionID: String, token: String) async throws -> CapacityConfirmation {
+    func verify(_ transactionID: String, proof: String) async throws -> CapacityConfirmation {
         guard transactionID.range(of: "\\A[0-9]{1,32}\\z", options: .regularExpression) != nil else { throw CoreFailure(message: "购买记录标识无效") }
-        let value = try await request("verify", token: token, body: ["transactionId": transactionID])
+        let value = try await request("verify", proof: proof, body: ["transactionId": transactionID])
         guard value.transactionId == transactionID, let status = value.status, ["verified", "revoked"].contains(status) else { throw CoreFailure(message: "购买记录暂时无法确认，请恢复容量重试") }
         return try CapacityConfirmation(transactionID: transactionID, status: status, balance: value.balance)
     }
-    func restore(token: String) async throws -> CapacityBalance { try await request("restore", token: token, body: [:]).balance }
-    private func request(_ path: String, token: String, body: [String: String]? = nil) async throws -> Envelope {
+    func restore(proof: String) async throws -> CapacityBalance { try await request("restore", proof: proof, body: [:]).balance }
+    private func request(_ path: String, proof: String, body: [String: String]? = nil) async throws -> Envelope {
         var request = URLRequest(url: baseURL.appending(path: path)); request.timeoutInterval = 20
         request.cachePolicy = .reloadIgnoringLocalCacheData
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("2", forHTTPHeaderField: "x-rent-room-capacity-version")
-        if let body {
-            request.httpMethod = "POST"; request.httpBody = try JSONEncoder().encode(body)
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        }
+        var payload = body ?? [:]; payload["signedAppTransaction"] = proof
+        request.httpMethod = "POST"; request.httpBody = try JSONEncoder().encode(payload)
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let response: HTTPPayload
         do { response = try await transport.send(request) }
         catch is CancellationError { throw CancellationError() }

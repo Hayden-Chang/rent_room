@@ -14,6 +14,36 @@ final class LocalIdentityScopes {
         self.root = root.standardizedFileURL.resolvingSymlinksInPath()
     }
 
+    /// Freeze the currently selected data directory on the first offline launch.
+    /// A malformed pointer fails closed instead of silently opening an empty store.
+    func offlineDirectory(legacy: LocalSession?) throws -> URL {
+        let pointer = root.appending(path: "local-current.json")
+        if files.fileExists(atPath: pointer.path) {
+            guard let relative = try? JSONDecoder().decode(String.self, from: Data(contentsOf: pointer)),
+                  valid(relative, pattern: "\\A(?:accounts/[a-f0-9]{64}|guests/h[a-f0-9]{32})\\z") else {
+                throw CoreFailure(message: "本机记录目录读取失败，原文件已保留")
+            }
+            let directory = root.appending(path: relative)
+            guard directory.resolvingSymlinksInPath() == directory else {
+                throw CoreFailure(message: "本机记录目录无效，原文件已保留")
+            }
+            return directory
+        }
+        let directory = try legacy.map { try accountDirectory($0.account) } ?? guestDirectory()
+        guard directory.resolvingSymlinksInPath() == directory else {
+            throw CoreFailure(message: "本机记录目录无效，原文件已保留")
+        }
+        return directory
+    }
+    func selectOfflineDirectory(_ directory: URL) throws {
+        let relative = directory.path.replacingOccurrences(of: root.path + "/", with: "")
+        guard valid(relative, pattern: "\\A(?:accounts/[a-f0-9]{64}|guests/h[a-f0-9]{32})\\z"),
+              directory.resolvingSymlinksInPath() == directory else {
+            throw CoreFailure(message: "本机记录目录无效，原文件已保留")
+        }
+        try JSONEncoder().encode(relative).write(to: root.appending(path: "local-current.json"), options: .atomic)
+    }
+
     func accountDirectory(_ account: String) throws -> URL {
         guard valid(account, pattern: "\\A[a-f0-9]{64}\\z") else { throw CoreFailure(message: "账号校验失败，请重新登录") }
         return root.appending(path: "accounts/\(account)")

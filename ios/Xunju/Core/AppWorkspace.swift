@@ -14,6 +14,8 @@ final class AppWorkspace {
     let scopes: LocalIdentityScopes
     private(set) var store: NativeStore
     private(set) var session: LocalSession?
+    private(set) var purchaseBalance: CapacityBalance?
+    @ObservationIgnored private let purchaseCache: PurchaseCapacityCache
     var error = ""
     @ObservationIgnored private let keychain: any SessionStorage
     @ObservationIgnored let mapKey: String
@@ -35,18 +37,26 @@ final class AppWorkspace {
         self.policyAPI = policyAPI; policyCache = CapacityPolicyCache(root: scopes.root)
         let initialPolicy = policyCache.read()
         capacityPolicy = initialPolicy
-        let guest = try NativeStore(directory: scopes.guestDirectory(), freeLimit: initialPolicy.freeLimit, network: mapTransport)
-        if let saved = try keychain.read() {
-            try saved.validateStored()
-            let account = try NativeStore(directory: scopes.accountDirectory(saved.account), packs: saved.packs, freeLimit: initialPolicy.freeLimit, network: mapTransport)
-            if account.status.blocked {
-                // Expose the existing recovery banner without attempting a guest claim or write.
-                store = account
-            } else {
-                store = try scopes.claim(account: saved.account, from: guest, packs: saved.packs, freeLimit: initialPolicy.freeLimit, network: mapTransport)
-            }
-            session = saved
-        } else { store = guest }
+        let saved = FileManager.default.fileExists(atPath: scopes.root.appending(path: "local-current.json").path) ? nil : try keychain.read()
+        if let saved { try saved.validateStored() }
+        purchaseCache = PurchaseCapacityCache(root: scopes.root)
+        let cached: CapacityBalance?
+        do { cached = try purchaseCache.read() }
+        catch { cached = nil; self.error = error.localizedDescription }
+        purchaseBalance = cached
+        if let policy = cached?.capacity { capacityPolicy = policy }
+        let legacyPacks = try purchaseCache.legacyPacks(seed: saved?.packs)
+        let directory = try scopes.offlineDirectory(legacy: saved)
+        store = try NativeStore(directory: directory, packs: cached?.packs ?? legacyPacks,
+            freeLimit: capacityPolicy.freeLimit, network: mapTransport)
+        // Resume only an already journalled migration; never claim another guest on launch.
+        if let saved, directory == (try scopes.accountDirectory(saved.account)),
+           FileManager.default.fileExists(atPath: directory.appending(path: "guest-claim.json").path), !store.status.blocked {
+            store = try scopes.claim(account: saved.account, from: nil, packs: cached?.packs ?? saved.packs,
+                freeLimit: capacityPolicy.freeLimit, network: mapTransport)
+        }
+        try scopes.selectOfflineDirectory(directory)
+        session = saved // migration compatibility only; no production login UI or network use
         billing = CapacityController(workspace: self, api: capacityAPI, storefront: storefront ?? NativeStorefront())
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
@@ -97,6 +107,7 @@ final class AppWorkspace {
         try keychain.write(verified)
         if let policy = receipt.capacity { try acceptPolicy(policy) }
         let target = try scopes.claim(account: verified.account, from: session == nil ? store : nil, packs: verified.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
+        try scopes.selectOfflineDirectory(target.records.directory)
         store = target; session = verified; identityRevision += 1; billing.identityChanged()
     }
     func logout() throws {
@@ -104,7 +115,25 @@ final class AppWorkspace {
         guard store.status.error.isEmpty else { throw CoreFailure(message: store.status.error) }
         let guest = try NativeStore(directory: scopes.guestDirectory(), freeLimit: capacityPolicy.freeLimit, network: mapTransport)
         try keychain.remove()
+        try scopes.selectOfflineDirectory(guest.records.directory)
         store = guest; session = nil; identityRevision += 1; billing.identityChanged()
+    }
+    func applyPurchaseCapacity(_ balance: CapacityBalance, identity: PurchaseIdentity) throws {
+        _ = try balance.validated()
+        guard balance.account == identity.account, balance.environment == identity.environment else {
+            throw CoreFailure(message: "容量记录与当前 App Store 购买身份不一致")
+        }
+        if let old = purchaseBalance, old.account == balance.account, old.environment == balance.environment {
+            if balance.revision < old.revision { return }
+            guard balance.revision != old.revision || balance.packs == old.packs else {
+                throw CoreFailure(message: "容量版本不一致，请稍后重试")
+            }
+        }
+        // Durable local cache and server ledger must both precede StoreKit.finish().
+        try purchaseCache.write(balance)
+        if let policy = balance.capacity { try acceptPolicy(policy) }
+        try store.call("setPacks", ["value": .number(Double(balance.packs))])
+        purchaseBalance = balance
     }
     func applyCapacity(_ balance: CapacityBalance) throws {
         _ = try balance.validated()

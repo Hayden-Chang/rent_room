@@ -2,9 +2,11 @@ import Foundation
 import StoreKit
 
 struct CapacityProduct: Sendable { let id: String; let displayPrice: String }
-struct CapacityTransaction: Sendable { let id: String; let productID: String; let accountToken: UUID?; let environment: String }
+struct CapacityTransaction: Sendable { let id: String; let productID: String; let accountToken: UUID?; let environment: String; var appTransactionID: String = "" }
 enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(CapacityTransaction) }
 @MainActor protocol CapacityStorefront: AnyObject {
+    func identity(refresh: Bool) async throws -> PurchaseIdentity
+    func stopObserving()
     func product(_ id: String) async throws -> CapacityProduct
     func purchase(_ product: CapacityProduct, accountToken: UUID) async throws -> CapacityPurchaseResult
     func transactions(synchronize: Bool) async throws -> [CapacityTransaction]
@@ -18,6 +20,20 @@ enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(Capaci
     private var verified: [String: StoreKit.Transaction] = [:]
     private var observer: Task<Void, Never>?
     deinit { observer?.cancel() }
+    func stopObserving() { observer?.cancel(); observer = nil }
+    func identity(refresh: Bool) async throws -> PurchaseIdentity {
+        var result: VerificationResult<AppTransaction>
+        if refresh { result = try await AppTransaction.refresh() }
+        else { result = try await AppTransaction.shared }
+        if case .verified(let value) = result, value.appTransactionID.isEmpty, !refresh {
+            result = try await AppTransaction.refresh()
+        }
+        guard case .verified(let value) = result else {
+            throw CoreFailure(message: "App Store 购买身份未通过校验，请稍后恢复容量")
+        }
+        return try PurchaseIdentity(appTransactionID: value.appTransactionID, bundleID: value.bundleID,
+            environment: value.environment.rawValue, signedAppTransaction: result.jwsRepresentation).validated()
+    }
     func product(_ id: String) async throws -> CapacityProduct {
         guard let product = try await Product.products(for: [id]).first(where: { $0.id == id && $0.type == .consumable }) else {
             throw CoreFailure(message: "房源包暂未开放购买，请稍后再试")
@@ -64,7 +80,7 @@ enum CapacityPurchaseResult: Sendable { case cancelled, pending, verified(Capaci
     }
     private func remember(_ result: VerificationResult<StoreKit.Transaction>) throws -> CapacityTransaction {
         guard case .verified(let value) = result else { throw CoreFailure(message: "购买凭证未通过校验，请稍后恢复容量") }
-        let record = CapacityTransaction(id: String(value.id), productID: value.productID, accountToken: value.appAccountToken, environment: value.environment.rawValue)
+        let record = CapacityTransaction(id: String(value.id), productID: value.productID, accountToken: value.appAccountToken, environment: value.environment.rawValue, appTransactionID: value.appTransactionID)
         verified[record.id] = value
         return record
     }

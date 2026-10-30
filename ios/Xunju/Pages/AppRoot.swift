@@ -18,7 +18,6 @@ struct AppRoot: View {
             .task { if workspace == nil { load() } }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { workspace?.save() }
-                else if !AppWorkspace.isBusinessTest { Task { await workspace?.refreshPolicy(); await workspace?.billing.load() } }
             }
             .environment(\.locale, Locale(identifier: "zh_CN")).preferredColorScheme(.light)
     }
@@ -72,9 +71,6 @@ private struct WorkspaceRoot: View {
                 }
             }
             .onChange(of: workspace.identityRevision) { wheels.target = nil }
-            .task(id: workspace.identityRevision) {
-                if !AppWorkspace.isBusinessTest { workspace.billing.start(); await workspace.refreshPolicy(); await workspace.billing.load() }
-            }
             .toolbarBackground(XJTheme.background, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
             .alert("提示", isPresented: Binding(get: { !workspace.error.isEmpty }, set: { if !$0 { workspace.error = "" } })) {
                 Button("知道了", role: .cancel) { workspace.error = "" }
