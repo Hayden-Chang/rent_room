@@ -168,8 +168,9 @@ import XCTest
         XCTAssertEqual(reopened.store.capacity.remaining, 8)
         await reopened.billing.restore(); XCTAssertEqual(reopened.store.capacity.remaining, 8)
         let originalIdentity = storefront.purchaseIdentity, original = storefront.transaction
-        storefront.purchaseIdentity = PurchaseIdentity(appTransactionID: "other-credit-account", bundleID: "test.xunju", environment: "Sandbox", signedAppTransaction: "other-proof")
+        storefront.purchaseIdentity = PurchaseIdentity(appTransactionID: "9002", bundleID: "test.xunju", environment: "Sandbox", signedAppTransaction: "other-proof")
         storefront.outstanding = []; await reopened.billing.restore()
+        XCTAssertTrue(reopened.billing.error.isEmpty)
         XCTAssertEqual(reopened.store.capacity.remaining, 0)
         storefront.purchaseIdentity = originalIdentity; storefront.outstanding = [original]
         await reopened.billing.restore(); XCTAssertEqual(reopened.store.capacity.remaining, 8)

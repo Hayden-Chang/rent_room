@@ -1,5 +1,5 @@
 import copy from '../Xunju/Resources/RegionalCopy.json' with {type:'json'};
-import {freshHouse,houseTopics,activeEntries,comparison} from '../../apps/wechat/src/lib/model.js';
+import {houseTopics,activeEntries,comparison} from '../../apps/wechat/src/lib/model.js';
 
 import {choiceOptions,choiceValues,fieldDisplayValue} from '../../apps/wechat/src/lib/source-model.js';
 import {wheelConfig,wheelKey} from '../../apps/wechat/src/lib/wheel-input.js';
@@ -16,7 +16,8 @@ export function normalizeCurrency(house) {
 }
 export function currencyState(raw) {
   if(!raw)return raw;
-  const state=JSON.parse(raw);
+  // Preserve damaged bytes for the shared recovery path and independent credit ledger.
+  let state;try{state=JSON.parse(raw);}catch{return raw;}
   if(Array.isArray(state.houses))state.houses.forEach(normalizeCurrency);
   return JSON.stringify(state);
 }
