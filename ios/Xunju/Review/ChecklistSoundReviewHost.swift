@@ -40,8 +40,10 @@ struct ChecklistSoundReviewHost: View {
                         try refresh()
                     }
                 }.accessibilityIdentifier("sound.restore")
-                Button(readonly ? "恢复编辑" : "切换只读") { readonly.toggle() }
-                    .accessibilityIdentifier("sound.readonly")
+                Button { readonly.toggle() } label: {
+                    Text(readonly ? "恢复编辑" : "切换只读")
+                        .frame(minWidth: 120, minHeight: 44).contentShape(Rectangle())
+                }.accessibilityIdentifier("sound.readonly")
                 Text("就绪").accessibilityIdentifier("sound.ready")
             }
             if !error.isEmpty { Text(error).accessibilityIdentifier("sound.error") }
