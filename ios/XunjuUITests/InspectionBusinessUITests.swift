@@ -118,7 +118,7 @@ import XCTest
         // Mini-program: right -10, top -12, 44 pt hit area, 24 pt top padding.
         XCTAssertEqual(close.frame.midX, bubble.frame.maxX - 12, accuracy: 1)
         XCTAssertEqual(close.frame.midY, bubble.frame.minY - 14, accuracy: 1)
-        XCTAssertLessThanOrEqual(close.frame.maxY, bubble.frame.minY + 8)
+        XCTAssertEqual(close.frame.maxY - bubble.frame.minY, 8, accuracy: 1)
         close.tap()
         let dismissHouse = app.buttons["当前房源关闭"]
         XCTAssertTrue(dismissHouse.waitForExistence(timeout: 3))
