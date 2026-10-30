@@ -16,7 +16,7 @@
 - 微信真实点击验收 SHA：`a5ce11a871e8ed6f50cb4f1f2be7a93af7168858`。
 - 上述两次初始验收之间仅修改微信 E2E 的观察与原生点击协作流程。审批后 iOS 正式页接入及测试变化已重新运行，最终证据见下文。
 - 微信单测和编译在 `d424d777b740bbe56e9b8366d6f72658398f9c69` 完成；之后仅修改 E2E 脚本，生产源码、单测、构建输入及依赖相同，结果保持适用。
-- 基线 `origin/main`：`9d37a6f0410ba074f40a8e5f6acf8e3a17db490b`，交付前 fetch 未发现前进。
+- 原验证基线：`9d37a6f0410ba074f40a8e5f6acf8e3a17db490b`。最终 fetch 发现 main 前进到 `5dbe378d4aa6b4f935d333d6130e97b59646e769`（PR #102，仅微信详情页同阶段引导）。对候选 `cedcf6b493bc96d6431698398f38625a9adeb165` 执行 `git merge-tree --write-tree` 无冲突，模拟合并后相对新基线的 iOS/微信业务与测试 diff 与验证版本逐字一致；记录为 `main-advance-equivalence.json`。上游仅在详情页引入 onboarding 行为变化，首页未导入该 presenter，iOS 未变；房源提示的测试选择及环境保持适用，按等价规则复用证据。本次后续提交仍仅更新文档。
 
 ## 定向验证
 
