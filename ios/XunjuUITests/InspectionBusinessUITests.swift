@@ -1,4 +1,5 @@
 import XCTest
+import Vision
 
 @MainActor final class InspectionBusinessUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
@@ -158,6 +159,7 @@ import XCTest
         let header = app.otherElements["navigation.header"]
         let tab = app.buttons["tab.清单"]
         capture(mode + "-swipe-guide", app)
+        assertSwipeSpeechUsesBubbleWidth(app)
         XCTAssertEqual(target.frame.minX, row.frame.minX - 4, accuracy: 1, "Highlight must exclude the row's indentation")
         XCTAssertEqual(target.frame.width, row.frame.width + 8, accuracy: 1)
         XCTAssertEqual(target.frame.minY, row.frame.minY - 4, accuracy: 1)
@@ -181,6 +183,24 @@ import XCTest
         XCTAssertLessThanOrEqual(card.frame.maxY, tab.frame.minY - 12)
         XCTAssertEqual(row.value as? String, "操作已展开")
         print("GUIDE \(mode) actions row=\(row.frame) card=\(card.frame) tab=\(tab.frame)")
+    }
+    private func assertSwipeSpeechUsesBubbleWidth(_ app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        let bubble = app.otherElements["xiaoda.bubble"].firstMatch
+        do {
+            let image = try XCTUnwrap(bubble.screenshot().image.cgImage)
+            let request = VNRecognizeTextRequest()
+            request.recognitionLevel = .accurate
+            request.recognitionLanguages = ["zh-Hans"]
+            request.usesLanguageCorrection = false
+            try VNImageRequestHandler(cgImage: image).perform([request])
+            let lines = (request.results ?? []).sorted { $0.boundingBox.midY > $1.boundingBox.midY }
+                .compactMap { $0.topCandidates(1).first?.string.replacingOccurrences(of: " ", with: "") }
+            print("SWIPE SPEECH bubble=\(bubble.frame) lines=\(lines)")
+            XCTAssertTrue(lines.first?.contains("在检查项上向左滑一下") == true,
+                          "The first line must use the available bubble width without splitting 向左滑一下: \(lines)", file: file, line: line)
+        } catch {
+            XCTFail("Unable to inspect rendered speech: \(error)", file: file, line: line)
+        }
     }
     private func returnHomeWithoutFeedback(_ app: XCUIApplication) {
         app.navigationBackButton.tap()

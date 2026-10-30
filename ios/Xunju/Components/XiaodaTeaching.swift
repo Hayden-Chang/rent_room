@@ -28,6 +28,42 @@ enum XiaodaSpeech {
             }
         }
     }
+    @MainActor static func attributed(_ text: String, highlights: [String], icons: [Character: String],
+                                      fontSize: CGFloat, lineHeight: CGFloat, centered: Bool, highlightColor: UIColor) -> NSAttributedString {
+        let font = UIFont.systemFont(ofSize: fontSize), paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = centered ? .center : .left
+        paragraph.lineBreakMode = .byWordWrapping
+        paragraph.lineBreakStrategy = []
+        paragraph.lineSpacing = max(0, lineHeight - font.lineHeight)
+        let result = NSMutableAttributedString(string: "")
+        for part in parts(text, highlights: highlights, icons: icons) {
+            if let icon = part.icon {
+                let isAction = ["issue", "note", "camera"].contains(icon)
+                let image = isAction ? actionImage(icon) : UIImage(systemName: icon == "handle" ? "line.3.horizontal" : "trash",
+                    withConfiguration: UIImage.SymbolConfiguration(font: font))?
+                    .withTintColor(icon == "handle" ? .gray : UIColor(XJTheme.danger), renderingMode: .alwaysOriginal)
+                if let image {
+                    let attachment = NSTextAttachment()
+                    attachment.image = image
+                    attachment.bounds = CGRect(origin: CGPoint(x: 0, y: isAction ? -4 : font.descender), size: image.size)
+                    if isAction { result.append(NSAttributedString(string: " ")) }
+                    result.append(NSAttributedString(attachment: attachment))
+                    if isAction { result.append(NSAttributedString(string: " ")) }
+                    continue
+                }
+            }
+            result.append(NSAttributedString(string: part.text, attributes: [
+                .font: part.emphasis ? UIFont.boldSystemFont(ofSize: fontSize) : font,
+                .foregroundColor: part.emphasis ? highlightColor : UIColor(red: 52/255, green: 59/255, blue: 77/255, alpha: 1)
+            ]))
+        }
+        result.addAttribute(.paragraphStyle, value: paragraph, range: NSRange(location: 0, length: result.length))
+        // Attachments and their spaces inherit the same font metrics as the surrounding text.
+        result.enumerateAttribute(.font, in: NSRange(location: 0, length: result.length)) { value, range, _ in
+            if value == nil { result.addAttribute(.font, value: font, range: range) }
+        }
+        return result
+    }
     @MainActor static func actionImage(_ name: String) -> UIImage? { actionImages[name] }
     @MainActor private static let actionImages: [String: UIImage] = {
         let colors: [String: UIColor] = ["issue": UIColor(XJTheme.dangerBackground), "note": UIColor(XJTheme.soft), "camera": UIColor(XJTheme.primary)]

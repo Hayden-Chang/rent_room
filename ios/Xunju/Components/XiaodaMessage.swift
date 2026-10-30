@@ -20,10 +20,8 @@ struct XiaodaMessage<Actions: View>: View {
             VStack(alignment: .leading, spacing: 12) {
                 speech(text).frame(maxWidth: .infinity, alignment: hero ? .center : .leading).hidden().overlay(alignment: .topLeading) {
                     speech(shown).frame(maxWidth: .infinity, alignment: hero ? .center : .leading)
-                }.font(.system(size: compact ? 15 : 16))
-                    .lineSpacing((actionLayout ? 34 : (compact ? 15 : 16) * 1.65) - UIFont.systemFont(ofSize: compact ? 15 : 16).lineHeight)
+                }
                     .padding(.vertical, max(0, ((actionLayout ? 34 : (compact ? 15 : 16) * 1.65) - UIFont.systemFont(ofSize: compact ? 15 : 16).lineHeight) / 2))
-                    .multilineTextAlignment(hero ? .center : .leading)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityElement(children: .ignore).accessibilityLabel(text)
                     .accessibilityValue(completed ? "完整显示" : "正在显示").accessibilityIdentifier("xiaoda.message")
@@ -57,15 +55,28 @@ struct XiaodaMessage<Actions: View>: View {
         Image("xiaoda-" + pose).resizable().scaledToFit()
             .frame(width: hero ? 144 : compact ? 72 : 88, height: hero ? 156 : compact ? 84 : 104).accessibilityHidden(true)
     }
-    private func speech(_ value: String) -> Text {
-        XiaodaSpeech.parts(value, highlights: highlights, icons: icons).reduce(Text("")) { result, part in
-            if let icon = part.icon {
-                if icon == "handle" { return result + Text(Image(systemName: "line.3.horizontal")).foregroundColor(.gray) }
-                if icon == "trash" { return result + Text(Image(systemName: "trash")).foregroundColor(XJTheme.danger) }
-                if let image = XiaodaSpeech.actionImage(icon) { return result + Text(" ") + Text(Image(uiImage: image)).baselineOffset(-4) + Text(" ") }
-            }
-            return result + (part.emphasis ? Text(part.text).bold().foregroundColor(highlightColor) : Text(part.text))
-        }
+    private func speech(_ value: String) -> XiaodaSpeechText {
+        XiaodaSpeechText(attributedText: XiaodaSpeech.attributed(value, highlights: highlights, icons: icons,
+            fontSize: compact ? 15 : 16, lineHeight: actionLayout ? 34 : (compact ? 15 : 16) * 1.65,
+            centered: hero, highlightColor: UIColor(highlightColor)))
+    }
+}
+
+// Match the mini-program's natural wrapping instead of balancing short paragraphs.
+// Both the hidden full message and the typing overlay use the same width and renderer.
+struct XiaodaSpeechText: UIViewRepresentable {
+    let attributedText: NSAttributedString
+    func makeUIView(context: Context) -> UILabel {
+        let label = UILabel()
+        label.numberOfLines = 0
+        label.lineBreakStrategy = []
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        return label
+    }
+    func updateUIView(_ label: UILabel, context: Context) { label.attributedText = attributedText }
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: UILabel, context: Context) -> CGSize? {
+        guard let width = proposal.width, width.isFinite, width > 0 else { return nil }
+        return CGSize(width: width, height: ceil(uiView.sizeThatFits(CGSize(width: width, height: .greatestFiniteMagnitude)).height))
     }
 }
 
