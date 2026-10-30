@@ -109,7 +109,7 @@ struct PlacePickerSurface: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
                 if !readonly {
-                Button(action: locate) {
+                Button { interacted = true; collapsed = false; locate() } label: {
                     Text("定位").font(.system(size: 13, weight: .medium)).foregroundStyle(XJTheme.primary).padding(10).background(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 8)).overlay(RoundedRectangle(cornerRadius: 8).stroke(XJTheme.line))
                         .contentShape(Rectangle())
