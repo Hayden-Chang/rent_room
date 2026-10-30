@@ -54,14 +54,20 @@ Apple 控制最终显示：[RequestReviewAction](https://developer.apple.com/doc
 
 ## 原生界面证据
 
-以下为运行 i 的原始 XCUITest 截图，非自绘评分框。开发模拟器的系统弹窗显示占位图标；不代表 App Store 正式图标验收。
+2026-10-30 显示名更新：用户要求将“寻居”改为“看房搭子”。修改 `ios/project.yml` 的 `CFBundleDisplayName`、备份展示文件名及开发副本名；保留内部 Bundle ID、Keychain 与备份格式标识。评分框中的“轻点星形以在 App Store 中评分。”由 iOS 系统提供，产品只调用 `requestReview()`，没有自写这句提示。
+
+运行 j 的冻结源码为 `d8d827a8282062b2518d571dbb1379cfd6170864`。使用 XcodeGen 2.45.4 和现有构建包装脚本，iPhone 14 Pro / iOS 18.3.1（22D8075）实际完成 1 项构建包元数据单测及 2 项评分 UI 测试，3/3 通过、0 失败/跳过。构建包名称及两个系统弹窗标题均断言为“看房搭子”。[计划](evidence/app-review-20261030/name-update-j/plan.json)和[回执](evidence/app-review-20261030/name-update-j/receipt.json)记录精确命令选择范围，原始结果在 `/private/tmp/rent-room-rating-20261030/name-j.xcresult`；runner PID 76645，设备租约及 slot 已释放。部署保护的 `DeploymentGuards.test_verified_isolated_app_is_accepted` 也通过，未进行设备部署。
+
+这次增量仅变更展示名称和对应断言，评分计数、购买确认、持久化及游客迁移源码未变；此前核心和业务单测作为未变逻辑的历史证据保留。显示名会影响系统 UI，因此两条评分 UI 已重新执行，不复用旧名称截图。模板编辑长流程的既有失败仍保留，PR 未合并，不能称为全部回归完成。j 后仅补文档和原始截图，不改变运行代码。
+
+以下为运行 j 的原始 XCUITest 截图，1178 × 2556 像素，非自绘评分框。开发模拟器的系统弹窗显示占位图标；不代表 App Store 正式图标验收。运行 i 的旧名称截图继续保存在上级证据目录，不覆盖历史证据。
 
 第三次成功创建后（此前两套已归档，证明使用累计创建数）：
 
-![第三次创建后的系统评分](evidence/app-review-20261030/after-third-creation.png)
+![第三次创建后的系统评分](evidence/app-review-20261030/name-update-j/after-third-creation.png)
 
 购买确认、感谢状态结束后：
 
-![购买后的系统评分](evidence/app-review-20261030/after-verified-purchase.png)
+![购买后的系统评分](evidence/app-review-20261030/name-update-j/after-verified-purchase.png)
 
-[仍可从设置主动打开反馈](evidence/app-review-20261030/manual-feedback-retained.png)。
+[仍可从设置主动打开反馈](evidence/app-review-20261030/name-update-j/manual-feedback-retained.png)。
