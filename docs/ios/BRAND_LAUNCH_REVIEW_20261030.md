@@ -31,12 +31,35 @@ Debug 启动参数：`--component-review brand-launch`。该入口复用现有 `
 
 ## 证据
 
-状态：`COMPONENT_BUILDING`。用户已同意采用现有小程序 Logo；替换后的原生截图待生成。上一版通用房屋图标截图不能作为此版证据。
+状态：`REVIEW_READY`。用户已确认采用小程序 Logo；替换后的原生启动屏截图待用户最终确认。
 
-本轮产物保存在任务 worktree 下 `artifacts/launch-logo-20261030/`，不提交构建产物。
+- 证据代码 SHA：`2c8b406b48bfc40b5ae32e557625946fe330e164`；基线 `eb75079b3e46726e5742cc4c861dc7a278d9dd31`。
+- `xunju-brand-launch-logo-20261030-02`：iPhone 14 Pro / iOS 18.3.1（22D8075），**1 UT + 1 UI，2 passed / 0 failed / 0 skipped**。
+- `xunju-brand-launch-logo-20261030-03`：iPhone 16 / iOS 26.5（23F77），**1 UT + 1 UI，2 passed / 0 failed / 0 skipped**；使用首轮失败的同一台设备复验。
+- 两张原始 PNG 均为 **1178 × 2556 px**，未缩放或裁切；应用视口 393 × 852 pt。两次坐标附件均记录 Logo `(140.667, 370, 112, 112)`，中心相对屏幕中心误差小于 1 pt。
+- 原图与生产 PNG 的 SHA-256 均为 `5157f06cdeb3d4b270f2262ac86f911345a64bdf86ad09e35a0375bf2d2ba57b`，原图为 1254 × 1254 px。
+- XcodeGen 2.45.4 确定性生成校验通过。未修改工程配置或提交生成工程。两轮 runner 均退出 0，设备租约、执行槽位与队列条目已释放。
+- 第三轮使用 runner 支持的 `--config`，只将本轮候选设备前缀收窄为原 iOS 26.5 设备名；共享 poolRoot、并发上限和租约机制保持不变，未修改全局配置。
 
-### 首轮诊断
+产物位于任务 worktree `/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/ios-launch-page-20261030/artifacts/launch-logo-20261030/`：
 
-`launch-logo-20261030/review-01.xcresult`：单测通过，UI 用例在 Logo 的辅助功能横向中心断言失败（65.56 pt，预期 196.5 pt）。失败录屏显示 Logo 视觉居中；首轮不能记为通过。原生录像和日志保留在 `attachments-01/` 与 `runner-01.log`。
+| 产物 | iOS 18.3.1 | iOS 26.5 |
+| --- | --- | --- |
+| 完整测试结果 | `review-02.xcresult` | `review-03.xcresult` |
+| 原始日志 | `runner-02.log` | `runner-03.log` |
+| 精确计划与复现命令 | `plan-02.json`、`run-02.sh` | `plan-03.json`、`run-03.sh`、`runner-ios26.json` |
+| 结果与截图哈希 | `evidence-02.json` | `evidence-03.json` |
+| 截图与原始坐标附件清单 | `attachments-02/manifest.json` | `attachments-03/manifest.json` |
+| 原生截图 | `brand-launch-logo.png` | `brand-launch-logo-ios26.png` |
 
-本轮依据 [Apple 的 accessibility content shape 文档](https://developer.apple.com/documentation/swiftui/contentshapekinds/accessibility) 显式定义圆角 Logo 的辅助功能区域，并保留原居中断言。截图采集提前至断言前，同时记录应用与 Logo 的原始坐标，供失败诊断。重新验证之前不宣称问题已修复。
+主 agent 已查看两张截图：Logo 保持蓝紫底白色房屋与对勾，圆角、尺寸和居中位置一致；浅灰白背景连续覆盖安全区，没有小搭或品牌文字。系统状态栏保留。截图来自 Debug 组件宿主，不证明正式冷启动切页或时长。
+
+已复核完整 diff：独立组件、Logo 资源、Debug 评审入口、定向测试和本说明；无业务数据或导航改动。后续证据文档提交不改变源码、资源、测试或配置，因此可复用上述 SHA 的截图，不将它称为文档提交生成的截图。PR 保持 Draft，未合并或部署。
+
+未覆盖小屏、iPad、VoiceOver 实际朗读、深色模式或真实冷启动。Figma 尚未同步。
+
+### 首轮失败与修正验证
+
+`review-01.xcresult` 对应 SHA `5a5a17c748ed75f3ce8e2503228cbe05c4421901`：单测通过，UI 用例在 Logo 辅助功能横向中心断言失败（65.56 pt，预期 196.5 pt）。失败录屏里 Logo 视觉居中；该轮没有通过验收。原生录像和日志保留在 `attachments-01/` 与 `runner-01.log`，诊断视频抽帧不作为最终截图。
+
+依据 [Apple 的 accessibility content shape 文档](https://developer.apple.com/documentation/swiftui/contentshapekinds/accessibility)，为圆角 Logo 显式定义匹配的辅助功能区域，并保留原居中断言。截图采集提前至断言前，追加应用与 Logo 原始坐标附件。第三轮在同一台 iOS 26.5 设备 `759E28A9-21EB-4AA1-9F4F-EF1850989C56` 上完整通过，验证了本次边界修正。第二轮 iOS 18.3.1 设备为 `8F178971-C203-4690-A83B-253046EACBB1`。
