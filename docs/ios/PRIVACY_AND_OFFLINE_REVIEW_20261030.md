@@ -129,3 +129,7 @@
 同时新增首次直接定位必须显示地图的 UI 断言；先在未修复的地图代码上执行，验证 `interacted` 未更新的具体回归，再修复。不会通过放宽断言或增加盲目重试规避问题。
 
 run-09（`9f6f79b`）证实退款夹具隔离后完整用例通过（115.145 秒）；首次定位用例在候选结果出现后，准确失败于“An explicit first location request must mount the map”（49.571 秒）。修复仅让用户点击定位时设置 `interacted = true` 并展开地图，页面出现仍不挂载地图或查询。最终 run-10 的三项 UI 按新风险排序为离线记录/设置、购买恢复/评分、首次定位/保存/重启；退款结果作为 run-09 的未受地图显示改动影响的补充证据保留。
+
+run-10（`99649ca`、iOS 18.3.1）28 UT 通过，3 UI 未通过：容量已确认 0/11 后额外加入的评分文字等待失败；离线用例重开详情时发生 App event loop idle notification 缺失及可访问性快照超时，原因未定位；定位用例显示“定位权限未开启，请在设置中允许访问位置”，未到地图断言。保留结果包、完整日志及附件，不把该批当作最终通过。
+
+依据 [Apple WWDC20 授权测试说明](https://developer.apple.com/videos/play/wwdc2020/10220/) 和 [XCUIApplication.resetAuthorizationStatus](https://developer.apple.com/documentation/xcuiautomation/xcuiapplication/resetauthorizationstatus(for:))，首次定位测试在 app.launch 前仅重置本次租约中本测试 App 的 `.location` 权限。购买 UI 回归恢复“到账/持久化/幂等”原范围，移除本轮临时加入的系统评分弹窗必出现断言；生产评分代码不变，7 项评分单测、主线独立评分 UI 测试保留，run-08 已有实际评分展示证据。Apple [RequestReviewAction](https://developer.apple.com/documentation/storekit/requestreviewaction) 对开发环境描述为应显示，因此不将 run-10 未显示简单解释为生产评分频率限制，保留为未定位平台交互异常。下一批完整重跑 28 UT+3 UI，未扩大超时或删除任何容量、离线保存及地图断言。

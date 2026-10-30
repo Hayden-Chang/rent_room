@@ -3,9 +3,10 @@ import CoreLocation
 
 @MainActor final class UtilityBusinessTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch() -> XCUIApplication {
+    private func launch(resetLocationPermission: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString, "--utility-network-fixture", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if resetLocationPermission { app.resetAuthorizationStatus(for: .location) }
         app.launch(); XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
@@ -180,7 +181,7 @@ import CoreLocation
         let prior = XCUIDevice.shared.location
         addTeardownBlock { @MainActor in XCUIDevice.shared.location = prior }
         XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 31.2304, longitude: 121.4737))
-        let app = launch(); app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
+        let app = launch(resetLocationPermission: true); app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
         let locate = app.buttons["place.locate"]; XCTAssertTrue(locate.waitForExistence(timeout: 3)); locate.tap()
         let system = XCUIApplication(bundleIdentifier: "com.apple.springboard"), alert = system.alerts.firstMatch
         if alert.waitForExistence(timeout: 2) {
