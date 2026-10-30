@@ -90,9 +90,19 @@ import Vision
     func testSimpleSwipeGuideTracksVisibleRow() {
         verifySwipeGuideGeometry(mode: "simple", fieldID: "simple_01")
     }
+    private func chooseGuidanceCurrency(_ app: XCUIApplication) {
+        let manual = app.buttons["currency.prompt.manual"]
+        XCTAssertTrue(manual.waitForExistence(timeout: 5)); manual.tap()
+        let yuan = app.buttons["currency.CNY"]
+        XCTAssertTrue(yuan.waitForExistence(timeout: 3)); yuan.tap()
+        app.buttons["完成"].tap()
+        let ready = expectation(for: NSPredicate(format: "isHittable == true"), evaluatedWith: app.homeAddButton)
+        wait(for: [ready], timeout: 3)
+    }
     func testXiaodaCloseMatchesMiniProgramAndDismissesGuidance() {
         let app = launch()
         finishSetup(app, mode: "simple")
+        chooseGuidanceCurrency(app)
         app.homeAddButton.tap()
         XCTAssertTrue(app.buttons["prompt.confirm"].waitForExistence(timeout: 3))
         app.buttons["prompt.confirm"].tap()
@@ -139,6 +149,7 @@ import Vision
     private func verifySwipeGuideGeometry(mode: String, fieldID: String) {
         let app = launch()
         finishSetup(app, mode: mode)
+        chooseGuidanceCurrency(app)
         app.homeAddButton.tap()
         XCTAssertTrue(app.buttons["prompt.confirm"].waitForExistence(timeout: 3))
         app.buttons["prompt.confirm"].tap()
