@@ -89,7 +89,7 @@ struct ChecklistPage: View {
     var body: some View {
         MPChecklistSurface(done: stats?.done ?? 0, total: stats?.total ?? 0, issues: stats?.issues ?? 0,
             phase: $phase, query: $query, filters: $filters, showFilters: $showFilters, readonly: readonly,
-            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollLocked: showCoach && coachStep == 3, floatingActionsVisible: editingField == nil, scrollPosition: scrollPosition,
+            coordinator: coordinator, scrollTarget: scrollTarget, scrollAnchor: showCoach ? .top : .center, scrollLocked: showCoach && coachStep >= 3, floatingActionsVisible: editingField == nil, scrollPosition: scrollPosition,
             guidance: prompt != .null && !sections.contains(where: { $0["title"].string == prompt["target"].string }) ? prompt : .null,
             guidanceAction: guideAction, capture: { mediaTarget = "" }) {
             VStack(spacing: 12) {
@@ -106,8 +106,8 @@ struct ChecklistPage: View {
                             VStack(spacing: 0) {
                                 ForEach(Array(rows.enumerated()), id: \.element.rowKey) { index, row in
                                     checklistRow(row, hideDivider: ChecklistPresentation.hidesDivider(at: index, rows: rows))
-                                        .padding(.leading, ChecklistPresentation.indent(row)).id(row.id)
                                         .anchorPreference(key: CoachAnchors.self, value: .bounds) { row.id == coachTarget["field"].id ? [3: $0, 4: $0] : [:] }
+                                        .padding(.leading, ChecklistPresentation.indent(row)).id(row.id)
                                 }
                             }.padding(.bottom, 12)
                         }
@@ -119,7 +119,11 @@ struct ChecklistPage: View {
             if showCoach {
                 GeometryReader { geometry in
                     XiaodaTutorialOverlay(guide: guidance, target: anchors[coachStep].map { geometry[$0] },
-                        swipeCompleted: { advanceCoach(swiped: true) }, decoratedSpeech: true) { advanceCoach() }
+                        swipeCompleted: { advanceCoach(swiped: true) }, decoratedSpeech: true,
+                        adjustScroll: { delta in
+                            if let offset = scrollPosition.offset { scrollPosition.restore(offset + delta) }
+                            if coachStep == 4 { coordinator.reveal(coachTarget["field"].id) }
+                        }) { advanceCoach() }
                 }
             }
         }
@@ -144,7 +148,6 @@ struct ChecklistPage: View {
             .onAppear { refresh(); if showCoach { prepareCoach() } }
             .onChange(of: isActive) { if !isActive { coordinator.close(); dismissGuidance() } }
             .onChange(of: showCoach) { if showCoach { prepareCoach() } }
-            .onChange(of: coachStep) { if coachStep == 4 { scrollTarget = coachTarget["field"].id } }
             .task(id: guidanceToken) {
                 let incoming = guidance["prompt"]
                 guard incoming != .null, canPresentGuide else { visiblePrompt = .null; return }
@@ -239,7 +242,8 @@ struct ChecklistPage: View {
                 if coachSavedFolds == nil { coachSavedFolds = folds }
                 phase = "全部"; query = ""; filters = []; showFilters = false
                 if case .object(let expanded) = coachTarget["folds"] { folds[viewKey, default: [:]].merge(expanded.mapValues(\.bool), uniquingKeysWith: { _, new in new }) }
-                refresh(); scrollTarget = coachTarget["field"].id
+                // Let the measured guide keep the target and card together in view.
+                refresh(); scrollTarget = ""
                 if coachStep == 4 { coordinator.reveal(coachTarget["field"].id) }
             }
         } catch { workspace.error = error.localizedDescription }

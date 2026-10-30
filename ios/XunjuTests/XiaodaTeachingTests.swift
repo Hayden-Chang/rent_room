@@ -41,6 +41,31 @@ final class XiaodaTeachingTests: XCTestCase {
         XCTAssertNotNil(UIImage(named: "coach-hand"))
         XCTAssertNil(XiaodaSpeech.actionImage("unknown"))
     }
+    func testTutorialSpotlightUsesFieldBoundsAndClipsOnlyAtViewportEdge() throws {
+        let viewport = CGSize(width: 393, height: 650)
+        let field = CGRect(x: 44, y: 350, width: 317, height: 48)
+        XCTAssertEqual(XiaodaTutorialLayout.spotlight(field, available: viewport), field.insetBy(dx: -4, dy: -4))
+        XCTAssertNil(XiaodaTutorialLayout.spotlight(field.offsetBy(dx: 0, dy: 500), available: viewport))
+        XCTAssertNil(XiaodaTutorialLayout.spotlight(nil, available: viewport))
+        let edge = try XCTUnwrap(XiaodaTutorialLayout.spotlight(CGRect(x: 2, y: 20, width: 389, height: 48), available: viewport))
+        XCTAssertEqual(edge.minX, 0); XCTAssertEqual(edge.maxX, 393)
+    }
+    func testTutorialScrollKeepsContextAndReservesMeasuredCardSpace() {
+        let field = CGRect(x: 44, y: 1800, width: 317, height: 48)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: field, cardHeight: nil, available: 650), 0)
+        let adjustment = XiaodaTutorialLayout.scrollAdjustment(target: field, cardHeight: 230, available: 650)
+        XCTAssertEqual(field.minY - adjustment, 336)
+        let visible = field.offsetBy(dx: 0, dy: -adjustment)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: visible, cardHeight: 230, available: 650), 0)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: visible, cardHeight: 330, available: 650), 100)
+        XCTAssertEqual(XiaodaTutorialLayout.scrollAdjustment(target: CGRect(x: 44, y: 0, width: 317, height: 48), cardHeight: 230, available: 650), -20)
+    }
+    func testTutorialCardStaysSeparatedFromHighlightOnBothSides() {
+        let target = CGRect(x: 40, y: 336, width: 325, height: 56)
+        XCTAssertEqual(XiaodaTutorialLayout.cardTop(target: target, height: 230, available: 650), 408)
+        XCTAssertEqual(XiaodaTutorialLayout.cardTop(target: target, height: 230, available: 568), 90)
+        XCTAssertEqual(XiaodaTutorialLayout.cardTop(target: nil, height: 230, available: 650), 210)
+    }
     #if DEBUG
     func testTeachingReviewRequiresExplicitKnownRoute() {
         XCTAssertEqual(ReviewSurface.parse(["--component-review", "inspection-teaching"]), .inspectionTeaching)

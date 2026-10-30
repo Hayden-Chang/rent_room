@@ -83,6 +83,50 @@ import XCTest
         field.typeText(text); app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
     }
+    func testDetailedSwipeGuideTracksVisibleRow() {
+        verifySwipeGuideGeometry(mode: "detailed", fieldID: "f56_1")
+    }
+    func testSimpleSwipeGuideTracksVisibleRow() {
+        verifySwipeGuideGeometry(mode: "simple", fieldID: "simple_01")
+    }
+    private func verifySwipeGuideGeometry(mode: String, fieldID: String) {
+        let app = launch()
+        finishSetup(app, mode: mode)
+        app.homeAddButton.tap()
+        XCTAssertTrue(app.buttons["prompt.confirm"].waitForExistence(timeout: 3))
+        app.buttons["prompt.confirm"].tap()
+        let next = app.buttons["coach.next"]
+        XCTAssertTrue(next.waitForExistence(timeout: 5))
+        capture(mode + "-phase-guide", app); next.tap()
+        capture(mode + "-filter-guide", app); next.tap()
+        let target = app.otherElements["coach.swipeTarget"]
+        XCTAssertTrue(target.waitForExistence(timeout: 4))
+        let row = app.otherElements["mp.field." + fieldID].firstMatch
+        let scroll = app.scrollViews["mp.checklist.scroll"]
+        capture(mode + "-swipe-guide", app)
+        XCTAssertEqual(target.frame.minX, row.frame.minX - 4, accuracy: 1, "Highlight must exclude the row's indentation")
+        XCTAssertEqual(target.frame.width, row.frame.width + 8, accuracy: 1)
+        XCTAssertEqual(target.frame.minY, row.frame.minY - 4, accuracy: 1)
+        XCTAssertGreaterThanOrEqual(target.frame.minY, scroll.frame.minY + 12, "Leave room above the highlighted row")
+        XCTAssertLessThan(target.frame.maxY, scroll.frame.maxY)
+        let card = app.otherElements["coach.card"]
+        XCTAssertEqual(card.frame.minX, 12, accuracy: 1)
+        XCTAssertEqual(card.frame.minY - target.frame.maxY, 16, accuracy: 1)
+        XCTAssertLessThanOrEqual(card.frame.maxY, scroll.frame.maxY - 12)
+        print("GUIDE \(mode) target=\(target.frame) row=\(row.frame) card=\(card.frame) viewport=\(scroll.frame)")
+        target.tap(); target.swipeRight()
+        XCTAssertTrue(target.exists, "Only a left swipe completes teaching")
+        target.swipeLeft()
+        let title = app.staticTexts["coach.title"]
+        let advanced = expectation(for: NSPredicate(format: "label == %@", "随手记下房屋细节"), evaluatedWith: title)
+        wait(for: [advanced], timeout: 4)
+        let note = app.buttons["mp.field.action." + fieldID + ".备注"]
+        XCTAssertTrue(note.isHittable, "The revealed actions remain visible above the guide")
+        capture(mode + "-swipe-actions", app)
+        XCTAssertEqual(card.frame.minY - row.frame.maxY - 4, 16, accuracy: 1)
+        XCTAssertLessThanOrEqual(card.frame.maxY, scroll.frame.maxY - 12)
+        XCTAssertEqual(row.value as? String, "操作已展开")
+    }
     private func returnHomeWithoutFeedback(_ app: XCUIApplication) {
         app.navigationBackButton.tap()
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 3))

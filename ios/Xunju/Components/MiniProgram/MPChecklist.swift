@@ -343,7 +343,7 @@ struct MPChecklistSurface<Content: View>: View {
                 .scrollDisabled(scrollLocked)
                 .coordinateSpace(name: "mp.checklist")
                 .onPreferenceChange(MPChecklistScrollOrigin.self) { y in
-                    if let lastScrollY, abs(y - lastScrollY) > 1 { coordinator.trace("scroll \(y - lastScrollY)"); coordinator.close() }
+                    if !scrollLocked, let lastScrollY, abs(y - lastScrollY) > 1 { coordinator.trace("scroll \(y - lastScrollY)"); coordinator.close() }
                     lastScrollY = y
                 }.accessibilityIdentifier("mp.checklist.scroll")
                 .onChange(of: scrollTarget) { if !scrollTarget.isEmpty { proxy.scrollTo(scrollTarget, anchor: scrollTarget == "top" ? .top : scrollAnchor) } }

@@ -41,6 +41,26 @@ enum XiaodaSpeech {
     }()
 }
 
+// Keep the same field padding, viewport clearance, and card gap as onboarding.js.
+enum XiaodaTutorialLayout {
+    static let accent = Color(red: 103/255, green: 99/255, blue: 237/255)
+    static func spotlight(_ target: CGRect?, available: CGSize) -> CGRect? {
+        guard let target, target.width > 0, target.height > 0,
+              target.minY >= 0, target.maxY <= available.height else { return nil }
+        return target.insetBy(dx: -4, dy: -4).intersection(CGRect(origin: .zero, size: available))
+    }
+    static func scrollAdjustment(target: CGRect?, cardHeight: CGFloat?, available: CGFloat) -> CGFloat {
+        guard let target, let cardHeight else { return 0 }
+        let desired = max(20, min(target.minY, available - cardHeight - target.height - 36))
+        return target.minY - desired
+    }
+    static func cardTop(target: CGRect?, height: CGFloat, available: CGFloat) -> CGFloat {
+        guard let target else { return max(12, (available - height) / 2) }
+        if target.maxY + height + 16 < available { return target.maxY + 16 }
+        return max(12, target.minY - height - 16)
+    }
+}
+
 // Reuse the checklist's distance/velocity rules; a wrong direction cancels the
 // whole attempt, so returning left after an initial right/vertical drag is inert.
 struct XiaodaSwipeGesture {
@@ -73,8 +93,8 @@ struct XiaodaSwipeTarget: View {
                     ZStack(alignment: .leading) {
                         HStack(spacing: 0) {
                             Image(systemName: "chevron.left").font(.system(size: 16, weight: .bold))
-                            LinearGradient(colors: [XJTheme.primary, XJTheme.primary.opacity(0.1)], startPoint: .leading, endPoint: .trailing).frame(width: 110, height: 4)
-                        }.foregroundStyle(XJTheme.primary)
+                            LinearGradient(colors: [XiaodaTutorialLayout.accent, XiaodaTutorialLayout.accent.opacity(0.1)], startPoint: .leading, endPoint: .trailing).frame(width: 110, height: 4)
+                        }.foregroundStyle(XiaodaTutorialLayout.accent)
                         Image("coach-hand").resizable().scaledToFit().frame(width: 48, height: 52)
                             .offset(x: 104 * (1 - travel))
                             .opacity(reduceMotion || (phase >= 0.12 && phase < 0.85) ? 1 : 0)
