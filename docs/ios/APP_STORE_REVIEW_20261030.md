@@ -1,6 +1,6 @@
 # 设置页 App Store 评价入口验收
 
-状态：`INTEGRATED_VALIDATING`。用户已明确回复“确认通过”，批准入口与打开失败提示。正式 App ID 已核实并接入“我的”页“使用反馈”下方；等待集成验证结果。PR #88 尚未合并。
+状态：`VALIDATED`。用户已明确回复“确认通过”，批准入口与打开失败提示。正式 App ID 已核实并接入“我的”页“使用反馈”下方；3 UT + 3 UI 全部通过，实际截图已检查。PR #88 尚未合并。
 
 ## 实现与应用身份
 
@@ -14,7 +14,7 @@
 
 ## 验证计划与影响映射
 
-候选源码 SHA：`04e87db333e96d6b41b796c493e3de9b23d698f2`。仅影响评价组件、设置项集成及 DEBUG 验证路由，无业务模型、存储、依赖或工程配置变化。
+实现 SHA：`04e87db333e96d6b41b796c493e3de9b23d698f2`；完整绿色验证 SHA：`1fd32c55574a2f5c472d689f36e44c0949e3e023`。两者仅有验收文档差异。仅影响评价组件、设置项集成及 DEBUG 验证路由，无业务模型、存储、依赖或工程配置变化。
 
 | 层次与风险 | 精确 selector |
 | --- | --- |
@@ -33,11 +33,14 @@
 - scheme / targets：`Xunju` / `XunjuTests` / `XunjuUITests`；XcodeGen `2.45.4`，未修改 `project.yml`，未提交生成工程。
 - runner：`/Volumes/mac2/projects/git_repo/run_self/Simulator Management/bin/sim-test-run.mjs`；实时配置 `config/runner.json`，池 `/tmp/todo-ios-sim-pool`，最多 3 构建槽，最终最多 3 个 UI 方法。
 - session：`01a1887c-6046-70f1-ba46-96184ed84449`。
-- run：`rent-room-app-store-review-20261030-04`（重新冻结工作区后的完整选择）。
+- run：`rent-room-app-store-review-20261030-04`，构建 PID `20178`，测试 PID `21808`；构建和测试退出码均为 0，执行槽、排队记录和设备租约已释放。
 - runner 缓存：`/Volumes/mac2/codex-builds/time-fragment-dd-shared-447ba101091c0de61b22f3e8-simulator`。key 来自本 worktree 绝对路径及构建参数，受租约保护；名称前缀仅为共享基础设施历史命名。
 - `.xcresult`：`/private/tmp/rent-room-app-store-review-20261030-04/review.xcresult`；构建结果 `review.build.xcresult` 同目录。
 - 命令：`zsh artifacts/app-store-review-20261030/validate-04.sh` 然后 `zsh artifacts/app-store-review-20261030/run-04.sh`。完整命令、精确选择器、计划和日志在本 worktree `artifacts/app-store-review-20261030/`。
-- 执行状态：等待结果。当前没有宣称集成测试通过。
+- 完整 `.xcresult` 汇总：6 passed，0 failed，0 skipped；3 UT + 3 UI 均通过。
+- 设备：`5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9` / iPhone 16 / iOS 26.5 (23F77)。实际截图 1178 × 2556。
+- 已逐张检查 `attachments-04/` 内 4 张原始截图：`251A9730-5F07-4B8D-B84A-C69171EA9393.png` 为真实设置页入口；`80572636-9259-4F1C-875C-7DD8829AADF5.png` 为实际设置页错误提示；`B6EBA506-E6BC-4A58-80FE-4FD51533D786.png` 记录正式评价 URL 与打开次数 2；`7BAED470-83A2-4826-80EA-9FB23443C5EF.png` 为缺失 ID 提示。入口文案、箭头和分隔线正常，原反馈与分享入口保留。底部 URL / 次数仅为 DEBUG 观察值。
+- 最终门禁复用 run 04 的全部结果。绿色运行后只有本验收 Markdown 更新，源码、测试、配置、依赖、资源、生成输入、环境与选择没有变化；`git diff 1fd32c5..HEAD --name-only` 应仅包含本文件。最终精确 3 UI 的选择验证保存在 `plan-final-pr-head.json` 和 `validate-final-selection.sh`；不重复运行等价测试。
 
 ## 主 agent 审查与验收边界
 
