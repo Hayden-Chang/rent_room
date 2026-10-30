@@ -26,6 +26,7 @@ struct HomePage: View {
                     } else { EmptyHouseState(add: add) }
                 }
                 else {
+                    HouseLongPressHint()
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                         ForEach(workspace.store.activeHouses) { house in
                             HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { path.append(house.id) }
