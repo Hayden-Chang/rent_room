@@ -97,7 +97,12 @@ import XCTest
         app.buttons["prompt.confirm"].tap()
         let next = app.buttons["coach.next"]
         XCTAssertTrue(next.waitForExistence(timeout: 5))
-        next.tap(); next.tap()
+        capture("xiaoda-close-prerequisite-phases", app)
+        next.tap()
+        let filterReady = expectation(for: NSPredicate(format: "label == %@", "找到你想看的内容"), evaluatedWith: app.staticTexts["coach.title"])
+        wait(for: [filterReady], timeout: 4)
+        capture("xiaoda-close-prerequisite-filters", app)
+        next.tap()
         let target = app.otherElements["coach.swipeTarget"]
         XCTAssertTrue(target.waitForExistence(timeout: 4)); target.swipeLeft()
         XCTAssertTrue(next.waitForExistence(timeout: 4)); next.tap()
