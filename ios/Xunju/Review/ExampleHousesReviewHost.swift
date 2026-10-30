@@ -19,13 +19,16 @@ struct ExampleHousesReviewHost: View {
             }
             .background(XJTheme.background)
         }
+        .environment(\.locale, workspace?.regional.language.locale ?? Locale.current)
         .task {
             guard workspace == nil else { return }
             do {
                 let args = ProcessInfo.processInfo.arguments
                 guard let index = args.firstIndex(of: "--example-review-id"), args.indices.contains(index + 1), let id = UUID(uuidString: args[index + 1]) else { return }
                 let root = FileManager.default.temporaryDirectory.appending(path: "XunjuExampleReview/\(id.uuidString)")
-                workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), firstVisitExamples: true)
+                let defaults = UserDefaults(suiteName: "example-review." + id.uuidString)!
+                workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), regionalDefaults: defaults, firstVisitExamples: true)
+                AppLanguage.shared.value = workspace!.regional.language
             } catch { self.error = error.localizedDescription }
         }
     }

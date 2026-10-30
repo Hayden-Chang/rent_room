@@ -55,7 +55,7 @@ final class AppWorkspace {
         let legacyPacks = try purchaseCache.legacyPacks(seed: saved?.packs)
         let directory = try scopes.offlineDirectory(legacy: saved)
         store = try NativeStore(directory: directory, packs: cached?.packs ?? legacyPacks,
-            freeLimit: effectivePolicy.freeLimit, network: mapTransport, firstVisit: firstVisit && saved == nil)
+            freeLimit: effectivePolicy.freeLimit, network: mapTransport, firstVisit: firstVisit && saved == nil, exampleLanguage: regional.language)
         // Resume only an already journalled migration; never claim another guest on launch.
         if let saved, directory == (try scopes.accountDirectory(saved.account)),
            FileManager.default.fileExists(atPath: directory.appending(path: "guest-claim.json").path), !store.status.blocked {

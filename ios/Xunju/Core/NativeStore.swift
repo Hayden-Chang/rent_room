@@ -41,7 +41,7 @@ final class NativeStore {
     @ObservationIgnored private let context: JSContext
     @ObservationIgnored private let mapQueryTimeout: Duration
 
-    init(directory: URL, packs: Int = 0, freeLimit: Int = 1, network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15), firstVisit: Bool = false) throws {
+    init(directory: URL, packs: Int = 0, freeLimit: Int = 1, network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15), firstVisit: Bool = false, exampleLanguage: SupportedLanguage = .chinese) throws {
         records = try LocalRecords(directory: directory)
         guard let context = JSContext(), let source = Bundle.main.url(forResource: "XunjuCore", withExtension: "js") else {
             throw CoreFailure(message: "清单规则资源缺失")
@@ -88,7 +88,7 @@ final class NativeStore {
         let raw: Any
         if missing { raw = NSNull() } else { raw = try records.read() }
         let result = context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("initialize", withArguments: [
-            raw, packs, freeLimit, firstVisit && !hasPrevious
+            raw, packs, freeLimit, firstVisit && !hasPrevious, exampleLanguage.rawValue
         ])
         _ = try consume(result)
     }

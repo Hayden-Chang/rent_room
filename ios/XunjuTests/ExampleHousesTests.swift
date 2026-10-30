@@ -8,6 +8,41 @@ import UIKit
         addTeardownBlock { try? FileManager.default.removeItem(at: url) }
         return url
     }
+    func testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange() throws {
+        let url = root(), suite = "examples-english." + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        RegionalSettingsModel(defaults: defaults).selectLanguage(.english)
+        let workspace = try AppWorkspace(root: url, keychain: VolatileSessionStorage(), regionalDefaults: defaults, firstVisitExamples: true)
+        let store = workspace.store
+        XCTAssertEqual(store.houses.map(\.name), ["Demo · Metro 1BR", "Demo · Sunny 2BR"])
+        let previousLanguage = AppLanguage.shared.value
+        defer { AppLanguage.shared.value = previousLanguage }
+        AppLanguage.shared.value = .english
+        let rows = try store.call("compare", ["ids": .array(store.houses.map { .string($0.id) }), "differences": .bool(true)]).array
+        let layout = try XCTUnwrap(rows.first { $0.id == "f1_2" })
+        XCTAssertEqual(AppCopy.comparisonValue(layout, index: 0), "1 Bed, 1 Living Room")
+        XCTAssertEqual(AppCopy.comparisonValue(layout, index: 1), "2 Bed, 1 Living Room")
+        for house in store.houses {
+            let record = store.house(house.id)
+            for text in [house.name, house.address, record["summary"].string,
+                         record["media"].array[0]["caption"].string, record["answers"]["simple_01"]["note"].string] {
+                XCTAssertFalse(text.isEmpty)
+                XCTAssertNil(text.range(of: #"[\u3400-\u9fff]"#, options: .regularExpression))
+            }
+            XCTAssertNotNil(houseCover(house, store: store))
+            XCTAssertEqual(house.currencyCode, "CNY")
+        }
+        let id = store.houses[0].id
+        try store.call("rename", ["id": .string(id), "value": .string("用户自己的房源")])
+        try store.answer(id, field: "simple_01", property: "note", value: .string("My edited note"))
+        let bytes = try store.records.read()
+        workspace.regional.selectLanguage(.chinese)
+        let restored = try AppWorkspace(root: url, keychain: VolatileSessionStorage(), regionalDefaults: defaults, firstVisitExamples: true)
+        XCTAssertEqual(restored.regional.language, .chinese)
+        XCTAssertEqual(restored.store.houses.map(\.name), ["用户自己的房源", "Demo · Sunny 2BR"])
+        XCTAssertEqual(try restored.store.records.read(), bytes)
+    }
     func testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart() throws {
         let url = root(), workspace = try AppWorkspace(root: url, keychain: VolatileSessionStorage(), firstVisitExamples: true)
         let store = workspace.store, ids = store.houses.map(\.id)

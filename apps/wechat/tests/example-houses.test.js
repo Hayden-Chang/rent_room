@@ -7,6 +7,29 @@ function adapter(raw=null) {
   return {read:()=>saved,write:vi.fn(value=>{saved=value;})};
 }
 describe('first-visit example houses',()=>{
+  it('seeds English sample content while keeping choices, currency and photos canonical',()=>{
+    const io=adapter(),s=createStore(io,{firstVisit:true,exampleLanguage:'en'}),houses=s.get().houses;
+    expect(houses.map(h=>h.name)).toEqual(['Demo · Metro 1BR','Demo · Sunny 2BR']);
+    for(const house of houses){
+      for(const text of [house.name,house.address,house.summary,...house.media.map(m=>m.caption),...Object.values(house.answers).map(a=>a.note||'')])expect(text).not.toMatch(/[\u3400-\u9fff]/);
+      expect(house.summary).not.toBe('');expect(house.media[0].caption).toContain('AI');
+      expect(house.currencyCode).toBe('CNY');expect(house.media[0].path).toBe('media/'+house.id+'.jpg');
+      expect(house.decision).toBe('继续比较');expect(house.checklistMode).toBe('simple');
+    }
+    expect(houses.map(h=>h.answers.f1_2.value)).toEqual(['一室一厅','两室一厅']);
+    expect(houses.map(h=>h.answers.simple_01.value)).toEqual(['是','否']);
+    expect(validateState(JSON.parse(io.read())).houses).toEqual(houses);
+  });
+  it('never rewrites existing examples or user edits after switching the seed language',()=>{
+    for(const language of ['en','zh-Hans']){
+      const io=adapter(),s=createStore(io,{firstVisit:true,exampleLanguage:language}),id=s.get().houses[0].id;
+      s.edit(id,h=>{h.name='用户自定义';h.summary='Keep my summary';h.media[0].caption='我的照片';},true);
+      s.answer(id,'simple_01','note','Keep my note');
+      const raw=io.read();io.write.mockClear();
+      const restored=createStore(io,{firstVisit:true,exampleLanguage:language==='en'?'zh-Hans':'en'});
+      expect(restored.get().houses).toEqual(s.get().houses);expect(io.read()).toBe(raw);expect(io.write).not.toHaveBeenCalled();
+    }
+  });
   it('durably creates exactly two independent simple examples with useful comparison differences',()=>{
     const io=adapter(),created=vi.fn(),s=createStore(io,{firstVisit:true,onHouseCreated:created});
     expect(s.get().houses).toHaveLength(2);

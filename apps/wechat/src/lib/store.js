@@ -4,12 +4,12 @@ import {emptyState,clone,validateState,freshHouse,updateAnswer,updateGroup,merge
 import {capacityInfo,assertCapacity,activeHouseCount} from './capacity.js';
 import {exampleHouses} from './example-houses.js';
 
-export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1,onHouseCreated=()=>{},firstVisit=false}={}) {
+export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1,onHouseCreated=()=>{},firstVisit=false,exampleLanguage='zh-Hans'}={}) {
   let state=emptyState(),blocked=false,error='',revision=0,seeded=false;const listeners=new Set();
   const migrate=h=>syncElevatorPresence(mergeElectricity(migrateTopFloor(h)));
   // firstVisit must come from installation history, never from the house count.
   // Only null means a missing file; an existing empty/corrupt file is not new use.
-  try {const raw=adapter.read();if(raw){state=migrateXiaoda(validateState(JSON.parse(raw)));state.houses.forEach(migrate);state.version=2;state.settings={...emptyState().settings,...state.settings};}else if(firstVisit&&raw===null){const examples=exampleHouses();adapter.prepareExamples?.(examples);state.houses=examples;seeded=true;}}
+  try {const raw=adapter.read();if(raw){state=migrateXiaoda(validateState(JSON.parse(raw)));state.houses.forEach(migrate);state.version=2;state.settings={...emptyState().settings,...state.settings};}else if(firstVisit&&raw===null){const examples=exampleHouses(exampleLanguage);adapter.prepareExamples?.(examples);state.houses=examples;seeded=true;}}
   catch(e){blocked=true;error='已有记录读取失败，未覆盖原文件。请前往设置尝试恢复。';}
   function emit(){for(const f of listeners)f({error,blocked,revision});}
   function save(options){if(blocked){emit();return false;}try{adapter.write(JSON.stringify(state),options);error='';emit();return true;}catch(e){error='保存失败，输入仍保留在本次会话。请重试或立即导出备份。';emit();return false;}}
