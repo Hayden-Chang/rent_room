@@ -1,14 +1,15 @@
 import {HOUSE_PACK} from './capacity.js';
-import {CAPACITY_VERSION,DEFAULT_FREE_LIMIT,policyFreeLimit,validateEntitlement} from './capacity-policy.js';
+import {CREDIT_VERSION,DEFAULT_FREE_LIMIT,policyFreeLimit,validateEntitlement} from './capacity-policy.js';
+import {validateCreditBalance} from './credit-client.js';
 
 // Purchase state is separate from house backups. Only the server grants packs.
 export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=>null,write=()=>{},readPolicy=()=>null,writePolicy=()=>{},onChange=()=>{},supported=()=>true,platform=()=>'unknown',wait=ms=>new Promise(r=>setTimeout(r,ms))}={}) {
-  let cached={packs:0,pending:null},freeLimit=DEFAULT_FREE_LIMIT,refreshTask=null,rulesTask=null,busy=false,available=false;
+  let cached={packs:0,pending:null},freeLimit=DEFAULT_FREE_LIMIT,refreshTask=null,rulesTask=null,busy=false,available=false,credits=session?.credits?validateCreditBalance(session.credits):null;
   try{const saved=JSON.parse(readPolicy()||'null');if(saved?.url===url)freeLimit=policyFreeLimit(saved.capacity);}catch{}
   try{const saved=JSON.parse(read()||'null');if(saved?.url===url&&saved.account===session?.account&&Number.isSafeInteger(saved.packs)&&saved.packs>=0)cached=saved;}catch{}
   if(session)cached={...cached,account:session.account,packs:session.packs};
   if(session?.capacity!==undefined)acceptPolicy(session.capacity);
-  const snapshot=()=>({packs:cached.packs,freeLimit,configured:!!url,available,busy,account:cached.account||'',pending:!!cached.pending});
+  const snapshot=()=>({packs:cached.packs,freeLimit,configured:!!url,available,busy,account:cached.account||'',pending:!!cached.pending,credits});
   function persist(){write(JSON.stringify({...cached,url}));}
   function acceptPolicy(policy){
     if(policy===undefined)return;
@@ -19,13 +20,20 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
     try{writePolicy(JSON.stringify({url,capacity:{version:2,freeLimit}}));}catch{}
     if(changed)onChange();
   }
-  async function request(path,method='GET',data,authenticated=true) {
+  let requestTask=Promise.resolve();
+  function request(...args){
+    const work=requestTask.catch(()=>{}).then(()=>send(...args));requestTask=work;return work;
+  }
+  async function send(path,method='GET',data,authenticated=true) {
     if(!url)throw Error('房源包暂未开放购买，请稍后再试');
     if(authenticated&&!session?.token)throw Error('请重新登录微信后重试');
     const token=authenticated?session.token:'';
-    const response=await api('request',{url:url+path,method,data,timeout:12000,header:{'content-type':'application/json','x-rent-room-capacity-version':CAPACITY_VERSION,...(token?{Authorization:'Bearer '+token}:{})}});
+    const response=await api('request',{url:url+path,method,data,timeout:12000,header:{'content-type':'application/json','x-rent-room-capacity-version':CREDIT_VERSION,...(token?{Authorization:'Bearer '+token}:{})}});
     if(response.statusCode===401){onExpired();throw Error('登录已过期，请重新登录');}
-    if(response.statusCode<200||response.statusCode>=300)throw Error(response.data?.detail?.message||'购买记录暂时无法确认，请稍后重试');
+    if(response.statusCode<200||response.statusCode>=300){const error=Error(response.data?.detail?.message||'购买记录暂时无法确认，请稍后重试');error.code=response.data?.detail?.code;throw error;}
+    // Apply the balance before releasing the request queue. Older refresh/order
+    // replies cannot overwrite a later reserve or commit response.
+    if(authenticated&&session?.credits){credits=validateCreditBalance(response.data?.credits);onChange();}
     return response.data;
   }
   function accept(data){
@@ -38,7 +46,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
     rulesTask=(async()=>{
       const result=await request('/catalog','GET',undefined,false);
       acceptPolicy(result.capacity);
-      available=!!result.available&&(platform()!=='ios'||!!result.iosAvailable)&&result.product?.id===HOUSE_PACK.id&&result.product?.price===HOUSE_PACK.price&&result.product?.size===HOUSE_PACK.size;
+      available=result.creditVersion===1&&!!result.available&&(platform()!=='ios'||!!result.iosAvailable)&&result.product?.id===HOUSE_PACK.id&&result.product?.price===HOUSE_PACK.price&&result.product?.size===HOUSE_PACK.size;
       return result;
     })().finally(()=>{rulesTask=null;});return rulesTask;
   }
@@ -70,6 +78,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       if(rulesTask)await rulesTask;
       if(!supported())throw Error('当前微信版本暂不支持购买，请更新微信后重试');
       const product=await catalog();
+      if(product.creditVersion!==1)throw Error('房源点数服务暂未就绪，请稍后再试');
       if(!product.available)throw Error('房源包暂未开放购买，请稍后再试');
       if(platform()==='ios'&&!product.iosAvailable)throw Error('当前暂不支持在 iPhone 上购买，请稍后再试');
       if(product.product?.id!==HOUSE_PACK.id||product.product?.price!==HOUSE_PACK.price||product.product?.size!==HOUSE_PACK.size)throw Error('房源包信息已更新，请稍后重试');
@@ -99,5 +108,19 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       throw Error('支付结果正在确认，请点击刷新点数查询，避免重复付款');
     }finally{busy=false;}
   }
-  return {snapshot,refresh,refreshRules,purchase};
+  let creditTask=Promise.resolve();
+  function creditRequest(path,data){
+    const work=creditTask.catch(()=>{}).then(async()=>{try{const result=await request(path,'POST',data);validateCreditBalance(result.credits);return result;}catch(error){throw error instanceof Error?error:Error('请联网确认房源点数后重试，已有记录已保留');}});
+    creditTask=work;return work;
+  }
+  async function migrateCredits(active){
+    if(credits?.migrated)return credits;
+    return (await creditRequest('/credits/migrate',{active})).credits;
+  }
+  async function creditOperation(requestId,action){
+    const result=await creditRequest('/credits/operations',{requestId,action});
+    if(result.operation?.requestId!==requestId||!['reserved','committed','cancelled'].includes(result.operation.state))throw Error('新建结果尚未确认，请重试');
+    return result;
+  }
+  return {snapshot,refresh,refreshRules,purchase,migrateCredits,creditOperation};
 }

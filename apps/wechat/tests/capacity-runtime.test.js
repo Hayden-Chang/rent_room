@@ -79,7 +79,7 @@ it('imports a mixed batch without spending credits and preserves archived copies
 it('continues a paid create into the normal naming form and allocates only on submit',async()=>{
  const r=runtime(1);r.app.service.store.change(s=>s.xiaoda.intent={kind:'create',houseId:''});const page=r.load('capacity',{intent:'1'});
  page.resume();expect(r.routes.at(-1)).toBe('/pages/new-house/index');expect(r.app.service.store.capacity().used).toBe(0);
- const form=r.load('new-house');form.input({detail:{value:'续接的房源'}});form.create();expect(r.app.service.store.capacity().used).toBe(1);expect(r.app.service.store.get().xiaoda.intent).toBeUndefined();
+ const form=r.load('new-house');form.input({detail:{value:'续接的房源'}});await form.create();expect(r.app.service.store.capacity().used).toBe(1);expect(r.app.service.store.get().xiaoda.intent).toBeUndefined();
 });
 it('restores the originally selected archive with its answers and template intact',()=>{
  const r=runtime(1),id=r.app.service.store.add('原房源');r.app.service.store.answer(id,'f1_3','value',88);r.app.service.store.archive(id,true);

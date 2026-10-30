@@ -17,13 +17,14 @@ async function step(name,fn){let timer;console.log(name);try{return await Promis
  try{
   await step('mock backend',async()=>{
    await mini.mockWxMethod('login',{code:'credits-ui-fixture'});
-   await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:1,limit:12,capacity:{version:2,freeLimit:2},available:false}});
+   await mini.mockWxMethod('request',{statusCode:200,data:{account:'a'.repeat(64),token:'t'.repeat(43),packs:1,limit:12,capacity:{version:2,freeLimit:2},credits:{version:1,migrated:true,remaining:7},creditVersion:1,available:false}});
   });
   await step('prepare isolated records',()=>mini.evaluate(async()=>{
    const app=getApp();if(!app.service.root.includes('/xunju-test-property-credits-'))throw Error('Isolated data root required');
+   const guest=app.service.store,first=guest.add('测试房源');
+   guest.change(state=>{const h=state.houses.find(h=>h.id===first);state.houses=Array.from({length:5},(_,n)=>({...JSON.parse(JSON.stringify(h)),id:first+n,name:'测试房源'+n}));});
    if(!await app.auth.login())throw Error(app.auth.snapshot().error);
    const s=app.service.store;s.change(state=>{state.xiaoda.setup='done';state.xiaoda.enabled=false;state.xiaoda.feedback='done';});
-   for(let n=0;n<5;n++)s.add('测试房源'+n);
    return new Promise((resolve,reject)=>wx.reLaunch({url:'/pages/capacity/index',success:resolve,fail:reject}));
   }));
   assert.equal((await step('wait for production page',ready)).remaining,7);

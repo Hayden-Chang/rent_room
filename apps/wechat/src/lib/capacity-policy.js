@@ -1,6 +1,7 @@
 import {HOUSE_PACK} from './capacity.js';
 
 export const CAPACITY_VERSION='2';
+export const CREDIT_VERSION='3';
 export const DEFAULT_FREE_LIMIT=1;
 export function policyFreeLimit(policy) {
   if(!policy||policy.version!==2||!Number.isSafeInteger(policy.freeLimit)||policy.freeLimit<0)throw Error('房源额度信息无效，请稍后重试');

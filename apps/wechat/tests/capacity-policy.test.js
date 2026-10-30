@@ -13,7 +13,7 @@ function launch(m=accountWx()){
  let app;vm.runInNewContext(code,{wx:m.wx,App:value=>{app=value;},console,setTimeout,clearTimeout});app.onLaunch();return app;
 }
 const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
-const identity=(freeLimit,packs=0)=>({account:'a'.repeat(64),token:'t'.repeat(43),packs,limit:freeLimit+10*packs,capacity:capacity(freeLimit)});
+const identity=(freeLimit,packs=0)=>({account:'a'.repeat(64),token:'t'.repeat(43),packs,limit:freeLimit+10*packs,capacity:capacity(freeLimit),credits:{version:1,migrated:true,remaining:freeLimit+10*packs}});
 
 it('applies changed free limits to growth without deleting or locking existing records',()=>{
  let freeLimit=3,saved='';const io={read:()=>saved,write:v=>{saved=v;}};
@@ -30,14 +30,14 @@ it('logs in with a configured allowance and still validates the server total',as
  const m=accountWx();let sent;
  m.respond(options=>{sent=options.header;return {statusCode:200,data:identity(4,1)};});
  const app=launch(m);expect(await app.auth.login()).toBe(true);
- expect(sent['x-rent-room-capacity-version']).toBe('2');expect(app.service.store.capacity().limit).toBe(14);
+ expect(sent['x-rent-room-capacity-version']).toBe('3');expect(app.service.store.capacity().limit).toBe(14);
  const invalid=accountWx();invalid.respond(()=>({statusCode:200,data:{...identity(4),limit:5}}));
  const failed=launch(invalid);expect(await failed.auth.login()).toBe(false);expect(failed.auth.snapshot().error).toContain('额度');
 });
 
-it('accepts legacy login while retaining the new default policy until policy metadata arrives',async()=>{
- const m=accountWx();m.respond(()=>{const data=identity(2,1);delete data.capacity;return {statusCode:200,data};});
- const app=launch(m);expect(await app.auth.login()).toBe(true);expect(app.service.store.capacity().limit).toBe(11);
+it('rejects a legacy-only server before modifying account data',async()=>{
+ const m=accountWx();m.respond(()=>{const data=identity(2,1);delete data.capacity;delete data.credits;return {statusCode:200,data};});
+ const app=launch(m);expect(await app.auth.login()).toBe(false);expect(app.auth.snapshot().error).toContain('点数');
 });
 
 it('refreshes anonymous policy without login and preserves it across logout, reload and offline access',async()=>{

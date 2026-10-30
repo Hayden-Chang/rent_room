@@ -32,23 +32,23 @@ it('times out a hanging login and ignores its late result',async()=>{
   expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.app.auth.snapshot().error).toContain('超时');
 });
 it('restores only after checking the current WeChat identity and separates two accounts',async()=>{
-  const h=harness();await h.app.auth.login();const id=h.app.service.store.add('仅 A 可见'),aRoot=h.app.service.root;
+  const h=harness();await h.app.auth.login();const id=await h.app.service.createHouse('仅 A 可见'),aRoot=h.app.service.root;
   h.launch();expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);h.app.onShow();await h.app.auth.ready;expect(h.app.service.store.house(id)).toBeTruthy();
   h.m.identity(B);h.launch();h.app.onShow();expect(h.app.service).toBeNull();await h.app.auth.ready;expect(h.app.service.store.get().houses).toEqual([]);expect(h.app.service.root).not.toBe(aRoot);
   h.m.identity(A);h.launch();h.app.onShow();await h.app.auth.ready;expect(h.app.service.store.house(id).name).toBe('仅 A 可见');
 });
 it('logout keeps local data, clears pending imports and requires another login',async()=>{
-  const h=harness();await h.app.auth.login();const old=h.app.service,id=old.store.add('保留');h.app.pendingImport={houses:[]};
+  const h=harness();await h.app.auth.login();const old=h.app.service,id=await old.createHouse('保留');h.app.pendingImport={houses:[]};
   const p=h.page('settings');p.onLoad();p.onShow();await p.logout();
   expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.app.pendingImport).toBeNull();expect(()=>old.store.get()).toThrow('登录');
   h.launch();h.app.onShow();await h.app.auth.ready;expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);await h.app.auth.login();expect(h.app.service.store.house(id)).toBeTruthy();
 });
 it('keeps unsaved input and the session when logout cannot save',async()=>{
-  const h=harness();await h.app.auth.login();const id=h.app.service.store.add('未保存');h.m.failDisk(true);
+  const h=harness();await h.app.auth.login();const id=await h.app.service.createHouse('未保存');h.m.failDisk(true);
   expect(()=>h.app.auth.logout()).toThrow('保存失败');expect(h.app.service.store.house(id)).toBeTruthy();
 });
 it('automatically keeps legacy records and backups without an ownership dialog',async()=>{
-  const m=accountWx(),old=createPlatform(m.wx),id=old.store.add('旧记录'),before=m.disk.get(old.root+'/state.json'),h=harness(m);
+  const m=accountWx(),old=createPlatform(m.wx),id=await old.createHouse('旧记录'),before=m.disk.get(old.root+'/state.json'),h=harness(m);
   expect(await h.app.auth.login()).toBe(true);expect(h.app.service.store.house(id)).toBeTruthy();
   expect(m.calls.some(c=>c.modal)).toBe(false);expect(m.disk.get(old.root+'/before-login-state.json')).toBe(before);
   expect(JSON.parse(m.disk.get(old.root+'/account-owner.json')).accountId).toBe(A);
@@ -56,7 +56,7 @@ it('automatically keeps legacy records and backups without an ownership dialog',
   h.app.auth.logout();m.identity(A);await h.app.auth.login();expect(h.app.service.store.house(id).name).toBe('旧记录');
 });
 it('leaves unowned records intact when identity or backup creation fails',async()=>{
-  const m=accountWx(),old=createPlatform(m.wx);old.store.add('旧记录');
+  const m=accountWx(),old=createPlatform(m.wx);await old.createHouse('旧记录');
   const before=m.disk.get(old.root+'/state.json'),h=harness(m);
   m.identity('invalid');expect(await h.app.auth.login()).toBe(false);
   expect(m.disk.has(old.root+'/account-owner.json')).toBe(false);
@@ -78,7 +78,7 @@ it('preserves an import preview across successful same-account verification',asy
   h.m.identity(B);h.app.auth.login();await h.app.auth.ready;expect(h.app.pendingImport).toBeNull();
 });
 it('keeps account files private and offers free recording when remembered verification fails',async()=>{
-  const h=harness();await h.app.auth.login();h.app.service.store.add('保留');const bytes=h.m.disk.get(h.app.service.root+'/state.json');
+  const h=harness();await h.app.auth.login();await h.app.service.createHouse('保留');const bytes=h.m.disk.get(h.app.service.root+'/state.json');
   h.m.respond(()=>Promise.reject(Error('连接失败')));h.launch();h.app.onShow();await h.app.auth.ready;
   expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect([...h.m.disk.values()]).toContain(bytes);
 });
@@ -109,7 +109,7 @@ it('rejects backend errors even if their body contains an account identifier',as
 it('uses one authenticated session for local records and server entitlements',async()=>{
   const h=harness();h.m.packs(1);await h.app.auth.login();
   expect(h.app.service.store.capacity().limit).toBe(11);
-  const credentials=[];h.m.respond(options=>{credentials.push(options.header.Authorization);return {statusCode:200,data:options.url.endsWith('/catalog')?{available:false}:{packs:1,limit:11}};});
+  const credentials=[];h.m.respond(options=>{credentials.push(options.header.Authorization);return h.m.defaultResponse(options);});
   await h.app.service.billing.refresh();
   expect(h.m.calls.filter(c=>c.login)).toHaveLength(1);
   expect(credentials.filter(Boolean)).toEqual(['Bearer token-'+A]);
@@ -118,15 +118,15 @@ it('uses one authenticated session for local records and server entitlements',as
 });
 it('paid capacity and pending input never leak across accounts',async()=>{
   const h=harness();h.m.packs(1);await h.app.auth.login();const old=h.app.service;
-  old.store.add('A1');old.store.add('A2');old.store.add('A3');h.app.pendingHouseName='A 的草稿';
+  await old.createHouse('A1');await old.createHouse('A2');await old.createHouse('A3');h.app.pendingHouseName='A 的草稿';
   h.app.auth.logout();expect(h.app.pendingHouseName).toBe('');h.m.identity(B);h.m.packs(0);await h.app.auth.login();
   expect(h.app.service.store.capacity()).toMatchObject({used:0,limit:1});
   expect(h.app.service.root).not.toBe(old.root);
   await expect(old.billing.refresh()).rejects.toThrow('登录');
-  h.app.service.store.add('B1');expect(()=>h.app.service.store.add('B2')).toThrow();
+  await h.app.service.createHouse('B1');await expect(h.app.service.createHouse('B2')).rejects.toThrow();
 });
 it('expired bearer tokens return to login without erasing saved records or starting another identity flow',async()=>{
-  const h=harness();await h.app.auth.login();const service=h.app.service,id=service.store.add('保留');
+  const h=harness();await h.app.auth.login();const service=h.app.service,id=await service.createHouse('保留');
   h.m.respond(options=>({statusCode:options.url.endsWith('/catalog')?200:401,data:{available:false}}));
   await expect(service.billing.refresh()).rejects.toThrow('登录已过期');
   expect(h.app.auth.isAuthenticated()).toBe(false);expect(h.app.service.store.capacity().limit).toBe(1);expect(h.m.routes.at(-1)).toBe('/pages/home/index');
@@ -147,13 +147,13 @@ it('ignores entitlement responses that finish after logout',async()=>{
 });
 
 it('removes old home data immediately and renders only the newly authenticated account',async()=>{
-  const h=harness();await h.app.auth.login();h.app.service.store.add('A 的记录');
+  const h=harness();await h.app.auth.login();await h.app.service.createHouse('A 的记录');
   const p=h.page('home');p.onLoad();p.onShow();expect(p.data.houses[0].name).toBe('A 的记录');
   p.search({detail:{value:'A'}});h.app.auth.logout();
   expect(p.data).toMatchObject({accountReady:true,houses:[],query:'',pending:false});expect(h.m.tabBarVisible).toBe(true);
   expect(h.app.service.store.get().houses).toEqual([]);
   h.m.identity(B);await h.app.auth.login();expect(p.data).toMatchObject({accountReady:true,houses:[]});expect(h.m.tabBarVisible).toBe(true);
-  h.app.service.store.add('B 的记录');p.onHide();p.onShow();expect(p.data.houses[0].name).toBe('B 的记录');
+  await h.app.service.createHouse('B 的记录');p.onHide();p.onShow();expect(p.data.houses[0].name).toBe('B 的记录');
 });
 it('does not change another page tab bar and unsubscribes when home is destroyed',async()=>{
   const h=harness();await h.app.auth.login();const p=h.page('home');p.onLoad();p.onShow();p.onHide();
@@ -163,7 +163,7 @@ it('does not change another page tab bar and unsubscribes when home is destroyed
 
 it('keeps authenticated content during repeated house navigation instead of showing the login sheet',async()=>{
   const h=harness();h.m.wx.navigateTo=options=>h.m.routes.push(options.url);
-  await h.app.auth.login();h.app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.tutorialStep=0;s.xiaoda.feedback='done';});const id=h.app.service.store.add('连续查看的房源');
+  await h.app.auth.login();h.app.service.store.change(s=>{s.xiaoda.setup='done';s.xiaoda.tutorialStep=0;s.xiaoda.feedback='done';});const id=await h.app.service.createHouse('连续查看的房源');
   const home=h.page('home');home.onLoad();home.onShow();
   for(let n=0;n<3;n++){
     home.open({currentTarget:{dataset:{id}}});home.onHide();
@@ -179,7 +179,7 @@ it('keeps authenticated content during repeated house navigation instead of show
   expect(h.m.calls.filter(c=>c.login)).toHaveLength(1);home.onUnload();
 });
 it('keeps hidden home authenticated on session notifications but clears it on real logout',async()=>{
-  const h=harness();await h.app.auth.login();const id=h.app.service.store.add('保留的记录');
+  const h=harness();await h.app.auth.login();const id=await h.app.service.createHouse('保留的记录');
   const home=h.page('home');home.onLoad();home.onShow();home.onHide();
   home.renderSession(h.app.auth.snapshot());
   expect(home.data.accountReady).toBe(true);expect(home.data.houses[0].id).toBe(id);
