@@ -88,6 +88,29 @@ import XCTest
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 3))
         XCTAssertFalse(app.buttons["关闭反馈"].exists)
     }
+    func testFirstSimpleFillingStartsAtExpandedSectionTop() {
+        assertFirstFillingStartsAtTop(mode: "simple")
+    }
+    func testFirstDetailedFillingStartsAtExpandedSectionTop() {
+        assertFirstFillingStartsAtTop(mode: "detailed")
+    }
+    private func assertFirstFillingStartsAtTop(mode: String) {
+        let app = launch()
+        finishSetup(app, mode: mode)
+        addAndLearn(app, simple: mode == "simple")
+        XCTAssertTrue(app.buttons["xiaoda.accept"].waitForNonExistence(timeout: 3))
+        let heading = app.staticTexts.matching(NSPredicate(format: "label == %@", "房源基本信息")).firstMatch
+        let header = app.navigationHeader
+        capture("first-\(mode)-expanded-section", app)
+        let atTop = expectation(for: NSPredicate { _, _ in
+            guard heading.exists, heading.isHittable else { return false }
+            let gap = heading.frame.minY - header.frame.maxY
+            return gap >= 0 && gap <= 44
+        }, evaluatedWith: heading)
+        wait(for: [atTop], timeout: 3)
+        XCTAssertTrue(app.staticTexts["mp.field.title.f1_1"].isHittable,
+                      "去填写必须露出新展开分类的第一个填写项")
+    }
     func testFirstSetupResumeRealSwipeSimpleAnswerFeedbackAndCapacity() {
         let app = launch()
         capture("business-welcome-connected", app)
