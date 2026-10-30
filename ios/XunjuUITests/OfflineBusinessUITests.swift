@@ -24,6 +24,16 @@ import XCTest
         XCTAssertFalse(app.buttons["login.apple"].exists); XCTAssertFalse(app.buttons["退出登录"].exists)
         XCTAssertFalse(app.textFields["settings.nickname"].exists)
         capture("offline-business-settings", app)
+        app.buttons["local-settings.workplace"].tap()
+        let workplace = app.textFields["workplace.address"]
+        XCTAssertTrue(workplace.waitForExistence(timeout: 3)); workplace.tap(); workplace.typeText("离线手填地址"); app.buttons["完成"].firstMatch.tap()
+        app.navigationBackButton.tap(); app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 10)); app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
+        XCTAssertTrue(workplace.waitForExistence(timeout: 3)); XCTAssertEqual(workplace.value as? String, "离线手填地址")
+        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
+        XCTAssertFalse(app.staticTexts["place.message"].exists)
+        capture("offline-business-saved-address", app)
+        app.navigationBackButton.tap()
         for page in ["privacy", "terms", "support"] {
             let row = app.buttons["legal.\(page)"]
             for _ in 0..<3 where !row.isHittable { app.swipeUp() }

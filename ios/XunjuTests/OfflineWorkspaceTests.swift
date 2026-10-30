@@ -52,6 +52,20 @@ private actor OfflineCallCounter: CapacityPolicyServicing, MapTransport {
         XCTAssertThrowsError(try AppWorkspace(root: root, keychain: VolatileSessionStorage()))
         XCTAssertEqual(try NativeStore(directory: first.store.records.directory).houses.first?.name, "不得丢失")
     }
+    func testSavedAddressAndCoordinatesDoNotQueryUntilExplicitMapAction() async throws {
+        let counter = OfflineCallCounter()
+        let store = try NativeStore(directory: root(), network: counter)
+        for location: JSONValue in [.null, .object(["latitude": .number(31.23), "longitude": .number(121.47)])] {
+            let search = PlaceSearch(store: store, location: location, mapKey: "fixture", validScope: { true })
+            search.start(address: "已保存的地址")
+            XCTAssertFalse(search.busy); XCTAssertTrue(search.choices.isEmpty)
+            let before = await counter.count
+            await search.submit()?.value
+            let after = await counter.count
+            XCTAssertEqual(after, before + 1, "Only explicit submission may contact the map service")
+            search.cancel()
+        }
+    }
     func testChangingApplePurchaseIdentityNeverSwitchesHouseDirectory() throws {
         let root = root(), workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage())
         let store = workspace.store, id = try store.add("一直在本机")

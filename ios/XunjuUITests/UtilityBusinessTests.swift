@@ -78,6 +78,8 @@ import CoreLocation
         XCTAssertTrue(app.staticTexts["house.readonly"].waitForExistence(timeout: 3))
         let archivedQuery = app.textFields["mp.checklist.search"]; archivedQuery.tap(); archivedQuery.typeText("地图")
         app.buttons["checklist.keyboard.done"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["place.map"].exists)
+        app.buttons["place.mapToggle"].tap()
         XCTAssertTrue(app.descendants(matching: .any)["place.map"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.textFields["place.query"].exists); XCTAssertFalse(app.buttons["place.locate"].exists)
         XCTAssertFalse(app.buttons["place.result.center"].exists)
