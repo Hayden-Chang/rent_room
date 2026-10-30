@@ -2,11 +2,19 @@ import XCTest
 
 @MainActor final class CapacityBusinessUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch(_ id: String, mode: String? = nil) -> XCUIApplication {
+    private func launch(_ id: String, mode: String? = nil, firstLaunch: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--returning-business-fixture", "--business-test", id, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         if let mode { app.launchArguments += ["--capacity-business-fixture", mode, "--stub-system-review"] }
-        app.launch(); XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 10))
+        app.launch()
+        let currencyPrompt = app.buttons["currency.prompt.decline"]
+        if firstLaunch {
+            XCTAssertTrue(currencyPrompt.waitForExistence(timeout: 10))
+            currencyPrompt.tap()
+            XCTAssertTrue(currencyPrompt.waitForNonExistence(timeout: 5))
+        }
+        XCTAssertTrue(app.buttons["tab.我的"].waitForExistence(timeout: 10))
+        XCTAssertFalse(currencyPrompt.exists, "Currency choice must persist across a process relaunch")
         app.buttons["tab.我的"].tap(); app.buttons["local-settings.capacity"].tap()
         XCTAssertTrue(app.buttons["capacity.purchase"].waitForExistence(timeout: 5))
         return app
@@ -33,7 +41,7 @@ import XCTest
         XCTAssertFalse(app.staticTexts["capacity.pending"].exists)
         capture("96-capacity-locally-confirmed", app)
         app.terminate()
-        let reopened = launch(id, mode: "pending"); idle(reopened); waitTotal("0 / 12 套", reopened)
+        let reopened = launch(id, mode: "pending", firstLaunch: false); idle(reopened); waitTotal("0 / 12 套", reopened)
         reopened.buttons["capacity.restore"].tap(); idle(reopened); waitTotal("0 / 12 套", reopened)
         capture("97-capacity-relaunch-restore-idempotent", reopened)
     }
@@ -45,7 +53,7 @@ import XCTest
         app.buttons["capacity.restore"].tap(); idle(app); waitTotal("3 / 2 套", app)
         capture("98-capacity-refund-retains-houses", app)
         app.terminate()
-        let reopened = launch(id, mode: "unavailable"); idle(reopened); waitTotal("3 / 2 套", reopened)
+        let reopened = launch(id, mode: "unavailable", firstLaunch: false); idle(reopened); waitTotal("3 / 2 套", reopened)
         XCTAssertFalse(reopened.buttons["capacity.purchase"].isEnabled)
         capture("99-capacity-unavailable-retains-houses", reopened)
         reopened.navigationBackButton.tap(); reopened.buttons["tab.房源"].tap()

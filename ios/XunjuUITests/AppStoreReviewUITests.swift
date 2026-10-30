@@ -9,6 +9,10 @@ import XCTest
         app.launchArguments = route + ["-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"] + extra
         app.launch()
         if settings {
+            let currencyPrompt = app.buttons["currency.prompt.decline"]
+            XCTAssertTrue(currencyPrompt.waitForExistence(timeout: 10))
+            currencyPrompt.tap()
+            XCTAssertTrue(currencyPrompt.waitForNonExistence(timeout: 5))
             let tab = app.buttons["tab.我的"]
             XCTAssertTrue(tab.waitForExistence(timeout: 10)); tab.tap()
             let row = app.buttons["settings.appStoreReview"]

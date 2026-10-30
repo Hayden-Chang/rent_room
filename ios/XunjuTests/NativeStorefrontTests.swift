@@ -3,10 +3,16 @@ import StoreKitTest
 @testable import Xunju
 
 @MainActor final class NativeStorefrontTests: XCTestCase {
-    func testFinishedConsumableHistoryAndExistingPrivacyKeysReachBuiltApp() {
+    func testFinishedConsumableHistoryAndExistingPrivacyKeysReachBuiltApp() throws {
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "MinimumOSVersion") as? String, "18.0")
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "SKIncludeConsumableInAppPurchaseHistory") as? Bool, true)
-        XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String, "看房搭子")
+        let names = ["zh-Hans": "寻居", "en": "Xunju"]
+        for (language, name) in names {
+            let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "\(language).lproj"))
+            let values = try XCTUnwrap(try PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
+            XCTAssertEqual(values["CFBundleDisplayName"], name)
+        }
+        XCTAssertTrue(names.values.contains(try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)))
         for key in ["NSCameraUsageDescription", "NSMicrophoneUsageDescription", "NSLocationWhenInUseUsageDescription"] {
             XCTAssertFalse((Bundle.main.object(forInfoDictionaryKey: key) as? String ?? "").isEmpty)
         }
