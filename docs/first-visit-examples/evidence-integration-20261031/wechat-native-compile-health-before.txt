@@ -1,0 +1,27 @@
+Loading automation SDK
+Connecting, attempt 1
+Connecting, attempt 2
+Connecting, attempt 3
+Connecting, attempt 4
+Connecting, attempt 5
+Connecting, attempt 6
+Connecting, attempt 7
+Connecting, attempt 8
+Connected; waiting for app/page
+Connecting, attempt 9
+Connected; waiting for app/page
+Connecting, attempt 10
+Connected; waiting for app/page
+Connecting, attempt 11
+Connected; waiting for app/page
+Connecting, attempt 12
+Connected; waiting for app/page
+Connecting, attempt 13
+Connected; waiting for app/page
+Connecting, attempt 14
+Connected; waiting for app/page
+Connecting, attempt 15
+Connected; waiting for app/page
+Connecting, attempt 16
+Connected; waiting for app/page
+App service health timeout

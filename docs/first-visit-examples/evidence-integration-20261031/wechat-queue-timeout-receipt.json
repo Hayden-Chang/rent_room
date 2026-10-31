@@ -1,0 +1,21 @@
+{
+  "runId": "04706c217e4f422990b03d1886bf24ce",
+  "source": "/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/dist",
+  "started": 1793422294.9928021,
+  "status": "failed",
+  "runnerPid": 97785,
+  "command": [
+    "/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/tests/e2e/example-houses.cjs"
+  ],
+  "mockBoundary": "callback-defined",
+  "lifecycle": "resident-v1",
+  "runnerHash": "24f8ecc62a0d05e378c9fef8823ff6ce8f0555651fd68256501d8decdbb1c373",
+  "heartbeat": 1793422595.615833,
+  "snapshotHash": "03f4dc17cd8fb1f48d820ca28ae0dd01bcd13d522a389f419282a802f0de507a",
+  "sourceHead": "a5d1dafc1728def93edfc985b4af858fe50ea9cc",
+  "sourceStatus": "?? docs/first-visit-examples/evidence-integration-20261031/",
+  "toolVersion": "2.01.2510290",
+  "error": "No free slot; active/orphan instances were not stopped",
+  "finished": 1793422595.615797
+}

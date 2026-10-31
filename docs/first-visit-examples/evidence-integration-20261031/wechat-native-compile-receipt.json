@@ -1,0 +1,36 @@
+{
+  "runId": "6e3f03c09dab45599401b9ea432be56b",
+  "source": "/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/dist",
+  "started": 1793421484.45938,
+  "status": "failed",
+  "runnerPid": 90498,
+  "command": [
+    "/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/tests/e2e/example-houses.cjs"
+  ],
+  "mockBoundary": "callback-defined",
+  "lifecycle": "resident-v1",
+  "runnerHash": "24f8ecc62a0d05e378c9fef8823ff6ce8f0555651fd68256501d8decdbb1c373",
+  "heartbeat": 1793421551.876228,
+  "snapshotHash": "03f4dc17cd8fb1f48d820ca28ae0dd01bcd13d522a389f419282a802f0de507a",
+  "sourceHead": "abaea1dfd078d61bfbd9030ea52eea12907376da",
+  "sourceStatus": "",
+  "toolVersion": "2.01.2510290",
+  "slot": "3",
+  "ports": {
+    "ide": 19653,
+    "auto": 19753,
+    "internal": 32163,
+    "fallback": 33263
+  },
+  "queueFinished": 1793421485.352096,
+  "profile": "/Volumes/mac2/codex-builds/wechat-instance-pool/slots/3/resident-profile",
+  "projectPath": "/Volumes/mac2/codex-builds/wechat-instance-pool/slots/3/project",
+  "runtimePid": 90517,
+  "runtimeReused": false,
+  "projectInitialized": false,
+  "error": "Command '['/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node', '/Volumes/mac2/codex-builds/wechat-instance-pool/runner/health.cjs']' returned non-zero exit status 1.",
+  "residentState": "quarantined",
+  "residentRetained": true,
+  "finished": 1793421551.876226
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-examples-integration-20261031-c",
+  "phase": "final-pr-head",
+  "headSha": "a5d1dafc1728def93edfc985b4af858fe50ea9cc",
+  "taskName": "Focused returning-user recovery with scoped external StoreKit window isolation",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/private/tmp/rent-room-first-launch-examples-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/InspectionBusinessTests/testReturningFixtureRequiresExplicitFlagAndValidIsolatedDirectory",
+      "reason": "校验评分隔离仅在明确的老用户隔离测试标记和有效 UUID 下启用",
+      "source": "new-or-modified"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage",
+      "reason": "正式老用户入口没有示例且原记录和导航恢复",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage"
+  ]
+}

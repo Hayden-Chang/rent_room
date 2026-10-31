@@ -1,0 +1,87 @@
+[
+  {
+    "file": "examples-ios-english-comparison.png",
+    "sha256": "a2ee4f198d9dec35af2043d05fc11d79990c515904189ad144658a199f791b56",
+    "bytes": 180333
+  },
+  {
+    "file": "examples-ios-english-home.png",
+    "sha256": "7e426048ba3a12b76285b235368561379c406c467a500a74e4f3753713c390d6",
+    "bytes": 719336
+  },
+  {
+    "file": "examples-ios-english-selected.png",
+    "sha256": "03b1fa56739b75bfc37e71898bdd0e88cceb49c9c64c283390a821baa5195df0",
+    "bytes": 641172
+  },
+  {
+    "file": "examples-wechat-comparison.png",
+    "sha256": "6170268e0d3a84aa84d814bc969da4594769a6ac653be9512a8d991b361463c7",
+    "bytes": 111136
+  },
+  {
+    "file": "examples-wechat-home.png",
+    "sha256": "e031cb83cc86db53e34ec1da8efe6ffaa4ecdce5dc1bf712fd7dc622ca8c3a1d",
+    "bytes": 370840
+  },
+  {
+    "file": "examples-wechat-reloaded.png",
+    "sha256": "e031cb83cc86db53e34ec1da8efe6ffaa4ecdce5dc1bf712fd7dc622ca8c3a1d",
+    "bytes": 370840
+  },
+  {
+    "file": "examples-wechat-selected.png",
+    "sha256": "b69b607429af5803381d145c532e15c93b40c2f96f9ad1b473b3e2ec84667fd9",
+    "bytes": 297423
+  },
+  {
+    "file": "launch-background-resume-settings.png",
+    "sha256": "eb5ea0f9fff8cca3d6aaaafcc382ef3348a45c8ca69582a153a1b8601a90e75d",
+    "bytes": 154804
+  },
+  {
+    "file": "launch-examples-comparison.png",
+    "sha256": "ce00c277a476700decc2c9c2eb159e87e8d0b230df1298f8fb0ee49d7a864d1e",
+    "bytes": 173042
+  },
+  {
+    "file": "launch-examples-selected.png",
+    "sha256": "5ec6f685ab36612c13bd7bab5ce1a975a264d712780216f48a1371d9fab01d7c",
+    "bytes": 663592
+  },
+  {
+    "file": "launch-first-setup.png",
+    "sha256": "3a9952c204bb4320e26d305f5eb152c181e224312e697dfa0f169d91adfd6c43",
+    "bytes": 205960
+  },
+  {
+    "file": "launch-returning-home-restored.png",
+    "sha256": "2336aec9a4bf3158dbe812e8cb33197f8bbd277fdc6a7d24932597c7995a42e1",
+    "bytes": 185331
+  },
+  {
+    "file": "launch-returning-home.png",
+    "sha256": "2336aec9a4bf3158dbe812e8cb33197f8bbd277fdc6a7d24932597c7995a42e1",
+    "bytes": 185331
+  },
+  {
+    "file": "launch-setup-choice-restored.png",
+    "sha256": "ab817cc9b64afbe490592f1127263bde71c3a078412e5d8027df7428e250f967",
+    "bytes": 206001
+  },
+  {
+    "file": "launch-setup-completed-home.png",
+    "sha256": "3de2b2319bf9034366012a44b62fc5ca74501d279e23eab63b0bf47db7c80a4c",
+    "bytes": 748637
+  },
+  {
+    "file": "returning-failure-b.png",
+    "sha256": "ee9c26abb278c8b34692a253267cdfa37ae597748e4610f8ac2a4b60dcdaef71",
+    "bytes": 373594
+  },
+  {
+    "file": "returning-failure.png",
+    "sha256": "3db37da3de88c17830f28422ab27f9595d6039712840284f7da0e507b98a2e37",
+    "bytes": 400314
+  }
+]

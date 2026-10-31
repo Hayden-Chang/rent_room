@@ -1,0 +1,28 @@
+{
+  "runId": "rent-room-examples-integration-20261031-c",
+  "token": "0aab1468-0a3e-4b75-8728-034494f177b3",
+  "resultBundlePath": "/private/tmp/rent-room-examples-integration-20261031/ios-c.xcresult",
+  "requestedAt": 1793422296228,
+  "cacheWaitSeconds": 0.059,
+  "queueSeconds": 2.5380000000000003,
+  "buildResultBundlePath": "/private/tmp/rent-room-examples-integration-20261031/ios-c.build.xcresult",
+  "stages": {
+    "build": {
+      "queuedAt": 1793422296288,
+      "startedAt": 1793422297566,
+      "queueSeconds": 1.278,
+      "finishedAt": 1793422341509,
+      "exitCode": 0
+    },
+    "test": {
+      "queuedAt": 1793422341523,
+      "startedAt": 1793422342783,
+      "queueSeconds": 1.26,
+      "finishedAt": 1793422394403,
+      "exitCode": 0
+    }
+  },
+  "commandStartedAt": 1793422342783,
+  "finishedAt": 1793422394416,
+  "exitCode": 0
+}

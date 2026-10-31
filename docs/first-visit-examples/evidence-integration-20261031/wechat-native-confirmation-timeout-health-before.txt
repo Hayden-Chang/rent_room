@@ -1,0 +1,44 @@
+Loading automation SDK
+Connecting, attempt 1
+Connecting, attempt 2
+Connecting, attempt 3
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 4016 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 4
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3406 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 5
+Connected; waiting for app/page
+[readiness] evaluate started
+Connecting, attempt 6
+[readiness] evaluate failed 4089 Connection closed, check if wechat web devTools is still running
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3034 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 7
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3017 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 8
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3078 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 9
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3006 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 10
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate finished 1970 {"app":true,"routes":["pages/home/index"]}
+[readiness] screenshot started
+[readiness] screenshot failed 1054 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 11
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate finished 22 {"app":true,"routes":["pages/home/index","pages/welcome/index"]}
+[readiness] screenshot started
+[readiness] screenshot finished 222 image=true
+{"app":true,"routes":["pages/home/index","pages/welcome/index"]}
