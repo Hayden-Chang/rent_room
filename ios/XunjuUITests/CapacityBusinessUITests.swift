@@ -136,7 +136,7 @@ import XCTest
         app.buttons["credits.restore"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 12))
         XCTAssertEqual(name.value as? String, "第3套")
-        XCTAssertFalse(app.otherElements["xiaoda.message"].exists)
+        XCTAssertEqual(app.otherElements["xiaoda.message"].label, "给这套房源起个名字吧～")
         capture("business-capacity-resumes-original-create", app)
         app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["house.第1套"].waitForExistence(timeout: 3)); XCTAssertTrue(app.buttons["house.第2套"].exists); XCTAssertFalse(app.buttons["house.第3套"].exists)
