@@ -12,6 +12,14 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
  const mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});
  const evaluate=(fn,...args)=>bounded(mini.evaluate('function(){return ('+fn.toString()+').apply(null,arguments);}',...args),'App evaluation');
  const snapshot=()=>evaluate(function(){const p=getCurrentPages().slice(-1)[0];return {route:p.route,ready:p.accountPageReady,pulses:getApp().__hapticRequests||[],sections:p.data.sections,house:p.data.house};});
+ async function rendered(expanded){
+  for(let i=0;i<60;i++){
+   const count=await evaluate(function(){return new Promise(resolve=>getCurrentPages().slice(-1)[0].createSelectorQuery().selectAll('.field-branch').boundingClientRect().exec(rows=>resolve(rows[0].filter(r=>r.height>0).length)));});
+   if(expanded?count>0:count===0)return;
+   await sleep(100);
+  }
+  throw Error('Rendered child rows did not match expanded='+expanded);
+ }
  async function waitForNativeClick(count,label){
   console.log('AWAIT_NATIVE_CLICK '+label+' '+out);
   fs.writeFileSync(path.join(out,'awaiting-click.json'),JSON.stringify({count,label}));
@@ -39,6 +47,7 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
   // Search/folds only arrange the starting state; measured operations below tap UI.
   await evaluate(function(){const p=getCurrentPages().slice(-1)[0];p.search({detail:{value:'虫害鼠害'}});p.fold({detail:{id:'topic_53',expanded:true}});getApp().__hapticRequests=[];return true;});
   await mini.mockWxMethod('vibrateShort',function(options){getApp().__hapticRequests.push(options.type);if(options.success)options.success({errMsg:'vibrateShort:ok'});});mocked=true;
+  await rendered(false);
   await mini.screenshot({path:path.join(out,'before.png')});
   let group;
   if(nativeClicks)await waitForNativeClick(1,'parent choice');
@@ -50,6 +59,8 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
   }
   current=await snapshot();assert.deepEqual(current.pulses,['light']);
   assert.equal(current.sections.flatMap(s=>s.rows).find(r=>r.id==='topic_53').expanded,true);
+  assert.equal(current.sections.flatMap(s=>s.rows).find(r=>r.id==='topic_53').options.find(o=>o.value==='正常').selected,true,'The parent answer must actually be selected');
+  await rendered(true);
   const saved=JSON.stringify(current.house);
   await mini.screenshot({path:path.join(out,'selected.png')});
   for(const expanded of [false,true]){
@@ -57,6 +68,7 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
    else{const title=await bounded(group.$('.label'),'group title');await bounded(title.tap(),'group title tap');}
    current=await snapshot();assert.equal(current.sections.flatMap(s=>s.rows).find(r=>r.id==='topic_53').expanded,expanded);
    assert.equal(JSON.stringify(current.house),saved);
+   await rendered(expanded);
   }
   assert.deepEqual(current.pulses,['light','light','light']);
   await mini.screenshot({path:path.join(out,'reopened.png')});
