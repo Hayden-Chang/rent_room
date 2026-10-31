@@ -83,11 +83,12 @@ final class LaunchIntegrationTests: XCTestCase {
     func testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage() {
         let app = application(returning: true)
         app.launch()
-        // The fixture creates three homes, making the system review prompt eligible.
-        let rating = app.staticTexts["喜欢“寻居”吗？"]
-        XCTAssertTrue(rating.waitForExistence(timeout: 10))
-        app.buttons["以后"].tap()
-        XCTAssertTrue(rating.waitForNonExistence(timeout: 3))
+        // The fixture is eligible, but StoreKit decides whether a rating sheet appears.
+        let later = app.buttons["以后"]
+        if later.waitForExistence(timeout: 3) {
+            later.tap()
+            XCTAssertTrue(later.waitForNonExistence(timeout: 3))
+        }
         chooseDefaultCurrency(app)
         XCTAssertTrue(app.buttons["house.阳光小区"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["house.新城公寓"].exists)
