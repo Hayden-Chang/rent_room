@@ -1,0 +1,37 @@
+
+ RUN  v5.0.3 /Users/pc/.codex/worktrees/english-demo-usd/rent_room/apps/wechat
+
+ ❯ tests/example-houses.test.js (12 tests | 1 failed | 11 skipped) 26ms
+   ❯ first-visit example houses (12)
+     × seeds English demos with USD monthly rents suited to one and two bedrooms 25ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/example-houses.test.js > first-visit example houses > seeds English demos with USD monthly rents suited to one and two bedrooms
+AssertionError: expected [ 'CNY', 'CNY' ] to deeply equal [ 'USD', 'USD' ]
+
+- Expected
++ Received
+
+  [
+-   "USD",
+-   "USD",
++   "CNY",
++   "CNY",
+  ]
+
+ ❯ tests/example-houses.test.js:12:43
+     10|   it('seeds English demos with USD monthly rents suited to one and two…
+     11|     const io=adapter(),houses=createStore(io,{firstVisit:true,exampleL…
+     12|     expect(houses.map(h=>h.currencyCode)).toEqual(['USD','USD']);
+       |                                           ^
+     13|     expect(houses.map(h=>h.answers.f1_6.value)).toEqual(['1500','1900'…
+     14|     expect(comparison(houses,true).find(row=>row.id==='f1_6').values).…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 skipped (12)
+   Start at  22:46:20
+   Duration  249ms (transform 64%, tests 17%, import 17%, worker 2%)

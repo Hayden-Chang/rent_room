@@ -1,0 +1,11 @@
+{"id":"f116_1","label":"押金退还时限","values":["放弃","3 天"],"localized":[false,true],"choices":[[{"label":"放弃","localized":false,"detail":""}],[{"label":"3 天","localized":true,"detail":""}]]}
+✔ ios/tests/currency-localization.test.mjs (58.441875ms)
+✔ currency creation retains review progress atomically across failed saves and restart (55.400375ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 2
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 112.9305

@@ -1,0 +1,8 @@
+
+ RUN  v5.0.3 /Users/pc/.codex/worktrees/english-demo-usd/rent_room/apps/wechat
+
+
+ Test Files  3 passed (3)
+      Tests  30 passed (30)
+   Start at  22:47:14
+   Duration  1.15s (tests 75%, transform 13%, import 12%, worker 1%)
