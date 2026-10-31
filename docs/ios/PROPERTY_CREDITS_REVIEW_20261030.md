@@ -4,6 +4,7 @@
 
 ## 小搭点数不足提醒：获批后正式接入（2026-10-31）
 
+- 用户在查看正式新建入口截图和验证结果后回复“没问题”，明确确认本次 iOS 正式页面效果。对应页面源码 `3529a9c`，展示截图 `integration/new-property-zero-credits-purchase.png`；该确认不替代尚未完成的小程序实际渲染/点击验收。共享池再次查询仍为三个 `busy-or-quarantined`，未提交无可用槽位的重复运行，PR 保持草稿。
 - 用户明确批准 think 第二版后，iOS `CapacityPage` 以有续接回调且当前 intent 为 create 启用提醒；小程序以 `intent=1` 路由且当前 intent 为 create 启用。组件继续只在余额 0 时显示“你的房源点数不够啦～”。设置入口即使存在残留新建 intent 也不显示；旧归档恢复入口不显示。未更改购买、扣点、迁移或续接逻辑。
 - 正式接线源码 `3529a9cb86ba950c49ce9cd0ba4ec422aa26a2d1`，首批测试启动时工作树干净；远端 main 仍为 `1f26f8e04088fa8865431e5c590dd1179ab98c84`。共享 runner `rent-room-credit-reminder-20261031-03` 选择 3 个精确正式页面 UI 方法，覆盖首页新建→不足提醒→返回保留房源→设置零余额无提醒→再次新建、待确认保持零点数及提醒→恢复确认续接原命名表单、设置购买恢复后跨进程不重复发点。
 - 小程序先构建后运行 `capacity-runtime`、`capacity-navigation`、`property-credits-component` 三个文件，共 27 项通过；新增四种来源组合及取消后刷新清理标记。官方编译 wcc 21 / wcsc 23 通过。VM/编译不是开发者工具实际点击证据，共享三槽仍不可领用，未抢占或清理实例。当前小搭提醒的小程序实际渲染仍待补，PR 保持草稿。
