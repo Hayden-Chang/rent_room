@@ -18,7 +18,7 @@ struct PropertyCreditsSurface: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             if fromCreation && remaining == 0 {
-                XiaodaMessage(text: copy("你的房源点数不够啦～", "You’re out of property credits~"), pose: "expect") {
+                XiaodaMessage(text: copy("你的房源点数不够啦～", "You’re out of property credits~"), pose: "think") {
                     EmptyView()
                 }
             }
