@@ -72,7 +72,7 @@ struct MPSettingsSurface: View {
                 MPCard {
                     VStack(spacing: 0) {
                         MPMenuRow(title: "上班地点", detail: workplace.isEmpty ? "未设置" : workplace, action: openWorkplace)
-                        MPMenuRow(title: "归档房源", detail: "\(archived) 套", action: archive)
+                        MPMenuRow(title: "删除房源", detail: "\(archived) 套", action: archive)
                         HStack { AppText("操作引导").font(.system(size: 14, weight: .medium)); Spacer(); MPSwitch(value: $onboarding, label: "操作引导") }
                             .frame(minHeight: 60).overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
                     }
@@ -170,7 +170,7 @@ struct MPTransferSurface: View {
                         VStack(alignment: .leading, spacing: 3) {
                             HStack(spacing: 8) {
                                 Text(verbatim: item.name).font(.system(size: 17, weight: .semibold))
-                                if item.archived { AppText("已归档").font(.system(size: 11)).foregroundStyle(XJTheme.primary).padding(.horizontal, 8).padding(.vertical, 3).background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)) }
+                                if item.archived { AppText("已删除").font(.system(size: 11)).foregroundStyle(XJTheme.primary).padding(.horizontal, 8).padding(.vertical, 3).background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)) }
                             }
                             Text(verbatim: item.address.isEmpty ? AppCopy.text("地址未填写") : item.address).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
                             AppText("\(item.fields) 条检查记录 · \(item.media) 个影像").font(.system(size: 12)).foregroundStyle(XJTheme.muted)

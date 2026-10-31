@@ -1341,5 +1341,12 @@
   "购买记录无效，请恢复容量": "Invalid purchase record. Please restore capacity.",
   "购买记录版本无效，请恢复容量": "Invalid purchase record version. Please restore capacity.",
   "通过 App Store 购买，无需注册或登录看房搭子。购买与恢复需要联网，房源记录保存在本机。": "Purchases are made through the App Store with no need to register or sign in to Xunju. Purchasing and restoring require an internet connection. Property records are saved locally.",
-  "隐私政策": "Privacy Policy"
+  "隐私政策": "Privacy Policy",
+  "删除房源": "Deleted Homes",
+  "删除后保留全部记录，可在设置的“删除房源”中还原。": "All records are kept after deletion. Restore them from Deleted Homes in Settings.",
+  "还没有删除的房源": "No deleted homes yet",
+  "长按房源可还原或彻底删除": "Press and hold a home to restore or permanently delete it",
+  "已删除": "Deleted",
+  "已删除房源 · 只读查看，可在删除房源列表中还原": "Deleted Home · Read-only; restore it from Deleted Homes",
+  "房源已删除，当前为只读查看": "Home deleted. Currently viewing in read-only mode."
 }

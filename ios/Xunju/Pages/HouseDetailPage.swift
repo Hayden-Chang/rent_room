@@ -11,7 +11,7 @@ struct HouseDetailPage: View {
     var body: some View {
         VStack(spacing: 0) {
             if workspace.store.house(id)["archived"].bool {
-                AppText("归档房源 · 只读查看，在归档列表中可还原")
+                AppText("已删除房源 · 只读查看，可在删除房源列表中还原")
                     .font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(10)
                     .frame(maxWidth: .infinity).background(XJTheme.soft).accessibilityIdentifier("house.readonly")
             }

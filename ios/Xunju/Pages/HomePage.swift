@@ -116,7 +116,7 @@ struct ArchivePage: View {
             VStack(spacing: 12) {
                 SaveBanner(workspace: workspace)
                 if workspace.store.archivedHouses.isEmpty {
-                    AppText("还没有归档房源").foregroundStyle(XJTheme.muted).padding(.top, 56)
+                    AppText("还没有删除的房源").foregroundStyle(XJTheme.muted).padding(.top, 56)
                 }
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                     ForEach(workspace.store.archivedHouses) { house in
@@ -126,10 +126,10 @@ struct ArchivePage: View {
                     }
                 }
                 if !workspace.store.archivedHouses.isEmpty {
-                    AppText("长按房源可还原或删除").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading)
+                    AppText("长按房源可还原或彻底删除").font(.system(size: 12)).foregroundStyle(XJTheme.muted).padding(.vertical, 10).frame(maxWidth: .infinity, alignment: .leading)
                 }
             }.padding(16)
-        }.background(XJTheme.background).miniNavigation(AppCopy.text("归档房源"))
+        }.background(XJTheme.background).miniNavigation(AppCopy.text("删除房源"))
             .navigationDestination(item: $openedHouse) { id in HouseDetailPage(workspace: workspace, id: id) }
             .fullScreenCover(isPresented: $capacity) { NavigationStack { CapacityPage(workspace: workspace, continued: { _ in }) } }
             .fullScreenCover(item: $managed, onDismiss: {
@@ -160,7 +160,7 @@ private struct HouseActionSheet: View {
                     perform { try workspace.store.call("rename", ["id": .string(house.id), "value": .string(name)]) }
                 })
             case "archive":
-                MPConfirmation(title: "归档房源", message: "归档后保留全部记录，可在设置中还原。", confirmTitle: "确认", cancel: close,
+                MPConfirmation(title: "删除房源", message: "删除后保留全部记录，可在设置的“删除房源”中还原。", confirmTitle: "确认", cancel: close,
                     confirm: { perform { try workspace.store.archive(house.id, archived: true) } })
             case "delete":
                 MPConfirmation(title: "彻底删除房源", message: "将删除本机房源记录，已有导出备份不受影响。请确认已保存需要的备份。", confirmTitle: "确认", cancel: close,
@@ -170,7 +170,7 @@ private struct HouseActionSheet: View {
                     MPActionMenu(title: "", actions: [("还原房源", false, restore), ("彻底删除", false, { mode = "delete" })],
                         identifiers: ["archive.restore." + house.name, "archive.delete." + house.name], close: close)
                 } else {
-                    MPActionMenu(title: "", actions: [("重命名", false, { mode = "rename" }), ("归档房源", false, { mode = "archive" }), ("导出房源 ZIP", false, export)], close: close)
+                    MPActionMenu(title: "", actions: [("重命名", false, { mode = "rename" }), ("删除", false, { mode = "archive" }), ("导出房源 ZIP", false, export)], close: close)
                 }
             }
         }.foregroundStyle(XJTheme.ink)
