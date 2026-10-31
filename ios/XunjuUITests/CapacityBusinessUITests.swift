@@ -29,6 +29,14 @@ import XCTest
         let ready = expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: app.buttons["credits.restore"])
         wait(for: [ready], timeout: 8)
     }
+    private func waitShortageReminder(_ app: XCUIApplication) {
+        let message = app.otherElements["xiaoda.message"]
+        XCTAssertTrue(message.waitForExistence(timeout: 3))
+        XCTAssertEqual(message.label, "你的房源点数不够啦～")
+        let complete = expectation(for: NSPredicate(format: "value == %@", "完整显示"), evaluatedWith: message)
+        wait(for: [complete], timeout: 3)
+        XCTAssertLessThan(message.frame.maxY, app.staticTexts["credits.balance"].frame.minY)
+    }
     private func capture(_ name: String, _ app: XCUIApplication) {
         let attachment = XCTAttachment(screenshot: app.screenshot()); attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
@@ -43,17 +51,25 @@ import XCTest
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '小饼干' OR label CONTAINS '🍪' OR label CONTAINS '已转换'")).firstMatch.exists)
         XCTAssertFalse(app.buttons["先等等"].exists)
         XCTAssertFalse(app.textFields["prompt.text"].exists)
+        waitShortageReminder(app)
         capture("new-property-zero-credits-purchase", app)
         app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.buttons["house.超额保留"].exists)
         XCTAssertFalse(app.textFields["prompt.text"].exists)
+        app.buttons["tab.我的"].tap(); app.buttons["local-settings.capacity"].tap()
+        waitCredits(0, app); idle(app)
+        XCTAssertFalse(app.otherElements["xiaoda.message"].exists, "Settings must not show the new-property reminder")
+        capture("settings-zero-credits-without-reminder", app)
+        app.navigationBackButton.tap(); app.buttons["tab.房源"].tap()
         app.buttons["home.add"].tap(); waitCredits(0, app)
+        waitShortageReminder(app)
         XCTAssertEqual(buy.label, "¥9.90 购买 10 点")
     }
     func testPendingPurchaseDoesNotGrantAndRestoresOnceAcrossProcessRelaunch() {
         let id = UUID().uuidString, app = launch(id, mode: "pending")
         idle(app); XCTAssertEqual(app.buttons["credits.purchase"].label, "¥9.90 购买 10 点")
+        XCTAssertFalse(app.otherElements["xiaoda.message"].exists)
         app.buttons["credits.purchase"].tap()
         XCTAssertTrue(app.staticTexts["credits.pending"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["credits.purchase"].isEnabled); waitCredits(2, app)
@@ -112,11 +128,15 @@ import XCTest
             XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5)); app.navigationBackButton.tap()
         }
         app.buttons["home.add"].tap(); waitCredits(0, app); idle(app)
+        waitShortageReminder(app)
         app.buttons["credits.purchase"].tap(); XCTAssertTrue(app.staticTexts["credits.pending"].waitForExistence(timeout: 5))
         waitCredits(0, app); XCTAssertFalse(app.textFields["prompt.text"].exists)
+        waitShortageReminder(app)
+        capture("new-property-pending-credits-reminder", app)
         app.buttons["credits.restore"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 12))
         XCTAssertEqual(name.value as? String, "第3套")
+        XCTAssertFalse(app.otherElements["xiaoda.message"].exists)
         capture("business-capacity-resumes-original-create", app)
         app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["house.第1套"].waitForExistence(timeout: 3)); XCTAssertTrue(app.buttons["house.第2套"].exists); XCTAssertFalse(app.buttons["house.第3套"].exists)

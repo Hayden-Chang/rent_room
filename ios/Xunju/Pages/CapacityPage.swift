@@ -10,6 +10,7 @@ struct CapacityPage: View {
             PropertyCreditsSurface(remaining: workspace.store.capacity.remaining,
                 price: workspace.billing.product?.displayPrice,
                 activity: workspace.billing.activity, error: AppCopy.text(workspace.billing.error),
+                fromCreation: continued != nil && workspace.store.state["xiaoda"]["intent"]["kind"].string == "create",
                 purchase: { act(restore: false) }, restore: { act(restore: true) })
                 .padding(20).frame(maxWidth: .infinity)
         }.background(.white).miniNavigation(AppCopy.text("房源点数"), background: .white, back: {

@@ -3,11 +3,11 @@ import {protectedPage} from '../../lib/auth-page.js';
 import {service,notify} from '../../lib/ui.js';
 import {continueHouseAction} from '../../lib/house-intent.js';
 Page(withAppShare(protectedPage({
- data:{remaining:0,pending:false,busy:false,error:'',configured:false,authenticated:false,intent:null},
+ data:{remaining:0,pending:false,busy:false,error:'',configured:false,authenticated:false,intent:null,fromCreation:false},
  onLoad(options){this.hasIntent=options.intent==='1';},
  onShow(){this.refresh();if(!this.data.busy&&this.data.configured)this.refreshEntitlements();},
 
- refresh(){this.setData({...service().store.capacity(),authenticated:getApp().auth.isAuthenticated(),configured:service().billing.snapshot().configured,pending:service().billing.snapshot().pending,intent:this.hasIntent?service().store.get().xiaoda.intent:null});},
+ refresh(){const intent=this.hasIntent?service().store.get().xiaoda.intent:null;this.setData({...service().store.capacity(),authenticated:getApp().auth.isAuthenticated(),configured:service().billing.snapshot().configured,pending:service().billing.snapshot().pending,intent,fromCreation:intent?.kind==='create'});},
  async refreshEntitlements(){const platform=service();try{const result=await platform.billing.refresh();if(this.accountUnloaded||platform!==getApp().service)return;this.setData({error:''});this.refresh();
    if(this.data.intent&&!result.pending&&this.data.remaining)this.resume();
   }catch(error){if(!this.accountUnloaded&&platform===getApp().service)this.setData({error:error.message});}},

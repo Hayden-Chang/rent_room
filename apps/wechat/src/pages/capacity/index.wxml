@@ -1,3 +1,3 @@
 <view wx:if="{{accountReady}}" class="page capacity-page">
- <property-credits id="property-credits" remaining="{{remaining}}" authenticated="{{authenticated}}" busy="{{busy}}" pending="{{pending}}" error="{{error}}" bindpurchase="purchase" bindrestore="restore"/>
+ <property-credits id="property-credits" remaining="{{remaining}}" from-creation="{{fromCreation}}" authenticated="{{authenticated}}" busy="{{busy}}" pending="{{pending}}" error="{{error}}" bindpurchase="purchase" bindrestore="restore"/>
 </view>

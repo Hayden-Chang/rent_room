@@ -99,3 +99,19 @@ it('continues immediately after confirmed purchase without cookie or thank-you s
  const r=runtime(1);r.app.service.store.change(s=>s.xiaoda.intent={kind:'create',houseId:''});const page=r.load('capacity',{intent:'1'});
  r.app.service.billing.purchase=async()=>({pending:false});await page.purchase();expect(r.routes.at(-1)).toBe('/pages/new-house/index');expect(page.data.thanking).toBeUndefined();
 });
+
+
+it.each([
+ ['interrupted create','create',{intent:'1'},true],
+ ['settings with a stale create','create',{},false],
+ ['legacy archive restore','restore',{intent:'1'},false],
+ ['missing interrupted action',null,{intent:'1'},false]
+])('only enables the shortage reminder for a routed create: %s',(_label,kind,query,expected)=>{
+ const r=runtime(),store=r.app.service.store,initial=store.capacity().remaining;
+ for(let i=0;i<initial;i++)store.add('已有房源'+i);
+ store.change(s=>{if(kind)s.xiaoda.intent={kind,houseId:''};else delete s.xiaoda.intent;});
+ const page=r.load('capacity',query);
+ expect(page.data).toMatchObject({remaining:0,fromCreation:expected});
+ expect(store.get().houses).toHaveLength(initial);
+ store.change(s=>delete s.xiaoda.intent);page.refresh();expect(page.data.fromCreation).toBe(false);
+});
