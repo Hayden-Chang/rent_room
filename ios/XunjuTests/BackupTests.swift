@@ -48,7 +48,7 @@ final class BackupTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: target.records.directory.appending(path: media["path"].string)), bytes)
     }
 
-    @MainActor func testZIPCapacityFailureDiscardsStagedMediaAndKeepsRecords() async throws {
+    @MainActor func testZIPImportsMediaAtZeroCreditsAndKeepsRecords() async throws {
         let source = try store(), target = try store(), transfers = BackupTransfers()
         let id = try source.add("导入房源")
         try addMedia(source, house: id, bytes: Data([1, 2, 3]))
@@ -57,13 +57,14 @@ final class BackupTests: XCTestCase {
         let archive = source.records.directory.appendingPathComponent("rooms.zip")
         try await transfers.export(ids: [id], store: source, to: archive)
         let preview = try await transfers.preview(archive, store: target)
-        let original = target.state
-        do {
-            try await transfers.importSelected(archive, preview: preview, selectedIDs: [id], replacing: [], store: target, isCurrent: { true })
-            XCTFail("Over capacity import must fail")
-        } catch { XCTAssertTrue(error.localizedDescription.contains("容量")) }
-        XCTAssertEqual(target.state, original)
-        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: target.records.directory.appendingPathComponent("media").path).count, 0)
+        try await transfers.importSelected(archive, preview: preview, selectedIDs: [id], replacing: [], store: target, isCurrent: { true })
+        XCTAssertEqual(target.houses.count, 2)
+        XCTAssertEqual(target.capacity.remaining, 0)
+        let restored = try NativeStore(directory: target.records.directory)
+        XCTAssertEqual(restored.houses.count, 2)
+        XCTAssertEqual(restored.capacity.remaining, 0)
+        let media = restored.house(id)["media"].array[0]
+        XCTAssertEqual(try Data(contentsOf: restored.records.directory.appending(path: media["path"].string)), Data([1, 2, 3]))
     }
 
     @MainActor func testReplacementImportUsesNetCapacityAndRetainsGlobalSettings() async throws {

@@ -14,7 +14,12 @@ import SwiftUI
         guard let url = Bundle.main.url(forResource: "AppCopy", withExtension: "json"),
               let data = try? Data(contentsOf: url),
               let value = try? JSONDecoder().decode([String: String].self, from: data) else { return [:] }
-        return value
+        return value.merging([
+            "房源点数": "Property credits",
+            "房源点数不足，请先购买房源点数": "You need more property credits to create a property.",
+            "房源点数记录读取失败，请保留本机数据": "Unable to read property credits. Please keep the local data.",
+            "请使用购买时的 App Store 账号恢复点数": "Restore purchases with the App Store account used to purchase credits."
+        ]) { _, updated in updated }
     }()
     private struct Template {
         let pattern: NSRegularExpression

@@ -120,7 +120,7 @@ import Observation
     }
     private func confirm(_ transaction: CapacityTransaction, identity: PurchaseIdentity, requestReview: Bool = false) async throws {
         guard current(identity), matches(transaction, identity), let workspace else {
-            throw CoreFailure(message: "请使用购买时的 App Store 账号恢复容量")
+            throw CoreFailure(message: "请使用购买时的 App Store 账号恢复点数")
         }
         try workspace.recordPurchases([transaction], identity: identity)
         try await acknowledge(transaction, identity: identity, requestReview: requestReview)

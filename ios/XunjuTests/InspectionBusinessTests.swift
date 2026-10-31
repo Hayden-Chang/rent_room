@@ -271,18 +271,18 @@ import XCTest
         try store.answer(id, field: "f54_0", property: "none", value: .bool(false))
         XCTAssertEqual(store.house(id)["answers"]["f54_0"]["value"].string, "需要衣柜")
     }
-    func testZeroCapacityKeepsOldRecordsAndRejectsNetNewImportOrRestore() throws {
+    func testZeroCreditsAllowImportAndRestoreButRejectNewCreation() throws {
         let store = try makeStore(free: 2), id = try store.add("老房源"), second = try store.add("待还原")
         try store.archive(second, archived: true)
         try store.call("setFreeLimit", ["value": .number(0)])
         try store.answer(id, field: "f1_6", value: .string("1800"))
-        XCTAssertThrowsError(try store.add("超额新增")); XCTAssertThrowsError(try store.archive(second, archived: false))
+        XCTAssertThrowsError(try store.add("超额新增"))
         let copy = store.house(id).setting("id", to: .string("new-copy"))
-        XCTAssertThrowsError(try store.call("import", ["houses": .array([copy]), "replaceIds": .array([])]))
+        try store.call("import", ["houses": .array([copy]), "replaceIds": .array([])])
         try store.call("import", ["houses": .array([store.house(id)]), "replaceIds": .array([.string(id)])])
         XCTAssertEqual(store.house(id)["answers"]["f1_6"]["value"].string, "1800")
         try store.call("beginHouseAction", ["id": .string(second), "value": .string("restore")])
-        try store.call("setFreeLimit", ["value": .number(2)])
+        XCTAssertEqual(store.capacity.remaining, 0)
         XCTAssertEqual(try store.call("finishHouseAction")["id"].string, second)
         XCTAssertFalse(store.house(second)["archived"].bool)
     }

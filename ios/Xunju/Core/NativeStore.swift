@@ -41,7 +41,7 @@ final class NativeStore {
     @ObservationIgnored private let context: JSContext
     @ObservationIgnored private let mapQueryTimeout: Duration
 
-    init(directory: URL, packs: Int = 0, freeLimit: Int = 1, network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15), firstVisit: Bool = false, exampleLanguage: SupportedLanguage = .chinese) throws {
+    init(directory: URL, packs: Int = 0, freeLimit: Int = 1, creditAccount: String = "local", network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15), firstVisit: Bool = false, exampleLanguage: SupportedLanguage = .chinese) throws {
         records = try LocalRecords(directory: directory)
         guard let context = JSContext(), let source = Bundle.main.url(forResource: "XunjuCore", withExtension: "js") else {
             throw CoreFailure(message: "清单规则资源缺失")
@@ -63,6 +63,18 @@ final class NativeStore {
             catch { result = ["value": "", "error": error.localizedDescription] }
             return String(data: try! JSONEncoder().encode(result), encoding: .utf8)!
         }
+        let readCredits: @convention(block) () -> String = {
+            let result: [String: String]
+            do { result = ["value": try records.readCredits(), "error": ""] }
+            catch { result = ["value": "", "error": error.localizedDescription] }
+            return String(data: try! JSONEncoder().encode(result), encoding: .utf8)!
+        }
+        let writeCredits: @convention(block) (String) -> String = { text in
+            do { try records.writeCredits(text); return "" }
+            catch { return error.localizedDescription }
+        }
+        context.setObject(readCredits, forKeyedSubscript: "nativeReadCredits" as NSString)
+        context.setObject(writeCredits, forKeyedSubscript: "nativeWriteCredits" as NSString)
         context.setObject(previous, forKeyedSubscript: "nativePrevious" as NSString)
         context.setObject(write, forKeyedSubscript: "nativeWrite" as NSString)
         context.setObject(preserve, forKeyedSubscript: "nativePreserveCorrupt" as NSString)
@@ -88,7 +100,7 @@ final class NativeStore {
         let raw: Any
         if missing { raw = NSNull() } else { raw = try records.read() }
         let result = context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("initialize", withArguments: [
-            raw, packs, freeLimit, firstVisit && !hasPrevious, exampleLanguage.rawValue
+            raw, packs, freeLimit, creditAccount, firstVisit && !hasPrevious, exampleLanguage.rawValue
         ])
         _ = try consume(result)
     }

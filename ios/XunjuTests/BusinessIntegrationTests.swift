@@ -64,7 +64,7 @@ import XCTest
         XCTAssertEqual(try workspace.scopes.guestDirectory(), directory)
         XCTAssertEqual(try AppWorkspace(root: root, keychain: VolatileSessionStorage()).store.houses.map(\.id), [id])
     }
-    func testImportCopyUsesNewIDKeepsOriginalAndFailsAtomicallyAtCapacity() async throws {
+    func testImportCopyUsesNewIDKeepsOriginalWithoutSpendingCredits() async throws {
         let store = try NativeStore(directory: root(), freeLimit: 2), id = try store.add("原有"), transfer = BackupTransfers()
         let zip = store.records.directory.appending(path: "copy.zip")
         try await transfer.export(ids: [id], store: store, to: zip)
@@ -72,10 +72,10 @@ import XCTest
         try await transfer.importSelected(zip, preview: preview, selectedIDs: [id], replacing: [], copying: [id], store: store, isCurrent: { true })
         XCTAssertEqual(store.houses.count, 2)
         XCTAssertNotEqual(store.houses[0].id, store.houses[1].id)
-        let state = store.state
-        do { try await transfer.importSelected(zip, preview: preview, selectedIDs: [id], replacing: [], copying: [id], store: store, isCurrent: { true }); XCTFail("capacity must reject third active house") } catch {}
-        XCTAssertEqual(store.state, state)
-        XCTAssertEqual(try NativeStore(directory: store.records.directory).houses.count, 2)
+        try await transfer.importSelected(zip, preview: preview, selectedIDs: [id], replacing: [], copying: [id], store: store, isCurrent: { true })
+        XCTAssertEqual(store.houses.count, 3)
+        XCTAssertEqual(store.capacity.remaining, 1)
+        XCTAssertEqual(try NativeStore(directory: store.records.directory, freeLimit: 2).capacity.remaining, 1)
     }
     func testCorruptFormerAccountStillOpensOfflineRecoveryAndRetainsOriginalFile() throws {
         let root = try root(), keychain = VolatileSessionStorage(), workspace = try AppWorkspace(root: root, keychain: keychain)

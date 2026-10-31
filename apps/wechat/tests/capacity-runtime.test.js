@@ -15,27 +15,27 @@ function runtime(packs=0){
 }
 
 it('routes the second-house action to capacity before requesting a name',async()=>{
- const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);r.app.service.store.add('列表');
+ const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);r.app.service.store.import([freshHouse('列表')]);
  const home=r.load('home');expect(home.data.houses).toHaveLength(1);await home.add();
  expect(r.routes).toEqual(['/pages/capacity/index?intent=1']);expect(r.app.service.store.capacity().used).toBe(1);
  const page=r.load('capacity',{needed:'1'});expect(page.data).toMatchObject({used:1,limit:1,remaining:0,configured:false});
  await page.restore();expect(page.data.error).toContain('暂未开放');
 });
 
-it('keeps the complete pending import while opening the capacity page',async()=>{
+it('imports a complete backup at zero credits without opening purchase',async()=>{
  const r=runtime();r.app.service.store.add('A');
- const pending={fileName:'backup.zip',houses:[freshHouse('C'),freshHouse('D')]};r.app.service.selectImport=async()=>pending;
- const page=r.load('import');await new Promise(resolve=>setTimeout(resolve,0));await page.commit();
- expect(r.routes).toEqual(['/pages/capacity/index?needed=2']);expect(page.pending).toBe(pending);
- expect(page.data.busy).toBe(false);expect(page.data.houses.every(h=>h.selected)).toBe(true);expect(r.app.service.store.capacity().used).toBe(1);
+ const pending={...await readBackup(await makeBackup({houses:[freshHouse('C'),freshHouse('D')]})),fileName:'backup.zip'};r.app.service.selectImport=async()=>pending;
+ const page=r.load('import');await vi.waitFor(()=>expect(page.data.ready).toBe(true));await page.commit();
+ expect(r.routes).toEqual(['/pages/home/index']);expect(r.app.service.store.get().houses).toHaveLength(3);
+ expect(r.app.service.store.capacity().remaining).toBe(0);
 });
 
-it('shows released capacity and leaves purchase errors visible without clearing inputs',async()=>{
+it('shows unchanged credits after deleting archives and leaves purchase errors visible without clearing inputs',async()=>{
  const r=runtime(),id=r.app.service.store.add('A');r.app.service.store.archive(id,true);r.app.service.store.remove(id);
- const page=r.load('capacity',{needed:'1'});expect(page.data).toMatchObject({remaining:1});
+ const page=r.load('capacity',{needed:'1'});expect(page.data).toMatchObject({remaining:0});
  r.app.pendingHouseName='尚未保存的房源';r.app.service.billing.purchase=async()=>{throw Error('支付结果正在确认');};
  await page.purchase();expect(page.data).toMatchObject({busy:false,error:'支付结果正在确认'});expect(r.app.pendingHouseName).toBe('尚未保存的房源');
- const settings=r.load('settings');expect(settings.data).toMatchObject({used:0,limit:1});
+ const settings=r.load('settings');expect(settings.data).toMatchObject({remaining:0});
 });
 
 it('clears an earlier order error when a later automatic refresh succeeds',async()=>{
@@ -57,29 +57,29 @@ it('keeps the latest refresh failure visible without removing confirmed capacity
  expect(page.data.limit).toBe(11);
 });
 
-it('shows only active occupancy in settings and capacity and keeps archives separate',()=>{
- const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);r.app.service.store.add('正在看');
- expect(r.load('settings').data).toMatchObject({archived:1,used:1,limit:1});
+it('shows remaining credits independently of imported and archived records',()=>{
+ const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);r.app.service.store.import([freshHouse('正在看')]);
+ expect(r.load('settings').data).toMatchObject({archived:1,remaining:0});
  expect(r.load('capacity').data).toMatchObject({used:1,limit:1,remaining:0});
- expect(()=>r.app.service.store.archive(id,false)).toThrow('容量不足');expect(r.load('settings').data).toMatchObject({archived:1,used:1});
+ r.app.service.store.archive(id,false);expect(r.load('settings').data).toMatchObject({archived:0,remaining:0});
 });
-it('routes a full-capacity restore to capacity and leaves the record archived',async()=>{
- const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);r.app.service.store.add('A');
+it('restores at zero credits without opening purchase',async()=>{
+ const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);
  const page=r.load('archive');page.manage({currentTarget:{dataset:{id}}});
- await vi.waitFor(()=>expect(r.routes).toEqual(['/pages/capacity/index?intent=1']));expect(r.app.service.store.house(id).archived).toBe(true);
+ await vi.waitFor(()=>expect(r.app.service.store.house(id).archived).toBe(false));expect(r.routes).toEqual([]);expect(r.app.service.store.capacity().remaining).toBe(0);
 });
-it('imports a mixed batch using only its active slots and preserves archived copies',async()=>{
+it('imports a mixed batch without spending credits and preserves archived copies',async()=>{
  const r=runtime(1);r.app.service.store.add('A');
  const pending={...await readBackup(await makeBackup({houses:[freshHouse('B'),{...freshHouse('归档'),archived:true}]})),fileName:'backup.zip'};
  r.app.service.selectImport=async()=>pending;
  const page=r.load('import');await vi.waitFor(()=>expect(page.data.ready).toBe(true));await page.commit();
  expect(r.routes).toEqual(['/pages/home/index']);
- expect(r.app.service.store.capacity()).toMatchObject({used:2,remaining:9});expect(r.app.service.store.get().houses).toHaveLength(3);
+ expect(r.app.service.store.capacity()).toMatchObject({used:2,remaining:10});expect(r.app.service.store.get().houses).toHaveLength(3);
 });
 it('continues a paid create into the normal naming form and allocates only on submit',async()=>{
  const r=runtime(1);r.app.service.store.change(s=>s.xiaoda.intent={kind:'create',houseId:''});const page=r.load('capacity',{intent:'1'});
  page.resume();expect(r.routes.at(-1)).toBe('/pages/new-house/index');expect(r.app.service.store.capacity().used).toBe(0);
- const form=r.load('new-house');form.input({detail:{value:'续接的房源'}});form.create();expect(r.app.service.store.capacity().used).toBe(1);expect(r.app.service.store.get().xiaoda.intent).toBeUndefined();
+ const form=r.load('new-house');form.input({detail:{value:'续接的房源'}});await form.create();expect(r.app.service.store.capacity().used).toBe(1);expect(r.app.service.store.get().xiaoda.intent).toBeUndefined();
 });
 it('restores the originally selected archive with its answers and template intact',()=>{
  const r=runtime(1),id=r.app.service.store.add('原房源');r.app.service.store.answer(id,'f1_3','value',88);r.app.service.store.archive(id,true);
@@ -91,13 +91,27 @@ it('keeps delayed payment pending and does not navigate until a server-confirmed
  r.app.service.billing.refresh=async()=>({pending:true});await page.refreshEntitlements();expect(r.routes).toEqual([]);
  r.app.service.billing.refresh=async()=>({pending:false});await page.refreshEntitlements();expect(r.routes).toEqual(['/pages/new-house/index']);
 });
-it('does not request another purchase when a legacy over-capacity account is still full after ten credits',()=>{
- const r=runtime(1);r.app.service.store.change(s=>{s.houses=Array.from({length:11},(_,i)=>freshHouse('旧房源'+i));s.xiaoda.intent={kind:'create',houseId:''};});
- const page=r.load('capacity',{intent:'1'});page.resume(true);expect(r.routes.at(-1)).toBe('/pages/home/index');expect(r.toasts.at(-1)).toContain('腾出至少 1 套');expect(r.app.service.store.capacity().used).toBe(11);
+it('does not block new creation because imported houses exceed the old capacity limit',()=>{
+ const r=runtime(1);r.app.service.store.import(Array.from({length:15},(_,i)=>freshHouse('导入'+i)));r.app.service.store.change(s=>s.xiaoda.intent={kind:'create',houseId:''});
+ const page=r.load('capacity',{intent:'1'});page.resume();expect(r.routes.at(-1)).toBe('/pages/new-house/index');expect(r.app.service.store.capacity().remaining).toBe(11);
 });
-it('resumes the original action after returning during the purchase thank-you pause',async()=>{
- vi.useFakeTimers();try{
-  const r=runtime(1);r.app.service.store.change(s=>s.xiaoda.intent={kind:'create',houseId:''});const page=r.load('capacity',{intent:'1'});page.setData({thanking:true});page.paidTyped();page.onHide();vi.advanceTimersByTime(2000);expect(r.routes).toEqual([]);
-  page.onShow();vi.advanceTimersByTime(1200);expect(r.routes.at(-1)).toBe('/pages/new-house/index');
- }finally{vi.useRealTimers();}
+it('continues immediately after confirmed purchase without cookie or thank-you state',async()=>{
+ const r=runtime(1);r.app.service.store.change(s=>s.xiaoda.intent={kind:'create',houseId:''});const page=r.load('capacity',{intent:'1'});
+ r.app.service.billing.purchase=async()=>({pending:false});await page.purchase();expect(r.routes.at(-1)).toBe('/pages/new-house/index');expect(page.data.thanking).toBeUndefined();
+});
+
+
+it.each([
+ ['interrupted create','create',{intent:'1'},true],
+ ['settings with a stale create','create',{},false],
+ ['legacy archive restore','restore',{intent:'1'},false],
+ ['missing interrupted action',null,{intent:'1'},false]
+])('only enables the shortage reminder for a routed create: %s',(_label,kind,query,expected)=>{
+ const r=runtime(),store=r.app.service.store,initial=store.capacity().remaining;
+ for(let i=0;i<initial;i++)store.add('已有房源'+i);
+ store.change(s=>{if(kind)s.xiaoda.intent={kind,houseId:''};else delete s.xiaoda.intent;});
+ const page=r.load('capacity',query);
+ expect(page.data).toMatchObject({remaining:0,fromCreation:expected});
+ expect(store.get().houses).toHaveLength(initial);
+ store.change(s=>delete s.xiaoda.intent);page.refresh();expect(page.data.fromCreation).toBe(false);
 });

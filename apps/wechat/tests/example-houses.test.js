@@ -7,6 +7,20 @@ function adapter(raw=null) {
   return {read:()=>saved,write:vi.fn(value=>{saved=value;})};
 }
 describe('first-visit example houses',()=>{
+  it('keeps creation credits available for new and previously saved examples',()=>{
+    for(const language of ['zh-Hans','en']){
+      const io=adapter(),s=createStore(io,{firstVisit:true,exampleLanguage:language});
+      expect(s.capacity().remaining).toBe(1);
+      const id=s.add('我的第一套房源');
+      expect(s.capacity().remaining).toBe(0);
+      s.archive(id,true);s.remove(id);
+      expect(createStore(io,{firstVisit:true}).capacity().remaining).toBe(0);
+      const legacy={...emptyState(),houses:s.get().houses};
+      const old=adapter(JSON.stringify(legacy)),restored=createStore(old,{firstVisit:true});
+      expect(restored.capacity().remaining).toBe(1);
+      expect(old.read()).toBe(JSON.stringify(legacy));expect(old.write).not.toHaveBeenCalled();
+    }
+  });
   it('seeds English demos with USD monthly rents suited to one and two bedrooms',()=>{
     const io=adapter(),houses=createStore(io,{firstVisit:true,exampleLanguage:'en'}).get().houses;
     expect(houses.map(h=>h.currencyCode)).toEqual(['USD','USD']);

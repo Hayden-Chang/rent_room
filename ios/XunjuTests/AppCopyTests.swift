@@ -2,6 +2,18 @@ import XCTest
 @testable import Xunju
 
 @MainActor final class AppCopyTests: XCTestCase {
+    func testChineseYuanComparisonUsesYuanWithoutChangingUserTextOrOtherCurrencies() {
+        let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
+        defer { AppLanguage.shared.value = prior }
+        let rent: JSONValue = .object(["currency": .bool(true), "values": .array([.string("CNY 2800"), .string("USD 1500")])])
+        XCTAssertEqual(AppCopy.comparisonValue(rent, index: 0), "2800 元")
+        XCTAssertEqual(AppCopy.comparisonValue(rent, index: 1), "USD 1500")
+        let note: JSONValue = .object(["values": .array([.string("CNY 2800 原始备注")])])
+        XCTAssertEqual(AppCopy.comparisonValue(note, index: 0), "CNY 2800 原始备注")
+        AppLanguage.shared.value = .english
+        XCTAssertEqual(AppCopy.comparisonValue(rent, index: 0), "CNY 2800")
+        XCTAssertEqual(AppCopy.comparisonValue(rent, index: 1), "USD 1500")
+    }
     func testEnglishIssueCountUsesSingularOnlyForOne() {
         XCTAssertEqual(AppCopy.text("1 个问题", language: .english), "1 Issue")
         XCTAssertEqual(AppCopy.text("2 个问题", language: .english), "2 Issues")

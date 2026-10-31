@@ -3,55 +3,38 @@ import SwiftUI
 struct CapacityPage: View {
     let workspace: AppWorkspace
     var continued: ((JSONValue) -> Void)? = nil
-    @Environment(\.openURL) private var openURL
-    @State private var thanking = false
+    @State private var resuming = false
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
-            if !workspace.billing.activity.busy || thanking {
-                AppText(thanking ? "谢谢你的小饼干！" : "房源容量不够啦").font(.system(size: 24, weight: .bold)).foregroundStyle(Color(red: 38/255, green: 48/255, blue: 71/255))
-                    .frame(maxWidth: .infinity).frame(height: 33.6).padding(.top, 8).padding(.bottom, 24).accessibilityIdentifier("capacity.title")
-                XiaodaMessage(text: thanking ? "谢谢主人，您现在多了 10 套房源额度啦！" : "主人，可以投喂我一个小饼干🍪吗？", pose: thanking ? "success" : "expect", compact: false, hero: true) { EmptyView() }
-            }
-            AccountFreeCapacitySurface(used: workspace.store.capacity.used, limit: workspace.store.capacity.limit,
+            PropertyCreditsSurface(remaining: workspace.store.capacity.remaining,
                 price: workspace.billing.product?.displayPrice,
-                activity: workspace.billing.activity, error: workspace.billing.error,
-                purchase: { act(restore: false) }, restore: { act(restore: true) }, cancel: {
-                    if continued != nil { workspace.perform { try workspace.store.call("cancelHouseAction") } }; dismiss()
-                }, openLegal: { openURL($0.url) })
-            if continued != nil {
-                Button(AppCopy.text(workspace.store.state["xiaoda"]["intent"]["kind"].string == "restore" ? "继续恢复房源" : "继续新建房源")) {
-                    workspace.perform { let result = try workspace.store.call("finishHouseAction"); continued?(result); dismiss() }
-                }.buttonStyle(XJButtonStyle(primary: true)).disabled(workspace.store.capacity.remaining == 0)
-                    .accessibilityIdentifier("capacity.continue")
-            }
-            }.padding(.horizontal, 20).padding(.vertical, 24).disabled(thanking)
-        }.background(.white).miniNavigation(AppCopy.text("房源容量"), background: .white, back: { if continued == nil || workspace.perform({ try workspace.store.call("cancelHouseAction") }) { dismiss() } })
+                activity: workspace.billing.activity, error: AppCopy.text(workspace.billing.error),
+                fromCreation: continued != nil && workspace.store.state["xiaoda"]["intent"]["kind"].string == "create",
+                purchase: { act(restore: false) }, restore: { act(restore: true) })
+                .padding(20).frame(maxWidth: .infinity)
+        }.background(.white).miniNavigation(AppCopy.text("房源点数"), background: .white, back: {
+            if continued == nil || workspace.perform({ try workspace.store.call("cancelHouseAction") }) { dismiss() }
+        })
             .task {
                 workspace.billing.start()
                 await workspace.billing.load()
-                if !workspace.billing.activity.busy && workspace.billing.activity != .pending { resume() }
+                resume()
             }
-            .task(id: thanking) {
-                guard thanking else { return }
-                do { try await Task.sleep(for: .seconds(3)) } catch { return }
-                thanking = false; resume()
-            }
+            .onChange(of: workspace.billing.activity) { _, _ in resume() }
             .onDisappear { workspace.billing.stop() }
-            .modifier(AppReviewPrompt(workspace: workspace, ready: continued == nil && !thanking
+            .modifier(AppReviewPrompt(workspace: workspace, ready: continued == nil
                 && workspace.billing.activity == .idle && workspace.billing.error.isEmpty))
     }
     private func resume() {
-        guard continued != nil, workspace.store.capacity.remaining > 0, workspace.store.state["xiaoda"]["intent"] != .null else { return }
-        workspace.perform { let result = try workspace.store.call("finishHouseAction"); continued?(result); dismiss() }
+        guard !resuming, continued != nil, workspace.billing.activity == .idle, workspace.billing.error.isEmpty,
+              workspace.store.capacity.remaining > 0, workspace.store.state["xiaoda"]["intent"] != .null else { return }
+        resuming = true
+        if !workspace.perform({ let result = try workspace.store.call("finishHouseAction"); continued?(result); dismiss() }) { resuming = false }
     }
     private func act(restore: Bool) {
-        let store = workspace.store, previous = workspace.store.capacity.packs
         Task {
             if restore { await workspace.billing.restore() } else { await workspace.billing.purchase() }
-            guard workspace.store === store, workspace.billing.activity != .pending, workspace.billing.error.isEmpty else { return }
-            if store.capacity.packs > previous { thanking = true } else if restore { resume() }
         }
     }
 }

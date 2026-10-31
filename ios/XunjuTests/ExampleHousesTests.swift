@@ -61,6 +61,7 @@ import UIKit
         XCTAssertTrue(store.state["houses"].array.allSatisfy { $0["checklistMode"].string == "simple" })
         XCTAssertEqual(store.state["xiaoda"]["firstHouseId"].string, "")
         XCTAssertEqual(store.state["iosReview"]["created"].int, 0)
+        XCTAssertEqual(store.capacity.remaining, store.capacity.limit)
         let rows = try store.call("compare", ["ids": .array(ids.map(JSONValue.string)), "differences": .bool(true)]).array
         XCTAssertEqual(rows.first { $0.id == "f1_6" }?["values"].array.map(\.string), ["CNY 2800", "CNY 3600"])
         let restored = try AppWorkspace(root: url, keychain: VolatileSessionStorage(), firstVisitExamples: true)
@@ -68,6 +69,20 @@ import UIKit
         XCTAssertTrue(restored.store.houses.allSatisfy { houseCover($0, store: restored.store) != nil })
         for id in ids { try restored.store.archive(id, archived: true); try restored.store.call("remove", ["id": .string(id)]) }
         XCTAssertTrue(try AppWorkspace(root: url, keychain: VolatileSessionStorage(), firstVisitExamples: true).store.houses.isEmpty)
+    }
+    func testExamplesKeepFreeCreationCreditAndSuccessfulCreationSpendsOnlyOnce() throws {
+        let url = root(), workspace = try AppWorkspace(root: url, keychain: VolatileSessionStorage(), firstVisitExamples: true)
+        let store = workspace.store, before = store.capacity.remaining
+        XCTAssertGreaterThan(before, 0)
+        let id = try store.add("用户新建")
+        XCTAssertEqual(store.houses.count, 3)
+        XCTAssertEqual(store.capacity.remaining, before - 1)
+        try store.archive(id, archived: true)
+        try store.call("remove", ["id": .string(id)])
+        let restored = try AppWorkspace(root: url, keychain: VolatileSessionStorage(), firstVisitExamples: true)
+        XCTAssertEqual(restored.store.houses.count, 2)
+        XCTAssertEqual(restored.store.capacity.remaining, before - 1)
+        XCTAssertEqual(restored.store.state["iosReview"]["created"].int, 1)
     }
     func testExistingEmptyInstallationAndOldHouseAreNeverSeeded() throws {
         let url = root(), old = try AppWorkspace(root: url, keychain: VolatileSessionStorage())

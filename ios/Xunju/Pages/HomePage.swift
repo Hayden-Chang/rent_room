@@ -183,9 +183,8 @@ private struct HouseActionSheet: View {
     }
     private func restore() {
         do {
-            let info = try workspace.store.call("beginHouseAction", ["id": .string(house.id), "value": .string("restore")])
-            if info["remaining"].int > 0 { try workspace.store.call("finishHouseAction"); close() }
-            else { capacity() }
+            try workspace.store.call("beginHouseAction", ["id": .string(house.id), "value": .string("restore")])
+            try workspace.store.call("finishHouseAction"); close()
         } catch { self.error = error.localizedDescription }
     }
 }

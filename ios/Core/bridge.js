@@ -13,19 +13,21 @@ import {currencyState,normalizeCurrency,addCurrencyHouse,currencyComparison} fro
 import {recordHouseCreated, mergeReviewProgress, reviewActions} from './app-review.js';
 import {localDay} from '../../apps/wechat/src/lib/xiaoda-state.js';
 
-let store, sessionPacks = 0, claimPacks = null, freeLimit = 1;
+let store, sessionPacks = 0, freeLimit = 1, creditAccount = 'local';
 let deliveredState, summaryState, cachedSummaries;
 let deliveredHouses = new Map();
 const readOperations = new Set(['form', 'targets', 'issues', 'media', 'compare', 'inspectionGuide', 'templates', 'setupState']);
 let readState, readDay, readBytes = 0;
 const readCache = new Map();
-export function initialize(raw, packs = 0, free = 1, firstVisit = false, exampleLanguage = 'zh-Hans') {
+export function initialize(raw, packs = 0, free = 1, account = 'local', firstVisit = false, exampleLanguage = 'zh-Hans') {
   deliveredState = summaryState = cachedSummaries = undefined;
   deliveredHouses = new Map();
   readState = readDay = undefined; readBytes = 0; readCache.clear();
-  sessionPacks = packs; freeLimit = free;
+  sessionPacks = packs; freeLimit = free; creditAccount = account;
   store = createStore({
     read: () => currencyState(raw),
+    readCredits() {const result=JSON.parse(nativeReadCredits());if(result.error)throw Error(result.error);return result.value;},
+    writeCredits(text) {const error=nativeWriteCredits(text);if(error)throw Error(error);},
     prepareExamples() {
       const error = nativePrepareExamples();
       if (error) throw Error(error);
@@ -42,8 +44,9 @@ export function initialize(raw, packs = 0, free = 1, firstVisit = false, example
     write(text, options) {
       const error = nativeWrite(text, !!options?.keepPrevious);
       if (error) throw Error(error);
+      raw = text;
     }
-  }, {getPacks: () => claimPacks ?? sessionPacks, getFreeLimit: () => freeLimit, onHouseCreated: recordHouseCreated, firstVisit, exampleLanguage});
+  }, {getPacks: () => sessionPacks, getFreeLimit: () => freeLimit, getCreditAccount: () => creditAccount, onHouseCreated: recordHouseCreated, firstVisit, exampleLanguage});
   return dispatch('{"operation":"snapshot"}');
 }
 
@@ -63,6 +66,10 @@ function execute({operation, id, name, field, property, value, group, view, fold
   if (Object.hasOwn(reviewActions, operation)) return reviewActions[operation](store, {value});
   switch (operation) {
     case 'snapshot': return null;
+    case 'setPurchaseContext': {
+      if(!value||!Number.isSafeInteger(value.packs)||value.packs<0||!Number.isSafeInteger(freeLimit+10*value.packs))throw Error('房源点数无效');
+      store.bindCreditAccount(value.account);sessionPacks=value.packs;creditAccount=value.account;return null;
+    }
     case 'setPacks': {
       if (!Number.isSafeInteger(value) || value < 0 || !Number.isSafeInteger(freeLimit + 10 * value)) throw new Error('容量无效');
       sessionPacks = value;
@@ -164,9 +171,6 @@ function execute({operation, id, name, field, property, value, group, view, fold
       if (store.get().guestClaims?.includes(id)) return null;
       const incoming = model.validateState(model.clone(value));
       incoming.houses.forEach(normalizeCurrency);
-      // Association must preserve every record, even when combined usage exceeds capacity.
-      claimPacks = Math.max(sessionPacks, Math.ceil(Math.max(0, [...store.get().houses, ...incoming.houses].filter(h => !h.archived).length - freeLimit) / 10));
-      try {
         return store.change(state => {
           mergeReviewProgress(state, incoming);
           const existing = new Set(state.houses.map(h => h.id));
@@ -178,7 +182,6 @@ function execute({operation, id, name, field, property, value, group, view, fold
           state.guestClaims = [...(state.guestClaims || []), id];
           model.validateState(state);
         }, true);
-      } finally { claimPacks = null; }
     }
     case 'prepareImport': return model.prepareImport(value).map(normalizeCurrency);
     case 'import': return store.import(model.clone(houses).map(normalizeCurrency), replaceIds);

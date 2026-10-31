@@ -36,7 +36,7 @@ it('does not overwrite corrupt source or destination records during association'
  }
 });
 it('copies distinct photos even when different records reuse the same media ID',()=>{
- const {m,guest,id,target}=fixture();guest.store.archive(id,true);const second=guest.store.add('另一条');m.disk.set(guest.root+'/media/second.jpg','second-photo');guest.store.edit(second,h=>h.media.push({id:'p',type:'image',path:guest.root+'/media/second.jpg'}));
+ const {m,guest,id,target}=fixture();guest.store.archive(id,true);const second='hsecond';guest.store.import([{...guest.store.house(id),id:second,name:'另一条',archived:false,media:[]}]);m.disk.set(guest.root+'/media/second.jpg','second-photo');guest.store.edit(second,h=>h.media.push({id:'p',type:'image',path:guest.root+'/media/second.jpg'}));
  claimGuestRecords(m.wx,A,target,guest.root);const houses=createPlatform(m.wx,{root:target}).store.get().houses;
  expect(houses.map(h=>m.disk.get(h.media[0].path))).toEqual(['photo','second-photo']);
 });

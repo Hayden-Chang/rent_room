@@ -6,7 +6,8 @@ import test from 'node:test';
 const source = readFileSync(process.env.XUNJU_CORE || new URL('../Xunju/Resources/XunjuCore.js', import.meta.url), 'utf8');
 function fixture(clock = null) {
   let current = '', previous = '', fail = false;
-  const context = vm.createContext({nativePrevious: () => JSON.stringify({value: previous, error: ''}),
+  let credits = "";
+  const context = vm.createContext({nativeReadCredits: () => JSON.stringify({value: credits}), nativeWriteCredits: text => { credits = text; return ""; },nativePrevious: () => JSON.stringify({value: previous, error: ''}),
     nativePreserveCorrupt: () => '', nativeWrite: text => {
       if (fail) return 'disk full';
       previous = current; current = text; return '';
@@ -20,7 +21,7 @@ function fixture(clock = null) {
   const initial = JSON.parse(core.initialize('', 0, 30));
   const call = (operation, params = {}, incremental = true) => JSON.parse(core.dispatch(JSON.stringify({operation, ...params}), incremental));
   const id = call('add', {value: '性能房源'}).value;
-  return {core, initial, call, id, fail: value => { fail = value; }};
+  return {core, initial, call, id, saved: () => current, fail: value => { fail = value; }};
 }
 
 test('read-only bridge replies omit the unchanged snapshot but preserve query results', () => {
@@ -79,10 +80,10 @@ test('capacity-only updates and rejected reads never resend records', () => {
 });
 
 test('initialization resets snapshot tracking and durable removal updates summaries', () => {
-  const {core, call, id} = fixture();
+  const {core, call, id, saved} = fixture();
   assert.equal(call('archive', {id, value: true}).summaries[0].archived, true);
   assert.equal(call('remove', {id}).summaries.length, 0);
-  const reset = JSON.parse(core.initialize('', 0, 1));
+  const reset = JSON.parse(core.initialize(saved(), 0, 1));
   assert.deepEqual(reset.state.houses, []);
   assert.deepEqual(reset.summaries, []);
   assert.equal(reset.capacity.limit, 1);
