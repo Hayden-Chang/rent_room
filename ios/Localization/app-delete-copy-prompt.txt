@@ -1,0 +1,10 @@
+User-requested copy revision: rename archiving to recoverable deletion on the home long-press menu and Settings. The underlying archive/restore/permanent-delete behavior is unchanged. Settings and list title use Deleted Homes; the action uses Delete. English copy authored by Codex.
+{
+  "delete001": "删除房源",
+  "delete002": "删除后保留全部记录，可在设置的“删除房源”中还原。",
+  "delete003": "还没有删除的房源",
+  "delete004": "长按房源可还原或彻底删除",
+  "delete005": "已删除",
+  "delete006": "已删除房源 · 只读查看，可在删除房源列表中还原",
+  "delete007": "房源已删除，当前为只读查看"
+}

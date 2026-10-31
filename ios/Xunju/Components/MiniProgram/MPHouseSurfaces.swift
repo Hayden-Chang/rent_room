@@ -33,14 +33,14 @@ struct MPArchiveSurface: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 12) {
-                if houses.isEmpty { AppText("还没有归档房源").font(.system(size: 14)).foregroundStyle(XJTheme.muted).padding(.top, 56) }
+                if houses.isEmpty { AppText("还没有删除的房源").font(.system(size: 14)).foregroundStyle(XJTheme.muted).padding(.top, 56) }
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 12) {
                     ForEach(houses) { house in
                         MPHouseCard(item: house, archived: true) { open(house.id) }
                             .modifier(MPPressActions(tap: { open(house.id) }, hold: { manage(house.id) })).accessibilityIdentifier("mp.archive.\(house.id)")
                     }
                 }
-                if !houses.isEmpty { AppText("长按房源可还原或删除").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).padding(.vertical, 10) }
+                if !houses.isEmpty { AppText("长按房源可还原或彻底删除").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).padding(.vertical, 10) }
             }.padding(16)
         }
     }
@@ -63,7 +63,7 @@ struct MPHouseCard: View {
                         }
                         else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
                     }.clipped()
-                    AppText(archived ? "已归档" : item.card.decision.isEmpty ? "待检查" : item.card.decision)
+                    AppText(archived ? "已删除" : item.card.decision.isEmpty ? "待检查" : item.card.decision)
                         .font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.primary).padding(.horizontal, 8).padding(.vertical, 3)
                         .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)).padding(10)
                 }.frame(height: 142).clipped()

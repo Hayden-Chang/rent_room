@@ -13,7 +13,7 @@ const home=protectedPage({data:{...homeXiaodaData,query:'',pending:false,houses:
   add(){return attempt(()=>beginHouseAction('create'));},
   ...homeXiaodaMethods,
   open(e){wx.navigateTo({url:'/pages/detail/index?id='+e.currentTarget.dataset.id});},
-  manage(e){return attempt(async()=>{const id=e.currentTarget.dataset.id;const res=await service().api('showActionSheet',{itemList:['重命名','归档房源','导出房源 ZIP']});if(res.tapIndex===2){wx.navigateTo({url:'/pages/import/index?mode=export&id='+encodeURIComponent(id)});return;}if(res.tapIndex===0){const name=await prompt('重命名房源');if(name)service().store.edit(id,h=>h.name=name);}else if(await confirm('归档房源','归档后保留全部记录，可在设置中还原。'))service().store.archive(id,true);this.refresh();});},
+  manage(e){return attempt(async()=>{const id=e.currentTarget.dataset.id;const res=await service().api('showActionSheet',{itemList:['重命名','删除','导出房源 ZIP']});if(res.tapIndex===2){wx.navigateTo({url:'/pages/import/index?mode=export&id='+encodeURIComponent(id)});return;}if(res.tapIndex===0){const name=await prompt('重命名房源');if(name)service().store.edit(id,h=>h.name=name);}else if(await confirm('删除房源','删除后保留全部记录，可在设置的“删除房源”中还原。'))service().store.archive(id,true);this.refresh();});},
   retry(){service().store.save();}
 });
 

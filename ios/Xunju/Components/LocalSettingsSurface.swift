@@ -8,7 +8,7 @@ enum LocalSettingsAction: String, CaseIterable {
         case .currency: "货币类型"
         case .capacity: "房源点数"
         case .workplace: "上班地点"
-        case .archive: "归档房源"
+        case .archive: "删除房源"
         case .templates: "模板"
         case .importFile: "导入房源"
         case .export: "导出房源"

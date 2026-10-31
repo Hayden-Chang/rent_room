@@ -4,6 +4,11 @@ const ACTION_WIDTH=132;
 const TOUCH_SLOP=8,SWIPE_DISTANCE=20,FLICK_SPEED=0.3,VELOCITY_WINDOW=100;
 const touchTime=e=>Number.isFinite(e.timeStamp)?e.timeStamp:Date.now();
 const hasContent=value=>value!==undefined&&value!==null&&String(value).length>0;
+// Match iOS checklist feedback at accepted user actions, never during refresh.
+// Unsupported devices and API failures must not interrupt editing.
+function lightFeedback(){
+ try{if(typeof wx!=='undefined')wx.vibrateShort?.({type:'light',fail(){}});}catch{}
+}
 let activeRow=null;
 Component({
  properties:{field:Object,readonly:Boolean,hideDivider:Boolean,address:String,location:Object,anchor:String},
@@ -70,17 +75,17 @@ Component({
   tapBody(){if(Date.now()<(this.suppressTapUntil||0))return;this.closeSwipe();},
   tapHead(){
    if(Date.now()<(this.suppressTapUntil||0))return;
-   if(this.data.field.heading){if(this.consumeDismissal())return;this.triggerEvent('fold',{id:this.data.field.foldId,expanded:!!this.data.field.expanded});}
+   if(this.data.field.heading){if(this.consumeDismissal())return;this.triggerEvent('fold',{id:this.data.field.foldId,expanded:!!this.data.field.expanded});if(this.data.field.expanded!==undefined)lightFeedback();}
    else this.closeSwipe();
   },
-  skip(){if(Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal()||this.data.readonly)return;this.triggerEvent('group',{id:this.data.field.foldId,op:'skip'});},
+  skip(){if(Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal()||this.data.readonly)return;this.triggerEvent('group',{id:this.data.field.foldId,op:'skip'});lightFeedback();},
   noop(){},
   emit(prop,value){if(!this.data.readonly)this.triggerEvent('answer',{id:this.data.field.id,prop,value});},
   handleInputFocus(e){if(activeRow)activeRow.closeSwipe();const input=e.currentTarget.dataset.input;this.setData({[input+'Focused']:true});this.triggerEvent('inputfocus',{id:this.data.field.id,input});},
   handleInputBlur(e){const input=e.currentTarget.dataset.input;this.setData({[input+'Focused']:false,[input+'Filled']:hasContent(e.detail.value)});this.triggerEvent('inputblur',{id:this.data.field.id,input});},
   input(e){this.setData({valueFilled:hasContent(e.detail.value)});if(this.data.field.id==='fc76beec-52e3-4fe9-a937-dec254d4cc4f'&&e.detail.value==='-')return;this.emit('value',e.detail.value);},other(e){this.setData({otherFilled:hasContent(e.detail.value)});this.emit('otherText',e.detail.value);},
-  toggleNone(){const f=this.data.field;if(this.data.readonly||!(f.cost||f.allowNone)||Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal())return;this.emit(f.cost?'noCost':'none',!f.noneSelected);},
-  choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly){if(this.data.field.heading)this.triggerEvent('group',{id:this.data.field.foldId,op:'value',value:e.currentTarget.dataset.value});else this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});}},
+  toggleNone(){const f=this.data.field;if(this.data.readonly||!(f.cost||f.allowNone)||Date.now()<(this.suppressTapUntil||0)||this.consumeDismissal())return;this.emit(f.cost?'noCost':'none',!f.noneSelected);lightFeedback();},
+  choose(e){if(Date.now()<(this.suppressTapUntil||0))return;if(this.consumeDismissal())return;if(!this.data.readonly){if(this.data.field.heading)this.triggerEvent('group',{id:this.data.field.foldId,op:'value',value:e.currentTarget.dataset.value});else this.triggerEvent('choose',{id:this.data.field.id,value:e.currentTarget.dataset.value});lightFeedback();}},
   trayAction(e){
    if(this.data.readonly||!this.data.actions||Date.now()<(this.suppressTapUntil||0))return;
    const action=e.currentTarget.dataset.action;if(!['flag','note','media'].includes(action))return;
