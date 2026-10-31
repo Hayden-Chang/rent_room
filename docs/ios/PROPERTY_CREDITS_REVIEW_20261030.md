@@ -1,6 +1,18 @@
 # 房源点数：正式页面、兼容迁移与消费记录
 
-状态：用户已以“可以”明确批准第 4 版布局，iOS UI 门禁为 `APPROVED`。两端正式页面已接入。2026-10-31 用户确认小程序登录后联网扣点，新增服务端兼容迁移；iOS 继续本机方案。最新兼容验证见下文。微信正式页已实际渲染并截图；自动化工具 Page 查询超时，真实购买/刷新点击仍为 `BLOCKED`。PR #105 保持草稿，未合并、部署、上传或发布。
+状态：用户已以“可以”明确批准第 4 版布局，iOS UI 门禁为 `APPROVED`。两端正式页面已接入。2026-10-31 用户确认小程序登录后联网扣点，新增服务端兼容迁移；iOS 继续本机方案。最新兼容验证见下文。新增“小搭点数不足提醒”为独立组件预览，尚未获视觉批准或接入正式入口。微信正式页已实际渲染并截图；自动化工具 Page 查询超时，真实购买/刷新点击仍为 `BLOCKED`。PR #105 保持草稿，未合并、部署、上传或发布。
+
+## 小搭点数不足提醒：组件待确认（2026-10-31）
+
+- 用户新增文案：“你的房源点数不够啦～”。iOS 与小程序点数组件增加默认关闭的 `fromCreation` 输入，仅在来源为新建且余额为 0 时显示现有小搭 expect 形象与横向气泡，位于余额上方；普通购买页及点数充足时隐藏。无小饼干、无额外购买外框。
+- 当前为 `REVIEW_READY` 组件阶段。正式 iOS `CapacityPage` 和小程序 capacity 页尚未传入该标记，因此不会让未批准的提醒进入正式流程。用户确认布局后，再按新建 intent 接入，并验证从首页新建和设置两个实际入口。原第 4 版点数布局批准不冒充本次新增小搭区的批准。
+- 代码/截图 SHA：`0a74d02e138010ef52b812e6480c7254c3e2a852`，工作树干净。共享 runner `rent-room-credit-reminder-20261031-01` 开发批次 3 个精确 UI 方法全部通过、无失败或跳过：新增 `PropertyCreditsReviewTests/testXiaodaReminderOnlyForCreationWithNoCredits`，以及该类既有 `testLocalizedPricesRulesAndPurchaseCancellationPreserveBalance` 和 `testUnavailablePendingAndRestoreFailureDoNotGrantCredits`。未跑全套。
+- 新用例确认气泡文案、打字完成、位于余额上方、购买按钮可触达；购买中/取消后仍显示；点数到账后隐藏；设置零余额不出现。既有两例验证共享组件的中英文价格、取消、不可售、待确认与恢复错误未受影响。iOS 英文新提醒为展示文本，未单独截图验收。
+- `.xcresult`：`/Volumes/mac2/codex-builds/rent-room-credit-reminder-20261031-01.xcresult`；iPhone 14 Pro / iOS 18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`；9 张原始附件均为 1178×2556。主 agent 查看新增提醒、到账后隐藏、普通零余额三个关键状态，文字完整、购买按钮可见。截图中的状态菜单和底部计数仅属 DEBUG 预览，不是正式页面。
+- 微信组件 4 项 Vitest 通过，新增零余额提醒不阻断购买/恢复回调；正常构建与官方 wcc 21 / wcsc 23 通过。独立预览工程复用真实 xiaoda 组件、资源及打字器，未制作替代截图。
+- 微信共享池 run `7d37fb068ce34c65bc2f6d445bd8c1db` 在预览工程健康检查报 `App service health timeout`，回调尚未启动，无新增截图/点击证据。槽位 3 被 runner 隔离并保留进程，未重启或清理其他任务。该失败不认定为小搭业务逻辑缺陷，也不以单测代替渲染验收。
+- 日志、计划、命令、去令牌 iOS receipt、微信失败收据和截图清单：`/Users/pc/.codex/visualizations/2026/10/30/01a18c24-c384-7503-aa95-42333779ae5e/property-credits/xiaoda-reminder-20261031/`；关键截图 `credits-xiaoda-shortage.png`。iOS runner PID 83092 已结束并释放租约。远端 main 仍为 `1f26f8e04088fa8865431e5c590dd1179ab98c84`。
+- 本轮未改正式路由、支付、扣点、迁移、生成工程或 project.yml。后续仅文档更新，不影响上述证据。PR 继续草稿，尚未合并、部署或发布。
 
 ## 新建房源不足点数购买入口（2026-10-31）
 
