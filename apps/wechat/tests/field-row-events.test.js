@@ -5,8 +5,10 @@ import {XMLParser} from 'fast-xml-parser';
 
 // Route through the actual WXML bindings, including catch propagation. This
 // checks component event wiring; native hit testing still needs phone acceptance.
-function fixture(){
- let spec,now=1000;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date:{now:()=>now}});
+function fixture(options={}){
+ const feedback=[];
+ const wx=Object.hasOwn(options,'wx')?options.wx:{vibrateShort:({type})=>feedback.push(type)};
+ let spec,now=1000;vm.runInNewContext(fs.readFileSync('dist/components/field-row/index.js','utf8'),{Component:s=>spec=s,Date:{now:()=>now},wx});
  const c={...spec.methods,data:{...structuredClone(spec.data),field:{id:'floor',inline:true,value:'是'},readonly:false},events:[],notifications:[],setData(p){Object.assign(this.data,p);},triggerEvent(name,detail){(name==='swipeopen'?this.notifications:this.events).push({name,detail});}};
  const tree=new XMLParser({preserveOrder:true,ignoreAttributes:false,allowBooleanAttributes:true,attributeNamePrefix:''}).parse(fs.readFileSync('dist/components/field-row/index.wxml','utf8')),nodes=[];
  function visit(children,parents=[]){for(const node of children){const tag=Object.keys(node).find(k=>k!==':@');if(tag==='#text')continue;const n={tag,attrs:node[':@']||{},text:node[tag].filter(n=>'#text' in n).map(n=>n['#text']).join(''),parents};nodes.push(n);visit(node[tag],[...parents,n]);}}visit(tree);
@@ -29,8 +31,63 @@ function fixture(){
   }
   return caught;
  }
- return {c,find,dispatch,children:parent=>nodes.filter(n=>n.parents.at(-1)===parent),findTag:tag=>nodes.find(n=>n.tag===tag&&!n.parents.some(p=>(p.attrs.class||'').split(' ').includes('speed-entry'))),advance:ms=>{now+=ms;}};
+ return {c,find,dispatch,feedback,children:parent=>nodes.filter(n=>n.parents.at(-1)===parent),findTag:tag=>nodes.find(n=>n.tag===tag&&!n.parents.some(p=>(p.attrs.class||'').split(' ').includes('speed-entry'))),advance:ms=>{now+=ms;}};
 }
+
+it.each(['single','multiple','group','skip','none','cost-none'])('haptics: %s selection and deselection each request one light pulse',kind=>{
+ const {c,find,dispatch,feedback}=fixture();
+ c.data.field={...c.data.field,multiple:kind==='multiple',allowNone:kind==='none',cost:kind==='cost-none',heading:['group','skip'].includes(kind)?'group':'',foldId:'parent',expanded:false};
+ const target=find(kind==='skip'?'skip':kind.includes('none')?'cost-none':'choice');
+ for(let count=1;count<=2;count++){
+  dispatch(target,'tap');
+  expect(feedback).toEqual(Array(count).fill('light'));
+  expect(c.events).toHaveLength(count);
+ }
+ expect(c.events[0].name).toBe(['group','skip'].includes(kind)?'group':kind.includes('none')?'answer':'choose');
+});
+it.each(['category','group'])('haptics: manual %s folding and readonly folding emit once; noncollapsible headings stay silent',heading=>{
+ const {c,find,dispatch,feedback}=fixture();
+ c.data.field={...c.data.field,heading,foldId:'parent',expanded:false};
+ for(const readonly of [false,true]){
+  c.data.readonly=readonly;
+  for(const expanded of [false,true]){c.data.field.expanded=expanded;dispatch(find('label'),'tap');}
+ }
+ expect(feedback).toEqual(Array(4).fill('light'));
+ expect(c.events).toHaveLength(4);
+ delete c.data.field.expanded;dispatch(find('label'),'tap');expect(feedback).toHaveLength(4);
+});
+it.each(['choice','skip','cost-none'])('haptics: readonly %s and a tap consumed by an open tray stay silent',klass=>{
+ const {c,find,dispatch,feedback}=fixture();
+ c.data.field={...c.data.field,heading:'group',foldId:'parent',expanded:false,allowNone:true};
+ c.data.readonly=true;dispatch(find(klass),'tap');expect(c.events).toEqual([]);expect(feedback).toEqual([]);
+ c.data.readonly=false;c.reveal();dispatch(find(klass),'tap');expect(c.events).toEqual([]);expect(feedback).toEqual([]);
+ dispatch(find(klass),'tap');expect(feedback).toEqual(['light']);
+});
+it('haptics: swipes, their trailing taps and title dismissal stay silent until a fresh tap',()=>{
+ const {c,find,dispatch,feedback}=fixture(),choice=find('choice'),title=find('label');
+ c.data.field={...c.data.field,heading:'group',foldId:'parent',expanded:false};
+ dispatch(choice,'touchstart',250);dispatch(choice,'touchmove',150);dispatch(choice,'touchend',150);
+ dispatch(choice,'tap');dispatch(title,'tap');expect(feedback).toEqual([]);
+ dispatch(title,'touchstart');dispatch(title,'touchend');dispatch(title,'tap');expect(feedback).toEqual([]);
+ dispatch(title,'touchstart');dispatch(title,'touchend');dispatch(title,'tap');expect(feedback).toEqual(['light']);
+});
+it('haptics: restoration, input, ordinary titles and other row actions stay silent',()=>{
+ const {c,find,findTag,dispatch,feedback}=fixture();
+ c.setData({field:{...c.data.field,value:'否',note:'保留备注',problem:true,expanded:true}});
+ dispatch(find('label'),'tap');
+ dispatch(findTag('input'),'input',100,50,{detail:{value:'88'}});
+ dispatch(find('other'),'input',100,50,{detail:{value:'原说明'}});
+ c.reveal();dispatch(find('note-action'),'tap');
+ expect(feedback).toEqual([]);
+ expect(c.events.map(e=>e.name)).toEqual(['answer','answer','action']);
+});
+it.each(['missing-wx','missing-api','callback-failure','throw'])('haptics: %s never blocks selection or folding',kind=>{
+ const wx=kind==='missing-wx'?undefined:kind==='missing-api'?{}:{vibrateShort:options=>{if(kind==='throw')throw Error('unsupported');options.fail({errMsg:'style is not support'});}};
+ const {c,find,dispatch}=fixture({wx});
+ c.data.field={...c.data.field,heading:'group',foldId:'parent',expanded:false,allowNone:true};
+ for(const klass of ['choice','skip','cost-none','label'])expect(()=>dispatch(find(klass),'tap')).not.toThrow();
+ expect(c.events.map(e=>e.name)).toEqual(['group','group','answer','fold']);
+});
 it('places not-applicable after yes/no choices and keeps its group action',()=>{
  const {c,find,children,dispatch}=fixture();
  c.data.field={heading:'group',foldId:'topic_68',skippable:true,skipped:false,options:[{value:'是'},{value:'否'}]};
