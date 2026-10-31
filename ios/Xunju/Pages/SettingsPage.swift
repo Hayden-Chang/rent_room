@@ -14,7 +14,7 @@ struct SettingsPage: View {
                 SaveBanner(workspace: workspace)
                 RegionalSettingsSection(preferences: workspace.regional.preferences,
                     chooseLanguage: { destination = .language }, chooseCurrency: { destination = .currency })
-                LocalSettingsSurface(used: workspace.store.capacity.used, limit: workspace.store.capacity.limit,
+                LocalSettingsSurface(remaining: workspace.store.capacity.remaining,
                     archived: workspace.store.archivedHouses.count, workplace: workspace.store.state["settings"]["workplace"].string,
                     version: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0",
                     onboarding: Binding(get: { workspace.store.state["xiaoda"]["enabled"].bool }, set: { value in

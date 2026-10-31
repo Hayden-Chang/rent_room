@@ -89,8 +89,7 @@ export const inspectionActions = {
   finishHouseAction(store) {
     const intent = store.get().xiaoda.intent;
     if (!intent) return null;
-    store.checkCapacity();
-    if (intent.kind === 'create') return {kind:'create'};
+    if (intent.kind === 'create') {store.checkCapacity();return {kind:'create'};}
     if (intent.kind !== 'restore') throw Error('房源操作无效');
     store.change(state => {
       const house = state.houses.find(h => h.id === intent.houseId);

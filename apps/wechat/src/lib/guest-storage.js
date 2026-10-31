@@ -1,6 +1,8 @@
 import {migrateXiaoda,newXiaoda} from './xiaoda-state.js';
 import {dataRoot,validAccountId} from './account-storage.js';
 import {clone,emptyState,uid,validateState} from './model.js';
+import {initializeCredits} from './property-credits.js';
+import {withCreditStorage} from './credit-storage.js';
 
 function files(wx){
  const fs=wx.getFileSystemManager();
@@ -25,7 +27,7 @@ export function guestStorage(wx){
 
 // Journal first, reserve the source, then atomically commit the merged state.
 // Originals remain as recovery copies; a retry uses the committed batch ID.
-export function claimGuestRecords(wx,accountId,target,source){
+export function claimGuestRecords(wx,accountId,target,source,{packs=0,freeLimit=1}={}){
  if(!validAccountId(accountId))throw Error('账号校验失败，请重新登录');
  const {fs,exists,write,read}=files(wx),base=dataRoot(wx),journal=target+'/guest-claim.json';
  try{fs.mkdirSync(target,true);}catch{fs.accessSync(target);}
@@ -39,7 +41,15 @@ export function claimGuestRecords(wx,accountId,target,source){
    if(!validAccountId(owner))throw Error('未登录记录归属信息损坏，原记录已保留');
    if(owner!==accountId)throw Error('这些本机记录已关联其他微信账号，请切回原账号');
   }
-  const current=target+'/state.json',state=exists(current)?migrateXiaoda(validateState(read(current))):emptyState();
+  const current=target+'/state.json',creditPath=target+'/property-credits.json';
+  const adapter=withCreditStorage({
+   read:()=>exists(current)?fs.readFileSync(current,'utf8'):null,
+   readCredits:()=>exists(creditPath)?fs.readFileSync(creditPath,'utf8'):null,
+   writeCredits:text=>write(creditPath,JSON.parse(text)),
+   write:text=>{if(exists(current))fs.copyFileSync(current,target+'/previous.json');write(current,JSON.parse(text));}
+  });
+  const raw=adapter.read(),state=raw?migrateXiaoda(validateState(JSON.parse(raw))):emptyState();
+  initializeCredits(state,packs,freeLimit);
   if(state.guestClaims?.includes(batch))return;
   const incoming=exists(root+'/state.json')?migrateXiaoda(validateState(read(root+'/state.json'))):emptyState();
   const defaults=emptyState().settings;
@@ -66,10 +76,8 @@ export function claimGuestRecords(wx,accountId,target,source){
   if(incoming.xiaoda.intent)next.xiaoda.intent={...incoming.xiaoda.intent,houseId:remapped.get(incoming.xiaoda.intent.houseId)||incoming.xiaoda.intent.houseId};
   if(inherit&&next.xiaoda.firstHouseId)next.xiaoda.firstHouseId=remapped.get(next.xiaoda.firstHouseId)||next.xiaoda.firstHouseId;
   next.guestClaims=[...(state.guestClaims||[]),batch];next.updatedAt=new Date().toISOString();validateState(next);
-  // Association preserves all records, even if their combined count exceeds
-  // current capacity. Normal additions/restores continue to enforce the limit.
-  if(exists(current))fs.copyFileSync(current,target+'/previous.json');
-  write(current,next);
+  // Association imports records without consuming the destination's credits.
+  adapter.write(JSON.stringify(next));
  }
  if(exists(journal))transfer(read(journal).root);
  if(source&&source!==target)transfer(source);

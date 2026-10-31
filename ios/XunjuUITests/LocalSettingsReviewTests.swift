@@ -22,24 +22,26 @@ import XCTest
         XCTAssertTrue(event.label.hasSuffix("/kanfangdazi/"))
     }
 
-    func testAccountFreePurchasePendingAndNetworkFailurePreserveDisplayedCapacity() {
+    func testAccountFreePurchasePendingAndNetworkFailurePreserveDisplayedCredits() {
         let app = launch("capacity")
-        let purchase = app.buttons["capacity.purchase"]
+        let purchase = app.buttons["credits.purchase"]
         XCTAssertTrue(purchase.waitForExistence(timeout: 8))
-        XCTAssertTrue(purchase.label.contains("¥1.99"))
+        XCTAssertTrue(purchase.label.contains("¥9.90"))
         XCTAssertFalse(purchase.label.contains("登录"))
+        XCTAssertEqual(purchase.label, "¥9.90 购买 10 点")
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '小饼干' OR label CONTAINS '🍪'")).firstMatch.exists)
         capture(app, "offline-capacity-ready")
         purchase.tap()
-        XCTAssertTrue(app.staticTexts["capacity.pending"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["credits.pending"].waitForExistence(timeout: 3))
         XCTAssertFalse(purchase.isEnabled)
         capture(app, "offline-capacity-pending")
-        let restore = app.buttons["capacity.restore"]
+        let restore = app.buttons["credits.restore"]
         for _ in 0..<3 { if restore.isHittable { break }; app.swipeUp() }
-        XCTAssertEqual(restore.label, "恢复已购容量")
+        XCTAssertEqual(restore.label, "恢复购买记录")
         restore.tap()
-        XCTAssertTrue(app.staticTexts["capacity.error"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["credits.error"].waitForExistence(timeout: 3))
         XCTAssertTrue(purchase.isEnabled)
-        XCTAssertTrue(app.staticTexts["capacity.total"].label.contains("1 / 1"))
+        XCTAssertTrue(app.staticTexts["credits.balance"].label.contains("0"))
         capture(app, "offline-capacity-network-error")
     }
 

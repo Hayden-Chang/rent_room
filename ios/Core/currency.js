@@ -1,6 +1,5 @@
-import {recordHouseCreated} from './app-review.js';
 import copy from '../Xunju/Resources/RegionalCopy.json' with {type:'json'};
-import {freshHouse,houseTopics,activeEntries,comparison} from '../../apps/wechat/src/lib/model.js';
+import {houseTopics,activeEntries,comparison} from '../../apps/wechat/src/lib/model.js';
 
 import {choiceOptions,choiceValues,fieldDisplayValue} from '../../apps/wechat/src/lib/source-model.js';
 import {wheelConfig,wheelKey} from '../../apps/wechat/src/lib/wheel-input.js';
@@ -17,21 +16,14 @@ export function normalizeCurrency(house) {
 }
 export function currencyState(raw) {
   if(!raw)return raw;
-  const state=JSON.parse(raw);
+  // Preserve damaged bytes for the shared recovery path and independent credit ledger.
+  let state;try{state=JSON.parse(raw);}catch{return raw;}
   if(Array.isArray(state.houses))state.houses.forEach(normalizeCurrency);
   return JSON.stringify(state);
 }
 export function addCurrencyHouse(store,name,code) {
   checkedCurrency(code);
-  let id;
-  store.change(state=>{
-    const h=freshHouse(name,{templates:state.settings.templates,selectedTemplate:state.settings.selectedTemplate});
-    h.currencyCode=code;id=h.id;state.houses.push(h);
-    recordHouseCreated(state);
-    delete state.xiaoda.intent;state.xiaoda.returnGuide=false;
-    if(!state.xiaoda.firstHouseId&&!state.xiaoda.legacy)state.xiaoda.firstHouseId=id;
-  },true);
-  return id;
+  return store.add(name,house=>{house.currencyCode=code;});
 }
 export const isMoney=field=>!!field.cost||/（元(?:\/[^）]+)?）/.test(field.label||'')||/元/.test(field.unit||'');
 export function currencyComparison(houses,differences) {

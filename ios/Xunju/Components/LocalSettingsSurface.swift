@@ -6,7 +6,7 @@ enum LocalSettingsAction: String, CaseIterable {
         switch self {
         case .language: "语言"
         case .currency: "货币类型"
-        case .capacity: "房源容量"
+        case .capacity: "房源点数"
         case .workplace: "上班地点"
         case .archive: "归档房源"
         case .templates: "模板"
@@ -21,8 +21,7 @@ enum LocalSettingsAction: String, CaseIterable {
 
 /// Presentation only. The owner supplies navigation and local persisted state.
 struct LocalSettingsSurface: View {
-    let used: Int
-    let limit: Int
+    let remaining: Int
     let archived: Int
     let workplace: String
     let version: String
@@ -32,7 +31,7 @@ struct LocalSettingsSurface: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            XJCard { row(.capacity, detail: "\(used) / \(limit) 套") }
+            XJCard { row(.capacity, detail: AppLanguage.shared.value == .english ? "\(remaining) credits" : "\(remaining) 点", rawDetail: true) }
             XJCard {
                 VStack(spacing: 0) {
                     row(.workplace, detail: workplace.isEmpty ? AppCopy.text("未设置") : workplace, rawDetail: true)
@@ -78,20 +77,18 @@ struct LocalSettingsSurface: View {
 }
 
 struct AccountFreeCapacitySurface: View {
-    let used: Int
-    let limit: Int
+    let remaining: Int
     let price: String?
     let activity: CapacityActivity
     let error: String
     let purchase: () -> Void
     let restore: () -> Void
-    let cancel: () -> Void
     let openLegal: (LegalPage) -> Void
 
     var body: some View {
         VStack(spacing: 16) {
-            CapacitySurface(used: used, limit: limit, authenticated: true, price: price,
-                activity: activity, error: error, purchase: purchase, restore: restore, cancel: cancel)
+            PropertyCreditsSurface(remaining: remaining, price: price,
+                activity: activity, error: error, purchase: purchase, restore: restore)
             AppText("通过 App Store 购买，无需注册或登录看房搭子。购买与恢复需要联网，房源记录保存在本机。")
                 .font(.system(size: 13)).foregroundStyle(XJTheme.muted)
             HStack(spacing: 24) {

@@ -2,20 +2,23 @@ import {createFeedback} from './feedback.js';
 import {createPlaces} from './places.js';
 import {createCommute} from './commute.js';
 import {createStore} from './store.js';
-import {activeHouseCount} from './capacity.js';
 import {uid,clone} from './model.js';
 import {writeBackup,readBackup,checkTransfer,CHUNK_BYTES} from './files.js';
 import {writeIssue} from './issues.js';
 import {createBilling} from './billing.js';
-import {dataRoot} from './account-storage.js';
+import {dataRoot,validAccountId} from './account-storage.js';
+import {createCreditClient} from './credit-client.js';
 import {createAccountProfile} from './account-profile.js';
 
-export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{}}={}) {
+export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{},migrationActive=0}={}) {
   const fs=wx.getFileSystemManager(),current=root+'/state.json',previous=root+'/previous.json';
   try{fs.mkdirSync(root,true);}catch{}
   try{fs.mkdirSync(root+'/media',true);}catch{}
   const exists=p=>{try{fs.accessSync(p);return true;}catch{return false;}};
-  const adapter={read:()=>exists(current)?fs.readFileSync(current,'utf8'):null,previous:()=>exists(previous)?fs.readFileSync(previous,'utf8'):null,
+  const creditsPath=root+'/property-credits.json';
+  const adapter={readCredits:()=>exists(creditsPath)?fs.readFileSync(creditsPath,'utf8'):null,
+    writeCredits(text){const tmp=creditsPath+'.pending';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,creditsPath);},
+    read:()=>exists(current)?fs.readFileSync(current,'utf8'):null,previous:()=>exists(previous)?fs.readFileSync(previous,'utf8'):null,
     write(text,{keepPrevious=false}={}){const tmp=root+'/state.pending.json';fs.writeFileSync(tmp,text,'utf8');if(exists(current)&&!keepPrevious)fs.copyFileSync(current,previous);fs.renameSync(tmp,current);},
     preserveCorrupt(){if(exists(current))fs.copyFileSync(current,root+'/preserved-'+Date.now()+'.json');}
   };
@@ -41,8 +44,18 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
       return true;
     }
   });
-  rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit});const store={};
+  const remoteCredits=validAccountId(session?.account);let creditReserved=null;
+  const ensureActive=()=>{if(!active)throw Error('登录状态已变化，请重新操作');};
+  rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit,
+    spendCreation:remoteCredits?()=>{if(!creditReserved)throw Error('请联网确认房源点数后新建');}:null,
+    onHouseCreated:remoteCredits?s=>{s._creditCreation=creditReserved;}:()=>{}});const store={};
   for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
+  const creditClient=remoteCredits?createCreditClient({fs,root,billing,ensureActive,migrationActive,
+    createLocal(name,id,requestId){ensureActive();creditReserved=requestId;try{return rawStore.add(name,h=>{h.id=id;});}finally{creditReserved=null;}}}):null;
+  if(remoteCredits){
+    store.capacity=()=>{ensureActive();const info=rawStore.capacity(),balance=billing.snapshot().credits;return {...info,remaining:balance?.migrated?balance.remaining:0};};
+    store.checkCapacity=(additional=1)=>{const info=store.capacity();if(additional>info.remaining){const error=Error('房源点数不足，请先购买房源点数');error.code='HOUSE_CAPACITY';throw error;}return info;};
+  }
   const profile={};
   for(const [name,fn] of Object.entries(createAccountProfile(fs,root)))profile[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};
   function accountJob(job) {
@@ -151,8 +164,6 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
         if(selection.mode==='replace'){replaceIds.push(h.id);oldMedia.push(...existing.media);}
         houses.push(h);
       }
-      const additional=activeHouseCount(houses)-activeHouseCount(replaceIds.map(id=>store.house(id)));
-      store.checkCapacity(Math.max(0,additional));
       for(const h of houses)for(const m of h.media||[]) {
           const archive=m.path;m.id=uid();m.path=root+'/media/'+m.id+(m.type==='video'?'.mp4':'.jpg');
           created.push(m.path);fs.writeFileSync(m.path,new ArrayBuffer(0));sinks.set(archive,chunk=>append(m.path,chunk));
@@ -175,7 +186,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,profile,billing,api,feedback:createFeedback(api,typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__),setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),commute:createCommute(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
+  return {store,profile,billing,api,prepareCredits:()=>creditClient?.initialize(),createHouse:name=>creditClient?creditClient.create(name):store.add(name),feedback:createFeedback(api,typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__),setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),commute:createCommute(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }

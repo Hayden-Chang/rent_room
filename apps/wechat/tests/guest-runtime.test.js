@@ -13,9 +13,9 @@ function harness(m=accountWx()){
 it('opens home without identity requests and permits the default one local record',async()=>{
  const h=harness();h.m.wx.navigateTo=o=>h.m.routes.push(o.url);h.app.onShow();const home=h.page('home');
  expect(h.app.service).toBeTruthy();expect(home.data.accountReady).toBe(true);expect(h.m.calls.every(c=>c.url?.endsWith('/catalog'))).toBe(true);expect(h.m.tabBarVisible).toBe(true);
- h.m.wx.redirectTo=o=>h.m.routes.push(o.url);await home.add();expect(h.m.routes.at(-1)).toBe('/pages/new-house/index');const form=h.page('new-house');form.input({detail:{value:'未登录记录'}});form.create();const id=h.app.service.store.get().houses[0].id;
+ h.m.wx.redirectTo=o=>h.m.routes.push(o.url);await home.add();expect(h.m.routes.at(-1)).toBe('/pages/new-house/index');const form=h.page('new-house');form.input({detail:{value:'未登录记录'}});await form.create();const id=h.app.service.store.get().houses[0].id;
  h.app.service.store.answer(id,'f1_6','value','4200');
- expect(()=>h.app.service.store.add('第二条')).toThrow('容量');
+ expect(()=>h.app.service.store.add('第二条')).toThrow('点数');
  const detail=h.page('detail',{id});expect(detail.data.house.id).toBe(id);detail.onUnload();
  h.launch();expect(h.app.service.store.house(id).answers.f1_6.value).toBe('4200');expect(h.m.calls.every(c=>c.url?.endsWith('/catalog'))).toBe(true);
 });
@@ -35,7 +35,7 @@ it('keeps free records and media when signing in and never lends them to the nex
  h.app.auth.logout();h.m.identity(A);h.m.packs(1);await h.app.auth.login();house=h.app.service.store.house(id);expect(h.m.disk.get(house.media[0].path)).toBe('image-bytes');
 });
 it('merges later free records into an existing account once without discarding records over capacity',async()=>{
- const h=harness();h.m.freeCapacity(2);await h.app.auth.login();h.app.service.store.add('账号一');h.app.service.store.add('账号二');h.app.auth.logout();
+ const h=harness();h.m.freeCapacity(2);await h.app.auth.login();await h.app.service.createHouse('账号一');await h.app.service.createHouse('账号二');h.app.auth.logout();
  const id=h.app.service.store.add('后来记录');expect(await h.app.auth.login()).toBe(true);
  expect(h.app.service.store.get().houses).toHaveLength(3);expect(h.app.service.store.house(id)).toBeTruthy();expect(h.app.service.store.capacity().over).toBe(1);
  h.app.auth.logout();await h.app.auth.login();expect(h.app.service.store.get().houses).toHaveLength(3);
@@ -47,7 +47,7 @@ it('failed login and failed persistence leave local recording usable and preserv
  expect(await h.app.auth.login()).toBe(true);expect(h.app.service.store.house(id)).toBeTruthy();
 });
 it('shows a guest settings login entry without avatar or nickname authorization controls',()=>{
- const h=harness(),page=h.page('settings');expect(page.data.authenticated).toBe(false);expect(page.data.used).toBe(0);
+ const h=harness(),page=h.page('settings');expect(page.data.authenticated).toBe(false);expect(page.data.remaining).toBe(1);
  const template=fs.readFileSync('dist/pages/settings/index.wxml','utf8');expect(template).toContain('wx:if="{{authenticated}}"');expect(template).toContain('id="account-login"');
 });
 it('keeps free pages reachable without identity and keeps navigation visible across login and logout',async()=>{
