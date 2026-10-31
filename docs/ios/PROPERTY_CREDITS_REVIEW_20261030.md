@@ -4,8 +4,10 @@
 
 ## 小搭点数不足提醒：组件待确认（2026-10-31）
 
-- 用户新增文案：“你的房源点数不够啦～”。iOS 与小程序点数组件增加默认关闭的 `fromCreation` 输入，仅在来源为新建且余额为 0 时显示现有小搭 expect 形象与横向气泡，位于余额上方；普通购买页及点数充足时隐藏。无小饼干、无额外购买外框。
+- 用户新增文案：“你的房源点数不够啦～”。iOS 与小程序点数组件增加默认关闭的 `fromCreation` 输入，仅在来源为新建且余额为 0 时显示现有小搭 think 形象与横向气泡，位于余额上方；普通购买页及点数充足时隐藏。无小饼干、无额外购买外框。
 - 当前为 `REVIEW_READY` 组件阶段。正式 iOS `CapacityPage` 和小程序 capacity 页尚未传入该标记，因此不会让未批准的提醒进入正式流程。用户确认布局后，再按新建 intent 接入，并验证从首页新建和设置两个实际入口。原第 4 版点数布局批准不冒充本次新增小搭区的批准。
+- 用户认为初版 expect 表情不合适，当前改为睁眼、托腮的 think 表情；文案、位置及显示条件不变。新版仍待视觉确认。源码 `a46b7c87f06c272ac538b963183f8612e616ed9b`，共享 runner `rent-room-credit-reminder-20261031-02` 精确复验 `PropertyCreditsReviewTests/testXiaodaReminderOnlyForCreationWithNoCredits`，1 项通过、无失败/跳过。`.xcresult` 为 `/Volumes/mac2/codex-builds/rent-room-credit-reminder-20261031-02.xcresult`；设备同下，2 张原图均为 1178×2556。主 agent 已查看新的不足点数截图，确认使用 think 资源。最新原图、来源清单、日志和收据在下述证据目录的 `think-v2/` 子目录。
+- 第二版只改两端提醒的 pose 值；其余组件 JS、样式、测试、购买及状态逻辑不变，因此复用第一版其他 2 个 UI 方法及 4 项微信组件测试。微信构建与官方 wcc 21 / wcsc 23 再次通过。没有再次占用已隔离的微信实例，新版微信实际渲染仍缺失。初版截图只保留为历史证据，不代表用户认可的表情。
 - 代码/截图 SHA：`0a74d02e138010ef52b812e6480c7254c3e2a852`，工作树干净。共享 runner `rent-room-credit-reminder-20261031-01` 开发批次 3 个精确 UI 方法全部通过、无失败或跳过：新增 `PropertyCreditsReviewTests/testXiaodaReminderOnlyForCreationWithNoCredits`，以及该类既有 `testLocalizedPricesRulesAndPurchaseCancellationPreserveBalance` 和 `testUnavailablePendingAndRestoreFailureDoNotGrantCredits`。未跑全套。
 - 新用例确认气泡文案、打字完成、位于余额上方、购买按钮可触达；购买中/取消后仍显示；点数到账后隐藏；设置零余额不出现。既有两例验证共享组件的中英文价格、取消、不可售、待确认与恢复错误未受影响。iOS 英文新提醒为展示文本，未单独截图验收。
 - `.xcresult`：`/Volumes/mac2/codex-builds/rent-room-credit-reminder-20261031-01.xcresult`；iPhone 14 Pro / iOS 18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`；9 张原始附件均为 1178×2556。主 agent 查看新增提醒、到账后隐藏、普通零余额三个关键状态，文字完整、购买按钮可见。截图中的状态菜单和底部计数仅属 DEBUG 预览，不是正式页面。
