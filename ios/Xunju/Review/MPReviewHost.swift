@@ -51,7 +51,7 @@ struct MPReviewHost: View {
     private var title: String {
         switch route {
         case .home: "我的房源"
-        case .archive: "归档房源"
+        case .archive: "删除房源"
         case .detail: "阳光小区"
         case .compare: "房源对比"
         case .settings: "我的"
@@ -157,12 +157,12 @@ struct MPReviewHost: View {
             MPActionMenu(title: "", actions: route == .archive ?
                 [("还原房源", false, { confirmation = "restore"; menu = "" }), ("永久删除", true, { confirmation = "delete"; menu = "" })] :
                 [("重命名", false, { prompt = "重命名"; promptText = "阳光小区"; menu = "" }),
-                 ("归档房源", false, { confirmation = "archive"; menu = "" }),
+                 ("删除", false, { confirmation = "archive"; menu = "" }),
                  ("导出房源 ZIP", false, { route = .transfer; menu = "" })], close: { menu = "" })
         }
         if !confirmation.isEmpty {
-            MPConfirmation(title: confirmation == "archive" ? "归档房源" : confirmation == "logout" ? "退出登录" : confirmation == "delete" ? "永久删除房源" : "还原房源",
-                message: confirmation == "archive" ? "归档后保留全部记录，可在设置中还原" : confirmation == "delete" ? "删除后无法恢复，请确认是否继续" : "确定继续吗？",
+            MPConfirmation(title: confirmation == "archive" ? "删除房源" : confirmation == "logout" ? "退出登录" : confirmation == "delete" ? "永久删除房源" : "还原房源",
+                message: confirmation == "archive" ? "删除后保留全部记录，可在设置的“删除房源”中还原。" : confirmation == "delete" ? "删除后无法恢复，请确认是否继续" : "确定继续吗？",
                 confirmTitle: "确定", destructive: confirmation == "delete", cancel: { confirmation = "" }, confirm: { confirmation = ""; toast = "操作已完成" })
         }
     }

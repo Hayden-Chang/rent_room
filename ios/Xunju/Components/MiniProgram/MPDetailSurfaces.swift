@@ -22,7 +22,7 @@ struct MPDetailSurface<Checklist: View, Media: View, Issues: View, Summary: View
     var body: some View {
         VStack(spacing: 0) {
             if readonly {
-                AppText("房源已归档，当前为只读查看").font(.system(size: 12)).foregroundStyle(XJTheme.primary)
+                AppText("房源已删除，当前为只读查看").font(.system(size: 12)).foregroundStyle(XJTheme.primary)
                     .padding(10).frame(maxWidth: .infinity, alignment: .leading).background(XJTheme.soft)
             }
             ZStack {

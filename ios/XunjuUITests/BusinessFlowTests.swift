@@ -71,8 +71,10 @@ import XCTest
         app.buttons["mp.prompt.save"].tap()
         let house = app.buttons["house.改名房源"]
         XCTAssertTrue(house.waitForExistence(timeout: 3)); house.press(forDuration: 1)
-        app.buttons["归档房源"].tap()
-        XCTAssertTrue(app.buttons["mp.confirm.cancel"].waitForExistence(timeout: 3)); capture("pixel-17c-archive-confirm", app)
+        app.buttons["删除"].tap()
+        XCTAssertTrue(app.buttons["mp.confirm.cancel"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["删除后保留全部记录，可在设置的“删除房源”中还原。"].exists)
+        capture("delete-confirmation", app)
         app.buttons["mp.confirm.cancel"].tap(); XCTAssertTrue(house.waitForExistence(timeout: 3))
         app.terminate(); app.launch(); XCTAssertTrue(house.waitForExistence(timeout: 10))
     }
@@ -94,8 +96,10 @@ import XCTest
         app.confirmArchiveFromHouseMenu()
         XCTAssertFalse(app.buttons["house.第一套"].exists)
         app.buttons["tab.我的"].tap()
-        let archives = app.buttons["local-settings.archive"]; if !archives.isHittable { app.swipeUp() }; archives.tap()
-        let open = app.buttons["archive.open.第一套"]; XCTAssertTrue(open.waitForExistence(timeout: 3)); open.tap()
+        let archives = app.buttons["local-settings.archive"]; if !archives.isHittable { app.swipeUp() }
+        XCTAssertTrue(archives.label.hasPrefix("删除房源")); capture("deleted-homes-settings", app); archives.tap()
+        let open = app.buttons["archive.open.第一套"]; XCTAssertTrue(open.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["删除房源"].exists); capture("deleted-homes-list", app); open.tap()
         XCTAssertTrue(app.staticTexts["house.readonly"].waitForExistence(timeout: 3))
         app.buttons["tab.总结"].tap(); XCTAssertFalse(app.buttons["summary.考虑租住"].isEnabled)
         capture("15-native-archive-readonly", app)
