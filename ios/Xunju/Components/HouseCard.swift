@@ -39,7 +39,7 @@ struct HouseCard: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(verbatim: house.name).font(.system(size: 14, weight: .semibold))
                         .lineLimit(1).frame(height: 20)
-                    AppText(house.rent.isEmpty ? "租金待填写" : "\(house.currencyCode) \(house.rent) / 月")
+                    Text(verbatim: AppCopy.monthlyRent(house.rent, currency: house.currencyCode))
                         .font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary)
                         .frame(height: 24).padding(.vertical, 8)
                     Text(verbatim: "\(house.address.isEmpty ? AppCopy.text("地址待填写") : house.address) · \(house.area)m²")

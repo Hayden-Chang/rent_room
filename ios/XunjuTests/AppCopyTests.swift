@@ -20,6 +20,19 @@ import XCTest
         XCTAssertEqual(AppCopy.text("11 个问题", language: .english), "11 Issues")
         XCTAssertEqual(AppCopy.text("1 个问题", language: .chinese), "1 个问题")
     }
+    func testMonthlyRentUsesYuanInChineseAndKeepsEnglishCurrencyCodes() {
+        let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
+        defer { AppLanguage.shared.value = prior }
+        XCTAssertEqual(AppCopy.monthlyRent("2800", currency: "CNY"), "2800 元/月")
+        XCTAssertEqual(AppCopy.monthlyRent("0", currency: "CNY"), "0 元/月")
+        XCTAssertEqual(AppCopy.monthlyRent("", currency: "CNY"), "租金待填写")
+        XCTAssertEqual(AppCopy.monthlyRent("1500", currency: "USD"), "USD 1500 / 月")
+        AppLanguage.shared.value = .english
+        XCTAssertEqual(AppCopy.monthlyRent("1500", currency: "USD"), "USD 1500 / month")
+        XCTAssertEqual(AppCopy.monthlyRent("1900", currency: "USD"), "USD 1900 / month")
+        XCTAssertEqual(AppCopy.monthlyRent("2800", currency: "CNY"), "CNY 2800 / month")
+        XCTAssertFalse(AppCopy.monthlyRent("", currency: "USD").isEmpty)
+    }
     func testChineseYuanFormUnitsPreserveRatesCustomNamesAndOtherCurrencies() {
         let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
         defer { AppLanguage.shared.value = prior }

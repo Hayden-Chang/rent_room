@@ -8,7 +8,7 @@ if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared instance pool');
  const out=process.env.WECHAT_ARTIFACT_DIR,write=(name,value)=>fs.writeFileSync(path.join(out,name+'.json'),JSON.stringify(value,null,2));
  const bounded=async(fn)=>{let timer;try{return await Promise.race([fn(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Read-only RPC timed out')),8000);})]);}finally{clearTimeout(timer);}};
  const state=async()=>{
-  for(let attempt=0;attempt<3;attempt++)try{return await bounded(()=>mini.evaluate(()=>({route:getCurrentPages().slice(-1)[0]?.route,data:getCurrentPages().slice(-1)[0]?.data,root:getApp().service.root,houses:getApp().service.store.get().houses})));}
+  for(let attempt=0;attempt<3;attempt++)try{return await bounded(()=>mini.evaluate(()=>({route:getCurrentPages().slice(-1)[0]?.route,data:getCurrentPages().slice(-1)[0]?.data,root:getApp().service.root,houses:getApp().service.store.get().houses,capacity:getApp().service.store.capacity()})));}
   catch(error){if(attempt===2)throw error;mini.disconnect();mini=await automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT});}
  };
  const until=async(predicate,label)=>{console.log('NATIVE_READY: '+label);const deadline=Date.now()+120000;while(Date.now()<deadline){const s=await state();write('last-state',s);if(predicate(s))return s;await new Promise(r=>setTimeout(r,300));}throw Error('Expected page state did not appear: '+label);};
@@ -27,6 +27,9 @@ if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared instance pool');
   const initial=await until(s=>s.route==='pages/welcome/index'&&s.data.step==='sort','等待首次欢迎页');
   assert.ok(initial.root.includes('/xunju-test-examples-'));assert.equal(initial.houses.length,2);
   assert.ok(initial.houses.every(h=>h.checklistMode==='simple'));
+  assert.equal(initial.capacity.remaining,initial.capacity.limit);
+  assert.ok(initial.houses.every(h=>h.currencyCode==='CNY'));
+  assert.deepEqual(initial.houses.map(h=>h.answers.f1_6.value),['2800','3600']);
   assert.ok(initial.houses.every(h=>h.media.length===1&&h.media[0].type==='image'&&h.media[0].path.startsWith(initial.root+'/media/')));
   const ids=initial.houses.map(h=>h.id);write('initial',initial);
   await until(s=>s.route==='pages/welcome/index'&&s.data.step==='mode','点击排好啦');
@@ -44,6 +47,7 @@ if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared instance pool');
   assert.deepEqual(reloaded.houses.map(h=>h.id),ids);
   assert.deepEqual(reloaded.houses,initial.houses);
   assert.equal(reloaded.data.houses.length,2);
+  assert.equal(reloaded.capacity.remaining,initial.capacity.remaining);
   await shot('examples-wechat-reloaded');
   write('assertions',{passed:true,ids,reloadedIds:reloaded.houses.map(h=>h.id),sameRoot:true,allHouseFieldsPreserved:true,interaction:'native DevTools controls and Compile reload; observer only reads state',isolatedDataRoot:true,productionStartupEnabled:true});
  }catch(error){console.error(error);try{write('failure-state',await state());await shot('failure',{confirmPaint:false});}catch{}throw error;}
