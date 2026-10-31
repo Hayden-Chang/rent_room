@@ -16,6 +16,7 @@ import XCTest
         XCTAssertTrue(app.buttons["house." + names[0]].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["house." + names[1]].exists)
         XCTAssertTrue(app.staticTexts["My Homes"].exists)
+        assertDollarPrices(app, prefix: "house.", names: names)
         XCTAssertTrue(app.buttons["house." + names[1]].label.contains("1 Issue"))
         XCTAssertFalse(app.buttons["house." + names[1]].label.contains("1 Issues"))
         assertEnglishCardsFit(app, prefix: "house.", names: names)
@@ -26,6 +27,7 @@ import XCTest
             XCTAssertTrue(card.waitForExistence(timeout: 3)); card.tap()
         }
         assertEnglishCardsFit(app, prefix: "compare.select.", names: names)
+        assertDollarPrices(app, prefix: "compare.select.", names: names)
         capture("examples-ios-english-selected", app)
         app.buttons["compare.start"].tap()
         let differences = app.switches["Hide identical attributes"]
@@ -34,10 +36,21 @@ import XCTest
         let enabled = expectation(for: NSPredicate(format: "value == %@", "1"), evaluatedWith: differences)
         wait(for: [enabled], timeout: 3)
         XCTAssertTrue(app.otherElements["compare.row.simple_01"].waitForExistence(timeout: 3))
+        let rent = app.otherElements["compare.row.f1_6"]
+        XCTAssertTrue(rent.staticTexts["USD 1500"].exists)
+        XCTAssertTrue(rent.staticTexts["USD 1900"].exists)
         capture("examples-ios-english-comparison", app)
         app.terminate(); app.launch()
         XCTAssertTrue(app.buttons["house." + names[0]].waitForExistence(timeout: 10))
         for name in names { XCTAssertEqual(app.buttons.matching(identifier: "house." + name).count, 1) }
+        assertDollarPrices(app, prefix: "house.", names: names)
+    }
+    private func assertDollarPrices(_ app: XCUIApplication, prefix: String, names: [String]) {
+        for (name, amount) in zip(names, ["1500", "1900"]) {
+            let label = app.buttons[prefix + name].label
+            XCTAssertTrue(label.contains("USD " + amount))
+            XCTAssertFalse(label.contains("CNY"))
+        }
     }
     private func assertEnglishCardsFit(_ app: XCUIApplication, prefix: String, names: [String]) {
         let left = app.buttons[prefix + names[0]], right = app.buttons[prefix + names[1]]

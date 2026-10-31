@@ -1,6 +1,6 @@
 import {freshHouse,updateAnswer} from './model.js';
 
-// Localize only the initial sample text. Existing records and edits stay verbatim.
+// Localize only newly created examples. Existing records and edits stay verbatim.
 export function exampleHouses(language='zh-Hans') {
   const english=language==='en';
   const choices=[
@@ -10,13 +10,13 @@ export function exampleHouses(language='zh-Hans') {
       summary:'通勤约 45 分钟，租金较高；空间更大，采光和安静程度更好。'}
   ];
   const englishCopy=[
-    {name:'Demo · Metro 1BR',address:'Demo · Metro stop',summary:'About 20 minutes to work and lower rent. Less daylight; check the street noise again.',commuteNote:'Demo: a 5-minute walk to the metro; about 20 minutes door to door.'},
-    {name:'Demo · Sunny 2BR',address:'Demo · Garden Court',summary:'About 45 minutes to work and higher rent. More space, better daylight and quieter rooms.',commuteNote:'Demo: bus and metro transfer; about 45 minutes door to door.'}
+    {name:'Demo · Metro 1BR',address:'Demo · Metro stop',rent:'1500',summary:'About 20 minutes to work and lower rent. Less daylight; check the street noise again.',commuteNote:'Demo: a 5-minute walk to the metro; about 20 minutes door to door.'},
+    {name:'Demo · Sunny 2BR',address:'Demo · Garden Court',rent:'1900',summary:'About 45 minutes to work and higher rent. More space, better daylight and quieter rooms.',commuteNote:'Demo: bus and metro transfer; about 45 minutes door to door.'}
   ];
   return choices.map((choice,index)=>{
     const item=english?{...choice,...englishCopy[index]}:choice;
     const house=freshHouse(item.name,{selectedTemplate:'simple'});
-    Object.assign(house,{id:item.id,example:true,currencyCode:'CNY',summary:item.summary,decision:'继续比较'});
+    Object.assign(house,{id:item.id,example:true,currencyCode:english?'USD':'CNY',summary:item.summary,decision:'继续比较'});
     house.media=[{id:item.id+'-photo',type:'image',path:'media/'+item.id+'.jpg',fieldId:'',caption:english?'Demo interior (AI-generated)':'示例室内图（AI 生成）',createdAt:house.createdAt}];
     house.xiaoda={...house.xiaoda,intro:'done',disabled:true};
     for(const [field,value] of Object.entries({f1_1:item.address,f1_2:item.layout,f1_6:item.rent,f1_3:item.area,simple_01:item.commute,simple_02:'是',simple_04:'是',simple_05:'是',simple_11:item.light,simple_13:item.noise,simple_15:'是',simple_42:'是',simple_43:'是',simple_44:'是',simple_45:'是'}))updateAnswer(house,field,'value',value);

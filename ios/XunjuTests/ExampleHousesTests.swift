@@ -23,6 +23,8 @@ import UIKit
         let layout = try XCTUnwrap(rows.first { $0.id == "f1_2" })
         XCTAssertEqual(AppCopy.comparisonValue(layout, index: 0), "1 Bed, 1 Living Room")
         XCTAssertEqual(AppCopy.comparisonValue(layout, index: 1), "2 Bed, 1 Living Room")
+        XCTAssertEqual(store.houses.map(\.rent), ["1500", "1900"])
+        XCTAssertEqual(rows.first { $0.id == "f1_6" }?["values"].array.map(\.string), ["USD 1500", "USD 1900"])
         for house in store.houses {
             let record = store.house(house.id)
             for text in [house.name, house.address, record["summary"].string,
@@ -31,16 +33,19 @@ import UIKit
                 XCTAssertNil(text.range(of: #"[\u3400-\u9fff]"#, options: .regularExpression))
             }
             XCTAssertNotNil(houseCover(house, store: store))
-            XCTAssertEqual(house.currencyCode, "CNY")
+            XCTAssertEqual(house.currencyCode, "USD")
         }
         let id = store.houses[0].id
         try store.call("rename", ["id": .string(id), "value": .string("用户自己的房源")])
         try store.answer(id, field: "simple_01", property: "note", value: .string("My edited note"))
+        try store.answer(id, field: "f1_6", value: .string("1475"))
         let bytes = try store.records.read()
         workspace.regional.selectLanguage(.chinese)
         let restored = try AppWorkspace(root: url, keychain: VolatileSessionStorage(), regionalDefaults: defaults, firstVisitExamples: true)
         XCTAssertEqual(restored.regional.language, .chinese)
         XCTAssertEqual(restored.store.houses.map(\.name), ["用户自己的房源", "Demo · Sunny 2BR"])
+        XCTAssertEqual(restored.store.houses.map(\.rent), ["1475", "1900"])
+        XCTAssertEqual(restored.store.houses.map(\.currencyCode), ["USD", "USD"])
         XCTAssertEqual(try restored.store.records.read(), bytes)
     }
     func testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart() throws {
