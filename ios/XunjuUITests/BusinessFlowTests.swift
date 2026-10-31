@@ -61,7 +61,11 @@ import XCTest
         XCTAssertTrue(app.buttons["含物业费"].exists)
     }
     func testHouseActionMenuRenameAndArchiveCancellation() {
-        let app = launch(); add("待改名房源", app); home(app)
+        let app = launch()
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 5)); currency.tap()
+        XCTAssertTrue(app.staticTexts["currency.prompt.title"].waitForNonExistence(timeout: 3))
+        add("待改名房源", app); home(app)
         app.buttons["house.待改名房源"].press(forDuration: 1)
         XCTAssertTrue(app.buttons["重命名"].waitForExistence(timeout: 3)); capture("pixel-17-home-actions", app)
         app.buttons["重命名"].tap()
@@ -79,7 +83,11 @@ import XCTest
         app.terminate(); app.launch(); XCTAssertTrue(house.waitForExistence(timeout: 10))
     }
     func testCompareThenArchiveReadOnlyAndRestore() {
-        let app = launch(twoRooms: true); add("第一套", app); app.buttons["tab.总结"].tap(); app.buttons["summary.考虑租住"].tap(); home(app)
+        let app = launch(twoRooms: true)
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 5)); currency.tap()
+        XCTAssertTrue(app.staticTexts["currency.prompt.title"].waitForNonExistence(timeout: 3))
+        add("第一套", app); app.buttons["tab.总结"].tap(); app.buttons["summary.考虑租住"].tap(); home(app)
         add("第二套", app); home(app)
         app.buttons["tab.对比"].tap()
         let first = app.buttons["compare.select.第一套"]
