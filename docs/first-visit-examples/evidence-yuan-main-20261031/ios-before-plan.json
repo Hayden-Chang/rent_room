@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-yuan-main-20261031-before",
+  "phase": "development",
+  "headSha": "8b29817956934686a0739a8a7ea1b561b07a9fbf",
+  "taskName": "Reproduce Chinese demo comparison CNY instead of yuan",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/Users/pc/.codex/worktrees/english-demo-usd/rent_room",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/AppCopyTests/testChineseYuanComparisonUsesYuanWithoutChangingUserTextOrOtherCurrencies",
+      "reason": "新增中文人民币显示回归；现有比较展示方法应显示元",
+      "source": "new-or-modified"
+    }
+  ],
+  "uiTests": [],
+  "changedUITests": []
+}

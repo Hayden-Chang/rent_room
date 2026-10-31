@@ -1,0 +1,119 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "42200FB2-DE0D-4FE5-9F1D-9047D2358EE6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-english-comparison_0_0BA1DF21-8BDF-4D8F-87C7-6BCFB4A143FF.png",
+        "timestamp" : 1793459547.258
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "A74E3E0C-D64E-479A-9E11-13665FA51BAA.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-english-selected_0_59CD3A28-8C47-4839-8F24-D731FCB4FC3D.png",
+        "timestamp" : 1793459542.845
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "B4D0E512-14A0-4C39-85CB-5DEADBAFA581.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-english-home_0_8725CF91-F6A6-4047-8704-B08B450EB0DC.png",
+        "timestamp" : 1793459539.495
+      }
+    ],
+    "testIdentifier" : "ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "8AE13BD1-C2F4-44AA-8C67-09297CB638B6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-examples-comparison_0_A76A986F-3592-4D16-B277-B7E621BD37EB.png",
+        "timestamp" : 1793459574.991
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "9277E114-8B15-472C-A073-CC6E718E9DE0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-examples-selected_0_B499B4EC-8CAC-4EB1-94B3-067E958ED5A2.png",
+        "timestamp" : 1793459570.426
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "46ECA88A-A3D7-4BBE-88B0-FFA8E96C3E31.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-setup-completed-home_0_BFA4D81C-570A-40AC-9204-BFBBB2658293.png",
+        "timestamp" : 1793459567.156
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "7741B52C-EF4E-4F0E-A3F6-DFBB850ABCCB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-setup-choice-restored_0_A2EDB444-0086-41B6-B4CC-BC3917199AFF.png",
+        "timestamp" : 1793459561.306
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "64F2B971-4BC6-4550-A4F1-5540206F0C15.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-first-setup_0_09090824-55E3-4430-8861-2D62C4719235.png",
+        "timestamp" : 1793459556.449
+      }
+    ],
+    "testIdentifier" : "LaunchIntegrationTests/testFirstLaunchReachesSetupAndRelaunchRetainsChoice()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/LaunchIntegrationTests/testFirstLaunchReachesSetupAndRelaunchRetainsChoice"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "9E0BA547-528F-4CAA-9714-530E158AB182.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-returning-home-restored_0_249E221D-CCA5-49FF-958F-B5F96623C1B5.png",
+        "timestamp" : 1793459595.286
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "DEF20E2F-6C99-4362-9685-DDCAB7ACD1B2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-background-resume-settings_0_75814AA3-9554-4C76-A069-252B17C9EE13.png",
+        "timestamp" : 1793459590.806
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "1DA34DE4-959C-42BD-8C7B-B1DDBE8CE61E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-returning-home_0_FE623D4B-46A7-4418-8F2A-9E3B3516534F.png",
+        "timestamp" : 1793459587.009
+      }
+    ],
+    "testIdentifier" : "LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage"
+  }
+]

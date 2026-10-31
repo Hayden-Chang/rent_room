@@ -1,0 +1,5 @@
+Native core: 69 canonical sources, 342608 bytes
+Regional copy: 190 paired entries; agy provenance and placeholders verified.
+App copy: 1350 entries; agy provenance and placeholders verified
+Native map configuration: configured
+XcodeGen 2.45.4: deterministic project verified

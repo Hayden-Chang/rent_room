@@ -1,0 +1,33 @@
+
+ RUN  v5.0.3 /Users/pc/.codex/worktrees/english-demo-usd/rent_room/apps/wechat
+
+ ❯ tests/example-houses.test.js (14 tests | 1 failed | 13 skipped) 16ms
+   ❯ first-visit example houses (14)
+     × keeps creation credits available for new and previously saved examples 16ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/example-houses.test.js > first-visit example houses > keeps creation credits available for new and previously saved examples
+AssertionError: expected +0 to be 1 // Object.is equality
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ tests/example-houses.test.js:13:38
+     11|     for(const language of ['zh-Hans','en']){
+     12|       const io=adapter(),s=createStore(io,{firstVisit:true,exampleLang…
+     13|       expect(s.capacity().remaining).toBe(1);
+       |                                      ^
+     14|       const id=s.add('我的第一套房源');
+     15|       expect(s.capacity().remaining).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 13 skipped (14)
+   Start at  22:58:09
+   Duration  179ms (transform 66%, import 18%, tests 15%, worker 2%)

@@ -1,0 +1,12 @@
+NATIVE_READY: 等待首次欢迎页
+NATIVE_READY: 点击排好啦
+NATIVE_READY: 选择精简模式并点击选好啦
+CAPTURE_READY: examples-wechat-home (confirm visible controls, then create examples-wechat-home.ready in WECHAT_ARTIFACT_DIR)
+NATIVE_READY: 点击底部对比
+NATIVE_READY: 依次点击两套示例卡片
+Error: Expected page state did not appear: 依次点击两套示例卡片
+    at until (/Users/pc/.codex/worktrees/english-demo-usd/rent_room/apps/wechat/tests/e2e/example-houses.cjs:14:251)
+    at async /Users/pc/.codex/worktrees/english-demo-usd/rent_room/apps/wechat/tests/e2e/example-houses.cjs:39:3
+Error: Expected page state did not appear: 依次点击两套示例卡片
+    at until (/Users/pc/.codex/worktrees/english-demo-usd/rent_room/apps/wechat/tests/e2e/example-houses.cjs:14:251)
+    at async /Users/pc/.codex/worktrees/english-demo-usd/rent_room/apps/wechat/tests/e2e/example-houses.cjs:39:3
