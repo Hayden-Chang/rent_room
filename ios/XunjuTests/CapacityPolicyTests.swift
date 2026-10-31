@@ -31,7 +31,7 @@ final class CapacityPolicyTests: XCTestCase {
         XCTAssertEqual(restored.store.capacity.limit, 2)
         XCTAssertEqual(restored.store.houses.count, 2)
         try restored.store.archive(first, archived: true)
-        XCTAssertNoThrow(try restored.store.add("归档释放名额"))
+        XCTAssertThrowsError(try restored.store.add("归档不返还点数"))
         XCTAssertEqual(restored.store.state["capacity"], .null)
     }
     func testLoginAndBalanceAcceptVersionTwoZeroPolicyAndRejectMismatch() throws {

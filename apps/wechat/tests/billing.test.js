@@ -9,7 +9,7 @@ function fixture(options={}){
   if(name==='requestVirtualPayment'){if(failPayment)throw failPayment;return {};}
   if(failRequest)throw Error('network offline');
   const path=args.url.replace('https://capacity.test/api/rent-room','');let data;
-  if(path==='/catalog')data={available:ready,iosAvailable:false,product:{id:'room_capacity_10',price:199,size:10}};
+  if(path==='/catalog')data={available:ready,creditVersion:1,iosAvailable:false,product:{id:'room_capacity_10',price:199,size:10}};
   else if(path==='/session')data={token:'opaque-token',account,packs};
   else if(path==='/orders')data={orderId:'order-test',status:'unpaid',payment};
   else if(path==='/entitlements')data={packs};
@@ -116,7 +116,7 @@ describe('server-confirmed capacity purchases',()=>{
  });
 });
 it('requests the server-configured capacity protocol without changing purchase identifiers',async()=>{
- const f=fixture();await f.billing.refresh();expect(f.calls.filter(c=>c.name==='request').every(c=>c.args.header['x-rent-room-capacity-version']==='2')).toBe(true);
+ const f=fixture();await f.billing.refresh();expect(f.calls.filter(c=>c.name==='request').every(c=>c.args.header['x-rent-room-capacity-version']==='3')).toBe(true);
 });
 
 it('accepts v2 checkout and confirmed order metadata without granting packs early',async()=>{

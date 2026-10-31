@@ -6,7 +6,8 @@ import test from 'node:test';
 const source = readFileSync(new URL('../Xunju/Resources/XunjuCore.js', import.meta.url), 'utf8');
 function fixture(raw = '', free = 1) {
   let saved = raw, fail = false;
-  const context = vm.createContext({nativeWrite(text) { if (fail) return 'disk full'; saved = text; return ''; },
+  let credits = "";
+  const context = vm.createContext({nativeReadCredits: () => JSON.stringify({value: credits}), nativeWriteCredits: text => { credits = text; return ""; },nativeWrite(text) { if (fail) return 'disk full'; saved = text; return ''; },
     nativePrevious: () => JSON.stringify({value: saved}), nativePreserveCorrupt: () => ''});
   vm.runInContext(source, context);
   context.XunjuCore.initialize(raw, 0, free);
@@ -19,18 +20,18 @@ function fixture(raw = '', free = 1) {
 }
 
 test('third successful creation survives deletion and relaunch; either condition requests only once', () => {
-  let f = fixture();
+  let f = fixture("", 3);
   for (let n = 1; n <= 2; n++) {
     const id = f.call('add', {value: `房源${n}`}).value;
     assert.equal(f.call('reviewRequest').value, false);
     f.call('archive', {id, value: true}); f.call('remove', {id});
-    f = fixture(f.saved());
+    f = fixture(f.saved(), 3);
   }
   f.call('add', {value: '第三套'});
   assert.equal(f.call('snapshot').state.houses.length, 1);
   assert.equal(f.call('reviewRequest').value, true);
   f.call('reviewPurchaseConfirmed');
-  assert.equal(fixture(f.saved()).call('reviewRequest').value, false);
+  assert.equal(fixture(f.saved(), 3).call('reviewRequest').value, false);
 });
 
 test('failed creation, import and restore never inflate the creation count', () => {
