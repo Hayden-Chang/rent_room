@@ -21,6 +21,14 @@ async function bounded(promise,label){let timer;try{return await Promise.race([p
  let mocked=false;
  try{
   assert.match(await evaluate(function(){return getApp().service.root;}),/\/xunju-test-haptics-/);
+  // Let the cold-launch welcome navigation settle before replacing fixture data.
+  // Otherwise a navigation already queued by Home can overtake our reLaunch.
+  let stable=0;
+  for(let i=0;i<100&&stable<3;i++){
+   const ready=await evaluate(function(){const pages=getCurrentPages(),p=pages.slice(-1)[0];return !!p&&p.accountPageReady&&!pages.some(p=>p.welcomeOpening);});
+   stable=ready?stable+1:0;await sleep(200);
+  }
+  assert.equal(stable,3,'Initial page navigation did not settle');
   const state=emptyState(),house=freshHouse('震动规则验收');house.id='haptic-review';
   house.answers.f53_0={value:'是',note:'保留备注',issueFlag:true};house.xiaoda.intro='done';
   state.houses=[house];Object.assign(state.xiaoda,{setup:'done',enabled:false,feedback:'done',tutorialStep:0});
