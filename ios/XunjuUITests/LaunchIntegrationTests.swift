@@ -7,7 +7,7 @@ final class LaunchIntegrationTests: XCTestCase {
     private func application(returning: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
-        if returning { app.launchArguments += ["--returning-business-fixture", "--pixel-parity-fixture"] }
+        if returning { app.launchArguments += ["--returning-business-fixture", "--pixel-parity-fixture", "--stub-system-review"] }
         return app
     }
 
@@ -83,12 +83,6 @@ final class LaunchIntegrationTests: XCTestCase {
     func testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage() {
         let app = application(returning: true)
         app.launch()
-        // The fixture is eligible, but StoreKit decides whether a rating sheet appears.
-        let later = app.buttons["以后"]
-        if later.waitForExistence(timeout: 3) {
-            later.tap()
-            XCTAssertTrue(later.waitForNonExistence(timeout: 3))
-        }
         chooseDefaultCurrency(app)
         XCTAssertTrue(app.buttons["house.阳光小区"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["house.新城公寓"].exists)
