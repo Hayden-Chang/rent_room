@@ -17,7 +17,7 @@ import XCTest
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
     func testXiaodaReminderOnlyForCreationWithNoCredits() {
-        let app = launch(), message = app.staticTexts["xiaoda.message"]
+        let app = launch(), message = app.otherElements["xiaoda.message"]
         XCTAssertFalse(message.exists)
         state("点数用完", app)
         XCTAssertFalse(message.exists, "A zero balance opened from settings does not ask the user to buy")
