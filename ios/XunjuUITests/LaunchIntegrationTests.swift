@@ -45,9 +45,39 @@ final class LaunchIntegrationTests: XCTestCase {
         XCTAssertTrue(app.buttons["setup.mode.simple"].waitForExistence(timeout: 3))
         app.buttons["setup.next"].tap()
         chooseDefaultCurrency(app)
-        XCTAssertTrue(app.buttons["home.first"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["home.first"].isHittable)
+        XCTAssertTrue(app.buttons["house.示例·地铁一居"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["house.示例·阳光两居"].exists)
+        assertExampleCardsFit(app, prefix: "house.")
         capture("launch-setup-completed-home", app)
+        app.buttons["tab.对比"].tap()
+        for name in ["示例·地铁一居", "示例·阳光两居"] {
+            let card = app.buttons["compare.select." + name]
+            XCTAssertTrue(card.waitForExistence(timeout: 3)); card.tap()
+        }
+        assertExampleCardsFit(app, prefix: "compare.select.")
+        capture("launch-examples-selected", app)
+        app.buttons["compare.start"].tap()
+        let differences = app.switches["隐藏相同属性"]
+        XCTAssertTrue(differences.waitForExistence(timeout: 3))
+        differences.coordinate(withNormalizedOffset: CGVector(dx: 0.92, dy: 0.5)).tap()
+        let enabled = expectation(for: NSPredicate(format: "value == %@", "1"), evaluatedWith: differences)
+        wait(for: [enabled], timeout: 3)
+        XCTAssertTrue(app.otherElements["compare.row.simple_01"].waitForExistence(timeout: 3))
+        capture("launch-examples-comparison", app)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["house.示例·地铁一居"].waitForExistence(timeout: 10))
+        XCTAssertEqual(app.buttons.matching(identifier: "house.示例·地铁一居").count, 1)
+        XCTAssertEqual(app.buttons.matching(identifier: "house.示例·阳光两居").count, 1)
+        XCTAssertFalse(app.buttons["setup.next"].exists)
+        XCTAssertFalse(app.staticTexts["currency.prompt.title"].exists)
+    }
+
+    private func assertExampleCardsFit(_ app: XCUIApplication, prefix: String) {
+        let left = app.buttons[prefix + "示例·地铁一居"].frame
+        let right = app.buttons[prefix + "示例·阳光两居"].frame
+        XCTAssertGreaterThanOrEqual(right.minX - left.maxX, 9)
+        XCTAssertGreaterThanOrEqual(left.minX, app.frame.minX + 15)
+        XCTAssertLessThanOrEqual(right.maxX, app.frame.maxX - 15)
     }
 
     func testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage() {
@@ -62,6 +92,8 @@ final class LaunchIntegrationTests: XCTestCase {
         XCTAssertTrue(app.buttons["house.阳光小区"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.buttons["house.新城公寓"].exists)
         XCTAssertFalse(app.images["brandLaunch.icon"].exists)
+        XCTAssertFalse(app.buttons["house.示例·地铁一居"].exists)
+        XCTAssertFalse(app.buttons["house.示例·阳光两居"].exists)
         capture("launch-returning-home", app)
 
         app.buttons["tab.我的"].tap()
@@ -80,6 +112,8 @@ final class LaunchIntegrationTests: XCTestCase {
         XCTAssertTrue(app.buttons["house.新城公寓"].exists)
         XCTAssertFalse(app.staticTexts["currency.prompt.title"].exists)
         XCTAssertFalse(app.images["brandLaunch.icon"].exists)
+        XCTAssertFalse(app.buttons["house.示例·地铁一居"].exists)
+        XCTAssertFalse(app.buttons["house.示例·阳光两居"].exists)
         capture("launch-returning-home-restored", app)
     }
 }

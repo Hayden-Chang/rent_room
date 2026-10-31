@@ -75,6 +75,14 @@ import UIKit
         XCTAssertEqual(upgraded.store.houses.map(\.id), [id])
         XCTAssertEqual(try upgraded.store.records.read(), bytes)
     }
+    func testExistingKeychainSessionDoesNotReceiveExamplesEvenWithoutDataDirectory() throws {
+        let url = root(), keychain = VolatileSessionStorage()
+        let receipt = LoginReceipt(account: String(repeating: "a", count: 64), token: String(repeating: "t", count: 40), provider: "apple", expiresIn: 1, packs: 1, limit: 12)
+        keychain.write(try LocalSession(receipt: receipt, now: Date(timeIntervalSince1970: 0)))
+        let workspace = try AppWorkspace(root: url, keychain: keychain, firstVisitExamples: true)
+        XCTAssertTrue(workspace.store.houses.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: workspace.store.records.directory.appending(path: "media/example-metro-v1.jpg").path))
+    }
     func testExistingEmptyFileAndRecoveryCopyAreNeverSeeded() throws {
         for filename in ["state.json", "state.previous.json"] {
             let url = root(); try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)

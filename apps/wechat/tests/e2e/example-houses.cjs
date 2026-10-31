@@ -45,7 +45,7 @@ if(!process.env.WECHAT_WS_ENDPOINT)throw Error('Use the shared instance pool');
   assert.deepEqual(reloaded.houses,initial.houses);
   assert.equal(reloaded.data.houses.length,2);
   await shot('examples-wechat-reloaded');
-  write('assertions',{passed:true,ids,reloadedIds:reloaded.houses.map(h=>h.id),sameRoot:true,allHouseFieldsPreserved:true,interaction:'native DevTools controls and Compile reload; observer only reads state',reviewBuild:true,productionStartupEnabled:false});
+  write('assertions',{passed:true,ids,reloadedIds:reloaded.houses.map(h=>h.id),sameRoot:true,allHouseFieldsPreserved:true,interaction:'native DevTools controls and Compile reload; observer only reads state',isolatedDataRoot:true,productionStartupEnabled:true});
  }catch(error){console.error(error);try{write('failure-state',await state());await shot('failure',{confirmPaint:false});}catch{}throw error;}
  finally{mini.disconnect();}
 })().catch(error=>{console.error(error);process.exit(1);});
