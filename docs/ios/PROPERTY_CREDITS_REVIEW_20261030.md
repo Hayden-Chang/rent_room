@@ -1,12 +1,23 @@
 # 房源点数：正式页面、兼容迁移与消费记录
 
-状态：用户已以“可以”明确批准第 4 版布局，iOS UI 门禁为 `APPROVED`。两端正式页面已接入。2026-10-31 用户确认小程序登录后联网扣点，新增服务端兼容迁移；iOS 继续本机方案。最新兼容验证见下文。新增“小搭点数不足提醒”为独立组件预览，尚未获视觉批准或接入正式入口。微信正式页已实际渲染并截图；自动化工具 Page 查询超时，真实购买/刷新点击仍为 `BLOCKED`。PR #105 保持草稿，未合并、部署、上传或发布。
+状态：用户已以“可以”明确批准第 4 版布局，iOS UI 门禁为 `APPROVED`。两端正式页面已接入。2026-10-31 用户确认小程序登录后联网扣点，新增服务端兼容迁移；iOS 继续本机方案。最新兼容验证见下文。用户随后以“可以的”批准了小搭 think 第二版表情及布局；提醒已接入两端正式新建入口，iOS 视觉门禁为 `APPROVED`。微信正式页已实际渲染并截图；自动化工具 Page 查询超时，真实购买/刷新点击仍为 `BLOCKED`。PR #105 保持草稿，未合并、部署、上传或发布。
 
-## 小搭点数不足提醒：组件待确认（2026-10-31）
+## 小搭点数不足提醒：获批后正式接入（2026-10-31）
+
+- 用户明确批准 think 第二版后，iOS `CapacityPage` 以有续接回调且当前 intent 为 create 启用提醒；小程序以 `intent=1` 路由且当前 intent 为 create 启用。组件继续只在余额 0 时显示“你的房源点数不够啦～”。设置入口即使存在残留新建 intent 也不显示；旧归档恢复入口不显示。未更改购买、扣点、迁移或续接逻辑。
+- 正式接线源码 `3529a9cb86ba950c49ce9cd0ba4ec422aa26a2d1`，首批测试启动时工作树干净；远端 main 仍为 `1f26f8e04088fa8865431e5c590dd1179ab98c84`。共享 runner `rent-room-credit-reminder-20261031-03` 选择 3 个精确正式页面 UI 方法，覆盖首页新建→不足提醒→返回保留房源→设置零余额无提醒→再次新建、待确认保持零点数及提醒→恢复确认续接原命名表单、设置购买恢复后跨进程不重复发点。
+- 小程序先构建后运行 `capacity-runtime`、`capacity-navigation`、`property-credits-component` 三个文件，共 27 项通过；新增四种来源组合及取消后刷新清理标记。官方编译 wcc 21 / wcsc 23 通过。VM/编译不是开发者工具实际点击证据，共享三槽仍不可领用，未抢占或清理实例。当前小搭提醒的小程序实际渲染仍待补，PR 保持草稿。
+- 本轮证据目录：`/Users/pc/.codex/visualizations/2026/10/30/01a18c24-c384-7503-aa95-42333779ae5e/property-credits/xiaoda-reminder-20261031/integration/`。包含计划、完整命令、日志、去令牌 receipt、附件清单和正式入口原图 `new-property-zero-credits-purchase.png`、设置原图 `settings-zero-credits-without-reminder.png`。
+
+- iOS 最终 3 个精确 UI 方法均有通过证据。run 03 中新建返回/重进及设置恢复重启两项通过；续接用例已到达原命名表单，但新增断言误要求所有 `xiaoda.message` 消失，命名表单本来就显示“给这套房源起个名字吧～”，因此该项失败，保留原始日志和失败附件。仅在 `eef901e` 将该断言改为确认命名提示文案；run `rent-room-credit-reminder-20261031-04` 精确复验该方法通过、无失败/跳过。运行时仅本文未提交修改。该单行测试修正没有改变正式源码、其他方法或启动配置，复用 run 03 的两项通过结果，不重跑不受影响测试。
+- 结果包分别为 `/Volumes/mac2/codex-builds/rent-room-credit-reminder-20261031-03.xcresult`（2 通过、1 测试断言失败）和 `/Volumes/mac2/codex-builds/rent-room-credit-reminder-20261031-04.xcresult`（受影响 1 项通过）。设备 iPhone 14 Pro / iOS 18.3.1，UDID `8F178971-C203-4690-A83B-253046EACBB1`。原图 1178×2556，已查看正式不足提醒、普通零余额、待确认及恢复重启状态，文字和按钮完整可见。测试价格、余额及购买结果使用隔离 fixture，不是真实 Apple 支付。
+- 本轮只增加正式页来源标记和对应回归断言，既有 store、支付、迁移、native bridge 和生成配置未变，沿用下文既有业务证据；没有重跑全套。生成工程未提交。共享 runner 正常归还租约，仍未合并、部署或发布。
+
+## 小搭组件预览历史（2026-10-31）
 
 - 用户新增文案：“你的房源点数不够啦～”。iOS 与小程序点数组件增加默认关闭的 `fromCreation` 输入，仅在来源为新建且余额为 0 时显示现有小搭 think 形象与横向气泡，位于余额上方；普通购买页及点数充足时隐藏。无小饼干、无额外购买外框。
-- 当前为 `REVIEW_READY` 组件阶段。正式 iOS `CapacityPage` 和小程序 capacity 页尚未传入该标记，因此不会让未批准的提醒进入正式流程。用户确认布局后，再按新建 intent 接入，并验证从首页新建和设置两个实际入口。原第 4 版点数布局批准不冒充本次新增小搭区的批准。
-- 用户认为初版 expect 表情不合适，当前改为睁眼、托腮的 think 表情；文案、位置及显示条件不变。新版仍待视觉确认。源码 `a46b7c87f06c272ac538b963183f8612e616ed9b`，共享 runner `rent-room-credit-reminder-20261031-02` 精确复验 `PropertyCreditsReviewTests/testXiaodaReminderOnlyForCreationWithNoCredits`，1 项通过、无失败/跳过。`.xcresult` 为 `/Volumes/mac2/codex-builds/rent-room-credit-reminder-20261031-02.xcresult`；设备同下，2 张原图均为 1178×2556。主 agent 已查看新的不足点数截图，确认使用 think 资源。最新原图、来源清单、日志和收据在下述证据目录的 `think-v2/` 子目录。
+- 以下为正式接入前的 `REVIEW_READY` 组件证据。当时正式 iOS `CapacityPage` 和小程序 capacity 页未传入该标记。用户随后明确批准 think 第二版，正式接入与入口验证见上节。
+- 用户认为初版 expect 表情不合适，当前改为睁眼、托腮的 think 表情；文案、位置及显示条件不变。该版随后获用户“可以的”明确批准。源码 `a46b7c87f06c272ac538b963183f8612e616ed9b`，共享 runner `rent-room-credit-reminder-20261031-02` 精确复验 `PropertyCreditsReviewTests/testXiaodaReminderOnlyForCreationWithNoCredits`，1 项通过、无失败/跳过。`.xcresult` 为 `/Volumes/mac2/codex-builds/rent-room-credit-reminder-20261031-02.xcresult`；设备同下，2 张原图均为 1178×2556。主 agent 已查看新的不足点数截图，确认使用 think 资源。最新原图、来源清单、日志和收据在下述证据目录的 `think-v2/` 子目录。
 - 第二版只改两端提醒的 pose 值；其余组件 JS、样式、测试、购买及状态逻辑不变，因此复用第一版其他 2 个 UI 方法及 4 项微信组件测试。微信构建与官方 wcc 21 / wcsc 23 再次通过。没有再次占用已隔离的微信实例，新版微信实际渲染仍缺失。初版截图只保留为历史证据，不代表用户认可的表情。
 - 代码/截图 SHA：`0a74d02e138010ef52b812e6480c7254c3e2a852`，工作树干净。共享 runner `rent-room-credit-reminder-20261031-01` 开发批次 3 个精确 UI 方法全部通过、无失败或跳过：新增 `PropertyCreditsReviewTests/testXiaodaReminderOnlyForCreationWithNoCredits`，以及该类既有 `testLocalizedPricesRulesAndPurchaseCancellationPreserveBalance` 和 `testUnavailablePendingAndRestoreFailureDoNotGrantCredits`。未跑全套。
 - 新用例确认气泡文案、打字完成、位于余额上方、购买按钮可触达；购买中/取消后仍显示；点数到账后隐藏；设置零余额不出现。既有两例验证共享组件的中英文价格、取消、不可售、待确认与恢复错误未受影响。iOS 英文新提醒为展示文本，未单独截图验收。
@@ -14,7 +25,7 @@
 - 微信组件 4 项 Vitest 通过，新增零余额提醒不阻断购买/恢复回调；正常构建与官方 wcc 21 / wcsc 23 通过。独立预览工程复用真实 xiaoda 组件、资源及打字器，未制作替代截图。
 - 微信共享池 run `7d37fb068ce34c65bc2f6d445bd8c1db` 在预览工程健康检查报 `App service health timeout`，回调尚未启动，无新增截图/点击证据。槽位 3 被 runner 隔离并保留进程，未重启或清理其他任务。该失败不认定为小搭业务逻辑缺陷，也不以单测代替渲染验收。
 - 日志、计划、命令、去令牌 iOS receipt、微信失败收据和截图清单：`/Users/pc/.codex/visualizations/2026/10/30/01a18c24-c384-7503-aa95-42333779ae5e/property-credits/xiaoda-reminder-20261031/`；关键截图 `credits-xiaoda-shortage.png`。iOS runner PID 83092 已结束并释放租约。远端 main 仍为 `1f26f8e04088fa8865431e5c590dd1179ab98c84`。
-- 本轮未改正式路由、支付、扣点、迁移、生成工程或 project.yml。后续仅文档更新，不影响上述证据。PR 继续草稿，尚未合并、部署或发布。
+- 组件评审批次未改正式路由、支付、扣点、迁移、生成工程或 project.yml。上述证据为接入前记录，当前接入结果见上节。PR 继续草稿，尚未合并、部署或发布。
 
 ## 新建房源不足点数购买入口（2026-10-31）
 
