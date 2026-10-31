@@ -6,6 +6,7 @@ struct PropertyCreditsSurface: View {
     let price: String?
     var activity: CapacityActivity = .idle
     var error = ""
+    var fromCreation = false
     let purchase: () -> Void
     let restore: () -> Void
     @ScaledMetric(relativeTo: .largeTitle) private var balanceSize = 64
@@ -16,6 +17,11 @@ struct PropertyCreditsSurface: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
+            if fromCreation && remaining == 0 {
+                XiaodaMessage(text: copy("你的房源点数不够啦～", "You’re out of property credits~"), pose: "expect") {
+                    EmptyView()
+                }
+            }
             VStack(spacing: 12) {
                 Text(copy("剩余房源点数", "Property credits remaining"))
                     .font(.subheadline).foregroundStyle(XJTheme.muted)

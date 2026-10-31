@@ -1,4 +1,5 @@
 <view class="credits">
+ <xiaoda wx:if="{{fromCreation && remaining === 0}}" id="credit-shortage-reminder" text="你的房源点数不够啦～" pose="expect" layout="compact"/>
  <view class="summary"><view class="summary-title">剩余房源点数</view><view class="balance">{{remaining}}<text> 点</text></view><view class="rules">1 点 = 1 套新增房源</view></view>
  <view class="purchase-wrap">
   <button class="purchase" hover-class="purchase-pressed" loading="{{busy}}" disabled="{{busy||pending}}" bindtap="purchase">{{pending?'等待购买结果':authenticated?'¥1.99 购买 10 点':'微信登录后购买'}}</button>

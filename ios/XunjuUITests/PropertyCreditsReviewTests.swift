@@ -16,6 +16,30 @@ import XCTest
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
+    func testXiaodaReminderOnlyForCreationWithNoCredits() {
+        let app = launch(), message = app.staticTexts["xiaoda.message"]
+        XCTAssertFalse(message.exists)
+        state("点数用完", app)
+        XCTAssertFalse(message.exists, "A zero balance opened from settings does not ask the user to buy")
+        state("新建时点数不足", app)
+        XCTAssertTrue(message.waitForExistence(timeout: 3))
+        XCTAssertEqual(message.label, "你的房源点数不够啦～")
+        let complete = expectation(for: NSPredicate(format: "value == %@", "完整显示"), evaluatedWith: message)
+        wait(for: [complete], timeout: 3)
+        XCTAssertLessThan(message.frame.maxY, app.staticTexts["credits.balance"].frame.minY)
+        XCTAssertTrue(app.buttons["credits.purchase"].isHittable)
+        XCTAssertEqual(app.buttons["credits.purchase"].label, "¥9.90 购买 10 点")
+        capture("credits-xiaoda-shortage", app)
+        app.buttons["credits.purchase"].tap()
+        XCTAssertFalse(app.buttons["credits.purchase"].isEnabled)
+        XCTAssertTrue(message.exists)
+        state("取消购买", app)
+        XCTAssertTrue(message.exists)
+        state("新建点数已到账", app)
+        XCTAssertTrue(message.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["credits.balance"].label.contains("10"))
+        capture("credits-xiaoda-sufficient", app)
+    }
     func testLocalizedPricesRulesAndPurchaseCancellationPreserveBalance() {
         let app = launch(), buy = app.buttons["credits.purchase"], restore = app.buttons["credits.restore"]
         XCTAssertTrue(app.staticTexts["credits.balance"].label.contains("7"))

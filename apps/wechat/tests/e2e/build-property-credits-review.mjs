@@ -1,10 +1,14 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const output=path.join(root,'artifacts/property-credits-review');
 await fs.mkdir(output,{recursive:true});
 await fs.cp(path.join(root,'tests/fixtures/property-credits'),output,{recursive:true});
 await fs.cp(path.join(root,'src/components/property-credits'),path.join(output,'components/property-credits'),{recursive:true});
+await fs.cp(path.join(root,'src/components/xiaoda'),path.join(output,'components/xiaoda'),{recursive:true});
+await fs.cp(path.join(root,'src/assets/xiaoda'),path.join(output,'assets/xiaoda'),{recursive:true});
+await build({entryPoints:[path.join(root,'src/components/xiaoda/index.js')],outfile:path.join(output,'components/xiaoda/index.js'),bundle:true,format:'iife',platform:'browser',target:'es2018'});
 await fs.writeFile(path.join(output,'project.config.json'),JSON.stringify({appid:'wxf43c7f280c98efca',projectname:'房源点数组件预览',compileType:'miniprogram',miniprogramRoot:'./',libVersion:'3.17.3',setting:{es6:true,minified:true,urlCheck:true,enhance:true,postcss:true}},null,2));
 console.log(output);

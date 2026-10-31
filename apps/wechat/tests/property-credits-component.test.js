@@ -13,6 +13,10 @@ describe('property credits presentation boundary',()=>{
   const f=fixture();f.act('purchase');f.act('restore');
   expect(f.events).toEqual(['purchase','restore']);expect(f.component.data.remaining).toBe(7);
  });
+ it('keeps purchase and restore available for the zero-credit creation reminder',()=>{
+  const f=fixture({remaining:0,fromCreation:true});f.act('purchase');f.act('restore');
+  expect(f.events).toEqual(['purchase','restore']);expect(f.component.data.remaining).toBe(0);
+ });
  it('blocks a second payment while pending but allows purchase reconciliation',()=>{
   const f=fixture({pending:true});f.act('purchase');f.act('restore');
   expect(f.events).toEqual(['restore']);expect(f.component.data.remaining).toBe(7);
