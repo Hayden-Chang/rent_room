@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-template-drop-final-landing-20261102",
+  "phase": "final-pr-head",
+  "taskName": "iOS template drop final regression",
+  "sessionId": "01a19a8e-c6f1-7720-b62d-88b7f6c7eae1",
+  "workspace": "/private/tmp/rent-room-ios-template-drop-20261102",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/InspectionSetupReviewTests/testNativeDropCommitsInPlaceInBothDirections",
+      "reason": "Real upward/downward drag release must not replay structural order animation",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/InspectionSetupReviewTests/testNativeDropCommitsInPlaceInBothDirections"
+  ],
+  "headSha": "7950ac09f09b07829d08ccecc57be9679f1edd21"
+}
