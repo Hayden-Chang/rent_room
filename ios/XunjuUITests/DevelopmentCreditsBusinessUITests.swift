@@ -27,6 +27,7 @@ import XCTest
         app.buttons["tab.房源"].tap(); app.buttons["home.add"].tap()
         let name = app.textFields["prompt.text"]
         XCTAssertTrue(name.waitForExistence(timeout: 5)); name.replacePromptText("开发点数验证")
+        app.dismissKeyboardFromHeader()
         app.buttons["prompt.confirm"].tap()
         XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 8))
         app.navigationBackButton.tap(); settings.tap()
