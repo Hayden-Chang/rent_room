@@ -36,7 +36,7 @@ struct LocalSettingsReviewHost: View {
                     }
                 }.padding(16)
             }.background(route == .settings ? XJTheme.background : .white)
-                .miniNavigation(route == .settings ? "我的" : "房源点数")
+                .miniNavigation(route == .settings ? "我的" : "房源点数", showsBack: false)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
                     if route == .settings { XJTabBar(selection: .constant("我的"), items: [("房源", "home"), ("对比", "compare"), ("我的", "settings")]) }
                 }
