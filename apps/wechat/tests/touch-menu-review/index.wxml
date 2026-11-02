@@ -1,0 +1,9 @@
+<view class="page">
+  <view class="row">
+    <view class="card left" bindlongpress="open" bindtap="tap"><view class="cover"><text class="badge">待检查</text></view><view class="body"><text class="name">阳光小区</text><text class="rent">¥ 2,800 / 月</text><text class="address">朝阳路18号 · 45m²</text><text class="progress">检查 0 / 302</text></view></view>
+    <view class="card right" bindlongpress="open" bindtap="tap"><view class="cover"><text class="badge">待检查</text></view><view class="body"><text class="name">地铁旁</text><text class="rent">¥ 2,800 / 月</text><text class="address">朝阳路18号 · 45m²</text><text class="progress">检查 0 / 302</text></view></view>
+  </view>
+  <view class="space outside">{{event}}</view>
+  <view class="row"><view class="card bottom" bindlongpress="open" bindtap="tap"><view class="body"><text class="name">安静小区</text><text class="rent">¥ 2,800 / 月</text><text class="address">朝阳路18号 · 45m²</text></view></view></view>
+</view>
+<touch-menu visible="{{visible}}" anchor="{{anchor}}" actions="{{actions}}" bind:dismiss="dismiss" bind:choose="choose"/>
