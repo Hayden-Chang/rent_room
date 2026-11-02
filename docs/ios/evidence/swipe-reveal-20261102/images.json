@@ -1,0 +1,205 @@
+[
+  {
+    "run": "red",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "EC229CEE-0C10-4593-AFC7-E9FD13963D59.png",
+    "file": "red/swipe-frame-1-width-44.png",
+    "sha256": "8ac4ec496b035557429001edd7955047bedc2fe14089c30718af02b8df285daa"
+  },
+  {
+    "run": "red",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "3094F1EC-4612-453A-B9C2-1E97C8B69D93.png",
+    "file": "red/swipe-frame-0-width-0.png",
+    "sha256": "d855aa6a3ba39085036adb85a96df02f80a06e6598d1076042879780902c42dc"
+  },
+  {
+    "run": "red",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "52EFAEF2-0672-4B49-ACE9-209031038DBD.txt",
+    "file": "red/rendered-action-widths.txt",
+    "sha256": "e55efaf9f30e7882c184074b3180f0da56ac95c90abfeccf3b2766b88c427afc"
+  },
+  {
+    "run": "red",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "2CBD15A2-6259-4284-964C-966F17F5413E.png",
+    "file": "red/swipe-after.png",
+    "sha256": "a53ad712d8b7e90bae6cac488fcf7b90a23e7d47bc87149e04ff5bb63a61b524"
+  },
+  {
+    "run": "red",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "51AB76A0-54A2-4D83-840C-4E0801589102.png",
+    "file": "red/swipe-before.png",
+    "sha256": "2482b8aa44ec2be17c661ef35f7d735652aa9cc41e926d6a3064a6a9fadd0b26"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "DBE02A4B-85A6-4D63-8638-CAA5D61C0019.png",
+    "file": "green/swipe-frame-20-width-44.png",
+    "sha256": "8ac4ec496b035557429001edd7955047bedc2fe14089c30718af02b8df285daa"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "EFF11477-825C-43A7-B661-B513EB51ED4C.png",
+    "file": "green/swipe-frame-19-width-32.png",
+    "sha256": "64383b028a5257daa6c8a85fa8f5fc940d5e6bb1b7de5375552c9836c1db58d3"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "4E634958-FF33-4628-A8D5-71DCCECBEFC2.png",
+    "file": "green/swipe-frame-18-width-31.png",
+    "sha256": "e48b02a56bd61c886646d3a63f97e97fefb70bc039325582120e75b4d3cd7b1c"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "786BA196-9C5F-40E5-920E-5CA3D739D4F7.png",
+    "file": "green/swipe-frame-17-width-34.png",
+    "sha256": "ad5132d443a0ad094e7b0dea8674efd3fb437f75aceccacf90ebdd7a520f57df"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "3919ABFC-7743-4EB8-915A-741DE23B3C4B.png",
+    "file": "green/swipe-frame-16-width-43.png",
+    "sha256": "d2f652efcb0e6b087afcc8cd23ec7a2c2647c609cb90b7bb23cfd293013b965b"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "105CA08C-F823-4705-BFDE-A69DB3CC7ED0.png",
+    "file": "green/swipe-frame-15-width-44.png",
+    "sha256": "3235ac13f3f0dabb1ce149c3254dcb4ae57bbd122e4e10b13811147308aa83fb"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "73501D32-A26A-4C39-9FE9-E5813295DC2D.png",
+    "file": "green/swipe-frame-14-width-43.png",
+    "sha256": "ba12739d909879db4300129d681d11320b9d498ee8948ef3cdfee2f96ccab8f4"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "5DFAF442-C3A0-4BC7-8154-EDB7470D9025.png",
+    "file": "green/swipe-frame-13-width-44.png",
+    "sha256": "d3708352a32e0519868b302b05139693282308df186af49453778ea5135680d3"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "8CCA0A20-1400-43E3-929E-77EE89803E0A.png",
+    "file": "green/swipe-frame-12-width-43.png",
+    "sha256": "6c5b740e526bb54bb2dc500f15b531ef4a91da045560222b836bf6fe4e3dfdf8"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "56BF88AE-5DEF-403D-A8C9-6B6F86363214.png",
+    "file": "green/swipe-frame-11-width-44.png",
+    "sha256": "8d27bb096b11de45dd66f3e313f1b9654b4a4cdf3fcb2733a27b6e56b152c40d"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "E0756098-8F38-4EEC-BFB0-099E9564FDBD.png",
+    "file": "green/swipe-frame-10-width-43.png",
+    "sha256": "ce8d2b10c3c896e06ec1b35fc9a323b5906ae0a6b661c4f4b209592d2c55db3f"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "B738100D-C6D1-4515-9AE8-D388A5902B78.png",
+    "file": "green/swipe-frame-9-width-42.png",
+    "sha256": "3778c90684effadfb515037bdbd5a52e63c038263152f11986db8af8b93123a7"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "4C741546-B11D-4B55-AC25-1C27F9DFA14B.png",
+    "file": "green/swipe-frame-8-width-38.png",
+    "sha256": "9f09422cc099bd4311364099c39ad62a6810f34555ed262a9d8bd7b42f3845f9"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "F0DC5409-B541-44BF-B00F-CC78BD65F053.png",
+    "file": "green/swipe-frame-7-width-34.png",
+    "sha256": "0c175c8107b8fce0138b899fb970d7511c255315263e5a1ef47a8c7f2fc71439"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "D59BDD30-D59C-44D0-A781-A7C6F9CC64A1.png",
+    "file": "green/swipe-frame-6-width-30.png",
+    "sha256": "c3bd915846c1a21c555266bc003f60d3d17445e2cafbecff037ef9844014cebf"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "CB07B246-C6C1-4527-AE5F-0C2531DE6C95.png",
+    "file": "green/swipe-frame-5-width-26.png",
+    "sha256": "1db246213e43ea3cffdaad295a7fb4c07ade643732b70151b202d3584fcb9e96"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "6695C865-6987-449F-A11E-7AFBC9C0963C.png",
+    "file": "green/swipe-frame-4-width-23.png",
+    "sha256": "712214f3be76b19d6461111998abbe7ae76fd6112eb12076f0921595a401eaee"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "9BA8B1F9-9232-4D79-A709-347B5D710A80.png",
+    "file": "green/swipe-frame-3-width-19.png",
+    "sha256": "225429156fb0a09c515828ad3703d1b53d5bd93d5682ff63d2c5c3f2fc13ed67"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "D1DB6450-A304-450A-8B2E-3E3D961A0CE5.png",
+    "file": "green/swipe-frame-2-width-15.png",
+    "sha256": "8b87845cf3fa5bf0ce6c437bfd5d3d6ce6caff24dc4314077f3771f16dadb275"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "B9BBD9C7-FDE8-4515-972B-27A1504B906F.png",
+    "file": "green/swipe-frame-1-width-13.png",
+    "sha256": "acd6e3991b69b8595df61c33410bc0ee49d46a5eb03cecfe2d76125353ebf49d"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "DECEFA70-0367-4DE5-985B-5FC447241B29.png",
+    "file": "green/swipe-frame-0-width-0.png",
+    "sha256": "d855aa6a3ba39085036adb85a96df02f80a06e6598d1076042879780902c42dc"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "E890E7FC-1893-4513-9338-EDA5888D9224.txt",
+    "file": "green/rendered-action-widths.txt",
+    "sha256": "6f137f90c2866a69c1d118e2a9116e8957a0b1d878dd91d884f650c27132ec39"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "893B4D74-FDAE-4B2C-91BB-CDA807F2FF39.png",
+    "file": "green/swipe-after.png",
+    "sha256": "a53ad712d8b7e90bae6cac488fcf7b90a23e7d47bc87149e04ff5bb63a61b524"
+  },
+  {
+    "run": "green",
+    "test": "InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "attachment": "1BAD572A-F5FC-4A04-86B3-3145D4183577.png",
+    "file": "green/swipe-before.png",
+    "sha256": "79746f73f09b6d0e1c5cbab34c1f0b14e4f149de7793b4d34fe0963f484a34de"
+  }
+]

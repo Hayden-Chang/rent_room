@@ -1,0 +1,5 @@
+#!/bin/bash
+set -euo pipefail
+export PATH=/opt/homebrew/bin:$PATH
+cd /private/tmp/rent-room-ios-swipe-reveal-animation-20261102
+exec node '/Volumes/mac2/projects/git_repo/run_self/Simulator Management/bin/sim-test-run.mjs' --plan /private/tmp/rent-room-swipe-reveal-evidence/red-plan.json "$@" -- /private/tmp/rent-room-ios-swipe-reveal-animation-20261102/scripts/run-xcodebuild.sh -quiet -skipPackageUpdates -project /private/tmp/rent-room-ios-swipe-reveal-animation-20261102/ios/Xunju.xcodeproj -scheme Xunju -destination 'platform=iOS Simulator,id=__SIM_UDID__' -derivedDataPath /Volumes/mac2/codex-builds/rent-room-swipe-reveal-red-01a19a99-__SIM_UDID__ -resultBundlePath /private/tmp/rent-room-swipe-reveal-evidence/red.xcresult test -only-testing:XunjuUITests/InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths
