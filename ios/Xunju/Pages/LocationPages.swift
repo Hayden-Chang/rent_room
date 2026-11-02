@@ -24,7 +24,7 @@ struct HousePlaceField: View {
     init(workspace: AppWorkspace, id: String) {
         self.workspace = workspace; self.id = id
         let store = workspace.store
-        _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.house(id)["location"], mapKey: workspace.mapKey, validScope: { workspace.store === store }))
+        _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.house(id)["location"], validScope: { workspace.store === store }))
     }
     var body: some View {
         PlacePicker(search: search, readonly: workspace.store.house(id)["archived"].bool, address: workspace.store.house(id)["address"].string) { place in
@@ -45,7 +45,7 @@ struct WorkplacePage: View {
         self.workspace = workspace
         let store = workspace.store
         _text = State(initialValue: store.state["settings"]["workplace"].string)
-        _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.state["settings"]["workplaceLocation"], mapKey: workspace.mapKey, validScope: { workspace.store === store }))
+        _search = State(initialValue: PlaceSearch(store: store, places: workspace.places, location: store.state["settings"]["workplaceLocation"], validScope: { workspace.store === store }))
     }
     var body: some View {
         ScrollView {

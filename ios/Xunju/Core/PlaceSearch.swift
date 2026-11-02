@@ -19,18 +19,17 @@ extension GeographicPoint {
     private(set) var permissionDenied = false
     @ObservationIgnored let store: NativeStore
     @ObservationIgnored private let places: NativePlaceService
-    @ObservationIgnored private let mapKey: String
     @ObservationIgnored private let validScope: () -> Bool
     @ObservationIgnored private var results: [String: JSONValue] = [:]
     @ObservationIgnored private var epoch = 0
     @ObservationIgnored private var operation: Task<Void, Never>?
     @ObservationIgnored private let locator = NativeLocation()
 
-    init(store: NativeStore, places: NativePlaceService = NativePlaceService(), location: JSONValue = .null, mapKey: String = "", validScope: @escaping () -> Bool) {
-        self.store = store; self.places = places; self.mapKey = mapKey; self.validScope = validScope
+    init(store: NativeStore, places: NativePlaceService = NativePlaceService(), location: JSONValue = .null, validScope: @escaping () -> Bool) {
+        self.store = store; self.places = places; self.validScope = validScope
         center = nativePoint(location)
     }
-    var attribution: String { mapKey.isEmpty ? "系统地图" : "天地图" }
+    var attribution: String { "系统地图" }
     func nativePoint(_ value: JSONValue) -> GeographicPoint? {
         guard GeographicPoint(value) != nil else { return nil }
         return (try? store.call("coordinate", ["property": .string("fromMap"), "value": value])).flatMap(GeographicPoint.init)
@@ -54,27 +53,11 @@ extension GeographicPoint {
             do {
                 if debounce { try await Task.sleep(for: .milliseconds(300)) }
                 try Task.checkCancellation()
-                let value: [PlaceChoice]
+                let value = try await places.query(keyword, center: center)
                 var records: [String: JSONValue] = [:]
-                if mapKey.isEmpty {
-                    value = try await places.query(keyword, center: center)
-                    for item in value {
-                        records[item.id] = .object(["id": .string(item.id), "name": .string(item.name), "address": .string(item.address),
-                                                   "location": try storedPoint(item.point)])
-                    }
-                } else {
-                    // Use the same validated search/nearby parser and stored
-                    // coordinate boundary as the working mini-program.
-                    let storedCenter = try center.map(storedPoint) ?? .null
-                    let raw = try await store.query(keyword.isEmpty ? "nearbyPlaces" : "searchPlaces", [
-                        "key": .string(mapKey), "query": .string(keyword), "center": storedCenter
-                    ]).array
-                    value = raw.compactMap { item in
-                        guard let point = nativePoint(item["location"]) else { return nil }
-                        records[item.id] = item
-                        return PlaceChoice(id: item.id, name: item["name"].string, address: item["address"].string,
-                                           distance: item["distanceText"].string, point: point)
-                    }
+                for item in value {
+                    records[item.id] = .object(["id": .string(item.id), "name": .string(item.name), "address": .string(item.address),
+                                               "location": try storedPoint(item.point)])
                 }
                 try Task.checkCancellation()
                 guard validScope(), epoch == version else { return }

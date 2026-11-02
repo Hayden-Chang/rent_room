@@ -21,16 +21,49 @@ import MapKit
     private func place(_ name: String = "阳光小区", offset: Double = 0, address: String = "上海市朝阳路18号") -> NativePlace {
         NativePlace(name: name, address: address, point: GeographicPoint(latitude: origin.latitude + offset, longitude: origin.longitude))
     }
-    func testSystemSearchKeepsNamesAddressesAndCoordinateOrderWithoutCredentials() async throws {
+    func testKeywordSearchIgnoresSavedCenterAndKeepsCrossRegionRelevance() async throws {
+        let client = PlacesClientStub()
+        let california = NativePlace(name: "California", address: "California, United States",
+                                     point: GeographicPoint(latitude: 36.7783, longitude: -119.4179))
+        client.results = .success([california] + (0..<12).map { place("California local \($0)", offset: Double($0) * 0.001) })
+        let values = try await NativePlaceService(client: client).query("California", center: origin)
+        XCTAssertEqual(client.queries, ["California"])
+        XCTAssertEqual(client.centers, [nil], "A saved Chinese address must not bias a new cross-region keyword search")
+        XCTAssertEqual(values.first?.name, "California", "Keep Apple's relevance order instead of dropping distant results after sorting by distance")
+        XCTAssertEqual(values.first?.point, california.point)
+        XCTAssertEqual(values.count, 10)
+        XCTAssertTrue(values.first?.distance.hasSuffix("公里") == true, "Distance remains informational")
+    }
+    func testNearbyRetainsCenterAndDistanceOrdering() async throws {
+        let client = PlacesClientStub()
+        client.results = .success([place("远处小区", offset: 0.02), place()])
+        let values = try await NativePlaceService(client: client).query("", center: origin)
+        XCTAssertEqual(client.centers, [origin])
+        XCTAssertEqual(client.reverseCalls, 1)
+        XCTAssertEqual(values.map(\.name), ["阳光小区", "远处小区"])
+    }
+    func testSystemSearchKeepsNamesAddressesAndRelevanceOrderWithoutCredentials() async throws {
         let client = PlacesClientStub(), nearby = place(), far = place("远处小区", offset: 0.02)
         client.results = .success([far, nearby, nearby, place("空地址", address: ""),
                                   NativePlace(name: "无效", address: "无效", point: GeographicPoint(latitude: 91, longitude: 0))])
         let values = try await NativePlaceService(client: client).query("阳光", center: origin)
-        XCTAssertEqual(client.queries, ["阳光"]); XCTAssertEqual(client.centers, [origin]); XCTAssertEqual(client.reverseCalls, 0)
-        XCTAssertEqual(values.map(\.name), ["阳光小区", "远处小区"])
-        XCTAssertEqual(values.first?.address, "上海市朝阳路18号 阳光小区")
-        XCTAssertEqual(values.first?.point, origin); XCTAssertEqual(values.first?.distance, "0米")
-        XCTAssertTrue(values[1].distance.hasSuffix("公里"))
+        XCTAssertEqual(client.queries, ["阳光"]); XCTAssertEqual(client.centers, [nil]); XCTAssertEqual(client.reverseCalls, 0)
+        XCTAssertEqual(values.map(\.name), ["远处小区", "阳光小区"])
+        XCTAssertEqual(values[1].address, "上海市朝阳路18号 阳光小区")
+        XCTAssertEqual(values[1].point, origin); XCTAssertEqual(values[1].distance, "0米")
+        XCTAssertTrue(values[0].distance.hasSuffix("公里"))
+    }
+    func testKeywordNoMatchIsEmptyButNetworkFailureRemainsAnError() async throws {
+        let client = PlacesClientStub(), service = NativePlaceService(client: client)
+        client.results = .failure(MKError(.placemarkNotFound))
+        let noMatch = try await service.query("unknown address", center: origin)
+        XCTAssertTrue(noMatch.isEmpty)
+        client.results = .success([])
+        let empty = try await service.query("unknown address", center: nil)
+        XCTAssertTrue(empty.isEmpty)
+        client.results = .failure(URLError(.notConnectedToInternet))
+        do { _ = try await service.query("California", center: origin); XCTFail("Network errors must not become no-match results") }
+        catch { XCTAssertEqual(error.localizedDescription, "地点查询失败，请重试或手动填写地址") }
     }
     func testNearbyKeepsExactSelectedPointWhenLocalSearchFails() async throws {
         let client = PlacesClientStub()
@@ -64,11 +97,15 @@ import MapKit
         XCTAssertEqual(client.queries.count, before)
     }
     func testMapKitItemConvertsAddressAndCoordinatesWithoutProviderSpecificFields() throws {
-        guard #available(iOS 26.0, *) else { throw XCTSkip("Modern MapKit address representation is iOS 26+") }
-        let item = MKMapItem(location: CLLocation(latitude: origin.latitude, longitude: origin.longitude),
+        let item: MKMapItem
+        if #available(iOS 26.0, *) {
+            item = MKMapItem(location: CLLocation(latitude: origin.latitude, longitude: origin.longitude),
                              address: MKAddress(fullAddress: "上海市朝阳路18号", shortAddress: "朝阳路18号"))
+        } else {
+            item = MKMapItem(placemark: MKPlacemark(coordinate: origin.coordinate, addressDictionary: ["Street": "上海市朝阳路18号"]))
+        }
         item.name = "阳光小区"
         let value = try XCTUnwrap(SystemPlacesClient.place(item))
-        XCTAssertEqual(value.name, "阳光小区"); XCTAssertEqual(value.address, "上海市朝阳路18号"); XCTAssertEqual(value.point, origin)
+        XCTAssertEqual(value.name, "阳光小区"); XCTAssertTrue(value.address.contains("上海市朝阳路18号")); XCTAssertEqual(value.point, origin)
     }
 }

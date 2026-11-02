@@ -19,6 +19,7 @@ struct NativePlace: Equatable, Sendable {
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = keyword
         request.resultTypes = [.address, .pointOfInterest]
+        request.regionPriority = .default
         if let center {
             request.region = MKCoordinateRegion(center: center.coordinate, latitudinalMeters: 20000, longitudinalMeters: 20000)
         }
@@ -93,9 +94,16 @@ struct NativePlace: Equatable, Sendable {
         do {
             try Task.checkCancellation()
             if !keyword.isEmpty {
-                let result = try await client.search(keyword, center: center)
-                try Task.checkCancellation()
-                return choices(result, center: center)
+                // An existing house/pin must not bias a new city, state or country
+                // query. Keep Apple's relevance order; distance is display-only.
+                do {
+                    let result = try await client.search(keyword, center: nil)
+                    try Task.checkCancellation()
+                    return choices(result, center: center, nearestFirst: false)
+                } catch let error as MKError where error.code == .placemarkNotFound {
+                    try Task.checkCancellation()
+                    return []
+                }
             }
             guard let center else { return [] }
             guard CLLocationCoordinate2DIsValid(center.coordinate) else { throw CoreFailure(message: "地点无效") }
@@ -103,7 +111,7 @@ struct NativePlace: Equatable, Sendable {
             async let nearby = outcome { try await client.search(AppCopy.text("小区"), center: center) }
             let (resolved, candidates) = await (address, nearby)
             try Task.checkCancellation()
-            let places = choices((try? candidates.get()) ?? [], center: center)
+            let places = choices((try? candidates.get()) ?? [], center: center, nearestFirst: true)
             if let location = try? resolved.get(), !location.address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 let selected = PlaceChoice(id: "center", name: location.name.isEmpty ? location.address : location.name,
                                            address: location.address, distance: "选点位置", point: center)
@@ -119,10 +127,10 @@ struct NativePlace: Equatable, Sendable {
     private func outcome<T: Sendable>(_ operation: () async throws -> T) async -> Result<T, Error> {
         do { return .success(try await operation()) } catch { return .failure(error) }
     }
-    private func choices(_ values: [NativePlace], center: GeographicPoint?) -> [PlaceChoice] {
+    private func choices(_ values: [NativePlace], center: GeographicPoint?, nearestFirst: Bool) -> [PlaceChoice] {
         var seen: Set<String> = []
         let origin = center.map { CLLocation(latitude: $0.latitude, longitude: $0.longitude) }
-        return values.compactMap { value -> (PlaceChoice, Double)? in
+        let candidates = values.compactMap { value -> (PlaceChoice, Double)? in
             let name = value.name.trimmingCharacters(in: .whitespacesAndNewlines)
             let street = value.address.trimmingCharacters(in: .whitespacesAndNewlines)
             let address = name.isEmpty || street.contains(name) ? street : street + " " + name
@@ -132,6 +140,7 @@ struct NativePlace: Equatable, Sendable {
             let meters = origin?.distance(from: CLLocation(latitude: value.point.latitude, longitude: value.point.longitude))
             let distance = meters.map { $0 < 1000 ? "\(Int($0.rounded()))米" : String(format: "%.1f公里", $0 / 1000) } ?? ""
             return (PlaceChoice(id: id, name: name.isEmpty ? address : name, address: address, distance: distance, point: value.point), meters ?? .infinity)
-        }.sorted { $0.1 < $1.1 }.prefix(10).map(\.0)
+        }
+        return (nearestFirst ? candidates.sorted { $0.1 < $1.1 } : candidates).prefix(10).map(\.0)
     }
 }

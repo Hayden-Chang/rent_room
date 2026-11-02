@@ -5,6 +5,11 @@ private actor OfflineCallCounter: MapTransport {
     var count = 0
     func request(_ options: String) async throws -> String { count += 1; throw CoreFailure(message: "offline") }
 }
+@MainActor private final class OfflinePlacesCounter: NativePlacesClient {
+    var count = 0
+    func search(_ keyword: String, center: GeographicPoint?) async throws -> [NativePlace] { count += 1; return [] }
+    func reverse(_ point: GeographicPoint) async throws -> NativePlace? { count += 1; return nil }
+}
 @MainActor final class OfflineWorkspaceTests: XCTestCase {
     private func root() -> URL {
         let root = FileManager.default.temporaryDirectory.appending(path: "offline-tests-\(UUID())")
@@ -52,17 +57,17 @@ private actor OfflineCallCounter: MapTransport {
         XCTAssertEqual(try NativeStore(directory: first.store.records.directory).houses.first?.name, "不得丢失")
     }
     func testSavedAddressAndCoordinatesDoNotQueryUntilExplicitMapAction() async throws {
-        let counter = OfflineCallCounter()
-        let store = try NativeStore(directory: root(), network: counter)
+        let counter = OfflinePlacesCounter()
+        let store = try NativeStore(directory: root())
         for location: JSONValue in [.null, .object(["latitude": .number(31.23), "longitude": .number(121.47)])] {
-            let search = PlaceSearch(store: store, location: location, mapKey: "fixture", validScope: { true })
-            let prior = await counter.count
+            let search = PlaceSearch(store: store, places: NativePlaceService(client: counter), location: location, validScope: { true })
+            let prior = counter.count
             search.start(address: "已保存的地址")
             XCTAssertFalse(search.busy); XCTAssertTrue(search.choices.isEmpty)
-            let before = await counter.count
+            let before = counter.count
             XCTAssertEqual(before, prior, "Appearance must not request saved addresses or nearby places")
             await search.submit()?.value
-            let after = await counter.count
+            let after = counter.count
             XCTAssertGreaterThan(after, before, "An explicit submission may query both address and nearby places")
             search.cancel()
         }
