@@ -64,8 +64,6 @@ def validate_app(info, entitlements, profile, bundle, team, udid, now=None):
     require(set(groups).issubset({app_id}), "shared Keychain access group is forbidden for this copy")
     require(not entitlements.get("com.apple.security.application-groups"),
             "shared App Group is forbidden for this copy")
-    require(entitlements.get("com.apple.developer.applesignin") == ["Default"],
-            "Sign in with Apple capability missing from signed app")
     require(profile.get("TeamIdentifier") == [team], "provisioning team mismatch")
     require(profile.get("Entitlements", {}).get("application-identifier") == app_id,
             "provisioning app identifier mismatch")

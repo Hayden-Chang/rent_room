@@ -21,7 +21,6 @@ class DeploymentGuards(unittest.TestCase):
         self.entitlements = {
             "application-identifier": f"{self.team}.{self.bundle}",
             "com.apple.developer.team-identifier": self.team,
-            "com.apple.developer.applesignin": ["Default"],
         }
         self.profile = {
             "TeamIdentifier": [self.team], "ProvisionedDevices": [self.udid],
