@@ -4,14 +4,24 @@
 
 ## 项目契约
 
-- 入口：`bash scripts/deploy-ios-device.sh --help`；只支持隔离副本，不提供 canonical 安装开关。
+- 入口：`bash scripts/deploy-ios-device.sh --help`；必须在 `--copy-id <id>` 隔离副本与 `--canonical` 正式身份之间明确选择。
 - 工程真源：`ios/project.yml`；通过 `scripts/run-xcodebuild.sh` 检查 XcodeGen 并构建。使用正常 `Xunju` scheme、Release 配置，不使用 StoreKit 测试 scheme 或 DEBUG 启动参数。
-- 正式身份：`com.keeline.xunju.ios` / 看房搭子。本入口禁止安装该身份。
+- 正式身份：`com.keeline.xunju.ios` / 看房搭子。仅在用户明确指定原 App 或 StoreKit 沙盒等必须使用该身份的验收中使用 `--canonical`；安装会更新同 Bundle ID 的 App 并沿用数据容器，不卸载或清空数据。
 - 开发副本：`com.keeline.xunju.ios.dev.<copy-id>` / 看房搭子开发版。copy-id 为3至32位小写 ASCII 字母和数字，以字母开头。本任务固定复用 `iosparity20261019`，后续更新沿用此副本及其本机数据。
 - 显式输入当前分支、完整 SHA、设备 CoreDevice ID、设备名、硬件 UDID 和签名团队。拒绝脏 worktree、来源改变、设备不匹配、错误签名或共享 Keychain / App Group；不自动切换设备、身份或团队。
 - 此次从本机 Apple Development 公共证书 OU 核实团队为 `N3Z6DDSQCJ`。不将证书 CN 中的个人后缀当成团队。开发签名允许 Xcode 为该副本更新 provisioning 并注册指定设备。
 - 输出必须在 worktree 外的唯一新目录；保存生成检查/构建日志、xcresult、签名校验、安装、安装后读回和启动 JSON 及总回执。不会卸载、清空、删除或导入房源数据。
 - 本机记录与媒体保存在独立 App 容器；签名检查拒绝共享 Keychain / App Group。隔离副本的 Apple / 微信回调、服务端 audience 和 StoreKit 正式商品需单独配置，不能据本次部署宣称真实登录或购买完成。
+
+## Apple 沙盒购买的正式身份安装
+
+使用 `--canonical` 替换 `--copy-id`，其他来源、设备、签名参数仍必须全部填写。该模式继续使用普通 `Xunju` scheme、Release 配置和 Apple Development 签名，不启用 `.storekit` 本地测试配置或注入交易；保留 main 的中英文 App 名称和权限文案。正式身份必须使用精确 App ID 的开发 provisioning profile，拒绝 wildcard profile。
+
+如果 Xcode 自动签名选中了通配描述文件，先为正式 App ID、现有开发证书和目标设备创建并安装专用开发描述文件，然后传 `--provisioning-profile <profile-uuid>`。该选项使用手动签名，不自动更新描述文件或注册设备；安装前再次核对打包 UUID、App ID、团队、设备和有效期，不回退到其他 profile。描述文件通过 `XUNJU_PROVISIONING_PROFILE` 只绑定 `project.yml` 的 App 目标，避免把 profile 传给不支持签名的 Swift Package 资源包。省略该选项时保留自动签名方式。
+
+安装后在真机的「设置 → 开发者 → 沙盒 Apple 账户」登录同开发者团队的测试账号，再从 App 的「我的 → 房源点数」购买。开发签名 App 不要求退出正常 Apple 账户，也不要求先上传或提审；购买确认中应显示 Sandbox 环境。沙盒使用 Apple 服务器和 App Store Connect 商品，不实际扣款。参考 [Apple 沙盒测试说明](https://developer.apple.com/documentation/storekit/testing-in-app-purchases-with-sandbox)。
+
+验收必须分别确认商品价格、Apple 购买确认、交易验证后增加 10 点、重启后余额保持。安装或部署保护测试成功不能作为购买成功证据；测试账号密码留在手机上输入，不写入命令或回执。
 
 ## 本次目标与命令
 
@@ -41,6 +51,18 @@ bash scripts/deploy-ios-device.sh \
 - 普通构建不传上述变量，保留原有本地化名称；同一 DerivedData 从开发副本切回普通构建时也会恢复原有名称。
 - 部署入口在安装前执行 `localized-resources` 检查，将所有源 `InfoPlist.strings` 与打包结果逐键比较，只允许显示名变化。缺少语言、权限文案改变或副本名错误都会停止安装并保留日志。
 - 相关测试入口：`cd scripts/ios-device && /usr/bin/python3 -B -m unittest -v test_deploy test_localize_copy_name`。实际产物检查：`/usr/bin/python3 scripts/ios-device/localize_copy_name.py --verify --app <Xunju.app> --display-name '看房搭子开发版 R001'`。
+
+## 重复部署加速（2026-11-02）
+
+- 默认行为不变：DerivedData 位于本次唯一 `--output` 目录内，证据自包含，代价是每次全量构建。
+- 新增可选参数 `--derived-data <目录>`：指定 worktree 外的固定 DerivedData 目录并跨次复用，未改动的源码与配置触发增量编译。按副本命名，例如 `~/Library/Developer/Xcode/xunju-dd-r005`；同一 copy-id、同一 scheme/配置复用才有意义。
+- **缓存目录必须在启动卷**（如 `~/Library/Developer/Xcode/…`、`/private/tmp/…`）。Xcode 的用户脚本沙箱只允许构建脚本改写其声明的产物；DerivedData 放在外部卷（如 `/Volumes/…`）时，`Localize isolated app name` 阶段写 `InfoPlist.strings` 会被拒绝（`Sandbox: deny file-write-data`）导致构建失败，脚本会提前报错而不是构建到一半失败。
+- 校验：该目录必须在 worktree 外、不能在 `--output` 内、在启动卷上，已存在时必须是目录；回执记录 `derivedData` 与 `derivedDataMode`（`cache` / `per-run`）。
+- 缓存不绕过任何检查：构建来源 SHA、Bundle ID、显示名、签名、描述文件、本地化资源和设备读回仍在每次部署时重新校验，日志、`build.xcresult` 与 `receipt.json` 仍写入本次唯一 output。
+- 实测（2026-11-02，p10002 / Xcode 26.6，copy-id `r005` 同一 SHA）：空缓存构建 139 秒，同一缓存第二次部署 24 秒；改动一个 Swift 文件后增量构建落在两者之间。
+- 同一个 `--derived-data` 目录不要被两个部署同时使用；并行部署按 copy-id 各用一个目录，否则 Xcode 构建目录会互相覆盖。
+- 需要“从零构建”的干净证据时不要传该参数；缓存命中失败或产物可疑时，删除该目录重跑一次即可恢复全量行为。
+
 
 ## 2026-10-20 实际部署结果
 

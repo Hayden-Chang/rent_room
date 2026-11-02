@@ -21,7 +21,9 @@ def verify_localizations(app, display_name, source=SOURCE_RESOURCES):
         localized = app / relative
         if not localized.is_file():
             raise RuntimeError(f"built InfoPlist localization missing: {relative}")
-        expected = {**read_strings(original), "CFBundleDisplayName": display_name}
+        expected = read_strings(original)
+        if display_name:
+            expected["CFBundleDisplayName"] = display_name
         if read_strings(localized) != expected:
             raise RuntimeError(f"localized app name or permission text mismatch: {relative}")
 

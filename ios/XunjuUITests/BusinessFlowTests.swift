@@ -60,6 +60,48 @@ import XCTest
         app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.buttons["含物业费"].exists)
     }
+    func testHouseLongPressDoesNotOpenTheHouseOnRelease() {
+        let app = launch()
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 5)); currency.tap()
+        XCTAssertTrue(app.staticTexts["currency.prompt.title"].waitForNonExistence(timeout: 3))
+        add("长按交互房源", app); home(app)
+
+        let house = app.buttons["house.长按交互房源"]
+        let anchor = CGPoint(x: house.frame.minX + 24, y: house.frame.minY + 48)
+        house.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 24, dy: 48)).press(forDuration: 1)
+        let rename = app.buttons["touch-menu.action.0"]
+        XCTAssertTrue(rename.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["tab.清单"].exists, "Releasing a long press must not enter the house")
+        let panel = app.otherElements["touch-menu.panel"]
+        XCTAssertEqual(panel.frame.minX, anchor.x + 8, accuracy: 2)
+        XCTAssertEqual(panel.frame.minY, anchor.y, accuracy: 2)
+        capture("home-long-press-after-release", app)
+        app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 4, dy: app.frame.height / 2)).tap()
+        XCTAssertTrue(rename.waitForNonExistence(timeout: 3))
+        house.tap()
+        XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 3))
+        home(app)
+
+        house.press(forDuration: 1)
+        app.confirmArchiveFromHouseMenu()
+        app.buttons["tab.我的"].tap()
+        let archives = app.buttons["local-settings.archive"]
+        if !archives.isHittable { app.swipeUp() }
+        archives.tap()
+        let archived = app.buttons["archive.open.长按交互房源"]
+        XCTAssertTrue(archived.waitForExistence(timeout: 3))
+        archived.press(forDuration: 1)
+        let restore = app.buttons["archive.restore.长按交互房源"]
+        XCTAssertTrue(restore.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["house.readonly"].exists, "Archived cards must also consume long-press release")
+        capture("archive-long-press-after-release", app)
+        app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 4, dy: app.frame.height / 2)).tap()
+        XCTAssertTrue(restore.waitForNonExistence(timeout: 3))
+        archived.tap()
+        XCTAssertTrue(app.staticTexts["house.readonly"].waitForExistence(timeout: 3))
+    }
+
     func testHouseActionMenuRenameAndArchiveCancellation() {
         let app = launch()
         let currency = app.buttons["currency.prompt.decline"]

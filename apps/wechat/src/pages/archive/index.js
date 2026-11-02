@@ -1,6 +1,15 @@
 import {beginHouseAction} from '../../lib/house-intent.js';
+import {showTouchMenu,closeTouchMenu,touchMenuMethods} from '../../lib/touch-menu.js';
 import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {service,attempt,confirm} from '../../lib/ui.js';
 import {stats} from '../../lib/model.js';
-Page(withAppShare(protectedPage({data:{houses:[]},onShow(){this.refresh();},refresh(){this.setData({houses:service().store.get().houses.filter(h=>h.archived).map(h=>({...h,stats:stats(h),cover:h.media.find(m=>m.type==='image')?.path||'',rent:h.answers.f1_6?.value||'—',area:h.answers.f1_3?.value||'—'}))});},open(e){wx.navigateTo({url:'/pages/detail/index?id='+e.currentTarget.dataset.id});},manage(e){attempt(async()=>{const id=e.currentTarget.dataset.id;const res=await service().api('showActionSheet',{itemList:['还原房源','彻底删除']});if(res.tapIndex===0)beginHouseAction('restore',id);else if(await confirm('彻底删除房源','将删除本机房源记录，已有导出备份不受影响。请确认已保存需要的备份。'))service().removeHouse(id);this.refresh();});}})));
+Page(withAppShare(protectedPage({data:{houses:[],touchMenu:null},
+  ...touchMenuMethods,
+  onShow(){this.refresh();},
+  onHide(){closeTouchMenu(this);},onUnload(){closeTouchMenu(this);},
+  onPageScroll(){closeTouchMenu(this);},onResize(){closeTouchMenu(this);},
+  refresh(){this.setData({houses:service().store.get().houses.filter(h=>h.archived).map(h=>({...h,stats:stats(h),cover:h.media.find(m=>m.type==='image')?.path||'',rent:h.answers.f1_6?.value||'—',area:h.answers.f1_3?.value||'—'}))});},
+  open(e){if(!this.data.touchMenu)wx.navigateTo({url:'/pages/detail/index?id='+e.currentTarget.dataset.id});},
+  manage(e){return attempt(async()=>{const id=e.currentTarget.dataset.id;const res=await showTouchMenu(this,e,[{title:'还原房源'},{title:'彻底删除',destructive:true}]);if(!res)return;if(res.tapIndex===0)beginHouseAction('restore',id);else if(await confirm('彻底删除房源','将删除本机房源记录，已有导出备份不受影响。请确认已保存需要的备份。'))service().removeHouse(id);this.refresh();});}
+})));

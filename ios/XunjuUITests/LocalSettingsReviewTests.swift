@@ -10,6 +10,14 @@ import XCTest
         XCTAssertFalse(app.textFields["settings.nickname"].exists)
         XCTAssertFalse(app.buttons["settings.avatar"].exists)
         capture(app, "offline-settings-top")
+        let onboarding = app.switches["local-settings.onboarding"]
+        XCTAssertTrue(onboarding.isHittable)
+        XCTAssertEqual(onboarding.value as? String, "1")
+        // MPSwitchStyle renders its 51pt button at the row's trailing edge.
+        onboarding.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))
+            .withOffset(CGVector(dx: -25.5, dy: 0)).tap()
+        XCTAssertEqual(onboarding.value as? String, "0")
+        capture(app, "offline-settings-onboarding-off")
         app.buttons["local-settings.capacity"].tap()
         let privacy = app.buttons["legal.privacy"]
         for _ in 0..<4 { if privacy.isHittable { break }; app.swipeUp() }

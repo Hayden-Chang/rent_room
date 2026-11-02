@@ -3,6 +3,36 @@ import UIKit
 @testable import Xunju
 
 final class XiaodaTeachingTests: XCTestCase {
+    @MainActor func testStageGuideRepeatsTabLabelsWithEggYellowEmphasisInBothLanguages() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "stage-guide-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = try NativeStore(directory: root), id = try store.add("阶段说明")
+        let entry = try store.call("inspectionGuide", ["id": .string(id)])["steps"].array[0]
+        let labels = ["基本情况", "现场检查", "费用与合同"]
+        XCTAssertEqual(entry["highlights"].array.map(\.string), labels)
+        let yellow = UIColor(red: 184/255, green: 134/255, blue: 11/255, alpha: 1)
+        for language in [SupportedLanguage.chinese, .english] {
+            let text = AppCopy.text(entry["text"].string, language: language)
+            let terms = labels.map { AppCopy.text($0, language: language) }
+            let lines = text.components(separatedBy: "\n")
+            XCTAssertEqual(lines.count, 4)
+            let attributed = XiaodaSpeech.attributed(text, highlights: terms, icons: [:], fontSize: 15,
+                lineHeight: 24.75, centered: false, highlightColor: yellow)
+            XCTAssertEqual(attributed.string, text)
+            for (index, term) in terms.enumerated() {
+                XCTAssertTrue(lines[index + 1].contains(term), "Missing exact tab label: \(term)")
+                let range = (text as NSString).range(of: term)
+                guard range.location != NSNotFound else { XCTFail("Missing emphasis: \(term)"); continue }
+                for offset in range.location..<NSMaxRange(range) {
+                    XCTAssertEqual(attributed.attribute(.foregroundColor, at: offset, effectiveRange: nil) as? UIColor, yellow)
+                    XCTAssertTrue(try XCTUnwrap(attributed.attribute(.font, at: offset, effectiveRange: nil) as? UIFont)
+                        .fontDescriptor.symbolicTraits.contains(.traitBold))
+                }
+            }
+            XCTAssertNotEqual(attributed.attribute(.foregroundColor, at: 0, effectiveRange: nil) as? UIColor, yellow)
+        }
+    }
+
     @MainActor func testSpeechUsesAvailableWidthAndKeepsExplicitNewlines() {
         let text = "在检查项上向左滑一下，试试看！"
         func lines(_ text: String, width: CGFloat) -> [String] {
