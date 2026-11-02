@@ -34,7 +34,7 @@ async function output(path, text) {
 }
 await output('../Xunju/Resources/AppCopy.json', JSON.stringify(pairs, null, 2) + '\n');
 const permissions = {
-  CFBundleDisplayName: '寻居',
+  CFBundleDisplayName: zh.s0411,
   NSCameraUsageDescription: '拍摄看房照片和视频，保存在本机房源记录中',
   NSMicrophoneUsageDescription: '录制看房视频时收录现场声音',
   NSLocationWhenInUseUsageDescription: '获取当前位置，用于识别货币类型、选择房源或上班地点。'

@@ -1,7 +1,7 @@
 {
   "generator": "agy -p",
   "model": "gemini-3.8-flash-high",
-  "sourceSHA256": "3e42338b66adac3443bb37be213cd39c5aac1c1904c7f9e2dc790221152efb26",
+  "sourceSHA256": "b0cf81de0a8c2984e3af26bdbf60049b84872cbbfa7da99973aa52c5847de9f9",
   "entryCount": 1322,
   "batches": [
     {
@@ -1483,6 +1483,17 @@
       "english": "app-currency-default-en.json",
       "promptSHA256": "0be0781698b6cfa0cbb587842ebf84109ac2c0fc2d7bf8161c53bf44700df38e",
       "englishSHA256": "66587a289d98f10ca61fedee25f3b3c5cac80ae22338dbf11554148cad5a8263"
+    }
+  ],
+  "sourceCorrections": [
+    {
+      "date": "2026-11-02",
+      "key": "s0411",
+      "previousChinese": "寻居",
+      "chinese": "看房搭子",
+      "retainedEnglish": "Xunju",
+      "author": "Codex",
+      "reason": "User explicitly corrected the Chinese app name to 看房搭子. Existing English translation is unchanged; no new translation run."
     }
   ]
 }
