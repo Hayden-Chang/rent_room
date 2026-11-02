@@ -65,7 +65,8 @@ def validate_app(info, entitlements, profile, bundle, team, udid, now=None):
     require(not entitlements.get("com.apple.security.application-groups"),
             "shared App Group is forbidden for this copy")
     require(profile.get("TeamIdentifier") == [team], "provisioning team mismatch")
-    require(profile.get("Entitlements", {}).get("application-identifier") == app_id,
+    profile_app_id = profile.get("Entitlements", {}).get("application-identifier")
+    require(profile_app_id in (app_id, f"{team}.*"),
             "provisioning app identifier mismatch")
     require(udid in profile.get("ProvisionedDevices", []), "target UDID is not provisioned")
     require(profile.get("Entitlements", {}).get("get-task-allow") is True,

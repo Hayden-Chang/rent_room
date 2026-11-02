@@ -41,6 +41,17 @@ class DeploymentGuards(unittest.TestCase):
     def test_verified_isolated_app_is_accepted(self):
         self.verify()
 
+    def test_team_wildcard_profile_is_accepted(self):
+        wildcard = {**self.profile, "Entitlements": {
+            **self.profile["Entitlements"], "application-identifier": f"{self.team}.*"}}
+        self.verify(profile=wildcard)
+
+    def test_foreign_profile_app_identifier_is_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, "provisioning app identifier"):
+            self.verify(profile={**self.profile, "Entitlements": {
+                **self.profile["Entitlements"],
+                "application-identifier": "OTHERTEAM0.other.app"}})
+
     def test_canonical_app_or_other_team_cannot_be_installed(self):
         with self.assertRaisesRegex(RuntimeError, "Bundle ID"):
             self.verify(info={**self.info, "CFBundleIdentifier": deploy.CANONICAL_BUNDLE})
