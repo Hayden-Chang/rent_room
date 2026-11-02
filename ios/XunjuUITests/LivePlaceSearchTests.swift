@@ -22,14 +22,14 @@ import XCTest
             query.typeText(text + "\n")
             let result = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.'")).firstMatch
             XCTAssertTrue(result.waitForExistence(timeout: 18), "Apple query \(text): \(app.staticTexts["place.message"].exists ? app.staticTexts["place.message"].label : "no result")")
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = capture; attachment.lifetime = .keepAlways; add(attachment)
             // Production result IDs include the returned coordinate, independent of label localization.
             let coordinate = result.identifier.replacingOccurrences(of: "place.result.", with: "").split(separator: ":")[0].split(separator: ",")
             XCTAssertEqual(coordinate.count, 2)
             let lat = try XCTUnwrap(Double(coordinate[0])), lon = try XCTUnwrap(Double(coordinate[1]))
             XCTAssertTrue(latitude.contains(lat), "Unexpected latitude for \(text): \(lat)")
             XCTAssertTrue(longitude.contains(lon), "Unexpected longitude for \(text): \(lon)")
-            let attachment = XCTAttachment(screenshot: app.screenshot())
-            attachment.name = capture; attachment.lifetime = .keepAlways; add(attachment)
             return result
         }
 

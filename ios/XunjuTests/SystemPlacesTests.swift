@@ -73,7 +73,7 @@ import MapKit
         XCTAssertEqual(values.count, 1); XCTAssertEqual(values.first?.id, "center")
         XCTAssertEqual(values.first?.point, origin, "Reverse geocoder must not move the user's chosen pin")
         XCTAssertEqual(values.first?.distance, "选点位置")
-        XCTAssertEqual(client.reverseCalls, 1); XCTAssertEqual(client.queries, ["小区"])
+        XCTAssertEqual(client.reverseCalls, 1); XCTAssertEqual(client.queries, [AppCopy.text("小区")])
     }
     func testNearbyKeepsSearchResultsWhenReverseGeocodingFailsAndLimitsCandidates() async throws {
         let client = PlacesClientStub(); client.address = .failure(URLError(.timedOut))
