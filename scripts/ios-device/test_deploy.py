@@ -155,6 +155,61 @@ class DeploymentGuards(unittest.TestCase):
             self.assertEqual([call.args[0] for call in device.call_args_list], ["device"])
             self.assertEqual(execution.receipt["status"], "failed")
 
+    def make_args(self, folder, **overrides):
+        values = dict(copy_id="testcopy", team=self.team, output=f"{folder}/run",
+            branch="codex/test", expected_head="sha", device="chosen-device",
+            device_name="chosen phone", udid=self.udid)
+        values.update(overrides)
+        return SimpleNamespace(**values)
+
+    def test_per_run_derived_data_stays_inside_output(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}):
+            execution = deploy.Deployment(self.make_args(folder))
+            self.assertEqual(execution.derived_data, Path(folder).resolve() / "run/DerivedData")
+            self.assertEqual(execution.derived_data_mode, "per-run")
+            self.assertEqual(execution.receipt["derivedDataMode"], "per-run")
+
+    def test_cached_derived_data_drives_build_and_app_path(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}), \
+                patch.object(deploy, "validate_device"), \
+                patch.object(deploy, "validate_app"), \
+                patch.object(deploy, "capture", side_effect=[
+                    plistlib.dumps(self.entitlements), plistlib.dumps(self.profile)]):
+            cache = Path(folder).resolve() / "cache"
+            execution = deploy.Deployment(self.make_args(folder, derived_data=str(cache)))
+
+            def fake_run(step, command):
+                if step == "build":
+                    self.assertEqual(command[command.index("-derivedDataPath") + 1], str(cache))
+                    app = cache / "Build/Products/Release-iphoneos/Xunju.app"
+                    app.mkdir(parents=True)
+                    (app / "Info.plist").write_bytes(plistlib.dumps(self.info))
+                if step == "localized-resources":
+                    raise RuntimeError("stop after app path check")
+
+            with patch.object(execution, "device_command", return_value={}) as device, \
+                    patch.object(execution, "run", side_effect=fake_run), \
+                    self.assertRaisesRegex(RuntimeError, "app path check"):
+                execution.execute()
+            self.assertEqual([call.args[0] for call in device.call_args_list], ["device"])
+            self.assertEqual(execution.receipt["derivedData"], str(cache))
+            self.assertEqual(execution.receipt["status"], "failed")
+
+    def test_invalid_derived_data_paths_are_rejected(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}):
+            for cache, message in (
+                    (deploy.ROOT / "ios" / "cache", "outside the source worktree"),
+                    (f"{folder}/run/cache", "inside the output directory")):
+                with self.subTest(cache=cache), self.assertRaisesRegex(RuntimeError, message):
+                    deploy.Deployment(self.make_args(folder, derived_data=str(cache)))
+            with tempfile.NamedTemporaryFile() as handle, \
+                    self.assertRaisesRegex(RuntimeError, "must be a directory"):
+                deploy.Deployment(self.make_args(
+                    folder, derived_data=handle.name))
+
 
 if __name__ == "__main__":
     unittest.main()

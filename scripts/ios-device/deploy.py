@@ -87,13 +87,27 @@ class Deployment:
         self.display_name = copy_display_name(args.copy_id)
         self.output = Path(args.output).resolve()
         require(not self.output.is_relative_to(ROOT), "output must be outside the source worktree")
+        cache = getattr(args, "derived_data", None)
+        if cache:
+            self.derived_data = Path(cache).resolve()
+            require(not self.derived_data.is_relative_to(ROOT),
+                    "derived-data must be outside the source worktree")
+            require(not self.derived_data.is_relative_to(self.output),
+                    "derived-data must not be inside the output directory")
+            require(not self.derived_data.exists() or self.derived_data.is_dir(),
+                    "derived-data path must be a directory")
+            self.derived_data_mode = "cache"
+        else:
+            self.derived_data = self.output / "DerivedData"
+            self.derived_data_mode = "per-run"
         require(re.fullmatch(r"[A-Z0-9]{10}", args.team), "invalid signing team")
         self.receipt = {
             "source": source_identity(args.branch, args.expected_head),
             "configuration": "Release", "scheme": "Xunju", "mode": "isolated",
             "copyID": args.copy_id, "bundleID": self.bundle, "displayName": self.display_name,
             "team": args.team, "deviceID": args.device, "deviceName": args.device_name,
-            "deviceUDID": args.udid, "steps": {},
+            "deviceUDID": args.udid, "derivedData": str(self.derived_data),
+            "derivedDataMode": self.derived_data_mode, "steps": {},
         }
 
     def save(self):
@@ -125,14 +139,16 @@ class Deployment:
 
     def execute(self):
         self.output.mkdir(parents=True, exist_ok=False)
+        self.derived_data.mkdir(parents=True, exist_ok=True)
         self.save()
+        print(f"derived-data: {self.derived_data_mode} {self.derived_data}", flush=True)
         try:
             device = self.device_command("device", ["device", "info", "details"])
             validate_device(device, self.args.device_name, self.args.udid)
             self.run("build", [str(ROOT / "scripts/run-xcodebuild.sh"),
                 "-project", str(ROOT / "ios/Xunju.xcodeproj"), "-scheme", "Xunju",
                 "-configuration", "Release", "-destination", f"id={self.args.udid}",
-                "-derivedDataPath", str(self.output / "DerivedData"),
+                "-derivedDataPath", str(self.derived_data),
                 "-resultBundlePath", str(self.output / "build.xcresult"),
                 "-allowProvisioningUpdates", "-allowProvisioningDeviceRegistration",
                 f"DEVELOPMENT_TEAM={self.args.team}", "CODE_SIGN_STYLE=Automatic",
@@ -140,7 +156,7 @@ class Deployment:
                 f"INFOPLIST_KEY_CFBundleDisplayName={self.display_name}",
                 f"XUNJU_ISOLATED_DISPLAY_NAME={self.display_name}", "build"])
             source_identity(self.args.branch, self.args.expected_head)
-            app = self.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
+            app = self.derived_data / "Build/Products/Release-iphoneos/Xunju.app"
             self.run("signature", ["/usr/bin/codesign", "--verify", "--deep", "--strict", str(app)])
             entitlements = plistlib.loads(capture([
                 "/usr/bin/codesign", "-d", "--entitlements", ":-", str(app)]))
@@ -183,6 +199,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for flag in ("copy-id", "team", "device", "device-name", "udid", "branch", "expected-head", "output"):
         parser.add_argument(f"--{flag}", required=True)
+    parser.add_argument("--derived-data",
+                        help="Reuse a persistent DerivedData directory outside the worktree; "
+                             "omitting it keeps one build directory inside the unique output directory")
     args = parser.parse_args()
     try:
         Deployment(args).execute()

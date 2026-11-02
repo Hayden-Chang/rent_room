@@ -42,6 +42,15 @@ bash scripts/deploy-ios-device.sh \
 - 部署入口在安装前执行 `localized-resources` 检查，将所有源 `InfoPlist.strings` 与打包结果逐键比较，只允许显示名变化。缺少语言、权限文案改变或副本名错误都会停止安装并保留日志。
 - 相关测试入口：`cd scripts/ios-device && /usr/bin/python3 -B -m unittest -v test_deploy test_localize_copy_name`。实际产物检查：`/usr/bin/python3 scripts/ios-device/localize_copy_name.py --verify --app <Xunju.app> --display-name '看房搭子开发版 R001'`。
 
+## 重复部署加速（2026-11-02）
+
+- 默认行为不变：DerivedData 位于本次唯一 `--output` 目录内，证据自包含，代价是每次全量构建。
+- 新增可选参数 `--derived-data <目录>`：指定 worktree 外的固定 DerivedData 目录并跨次复用，未改动的源码与配置触发增量编译。建议按副本命名，例如 `/Volumes/mac2/codex-builds/xunju-dd-r005`；同一 copy-id、同一 scheme/配置复用才有意义。
+- 校验：该目录必须在 worktree 外、不能在 `--output` 内，已存在时必须是目录；回执记录 `derivedData` 与 `derivedDataMode`（`cache` / `per-run`）。
+- 缓存不绕过任何检查：构建来源 SHA、Bundle ID、显示名、签名、描述文件、本地化资源和设备读回仍在每次部署时重新校验，日志、`build.xcresult` 与 `receipt.json` 仍写入本次唯一 output。
+- 需要“从零构建”的干净证据时不要传该参数；缓存命中失败或产物可疑时，删除该目录重跑一次即可恢复全量行为。
+
+
 ## 2026-10-20 实际部署结果
 
 - 构建来源：worktree `/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/ios-parity-20261019`，分支 `codex/ios-parity-20261019`，完整 SHA `87e2383d10c8f895accab4bfcda54b19e5bfd619`。相对用户确认的 `4a3bb4d`，`ios/` 与 `apps/wechat/` 无源码差异。后续变更只修正部署 CLI 参数与补充本记录，不更改已安装 App 的业务源码。
