@@ -1,0 +1,1 @@
+User-requested English copy update: translate 我的 (s0530) as Setting instead of Profile. Preserve the exact singular spelling requested by the user and leave all other copy unchanged.
