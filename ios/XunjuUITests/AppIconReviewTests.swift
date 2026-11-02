@@ -13,7 +13,7 @@ final class AppIconReviewTests: XCTestCase {
         XCUIDevice.shared.press(.home)
         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        let icon = springboard.icons.matching(NSPredicate(format: "label IN %@", ["寻居", "Xunju"])).firstMatch
+        let icon = springboard.icons.matching(NSPredicate(format: "label IN %@", ["看房搭子", "Xunju"])).firstMatch
         for _ in 0..<5 {
             if icon.exists && icon.isHittable { break }
             springboard.swipeLeft()

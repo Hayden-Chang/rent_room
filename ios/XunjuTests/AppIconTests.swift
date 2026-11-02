@@ -1,8 +1,17 @@
 import XCTest
 import UIKit
+@testable import Xunju
 
 @MainActor
 final class AppIconTests: XCTestCase {
+    func testChineseDisplayNameUsesKanfangDazi() throws {
+        let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "zh-Hans.lproj"))
+        let values = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
+        XCTAssertEqual(values["CFBundleDisplayName"], "看房搭子")
+        XCTAssertEqual(values["CFBundleDisplayName"], Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String)
+        XCTAssertEqual(AppCopy.text("看房搭子", language: .english), "Xunju")
+    }
+
     func testBuiltAppContainsPrimaryIconMetadataAndImages() throws {
         // Bundle's key lookup applies device qualifiers; inspect the packaged plist
         // directly so an iPhone test can also verify the iPad icon declaration.
