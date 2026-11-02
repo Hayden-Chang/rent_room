@@ -1,0 +1,29 @@
+[
+  {
+    "file": "examples-ios-english-comparison.png",
+    "sha256": "f7a1a9ac193737e3ab4320377b50ec4c2580c91d1bbef6a2515875c53532afdc",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "D586BCEF-7EE2-4195-9239-70AB73CF5087.png"
+  },
+  {
+    "file": "examples-ios-english-selected.png",
+    "sha256": "ac6a02c5225f9bba0efb000a07eacd64a67fa679599e06915d076d358ffe1705",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "C351999F-5F99-4FA1-8E2A-0DCC5271D754.png"
+  },
+  {
+    "file": "examples-ios-english-home.png",
+    "sha256": "1d5a18a1c93a93ee9164501bd418014da9078a8f0ef0bd0263ed1888a3481add",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "5F056E06-87F6-4A14-9C64-700E558F2EF9.png"
+  }
+]

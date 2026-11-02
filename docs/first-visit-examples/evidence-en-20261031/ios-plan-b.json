@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-examples-en-20261031-b",
+  "phase": "development",
+  "taskName": "英文示例单复数修复与实际卡片、对比截图",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/private/tmp/rent-room-first-launch-examples-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/AppCopyTests/testEnglishIssueCountUsesSingularOnlyForOne",
+      "reason": "英文数量单复数及规范文案和用户原文边界",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testCanonicalComparisonAndWheelUnitsPreserveCustomValues",
+      "reason": "英文数量单复数及规范文案和用户原文边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testCanonicalTemplateArgumentsTranslateWhileUserNamesStayVerbatim",
+      "reason": "英文数量单复数及规范文案和用户原文边界",
+      "source": "affected-existing"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/ExampleHousesReviewTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText",
+      "reason": "英文环境首页、双列照片卡片、真实对比与重启",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/ExampleHousesReviewTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText"
+  ]
+}

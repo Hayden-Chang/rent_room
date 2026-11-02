@@ -15,6 +15,11 @@ import XCTest
         XCTAssertFalse(ReturningBusinessFixture.enabled(["--returning-business-fixture"]))
         XCTAssertFalse(ReturningBusinessFixture.enabled(["--returning-business-fixture", "--business-test", "invalid"]))
         XCTAssertTrue(ReturningBusinessFixture.enabled(["--returning-business-fixture", "--business-test", UUID().uuidString]))
+        XCTAssertFalse(ReturningBusinessFixture.suppressesSystemReview(["--stub-system-review"]))
+        XCTAssertFalse(ReturningBusinessFixture.suppressesSystemReview(["--returning-business-fixture", "--stub-system-review", "--business-test", "invalid"]))
+        let isolated = ["--returning-business-fixture", "--business-test", UUID().uuidString]
+        XCTAssertFalse(ReturningBusinessFixture.suppressesSystemReview(isolated))
+        XCTAssertTrue(ReturningBusinessFixture.suppressesSystemReview(isolated + ["--stub-system-review"]))
     }
     func testFillingFixtureRequiresExplicitModeAndIsolatedDirectory() {
         let isolated = ["--business-test", UUID().uuidString]

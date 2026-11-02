@@ -1,0 +1,38 @@
+{
+  "runId": "2cd25ad5691848f2a742d9f64164006e",
+  "source": "/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/dist",
+  "started": 1793422605.957736,
+  "status": "passed",
+  "runnerPid": 99037,
+  "command": [
+    "/Users/pc/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+    "/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/tests/e2e/example-houses.cjs"
+  ],
+  "mockBoundary": "callback-defined",
+  "lifecycle": "resident-v1",
+  "runnerHash": "24f8ecc62a0d05e378c9fef8823ff6ce8f0555651fd68256501d8decdbb1c373",
+  "heartbeat": 1793422935.357638,
+  "snapshotHash": "03f4dc17cd8fb1f48d820ca28ae0dd01bcd13d522a389f419282a802f0de507a",
+  "sourceHead": "a5d1dafc1728def93edfc985b4af858fe50ea9cc",
+  "sourceStatus": "M docs/first-visit-examples/ENGLISH_20261031.md\n M docs/first-visit-examples/PHOTOS_20261031.md\n M docs/first-visit-examples/REVIEW_20261030.md\n?? docs/first-visit-examples/INTEGRATION_20261031.md\n?? docs/first-visit-examples/evidence-integration-20261031/",
+  "toolVersion": "2.01.2510290",
+  "slot": "3",
+  "ports": {
+    "ide": 19653,
+    "auto": 19753,
+    "internal": 32163,
+    "fallback": 33263
+  },
+  "queueFinished": 1793422638.017496,
+  "profile": "/Volumes/mac2/codex-builds/wechat-instance-pool/slots/3/resident-profile",
+  "projectPath": "/Volumes/mac2/codex-builds/wechat-instance-pool/slots/3/project",
+  "runtimePid": 99198,
+  "runtimeReused": false,
+  "projectInitialized": true,
+  "testStarted": 1793422753.3924081,
+  "childPid": 149,
+  "testFinished": 1793422928.073528,
+  "residentState": "idle",
+  "residentRetained": true,
+  "finished": 1793422935.357635
+}

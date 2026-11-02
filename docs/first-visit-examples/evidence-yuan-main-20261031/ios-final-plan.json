@@ -1,0 +1,205 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-yuan-main-20261031-final",
+  "phase": "final-pr-head",
+  "headSha": "1f7bd7d124d0efa31edbd108c64aa6467867d605",
+  "taskName": "Main credits integration and Chinese yuan with English and returning-user protection",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/Users/pc/.codex/worktrees/english-demo-usd/rent_room",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange",
+      "reason": "正式入口启用后的首次安装、旧数据、删除及媒体持久化保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart",
+      "reason": "正式入口启用后的首次安装、旧数据、删除及媒体持久化保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyInstallationAndOldHouseAreNeverSeeded",
+      "reason": "正式入口启用后的首次安装、旧数据、删除及媒体持久化保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingKeychainSessionDoesNotReceiveExamplesEvenWithoutDataDirectory",
+      "reason": "正式入口启用后的首次安装、旧数据、删除及媒体持久化保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyFileAndRecoveryCopyAreNeverSeeded",
+      "reason": "正式入口启用后的首次安装、旧数据、删除及媒体持久化保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExamplePhotosSurviveBackupExportAndImport",
+      "reason": "正式入口启用后的首次安装、旧数据、删除及媒体持久化保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/OfflineWorkspaceTests/testExpiredLegacyAccountKeepsOriginalMediaDirectoryAndNeedsNoKeychainAfterMigration",
+      "reason": "正式启用时旧登录用户及媒体路径不被示例覆盖",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testEnglishIssueCountUsesSingularOnlyForOne",
+      "reason": "英文示例问题数量单复数",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testCanonicalComparisonAndWheelUnitsPreserveCustomValues",
+      "reason": "英文对比展示保持既有自定义数据",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/HouseLongPressHintTests/testReviewRequiresExplicitKnownRoute",
+      "reason": "清理临时示例路由且保留主线评审路由",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/InspectionBusinessTests/testSamePhaseCompletionStaysQuietAfterClearingAndReopening",
+      "reason": "主线合并的检查引导在共享核心中保持",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/InspectionBusinessTests/testSetupDraftStepAndSelectionSurviveRelaunch",
+      "reason": "正式首次启动经过可恢复设置流程",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/InspectionBusinessTests/testReturningFixtureRequiresExplicitFlagAndValidIsolatedDirectory",
+      "reason": "老用户测试目录准备必须在隔离测试内",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/InspectionBusinessTests/testFillingFixtureRequiresExplicitModeAndIsolatedDirectory",
+      "reason": "空记录既有用户测试目录准备必须在隔离测试内",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testChineseYuanComparisonUsesYuanWithoutChangingUserTextOrOtherCurrencies",
+      "reason": "本轮人民币展示及英语、其他币种、用户文本保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testMonthlyRentUsesYuanInChineseAndKeepsEnglishCurrencyCodes",
+      "reason": "本轮人民币展示及英语、其他币种、用户文本保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testChineseYuanFormUnitsPreserveRatesCustomNamesAndOtherCurrencies",
+      "reason": "AppCopy 货币和比较展示的直接相邻使用者",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testEnglishComparisonCostLabelsAreFullyLocalized",
+      "reason": "AppCopy 货币和比较展示的直接相邻使用者",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/AppCopyTests/testPackagedEnglishCatalogPermissionsAndMoneyUnits",
+      "reason": "AppCopy 货币和比较展示的直接相邻使用者",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExamplesKeepFreeCreationCreditAndSuccessfulCreationSpendsOnlyOnce",
+      "reason": "两示例与主线点数结合：新建扣点、删除不返还、重启持久化",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testConsumedCreditsSurviveRestoreRelaunchRefundAndAppleAccountSwitch",
+      "reason": "NativeStore 初始化 creditAccount、点数读取/恢复与 AppWorkspace 合并冲突边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testCorruptRecordsRecoveryDoesNotRefundConsumedCredits",
+      "reason": "NativeStore 初始化 creditAccount、点数读取/恢复与 AppWorkspace 合并冲突边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/CapacityBusinessTests/testRepeatPurchasesHistoryAndReinstallRestoreExactlyOnce",
+      "reason": "NativeStore 初始化 creditAccount、点数读取/恢复与 AppWorkspace 合并冲突边界",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testCapacityArchiveReadOnlyRestoreAndDeleteProtection",
+      "reason": "NativeStore 构造函数、共享 store 和侧存账本的持久化/回滚消费者",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testCorruptFileBlocksWritesAndRecoveryPreservesOriginal",
+      "reason": "NativeStore 构造函数、共享 store 和侧存账本的持久化/回滚消费者",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testFailedDurableAddRollsBackWhileOrdinaryAnswerStaysInSession",
+      "reason": "NativeStore 构造函数、共享 store 和侧存账本的持久化/回滚消费者",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/NativeStoreTests/testImportIsAtomicAndPreservesGlobalSettings",
+      "reason": "NativeStore 构造函数、共享 store 和侧存账本的持久化/回滚消费者",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/OfflineWorkspaceTests/testGuestRecordsAndAnswersSurviveOfflineRestartWithoutServiceCalls",
+      "reason": "AppWorkspace 启动冲突涉及无登录离线存档和购买身份",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/OfflineWorkspaceTests/testChangingApplePurchaseIdentityNeverSwitchesHouseDirectory",
+      "reason": "AppWorkspace 启动冲突涉及无登录离线存档和购买身份",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/CurrencyIntegrationTests/testDefaultChangesOnlyNewHousesAndPersistsAmountsAndCurrency",
+      "reason": "中文仅显示改变；币种、金额和备份存储不转换",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/CurrencyIntegrationTests/testLegacyMigrationImportAndExportRetainCurrencyWithoutConversion",
+      "reason": "中文仅显示改变；币种、金额和备份存储不转换",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/CurrencyIntegrationTests/testComparisonShowsDifferentCurrenciesForSameAmountAndKeepsFreeTextRaw",
+      "reason": "中文仅显示改变；币种、金额和备份存储不转换",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/IdentityScopeTests/testGuestClaimIsIdempotentAndLogoutStartsFreshGuest",
+      "reason": "初始化与主线旧账号/访客迁移交集",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/IdentityScopeTests/testFirstClaimKeepsGuestSettingsAndCopiesMediaWithoutChangingOriginal",
+      "reason": "初始化与主线旧账号/访客迁移交集",
+      "source": "affected-existing"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText",
+      "reason": "正式英文首次设置、带照片双房源、对比、重启",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/LaunchIntegrationTests/testFirstLaunchReachesSetupAndRelaunchRetainsChoice",
+      "reason": "正式中文首次设置恢复、带照片双房源、对比、重启",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage",
+      "reason": "正式老用户入口没有示例且原记录和导航恢复",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText",
+    "XunjuUITests/LaunchIntegrationTests/testFirstLaunchReachesSetupAndRelaunchRetainsChoice",
+    "XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage"
+  ]
+}

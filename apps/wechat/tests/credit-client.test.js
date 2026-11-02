@@ -29,6 +29,13 @@ it('freezes old occupancy before imports and does not overwrite it on another la
  expect(prepareCreditMigration(m.io,root,account)).toBe(5);
  expect(()=>prepareCreditMigration(m.io,root,'b'.repeat(64))).toThrow('无效');
 });
+it('does not count saved examples as spent credits during account migration',()=>{
+ const m=mockWx(),root='/user/account',account='a'.repeat(64);
+ const houses=[{...freshHouse('示例'),example:true},freshHouse('用户房源')];
+ const raw=JSON.stringify({...emptyState(),houses});m.disk.set(root+'/state.json',raw);
+ expect(prepareCreditMigration(m.io,root,account)).toBe(1);
+ expect(m.disk.get(root+'/state.json')).toBe(raw);
+});
 it('rejects corrupt legacy records without producing a migration snapshot',()=>{
  const m=mockWx(),root='/user/account';m.disk.set(root+'/state.json','{broken');
  expect(()=>prepareCreditMigration(m.io,root,'a'.repeat(64))).toThrow();

@@ -36,16 +36,21 @@ struct AppRoot: View {
     }
     private func load() {
         do {
+            let root = try AppWorkspace.dataRoot()
             #if DEBUG
+            // Existing-user fixtures need an existing installation, even with no houses.
+            if ReturningBusinessFixture.enabled(ProcessInfo.processInfo.arguments) || FillingGuideFixture.mode(ProcessInfo.processInfo.arguments) != nil {
+                try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+            }
             if let mode = CapacityBusinessFixture.mode() {
-                workspace = try CapacityBusinessFixture.workspace(root: AppWorkspace.dataRoot(), mode: mode)
+                workspace = try CapacityBusinessFixture.workspace(root: root, mode: mode)
             } else if UtilityNetworkFixture.enabled {
-                workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: VolatileSessionStorage(), mapTransport: UtilityNetworkFixture.transport, mapKey: "fixture", places: UtilityNetworkFixture.places)
+                workspace = try AppWorkspace(root: root, keychain: VolatileSessionStorage(), mapTransport: UtilityNetworkFixture.transport, mapKey: "fixture", places: UtilityNetworkFixture.places)
             } else {
-                workspace = try AppWorkspace(root: AppWorkspace.dataRoot(), keychain: AppWorkspace.isBusinessTest ? VolatileSessionStorage() : SessionKeychain())
+                workspace = try AppWorkspace(root: root, keychain: AppWorkspace.isBusinessTest ? VolatileSessionStorage() : SessionKeychain(), firstVisitExamples: true)
             }
             #else
-            workspace = try AppWorkspace(root: AppWorkspace.dataRoot())
+            workspace = try AppWorkspace(root: root, firstVisitExamples: true)
             #endif
             launchError = ""
         }

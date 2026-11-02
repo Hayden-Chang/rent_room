@@ -1,0 +1,122 @@
+import {describe,it,expect,vi} from 'vitest';
+import {createStore} from '../src/lib/store.js';
+import {emptyState,freshHouse,comparison,validateState} from '../src/lib/model.js';
+
+function adapter(raw=null) {
+  let saved=raw;
+  return {read:()=>saved,write:vi.fn(value=>{saved=value;})};
+}
+describe('first-visit example houses',()=>{
+  it('keeps creation credits available for new and previously saved examples',()=>{
+    for(const language of ['zh-Hans','en']){
+      const io=adapter(),s=createStore(io,{firstVisit:true,exampleLanguage:language});
+      expect(s.capacity().remaining).toBe(1);
+      const id=s.add('我的第一套房源');
+      expect(s.capacity().remaining).toBe(0);
+      s.archive(id,true);s.remove(id);
+      expect(createStore(io,{firstVisit:true}).capacity().remaining).toBe(0);
+      const legacy={...emptyState(),houses:s.get().houses};
+      const old=adapter(JSON.stringify(legacy)),restored=createStore(old,{firstVisit:true});
+      expect(restored.capacity().remaining).toBe(1);
+      expect(old.read()).toBe(JSON.stringify(legacy));expect(old.write).not.toHaveBeenCalled();
+    }
+  });
+  it('seeds English demos with USD monthly rents suited to one and two bedrooms',()=>{
+    const io=adapter(),houses=createStore(io,{firstVisit:true,exampleLanguage:'en'}).get().houses;
+    expect(houses.map(h=>h.currencyCode)).toEqual(['USD','USD']);
+    expect(houses.map(h=>h.answers.f1_6.value)).toEqual(['1500','1900']);
+    expect(comparison(houses,true).find(row=>row.id==='f1_6').values).toEqual(['1500','1900']);
+    expect(validateState(JSON.parse(io.read())).houses).toEqual(houses);
+  });
+  it('seeds English sample content while keeping choices and photos canonical',()=>{
+    const io=adapter(),s=createStore(io,{firstVisit:true,exampleLanguage:'en'}),houses=s.get().houses;
+    expect(houses.map(h=>h.name)).toEqual(['Demo · Metro 1BR','Demo · Sunny 2BR']);
+    for(const house of houses){
+      for(const text of [house.name,house.address,house.summary,...house.media.map(m=>m.caption),...Object.values(house.answers).map(a=>a.note||'')])expect(text).not.toMatch(/[\u3400-\u9fff]/);
+      expect(house.summary).not.toBe('');expect(house.media[0].caption).toContain('AI');
+      expect(house.currencyCode).toBe('USD');expect(house.media[0].path).toBe('media/'+house.id+'.jpg');
+      expect(house.decision).toBe('继续比较');expect(house.checklistMode).toBe('simple');
+    }
+    expect(houses.map(h=>h.answers.f1_2.value)).toEqual(['一室一厅','两室一厅']);
+    expect(houses.map(h=>h.answers.simple_01.value)).toEqual(['是','否']);
+    expect(validateState(JSON.parse(io.read())).houses).toEqual(houses);
+  });
+  it('never rewrites existing examples or user edits after switching the seed language',()=>{
+    for(const language of ['en','zh-Hans']){
+      const io=adapter(),s=createStore(io,{firstVisit:true,exampleLanguage:language}),id=s.get().houses[0].id;
+      s.edit(id,h=>{h.name='用户自定义';h.summary='Keep my summary';h.media[0].caption='我的照片';h.currencyCode='EUR';},true);
+      s.answer(id,'f1_6','value','1375');
+      s.answer(id,'simple_01','note','Keep my note');
+      const raw=io.read();io.write.mockClear();
+      const restored=createStore(io,{firstVisit:true,exampleLanguage:language==='en'?'zh-Hans':'en'});
+      expect(restored.get().houses).toEqual(s.get().houses);expect(io.read()).toBe(raw);expect(io.write).not.toHaveBeenCalled();
+    }
+  });
+  it('preserves previously saved English CNY demo prices byte for byte',()=>{
+    const io=adapter(),s=createStore(io,{firstVisit:true,exampleLanguage:'en'});
+    s.get().houses.forEach((house,index)=>{
+      s.edit(house.id,h=>{h.currencyCode='CNY';},true);
+      s.answer(house.id,'f1_6','value',index===0?'2800':'3600');
+    });
+    const raw=io.read();io.write.mockClear();
+    const restored=createStore(io,{firstVisit:true,exampleLanguage:'en'});
+    expect(restored.get().houses.map(h=>h.currencyCode)).toEqual(['CNY','CNY']);
+    expect(restored.get().houses.map(h=>h.answers.f1_6.value)).toEqual(['2800','3600']);
+    expect(io.read()).toBe(raw);expect(io.write).not.toHaveBeenCalled();
+  });
+  it('durably creates exactly two independent simple examples with useful comparison differences',()=>{
+    const io=adapter(),created=vi.fn(),s=createStore(io,{firstVisit:true,onHouseCreated:created});
+    expect(s.get().houses).toHaveLength(2);
+    expect(s.get().houses.every(h=>h.checklistMode==='simple'&&h.name.startsWith('示例'))).toBe(true);
+    expect(s.get().houses[0].templateTopics).not.toBe(s.get().houses[1].templateTopics);
+    expect(validateState(JSON.parse(io.read())).houses).toEqual(s.get().houses);
+    const rows=comparison(s.get().houses,true);
+    for(const [id,values] of Object.entries({f1_1:['示例地址·地铁站旁','示例地址·花园小区'],f1_2:['一室一厅','两室一厅'],f1_6:['2800','3600'],f1_3:['38','58'],simple_01:['是','否'],simple_11:['否','是'],simple_13:['否','是']}))expect(rows.find(r=>r.id===id)?.values).toEqual(values);
+    expect(s.get().houses.map(h=>h.address)).toEqual(['示例地址·地铁站旁','示例地址·花园小区']);
+    expect(created).not.toHaveBeenCalled();
+    expect(s.get().xiaoda.firstHouseId).toBe('');
+    expect(s.get().xiaoda.setup).toBe('sort');
+    expect(s.get().settings).toEqual(emptyState().settings);
+  });
+  it('requires affirmative first-visit evidence and a genuinely missing current file',()=>{
+    for(const [raw,firstVisit] of [[null,false],['',true],['{bad',true]]){
+      const io=adapter(raw),s=createStore(io,{firstVisit});
+      expect(s.get().houses).toHaveLength(0);expect(io.write).not.toHaveBeenCalled();
+      if(raw==='{bad')expect(s.status().blocked).toBe(true);
+    }
+  });
+  it('prepares photo files only for a genuinely new save and preserves old saves if preparation fails',()=>{
+    const prepareExamples=vi.fn();
+    for(const raw of ['',JSON.stringify(emptyState()),'{bad']){
+      const io={...adapter(raw),prepareExamples};createStore(io,{firstVisit:true});
+      expect(prepareExamples).not.toHaveBeenCalled();expect(io.write).not.toHaveBeenCalled();
+    }
+    const io={...adapter(),prepareExamples};createStore(io,{firstVisit:true});
+    expect(prepareExamples).toHaveBeenCalledOnce();
+    const failed={...adapter(),prepareExamples(){throw Error('photo copy failed');}};
+    expect(createStore(failed,{firstVisit:true}).status().blocked).toBe(true);expect(failed.write).not.toHaveBeenCalled();
+  });
+  it.each(['empty','one','archived','legacy'])('does not seed or write an existing %s save, even if a caller misclassifies it as new',kind=>{
+    const state=emptyState();
+    if(kind==='one'||kind==='archived'){
+      const h=freshHouse('我的房源');h.archived=kind==='archived';h.answers.f1_6={value:'2500',note:'原备注'};
+      h.issues=[{id:'issue1',title:'原问题'}];h.media=[{id:'photo',type:'image',path:'/saved/photo.jpg'}];state.houses=[h];
+    }
+    if(kind==='legacy')delete state.xiaoda;
+    const raw=JSON.stringify(state),io=adapter(raw),s=createStore(io,{firstVisit:true});
+    expect(s.get().houses).toEqual(state.houses);expect(io.read()).toBe(raw);expect(io.write).not.toHaveBeenCalled();
+  });
+  it('does not duplicate, restore deleted examples, or refill after all examples are removed',()=>{
+    const io=adapter(),s=createStore(io,{firstVisit:true}),ids=s.get().houses.map(h=>h.id);
+    expect(createStore(io,{firstVisit:true}).get().houses.map(h=>h.id)).toEqual(ids);
+    s.archive(ids[0],true);s.remove(ids[0]);expect(createStore(io,{firstVisit:true}).get().houses).toHaveLength(1);
+    s.archive(ids[1],true);s.remove(ids[1]);expect(createStore(io,{firstVisit:true}).get().houses).toEqual([]);
+  });
+  it('reports initialization write failure and retries without duplicating the in-memory examples',()=>{
+    const io=adapter(),write=io.write;io.write=()=>{throw Error('disk full');};
+    const s=createStore(io,{firstVisit:true}),ids=s.get().houses.map(h=>h.id);
+    expect(s.status().error).toContain('保存失败');expect(io.read()).toBeNull();
+    io.write=write;expect(s.save()).toBe(true);
+    expect(createStore(io,{firstVisit:true}).get().houses.map(h=>h.id)).toEqual(ids);
+  });
+});

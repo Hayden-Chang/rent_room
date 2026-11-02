@@ -1,0 +1,23 @@
+[
+  {
+    "source": "/private/tmp/rent-room-example-photos-20261031/attachments-e/AEF1C980-0F87-4A79-8A64-CD6607249A6B.png",
+    "copy": "ios-comparison.png",
+    "display": "/Users/pc/.codex/visualizations/2026/10/30/01a18c34-450b-7f32-86d6-a9abd0f5d7ed/first-visit-examples/ios-comparison-photos.png",
+    "sha256": "9e0a16195332e696127dc91f986c6213e226fbe1385e1ade0f725c4f86be1cd4",
+    "identical": true
+  },
+  {
+    "source": "/private/tmp/rent-room-example-photos-20261031/attachments-e/DD8131B9-61A2-409B-9491-B872E40E1847.png",
+    "copy": "ios-selected.png",
+    "display": "/Users/pc/.codex/visualizations/2026/10/30/01a18c34-450b-7f32-86d6-a9abd0f5d7ed/first-visit-examples/ios-selected-photos.png",
+    "sha256": "33b9015b8cfa9dd5ad42adab16250ff01ed7b02192ef53076cfc1976c37d30ab",
+    "identical": true
+  },
+  {
+    "source": "/private/tmp/rent-room-example-photos-20261031/attachments-e/FE18CE9E-F93E-4D0F-8561-86ABA8846B89.png",
+    "copy": "ios-home.png",
+    "display": "/Users/pc/.codex/visualizations/2026/10/30/01a18c34-450b-7f32-86d6-a9abd0f5d7ed/first-visit-examples/ios-home-photos.png",
+    "sha256": "69203b17d18758b49827c35a3e615ffc10f746ff427d2f2a8c5b88f9d2515e67",
+    "identical": true
+  }
+]

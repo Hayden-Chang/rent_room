@@ -1,0 +1,1 @@
+PASS: complete default and zh-Hans examples equal 43dc73b with fixed clock/random; all fields, currency, rent and photo paths unchanged.

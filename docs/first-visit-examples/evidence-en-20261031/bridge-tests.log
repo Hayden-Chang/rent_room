@@ -1,0 +1,17 @@
+✔ third successful creation survives deletion and relaunch; either condition requests only once (75.937292ms)
+✔ failed creation, import and restore never inflate the creation count (39.148292ms)
+✔ guest transfer combines counts once, including already requested state (71.930083ms)
+✔ request consumption is durable and rolls back when saving fails (1.619875ms)
+✔ legacy records and feedback drafts do not fabricate creation history or satisfaction gates (46.292917ms)
+✔ mini-program default store keeps its existing state contract (5.971291ms)
+{"id":"f116_1","label":"押金退还时限","values":["放弃","3 天"],"localized":[false,true],"choices":[[{"label":"放弃","localized":false,"detail":""}],[{"label":"3 天","localized":true,"detail":""}]]}
+✔ ios/tests/currency-localization.test.mjs (101.730167ms)
+✔ currency creation retains review progress atomically across failed saves and restart (81.709ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 310.517416

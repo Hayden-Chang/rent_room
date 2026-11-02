@@ -54,16 +54,22 @@ struct MPHouseCard: View {
         Button(action: open) {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
-                    XJTheme.soft
-                    if let image = item.cover { Image(uiImage: image).resizable().scaledToFill().frame(maxWidth: .infinity, maxHeight: .infinity).clipped() }
-                    else { XJIcon(name: "home-selected", size: 46).opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity) }
+                    XJTheme.soft.overlay {
+                        if let image = item.cover {
+                            GeometryReader { geometry in
+                                Image(uiImage: image).resizable().scaledToFill()
+                                    .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                            }
+                        }
+                        else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
+                    }.clipped()
                     AppText(archived ? "已删除" : item.card.decision.isEmpty ? "待检查" : item.card.decision)
                         .font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.primary).padding(.horizontal, 8).padding(.vertical, 3)
                         .background(XJTheme.soft).clipShape(RoundedRectangle(cornerRadius: 6)).padding(10)
                 }.frame(height: 142).clipped()
                 VStack(alignment: .leading, spacing: 0) {
                     Text(verbatim: item.card.name).font(.system(size: 14, weight: .semibold)).lineLimit(1).frame(height: 20)
-                    AppText(item.card.rent.isEmpty ? "租金待填写" : "\(item.card.currencyCode) \(item.card.rent) / 月").font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary).frame(height: 24).padding(.vertical, 8)
+                    Text(verbatim: AppCopy.monthlyRent(item.card.rent, currency: item.card.currencyCode)).font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary).frame(height: 24).padding(.vertical, 8)
                     Text(verbatim: "\(item.card.address.isEmpty ? AppCopy.text("地址待填写") : item.card.address) · \(item.card.area)m²").font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.muted).lineLimit(1).frame(height: 16).padding(.bottom, 10)
                     if archived { AppText("\(item.card.issues) 个问题").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted) }
                     else if item.card.issues > 0 {
@@ -71,7 +77,7 @@ struct MPHouseCard: View {
                     } else { AppText("检查 \(item.card.done) / \(item.card.total)").font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted) }
                     Spacer(minLength: 0)
                 }.padding(12).frame(height: 144).frame(maxWidth: .infinity, alignment: .leading)
-            }.foregroundStyle(XJTheme.ink).background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
+            }.foregroundStyle(XJTheme.ink).background(.white).clipShape(RoundedRectangle(cornerRadius: 16)).contentShape(.interaction, RoundedRectangle(cornerRadius: 16))
         }.buttonStyle(.plain)
     }
 }
@@ -114,9 +120,15 @@ struct MPComparisonSelection: View {
                             Button { if selected.contains(house.id) { selected.remove(house.id) } else if selected.count < 3 { selected.insert(house.id) } } label: {
                                 VStack(alignment: .leading, spacing: 0) {
                                     ZStack(alignment: .bottomLeading) {
-                                        XJTheme.soft
-                                        if let image = house.cover { Image(uiImage: image).resizable().scaledToFill() }
-                                        else { XJIcon(name: "home-selected", size: 46).opacity(0.45).frame(maxWidth: .infinity, maxHeight: .infinity) }
+                                        XJTheme.soft.overlay {
+                                            if let image = house.cover {
+                                                GeometryReader { geometry in
+                                                    Image(uiImage: image).resizable().scaledToFill()
+                                                        .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                                                }
+                                            }
+                                            else { XJIcon(name: "home-selected", size: 46).opacity(0.45) }
+                                        }.clipped()
                                         AppText(selected.contains(house.id) ? "✓" : "").font(.system(size: 18)).foregroundStyle(.white)
                                             .frame(width: 28, height: 28).background(selected.contains(house.id) ? XJTheme.primary : .white)
                                             .clipShape(RoundedRectangle(cornerRadius: 9))
@@ -125,11 +137,11 @@ struct MPComparisonSelection: View {
                                     }.frame(height: 142).clipped()
                                     VStack(alignment: .leading, spacing: 8) {
                                         Text(verbatim: house.card.name).font(.system(size: 14, weight: .semibold)).lineLimit(1)
-                                        AppText(house.card.rent.isEmpty ? "租金待填写" : "\(house.card.currencyCode) \(house.card.rent) / 月").font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary)
+                                        Text(verbatim: AppCopy.monthlyRent(house.card.rent, currency: house.card.currencyCode)).font(.system(size: 17, weight: .semibold)).foregroundStyle(XJTheme.primary)
                                         Text(verbatim: "\(house.card.area)m² · \(AppCopy.text(house.card.decision.isEmpty ? "待检查" : house.card.decision))").font(.system(size: 11, weight: .medium)).foregroundStyle(XJTheme.muted)
                                         Spacer(minLength: 0)
                                     }.padding(.horizontal, 11).padding(.vertical, 12).frame(height: 126).frame(maxWidth: .infinity, alignment: .leading)
-                                }.background(.white).clipShape(RoundedRectangle(cornerRadius: 16))
+                                }.background(.white).clipShape(RoundedRectangle(cornerRadius: 16)).contentShape(.interaction, RoundedRectangle(cornerRadius: 16))
                                     .overlay(RoundedRectangle(cornerRadius: 16).stroke(selected.contains(house.id) ? XJTheme.primary : XJTheme.line))
                             }.buttonStyle(.plain).accessibilityIdentifier("mp.compare.\(house.id)").accessibilityAddTraits(selected.contains(house.id) ? .isSelected : [])
                         }

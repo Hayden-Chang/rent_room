@@ -1,0 +1,38 @@
+
+ RUN  v5.0.3 /private/tmp/rent-room-first-launch-examples-20261030/apps/wechat
+
+ ❯ tests/example-houses.test.js (11 tests | 1 failed | 10 skipped) 24ms
+   ❯ first-visit example houses (11)
+     × seeds English sample content while keeping choices, currency and photos canonical 23ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/example-houses.test.js > first-visit example houses > seeds English sample content while keeping choices, currency and photos canonical
+AssertionError: expected [ '示例·地铁一居', '示例·阳光两居' ] to deeply equal [ 'Demo · Metro 1BR', …(1) ]
+
+- Expected
++ Received
+
+  [
+-   "Demo · Metro 1BR",
+-   "Demo · Sunny 2BR",
++   "示例·地铁一居",
++   "示例·阳光两居",
+  ]
+
+ ❯ tests/example-houses.test.js:12:35
+     10|   it('seeds English sample content while keeping choices, currency and…
+     11|     const io=adapter(),s=createStore(io,{firstVisit:true,exampleLangua…
+     12|     expect(houses.map(h=>h.name)).toEqual(['Demo · Metro 1BR','Demo · …
+       |                                   ^
+     13|     for(const house of houses){
+     14|       for(const text of [house.name,house.address,house.summary,...hou…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 skipped (11)
+   Start at  00:55:14
+   Duration  256ms (transform 67%, tests 16%, import 16%, worker 2%)
+

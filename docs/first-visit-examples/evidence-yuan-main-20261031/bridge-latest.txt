@@ -1,0 +1,29 @@
+✔ third successful creation survives deletion and relaunch; either condition requests only once (57.71475ms)
+✔ failed creation, import and restore never inflate the creation count (35.616041ms)
+✔ guest transfer combines counts once, including already requested state (81.067958ms)
+✔ request consumption is durable and rolls back when saving fails (1.554292ms)
+✔ legacy records and feedback drafts do not fabricate creation history or satisfaction gates (57.6735ms)
+✔ mini-program default store keeps its existing state contract (5.9595ms)
+✔ read-only bridge replies omit the unchanged snapshot but preserve query results (45.310417ms)
+✔ mutations transfer state once and keep legacy result semantics via valueIsState (18.028333ms)
+✔ save failures report fresh status without replacing a rolled-back snapshot (16.292666ms)
+✔ capacity-only updates and rejected reads never resend records (5.804334ms)
+✔ initialization resets snapshot tracking and durable removal updates summaries (11.0485ms)
+✔ cached queries preserve filter and house parameters and invalidate on every mutation (44.041958ms)
+✔ cached guidance expires when the local day changes (25.073125ms)
+✔ house deltas reconstruct the full snapshot across edits, removals, rollback and reinitialization (91.342083ms)
+{"id":"f116_1","label":"押金退还时限","values":["放弃","3 天"],"localized":[false,true],"choices":[[{"label":"放弃","localized":false,"detail":""}],[{"label":"3 天","localized":true,"detail":""}]]}
+✔ ios/tests/currency-localization.test.mjs (63.078583ms)
+✔ currency creation retains review progress atomically across failed saves and restart (66.319125ms)
+✔ simple: same-phase C-D-E-F is quiet, while intro, phase and completion remain (12.774917ms)
+✔ detailed: same-phase C-D-E-F is quiet, while intro, phase and completion remain (4.12175ms)
+✔ saved same-phase recommendation stays hidden on reopen and stale accept cannot expand it (2.174041ms)
+✔ first-use teaching, new-house introduction and disabled guidance keep their existing boundaries (4.326666ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 314.7365

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-example-photos-20261031-e",
+  "phase": "development",
+  "taskName": "示例照片封面约束后的双列卡片实际截图与间距回归",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/private/tmp/rent-room-first-launch-examples-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/ExampleHousesReviewTests/testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch",
+      "reason": "首页和对比选择页照片卡片保持间距与屏幕边距，真实对比和重启",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/ExampleHousesReviewTests/testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch"
+  ]
+}

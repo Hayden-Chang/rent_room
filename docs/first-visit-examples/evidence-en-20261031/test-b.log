@@ -1,0 +1,28 @@
+** TEST BUILD SUCCEEDED **
+Test Suite 'Selected tests' started at 2026-10-31 01:02:21.227.
+Test Suite 'XunjuTests.xctest' started at 2026-10-31 01:02:21.228.
+Test Suite 'AppCopyTests' started at 2026-10-31 01:02:21.228.
+Test Case '-[XunjuTests.AppCopyTests testCanonicalComparisonAndWheelUnitsPreserveCustomValues]' started.
+Test Case '-[XunjuTests.AppCopyTests testCanonicalComparisonAndWheelUnitsPreserveCustomValues]' passed (0.163 seconds).
+Test Case '-[XunjuTests.AppCopyTests testCanonicalTemplateArgumentsTranslateWhileUserNamesStayVerbatim]' started.
+Test Case '-[XunjuTests.AppCopyTests testCanonicalTemplateArgumentsTranslateWhileUserNamesStayVerbatim]' passed (0.004 seconds).
+Test Case '-[XunjuTests.AppCopyTests testEnglishIssueCountUsesSingularOnlyForOne]' started.
+Test Case '-[XunjuTests.AppCopyTests testEnglishIssueCountUsesSingularOnlyForOne]' passed (0.001 seconds).
+Test Suite 'AppCopyTests' passed at 2026-10-31 01:02:21.397.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.168 (0.169) seconds
+Test Suite 'XunjuTests.xctest' passed at 2026-10-31 01:02:21.398.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.168 (0.170) seconds
+Test Suite 'Selected tests' passed at 2026-10-31 01:02:21.398.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.168 (0.170) seconds
+Test Suite 'Selected tests' started at 2026-10-31 01:02:23.824.
+Test Suite 'XunjuUITests.xctest' started at 2026-10-31 01:02:23.828.
+Test Suite 'ExampleHousesReviewTests' started at 2026-10-31 01:02:23.828.
+Test Case '-[XunjuUITests.ExampleHousesReviewTests testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText]' started.
+Test Case '-[XunjuUITests.ExampleHousesReviewTests testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText]' passed (18.518 seconds).
+Test Suite 'ExampleHousesReviewTests' passed at 2026-10-31 01:02:42.348.
+	 Executed 1 test, with 0 failures (0 unexpected) in 18.518 (18.520) seconds
+Test Suite 'XunjuUITests.xctest' passed at 2026-10-31 01:02:42.349.
+	 Executed 1 test, with 0 failures (0 unexpected) in 18.518 (18.521) seconds
+Test Suite 'Selected tests' passed at 2026-10-31 01:02:42.350.
+	 Executed 1 test, with 0 failures (0 unexpected) in 18.518 (18.526) seconds
+** TEST EXECUTE SUCCEEDED **

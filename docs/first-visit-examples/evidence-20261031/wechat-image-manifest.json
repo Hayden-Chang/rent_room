@@ -1,0 +1,42 @@
+[
+  {
+    "state": "home",
+    "source": "/Volumes/mac2/codex-builds/wechat-instance-pool/runs/ff1738fbf4b54b41836443a2f7819d54/examples-wechat-home.png",
+    "file": "wechat-home.png",
+    "display": "/Users/pc/.codex/visualizations/2026/10/30/01a18c34-450b-7f32-86d6-a9abd0f5d7ed/first-visit-examples/wechat-home-photos.png",
+    "width": 780,
+    "height": 1342,
+    "sha256": "294e592e126607e9225dd2e8cbe094cc3e3f1e0f9e9d9231b6257faa5cb27eb3",
+    "identical": true
+  },
+  {
+    "state": "selected",
+    "source": "/Volumes/mac2/codex-builds/wechat-instance-pool/runs/ff1738fbf4b54b41836443a2f7819d54/examples-wechat-selected.png",
+    "file": "wechat-selected.png",
+    "display": "/Users/pc/.codex/visualizations/2026/10/30/01a18c34-450b-7f32-86d6-a9abd0f5d7ed/first-visit-examples/wechat-selected-photos.png",
+    "width": 780,
+    "height": 1342,
+    "sha256": "b69b607429af5803381d145c532e15c93b40c2f96f9ad1b473b3e2ec84667fd9",
+    "identical": true
+  },
+  {
+    "state": "comparison",
+    "source": "/Volumes/mac2/codex-builds/wechat-instance-pool/runs/ff1738fbf4b54b41836443a2f7819d54/examples-wechat-comparison.png",
+    "file": "wechat-comparison.png",
+    "display": "/Users/pc/.codex/visualizations/2026/10/30/01a18c34-450b-7f32-86d6-a9abd0f5d7ed/first-visit-examples/wechat-comparison-photos.png",
+    "width": 780,
+    "height": 1342,
+    "sha256": "6170268e0d3a84aa84d814bc969da4594769a6ac653be9512a8d991b361463c7",
+    "identical": true
+  },
+  {
+    "state": "reloaded",
+    "source": "/Volumes/mac2/codex-builds/wechat-instance-pool/runs/ff1738fbf4b54b41836443a2f7819d54/examples-wechat-reloaded.png",
+    "file": "wechat-reloaded.png",
+    "display": "/Users/pc/.codex/visualizations/2026/10/30/01a18c34-450b-7f32-86d6-a9abd0f5d7ed/first-visit-examples/wechat-reloaded-photos.png",
+    "width": 780,
+    "height": 1342,
+    "sha256": "294e592e126607e9225dd2e8cbe094cc3e3f1e0f9e9d9231b6257faa5cb27eb3",
+    "identical": true
+  }
+]

@@ -28,7 +28,8 @@ final class AppWorkspace {
     private(set) var capacityPolicy: CapacityPolicy
     @ObservationIgnored private var purchaseLedger: PurchaseLedger?
 
-    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, places: NativePlaceService = NativePlaceService(), storefront: (any CapacityStorefront)? = nil, regionalDefaults: UserDefaults? = nil, countryLocator: (any CountryLocating)? = nil) throws {
+    init(root: URL, keychain: any SessionStorage = SessionKeychain(), mapTransport: any MapTransport = NativeMapTransport(), mapKey: String = NativeConfiguration.current.tiandituKey, places: NativePlaceService = NativePlaceService(), storefront: (any CapacityStorefront)? = nil, regionalDefaults: UserDefaults? = nil, countryLocator: (any CountryLocating)? = nil, firstVisitExamples: Bool = false) throws {
+        let firstVisit = firstVisitExamples && !FileManager.default.fileExists(atPath: root.path)
         let regional = RegionalSettingsModel(defaults: regionalDefaults ?? (Self.isBusinessTest ? UserDefaults(suiteName: "regional-business." + root.lastPathComponent)! : .standard))
         self.regional = regional
         currencyLocation = CurrencyLocationFlow(settings: regional, locator: countryLocator ?? SystemCountryLocation())
@@ -54,7 +55,7 @@ final class AppWorkspace {
         let legacyPacks = try purchaseCache.legacyPacks(seed: saved?.packs)
         let directory = try scopes.offlineDirectory(legacy: saved)
         store = try NativeStore(directory: directory, packs: cached?.packs ?? legacyPacks,
-            freeLimit: effectivePolicy.freeLimit, creditAccount: cached?.account ?? "local", network: mapTransport)
+            freeLimit: effectivePolicy.freeLimit, creditAccount: cached?.account ?? "local", network: mapTransport, firstVisit: firstVisit && saved == nil, exampleLanguage: regional.language)
         // Resume only an already journalled migration; never claim another guest on launch.
         if let saved, directory == (try scopes.accountDirectory(saved.account)),
            FileManager.default.fileExists(atPath: directory.appending(path: "guest-claim.json").path), !store.status.blocked {

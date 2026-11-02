@@ -1,0 +1,35 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "AEF1C980-0F87-4A79-8A64-CD6607249A6B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-comparison_0_A3200282-C2FA-494D-89DF-280B50F07944.png",
+        "timestamp" : 1793378126.795
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "DD8131B9-61A2-409B-9491-B872E40E1847.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-selected_0_FBBDE4A0-D881-4575-B52B-ECAA2C86E4A2.png",
+        "timestamp" : 1793378121.915
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "FE18CE9E-F93E-4D0F-8561-86ABA8846B89.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-home_0_80DF0C23-1A97-408B-8C03-DFDD1C5ACFBB.png",
+        "timestamp" : 1793378118.523
+      }
+    ],
+    "testIdentifier" : "ExampleHousesReviewTests/testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/ExampleHousesReviewTests/testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch"
+  }
+]

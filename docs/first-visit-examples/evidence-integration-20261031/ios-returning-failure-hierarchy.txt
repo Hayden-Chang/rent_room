@@ -1,0 +1,73 @@
+Application, 0x117848640, pid: 90797, label: '寻居' <App element pid: 90797>
+  Window (Main), 0x117848a00, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4398590976.60>
+    Other, 0x117848780, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4420824896.61>
+    Other, 0x117849400, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 5343201280.62>
+      Other, 0x117849540, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4420825344.63>
+        Other, 0x117849680, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4420827136.64>
+          Other, 0x11784b980, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4423164032.65>
+            Other, 0x1178488c0, {{0.0, 0.0}, {786.0, 1704.0}} <AX element pid: 90797, elementOrHash.elementID: 5343201792.66>
+              Other, 0x11784a6c0, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4965509496000824273.9999>
+                Other, 0x11784ae40, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90829, elementOrHash.elementID: 4450663936.4>
+                  Other, 0x11784af80, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90829, elementOrHash.elementID: 4450774912.5>
+                    Other, 0x11784b0c0, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90829, elementOrHash.elementID: 4450977536.6>
+                      Other, 0x11784b200, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90829, elementOrHash.elementID: 4450977984.7>
+                        Other, 0x117848500, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90829, elementOrHash.elementID: 4450976640.8>
+                          Other, 0x11784bac0, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90829, elementOrHash.elementID: 4450979328.9>
+  Window, 0x11784b700, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4398581760.4>
+    Other, 0x11784ad00, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4422041600.5>
+      Other, 0x117849b80, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4421233280.6>
+        Other, 0x117849cc0, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4398580736.7>
+          Other, 0x117849e00, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4399806912.8>
+            Other, 0x117849040, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4421448384.9>
+              Other, 0x1178492c0, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4421448832.12>
+                Other, 0x117849180, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4399698304.20>
+                  Other, 0x117848000, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4398891008.22>
+                    Other, 0x117848140, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4420824448.23>
+                      ScrollView, 0x117848280, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4398088192.24>
+                        Other, 0x11784b340, {{0.0, 103.0}, {393.0, 386.0}} <AX element pid: 90797, elementOrHash.elementID: 4422053888.30>
+                          Other, 0x11784bc00, {{16.0, 119.0}, {361.0, 52.0}}, identifier: 'home.longPressHint' <AX element pid: 90797, elementOrHash.elementID: 4399767424.40>
+                            Image, 0x11784bd40, {{33.3, 137.7}, {15.0, 15.0}}, identifier: 'info.circle', label: '简介' <AX element pid: 90797, elementOrHash.elementID: 4399762048.43>
+                            StaticText, 0x11784be80, {{57.7, 136.0}, {119.3, 18.0}}, identifier: 'home.longPressHint.message', label: '长按支持更多操作' <AX element pid: 90797, elementOrHash.elementID: 4399766528.44>
+                            Button, 0x106e03200, {{297.0, 123.0}, {64.0, 44.0}}, identifier: 'home.longPressHint.dismiss', label: '我知道了' <AX element pid: 90797, elementOrHash.elementID: 4399766976.45>
+                          Other, 0x106e03e80, {{16.0, 187.0}, {361.0, 286.0}} <AX element pid: 90797, elementOrHash.elementID: 4420816384.41>
+                            Button, 0x106e03ac0, {{16.0, 187.0}, {175.7, 286.0}}, identifier: 'house.阳光小区', label: '继续比较、阳光小区、USD 3200 / 月、朝阳路18号 · 68m²、检查 3 / 202' <AX element pid: 90797, elementOrHash.elementID: 4399807808.46>
+                              Image, 0x106e03c00, {{80.7, 235.0}, {46.0, 46.0}}, label: 'home-selected' <AX element pid: 90797, elementOrHash.elementID: 4399768768.48>
+                              StaticText, 0x106e03d40, {{34.0, 200.0}, {44.0, 13.3}}, label: '继续比较' <AX element pid: 90797, elementOrHash.elementID: 4399770112.49>
+                              StaticText, 0x106e03480, {{28.0, 342.5}, {55.7, 17.0}}, label: '阳光小区' <AX element pid: 90797, elementOrHash.elementID: 4399772800.50>
+                              StaticText, 0x106e035c0, {{28.0, 370.8}, {112.3, 20.3}}, label: 'USD 3200 / 月' <AX element pid: 90797, elementOrHash.elementID: 4399774144.51>
+                              StaticText, 0x106e03840, {{28.0, 402.3}, {99.0, 13.3}}, label: '朝阳路18号 · 68m²' <AX element pid: 90797, elementOrHash.elementID: 4399775040.52>
+                              StaticText, 0x106e03700, {{28.0, 427.0}, {68.0, 14.3}}, label: '检查 3 / 202' <AX element pid: 90797, elementOrHash.elementID: 4399807360.53>
+                            Button, 0x106e03980, {{201.7, 187.0}, {175.3, 286.0}}, identifier: 'house.新城公寓', label: '待检查、新城公寓、USD 2800 / 月、新城路8号 · 52m²、检查 3 / 202' <AX element pid: 90797, elementOrHash.elementID: 4420815936.47>
+                              Image, 0x117acc000, {{266.3, 235.0}, {46.0, 46.0}}, label: 'home-selected' <AX element pid: 90797, elementOrHash.elementID: 4421438080.54>
+                              StaticText, 0x117acc140, {{219.5, 200.0}, {33.0, 13.3}}, label: '待检查' <AX element pid: 90797, elementOrHash.elementID: 4420812800.55>
+                              StaticText, 0x117acc280, {{213.5, 342.5}, {55.7, 17.0}}, label: '新城公寓' <AX element pid: 90797, elementOrHash.elementID: 4420813696.56>
+                              StaticText, 0x117acc3c0, {{213.5, 370.8}, {112.7, 20.3}}, label: 'USD 2800 / 月' <AX element pid: 90797, elementOrHash.elementID: 4420814144.57>
+                              StaticText, 0x117acc500, {{213.5, 402.3}, {93.0, 13.3}}, label: '新城路8号 · 52m²' <AX element pid: 90797, elementOrHash.elementID: 4420814592.58>
+                              StaticText, 0x117acc640, {{213.5, 427.0}, {68.0, 14.3}}, label: '检查 3 / 202' <AX element pid: 90797, elementOrHash.elementID: 4420815040.59>
+                        Other, 0x117acc780, {{360.0, 103.0}, {30.0, 665.0}}, label: '垂直滚动条, 1页', value: 0% <AX element pid: 90797, elementOrHash.elementID: 5340763136.31>
+                          Other, 0x117acc8c0, {{387.0, 385.0}, {3.0, 380.0}} <AX element pid: 90797, elementOrHash.elementID: 4399700544.42>
+                        Other, 0x117acca00, {{360.0, 103.0}, {30.0, 665.0}}, label: '垂直滚动条, 1页', value: 0% <AX element pid: 90797, elementOrHash.elementID: 5340763136.31>
+                          Other, 0x117accb40, {{387.0, 385.0}, {3.0, 380.0}} <AX element pid: 90797, elementOrHash.elementID: 4399700544.42>
+                      Other, 0x117accc80, {{0.0, 59.0}, {393.0, 44.0}}, identifier: 'navigation.header' <AX element pid: 90797, elementOrHash.elementID: 4420818624.25>
+                        StaticText, 0x117accdc0, {{0.0, 59.0}, {393.0, 44.0}}, label: '我的房源' <AX element pid: 90797, elementOrHash.elementID: 4420818176.32>
+                      Button, 0x117accf00, {{325.0, 700.0}, {52.0, 52.0}}, identifier: 'home.add', label: '新建房源' <AX element pid: 90797, elementOrHash.elementID: 4420819968.26>
+                        Image, 0x117acd040, {{339.0, 714.0}, {24.0, 24.0}}, label: 'plus' <AX element pid: 90797, elementOrHash.elementID: 4420819072.33>
+                      Button, 0x117acd180, {{0.0, 768.0}, {131.0, 50.0}}, identifier: 'tab.房源', label: '房源', Selected <AX element pid: 90797, elementOrHash.elementID: 4420821312.27>
+                        Image, 0x117acd2c0, {{53.7, 773.7}, {24.0, 24.0}}, label: 'home-selected' <AX element pid: 90797, elementOrHash.elementID: 4420820416.34>
+                        StaticText, 0x117acd400, {{0.0, 768.0}, {131.0, 50.0}}, label: '房源' <AX element pid: 90797, elementOrHash.elementID: 4420820864.35>
+                      Button, 0x117acd540, {{131.0, 768.0}, {131.0, 50.0}}, identifier: 'tab.对比', label: '对比' <AX element pid: 90797, elementOrHash.elementID: 4420822656.28>
+                        Image, 0x117acd680, {{184.7, 773.7}, {24.0, 24.0}}, label: 'compare-default' <AX element pid: 90797, elementOrHash.elementID: 4420821760.36>
+                        StaticText, 0x117acd7c0, {{131.0, 768.0}, {131.0, 50.0}}, label: '对比' <AX element pid: 90797, elementOrHash.elementID: 4420822208.37>
+                      Button, 0x117acd900, {{262.0, 768.0}, {131.0, 50.0}}, identifier: 'tab.我的', label: '我的' <AX element pid: 90797, elementOrHash.elementID: 4420824000.29>
+                        Image, 0x117acda40, {{315.7, 773.7}, {24.0, 24.0}}, label: 'settings-default' <AX element pid: 90797, elementOrHash.elementID: 4420823104.38>
+                        StaticText, 0x117acdb80, {{262.0, 768.0}, {131.0, 50.0}}, label: '我的' <AX element pid: 90797, elementOrHash.elementID: 4420823552.39>
+              Other, 0x117acdcc0, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4422055424.13>
+                Other, 0x117acde00, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4422057472.21>
+            Alert, 0x117acdf40, {{0.0, 0.0}, {393.0, 852.0}} <AX element pid: 90797, elementOrHash.elementID: 4399806016.10>
+              Image, 0x117ace080, {{175.7, 272.3}, {42.0, 42.0}}, identifier: 'location.circle.fill', label: '朝手机' <AX element pid: 90797, elementOrHash.elementID: 4399802432.14>
+              StaticText, 0x117ace1c0, {{62.3, 337.3}, {268.3, 24.0}}, identifier: 'currency.prompt.title', label: '获取当前位置自动识别货币类型' <AX element pid: 90797, elementOrHash.elementID: 4399802880.15>
+              StaticText, 0x117ace300, {{50.3, 381.3}, {292.3, 58.3}}, label: '根据你所在的国家或地区，设置租金和费用的默认货币类型。拒绝定位将默认使用美元，之后可在设置中修改。' <AX element pid: 90797, elementOrHash.elementID: 4399803328.16>
+              Button, 0x117ace440, {{48.0, 459.7}, {297.0, 44.0}}, identifier: 'currency.prompt.allow', label: '自动识别' <AX element pid: 90797, elementOrHash.elementID: 4399803776.17>
+              Button, 0x117ace580, {{48.0, 511.7}, {297.0, 44.0}}, identifier: 'currency.prompt.manual', label: '手动选择' <AX element pid: 90797, elementOrHash.elementID: 4399805120.18>
+              Button, 0x117ace6c0, {{48.0, 563.7}, {297.0, 44.0}}, identifier: 'currency.prompt.decline', label: '使用美元' <AX element pid: 90797, elementOrHash.elementID: 4399805568.19>
+            Other, 0x117ace800, {{0.0, 59.0}, {393.0, 759.0}} <AX element pid: 90797, elementOrHash.elementID: 4421440320.11>

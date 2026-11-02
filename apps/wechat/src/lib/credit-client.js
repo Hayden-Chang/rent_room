@@ -16,7 +16,7 @@ export function prepareCreditMigration(fs,root,account) {
   try{fs.mkdirSync(root,true);}catch{fs.accessSync(root);}
   const io=files(fs,root),saved=io.read('credit-migration-input.json');
   if(saved){if(saved.account!==account||!Number.isSafeInteger(saved.active)||saved.active<0)throw Error('原有房源点数记录无效，请保留本机数据');return saved.active;}
-  const state=io.read('state.json'),active=state?validateState(state).houses.filter(h=>!h.archived).length:0;
+  const state=io.read('state.json'),active=state?validateState(state).houses.filter(h=>!h.archived&&!h.example).length:0;
   io.write('credit-migration-input.json',{account,active});return active;
 }
 

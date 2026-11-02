@@ -1,0 +1,182 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "6B792037-9558-467F-83D2-AED5F70113A4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-english-comparison_0_C4EACE5D-D418-42C0-BBC3-4C08E324EBAA.png",
+        "timestamp" : 1793421449.05
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "9354CFCC-494B-40AD-8C0E-E6318085E62E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-english-selected_0_99811486-EEE2-4741-93BB-9C9EEA31D457.png",
+        "timestamp" : 1793421441.57
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "FD394CDA-BE2D-48C2-9AC9-5B863E0CCF55.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "examples-ios-english-home_0_1FF4671B-3772-49FD-B512-6488C4028B8C.png",
+        "timestamp" : 1793421428.966
+      }
+    ],
+    "testIdentifier" : "ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "DF8400CB-9E6F-488F-912E-7D502B86566C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-examples-comparison_0_025D7E89-BEE5-4570-828C-9E058BCF3792.png",
+        "timestamp" : 1793421508.019
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "FC9D5CDC-5A12-45F7-B5ED-CF3CD69FA67B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-examples-selected_0_2744AAE5-EFF1-41E0-873E-61BAD1909B2D.png",
+        "timestamp" : 1793421499.793
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "EE56A49A-EA62-4E4C-9C6B-F47B98B0A6AF.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-setup-completed-home_0_1FB79A1B-ADF1-472A-8F74-CFD51425177F.png",
+        "timestamp" : 1793421495.244
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "25C8712C-32EE-4E26-884E-4EA1D1B4F4DC.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-setup-choice-restored_0_6E0EC8B9-C42F-440F-A8A4-196244B6490D.png",
+        "timestamp" : 1793421486.896
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "45E8527C-9689-4669-8EE1-D8D59FA80843.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-first-setup_0_D52B34D3-95F2-44C1-964C-0F10190E3551.png",
+        "timestamp" : 1793421475.96
+      }
+    ],
+    "testIdentifier" : "LaunchIntegrationTests/testFirstLaunchReachesSetupAndRelaunchRetainsChoice()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/LaunchIntegrationTests/testFirstLaunchReachesSetupAndRelaunchRetainsChoice"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "D016CB51-AB0C-4187-9257-98361A6902EE.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "App UI hierarchy for com.keeline.xunju_0_4BFB3621-0E73-41D5-BFA9-9BA652AA2570.ios",
+        "timestamp" : 1793421546.28
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "6637E6AB-CF80-4D1E-9529-7D6666394C77",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-31 at 12.39.06",
+        "timestamp" : 1793421546.28
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "2DDF37C4-F8B3-44B5-8D82-D2FB20A19A79.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"喜欢“寻居”吗？\" StaticText`_0_E9293FBD-73FC-45F5-B41F-543B493C064F.txt",
+        "timestamp" : 1793421543.242
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "620E0564-2055-49CC-8E43-E26B1F8CF156.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"喜欢“寻居”吗？\" StaticText`_0_E50059D2-05E4-418E-8A61-28ECEB7C8F2D.txt",
+        "timestamp" : 1793421539.073
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "A63533AD-4A3D-4404-8F18-1A9EBB7D935F.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"喜欢“寻居”吗？\" StaticText`_0_0BF0FB24-28D1-4142-BCFD-55D33976D04F.txt",
+        "timestamp" : 1793421538.035
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "B7D56473-360C-4079-A94F-FC61768E255A.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"喜欢“寻居”吗？\" StaticText`_0_5DD82441-A926-4720-A7FF-4E4217B1A539.txt",
+        "timestamp" : 1793421537.028
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "79E4E457-33DB-4547-B726-26B9C986794C.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"喜欢“寻居”吗？\" StaticText`_0_4EC0D1CD-FED1-4862-97AD-C83DE37FD657.txt",
+        "timestamp" : 1793421535.965
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "D84E8F56-BDCE-467B-A241-D15AA23630D0.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"喜欢“寻居”吗？\" StaticText`_0_9D200294-8E6D-431A-8B9E-613623878950.txt",
+        "timestamp" : 1793421534.996
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "494206D9-91EB-4BAF-92D6-CF7793E2E91A.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"喜欢“寻居”吗？\" StaticText`_0_C8138AEE-0951-425C-8B5D-E204E62B7694.txt",
+        "timestamp" : 1793421534.42
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "ABB6270F-857C-4382-A7DA-C515E55FDF44.mp4",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Screen Recording 2026-10-31 at 12.38.44.mp4",
+        "timestamp" : 1793421524.012
+      }
+    ],
+    "testIdentifier" : "LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage"
+  }
+]

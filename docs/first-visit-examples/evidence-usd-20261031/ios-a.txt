@@ -1,0 +1,8 @@
+Validated final-pr-head plan rent-room-english-usd-20261031-a: 6 UT, 1 UI.
+Build cache: /Volumes/mac2/codex-builds/time-fragment-dd-shared-adf0fec677505f0e5471b500-simulator; scheme Xunju
+Running rent-room-english-usd-20261031-a build; command PID 29565; simulator none.
+Native core: 67 canonical sources, 337554 bytes
+Regional copy: 190 paired entries; agy provenance and placeholders verified.
+App copy: 1343 entries; agy provenance and placeholders verified
+Native map configuration: configured
+/Users/pc/.codex/worktrees/english-demo-usd/rent_room/scripts/check-xcodegen.sh: line 9: xcodegen: command not found

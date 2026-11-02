@@ -1,0 +1,11 @@
+
+ RUN  v5.0.3 /Users/pc/.codex/worktrees/english-demo-usd/rent_room/apps/wechat
+
+
+ Test Files  13 passed (13)
+      Tests  184 passed (184)
+   Start at  23:11:55
+   Duration  8.74s (tests 83%, import 9%, transform 7%)
+
+    Isolate  13 workers spawned · ~71ms startup each (spawn + environment, per file)
+             at least ~852ms faster with isolate: false — reuses workers across files instead of one per file

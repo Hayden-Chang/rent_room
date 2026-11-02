@@ -1,0 +1,206 @@
+Running rent-room-english-usd-20261031-b test; command PID 30782; simulator 8F178971-C203-4690-A83B-253046EACBB1.
+Native core: 67 canonical sources, 337554 bytes
+Regional copy: 190 paired entries; agy provenance and placeholders verified.
+App copy: 1343 entries; agy provenance and placeholders verified
+Native map configuration: configured
+XcodeGen 2.45.4: deterministic project verified
+Refreshed XCTest runner for rent-room-english-usd-20261031-b; application data retained
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project /Users/pc/.codex/worktrees/english-demo-usd/rent_room/ios/Xunju.xcodeproj -scheme Xunju -destination "platform=iOS Simulator,id=8F178971-C203-4690-A83B-253046EACBB1" -derivedDataPath /Volumes/mac2/codex-builds/time-fragment-dd-shared-adf0fec677505f0e5471b500-simulator -resultBundlePath /private/tmp/rent-room-english-usd-20261031/ios-b.xcresult test-without-building "-only-testing:XunjuTests/ExampleHousesTests/testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange" "-only-testing:XunjuTests/ExampleHousesTests/testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart" "-only-testing:XunjuTests/ExampleHousesTests/testExistingEmptyInstallationAndOldHouseAreNeverSeeded" "-only-testing:XunjuTests/ExampleHousesTests/testExistingKeychainSessionDoesNotReceiveExamplesEvenWithoutDataDirectory" "-only-testing:XunjuTests/ExampleHousesTests/testExistingEmptyFileAndRecoveryCopyAreNeverSeeded" "-only-testing:XunjuTests/ExampleHousesTests/testExamplePhotosSurviveBackupExportAndImport" "-only-testing:XunjuUITests/ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  ZIPFoundation: https://github.com/weichsel/ZIPFoundation.git @ 0.9.20
+
+Writing result bundle at path:
+	/private/tmp/rent-room-english-usd-20261031/ios-b.xcresult
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:8F178971-C203-4690-A83B-253046EACBB1, OS:18.3.1, name:todo-pool-ios18-compat-iphone14pro-20261022 }
+{ platform:iOS Simulator, arch:x86_64, id:8F178971-C203-4690-A83B-253046EACBB1, OS:18.3.1, name:todo-pool-ios18-compat-iphone14pro-20261022 }
+Test Suite 'Selected tests' started at 2026-10-31 22:50:16.487.
+Test Suite 'XunjuTests.xctest' started at 2026-10-31 22:50:16.488.
+Test Suite 'ExampleHousesTests' started at 2026-10-31 22:50:16.488.
+Test Case '-[XunjuTests.ExampleHousesTests testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange]' passed (0.156 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testExamplePhotosSurviveBackupExportAndImport]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testExamplePhotosSurviveBackupExportAndImport]' passed (0.543 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testExistingEmptyFileAndRecoveryCopyAreNeverSeeded]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testExistingEmptyFileAndRecoveryCopyAreNeverSeeded]' passed (0.030 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testExistingEmptyInstallationAndOldHouseAreNeverSeeded]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testExistingEmptyInstallationAndOldHouseAreNeverSeeded]' passed (0.087 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testExistingKeychainSessionDoesNotReceiveExamplesEvenWithoutDataDirectory]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testExistingKeychainSessionDoesNotReceiveExamplesEvenWithoutDataDirectory]' passed (0.020 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart]' passed (0.099 seconds).
+Test Suite 'ExampleHousesTests' passed at 2026-10-31 22:50:17.426.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.935 (0.938) seconds
+Test Suite 'XunjuTests.xctest' passed at 2026-10-31 22:50:17.426.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.935 (0.938) seconds
+Test Suite 'Selected tests' passed at 2026-10-31 22:50:17.426.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.935 (0.939) seconds
+2026-10-31 22:50:18.642158+0800 XunjuUITests-Runner[30891:499147] [Default] Running tests...
+Test Suite 'Selected tests' started at 2026-10-31 22:50:19.292.
+Test Suite 'XunjuUITests.xctest' started at 2026-10-31 22:50:19.293.
+Test Suite 'ExampleHousesLaunchTests' started at 2026-10-31 22:50:19.293.
+Test Case '-[XunjuUITests.ExampleHousesLaunchTests testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText]' started.
+    t =     0.00s Start Test at 2026-10-31 22:50:19.293
+    t =     0.07s Set Up
+    t =     0.07s Open com.keeline.xunju.ios
+    t =     0.07s     Launch com.keeline.xunju.ios
+2026-10-31 22:50:19.616 xcodebuild[30782:498216] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-31 22:50:19.616 xcodebuild[30782:498216] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     0.74s         Setting up automation session
+    t =     1.36s         Wait for com.keeline.xunju.ios to idle
+    t =     2.76s Waiting 10.0s for "setup.next" Button to exist
+    t =     3.79s     Checking `Expect predicate `existsNoRetry == 1` for object "setup.next" Button`
+    t =     3.79s         Checking existence of `"setup.next" Button`
+    t =     3.97s Tap "setup.next" Button
+    t =     3.97s     Wait for com.keeline.xunju.ios to idle
+    t =     3.97s     Find the "setup.next" Button
+    t =     4.00s     Check for interrupting elements affecting "setup.next" Button
+    t =     4.03s     Synthesize event
+    t =     4.33s     Wait for com.keeline.xunju.ios to idle
+    t =     4.34s Waiting 3.0s for "setup.mode.simple" Button to exist
+    t =     5.36s     Checking `Expect predicate `existsNoRetry == 1` for object "setup.mode.simple" Button`
+    t =     5.37s         Checking existence of `"setup.mode.simple" Button`
+    t =     5.39s Tap "setup.mode.simple" Button
+    t =     5.39s     Wait for com.keeline.xunju.ios to idle
+    t =     5.40s     Find the "setup.mode.simple" Button
+    t =     5.41s     Check for interrupting elements affecting "setup.mode.simple" Button
+    t =     5.43s     Synthesize event
+    t =     5.72s     Wait for com.keeline.xunju.ios to idle
+    t =     5.73s Tap "setup.next" Button
+    t =     5.73s     Wait for com.keeline.xunju.ios to idle
+    t =     5.74s     Find the "setup.next" Button
+    t =     5.76s     Check for interrupting elements affecting "setup.next" Button
+    t =     5.78s     Synthesize event
+    t =     6.07s     Wait for com.keeline.xunju.ios to idle
+    t =     6.07s Waiting 5.0s for "currency.prompt.decline" Button to exist
+    t =     7.10s     Checking `Expect predicate `existsNoRetry == 1` for object "currency.prompt.decline" Button`
+    t =     7.10s         Checking existence of `"currency.prompt.decline" Button`
+    t =     7.14s Tap "currency.prompt.decline" Button
+    t =     7.14s     Wait for com.keeline.xunju.ios to idle
+    t =     7.14s     Find the "currency.prompt.decline" Button
+    t =     7.16s     Check for interrupting elements affecting "currency.prompt.decline" Button
+    t =     7.19s     Synthesize event
+    t =     7.47s     Wait for com.keeline.xunju.ios to idle
+    t =     7.48s Waiting 3.0s for "currency.prompt.title" StaticText to not exist
+    t =     8.50s     Checking `Expect predicate `existsNoRetry == 0` for object "currency.prompt.title" StaticText`
+    t =     8.50s         Checking existence of `"currency.prompt.title" StaticText`
+    t =     8.52s Waiting 10.0s for "house.Demo · Metro 1BR" Button to exist
+    t =     9.55s     Checking `Expect predicate `existsNoRetry == 1` for object "house.Demo · Metro 1BR" Button`
+    t =     9.56s         Checking existence of `"house.Demo · Metro 1BR" Button`
+    t =     9.60s Checking existence of `"house.Demo · Sunny 2BR" Button`
+    t =     9.62s Checking existence of `"My Homes" StaticText`
+    t =     9.63s Find the "house.Demo · Metro 1BR" Button
+    t =     9.65s Find the "house.Demo · Sunny 2BR" Button
+    t =     9.66s Find the "house.Demo · Sunny 2BR" Button
+    t =     9.69s Find the "house.Demo · Sunny 2BR" Button
+    t =     9.70s Find the "house.Demo · Sunny 2BR" Button
+    t =     9.72s Find the "house.Demo · Metro 1BR" Button
+    t =     9.73s Find the "house.Demo · Metro 1BR" Button
+    t =     9.75s Find the Target Application 'com.keeline.xunju.ios'
+    t =     9.76s Find the "house.Demo · Sunny 2BR" Button
+    t =     9.78s Find the Target Application 'com.keeline.xunju.ios'
+    t =     9.79s Find the "house.Demo · Metro 1BR" Button
+    t =     9.80s Find the "house.Demo · Sunny 2BR" Button
+    t =     9.82s Find the Target Application 'com.keeline.xunju.ios'
+    t =     9.90s Added attachment named 'examples-ios-english-home'
+    t =     9.90s Tap "tab.对比" Button
+    t =     9.90s     Wait for com.keeline.xunju.ios to idle
+    t =     9.90s     Find the "tab.对比" Button
+    t =     9.92s     Check for interrupting elements affecting "tab.对比" Button
+    t =     9.94s     Synthesize event
+    t =    10.23s     Wait for com.keeline.xunju.ios to idle
+    t =    10.24s Waiting 3.0s for "compare.select.Demo · Metro 1BR" Button to exist
+    t =    11.27s     Checking `Expect predicate `existsNoRetry == 1` for object "compare.select.Demo · Metro 1BR" Button`
+    t =    11.27s         Checking existence of `"compare.select.Demo · Metro 1BR" Button`
+    t =    11.30s Tap "compare.select.Demo · Metro 1BR" Button
+    t =    11.30s     Wait for com.keeline.xunju.ios to idle
+    t =    11.30s     Find the "compare.select.Demo · Metro 1BR" Button
+    t =    11.32s     Check for interrupting elements affecting "compare.select.Demo · Metro 1BR" Button
+    t =    11.34s     Synthesize event
+    t =    11.62s     Wait for com.keeline.xunju.ios to idle
+    t =    11.63s Waiting 3.0s for "compare.select.Demo · Sunny 2BR" Button to exist
+    t =    12.65s     Checking `Expect predicate `existsNoRetry == 1` for object "compare.select.Demo · Sunny 2BR" Button`
+    t =    12.66s         Checking existence of `"compare.select.Demo · Sunny 2BR" Button`
+    t =    12.69s Tap "compare.select.Demo · Sunny 2BR" Button
+    t =    12.69s     Wait for com.keeline.xunju.ios to idle
+    t =    12.69s     Find the "compare.select.Demo · Sunny 2BR" Button
+    t =    12.71s     Check for interrupting elements affecting "compare.select.Demo · Sunny 2BR" Button
+    t =    12.73s     Synthesize event
+    t =    13.02s     Wait for com.keeline.xunju.ios to idle
+    t =    13.03s Find the "compare.select.Demo · Sunny 2BR" Button
+    t =    13.06s Find the "compare.select.Demo · Metro 1BR" Button
+    t =    13.08s Find the "compare.select.Demo · Metro 1BR" Button
+    t =    13.10s Find the Target Application 'com.keeline.xunju.ios'
+    t =    13.11s Find the "compare.select.Demo · Sunny 2BR" Button
+    t =    13.12s Find the Target Application 'com.keeline.xunju.ios'
+    t =    13.13s Find the "compare.select.Demo · Metro 1BR" Button
+    t =    13.14s Find the "compare.select.Demo · Sunny 2BR" Button
+    t =    13.15s Find the "compare.select.Demo · Metro 1BR" Button
+    t =    13.16s Find the "compare.select.Demo · Sunny 2BR" Button
+    t =    13.17s Find the Target Application 'com.keeline.xunju.ios'
+    t =    13.25s Added attachment named 'examples-ios-english-selected'
+    t =    13.25s Tap "compare.start" Button
+    t =    13.25s     Wait for com.keeline.xunju.ios to idle
+    t =    13.25s     Find the "compare.start" Button
+    t =    13.27s     Check for interrupting elements affecting "compare.start" Button
+    t =    13.28s     Synthesize event
+    t =    13.57s     Wait for com.keeline.xunju.ios to idle
+    t =    13.57s Waiting 3.0s for "Hide identical attributes" Switch to exist
+    t =    14.60s     Checking `Expect predicate `existsNoRetry == 1` for object "Hide identical attributes" Switch`
+    t =    14.61s         Checking existence of `"Hide identical attributes" Switch`
+    t =    14.74s Tap "Hide identical attributes" Switch[0.92, 0.50]
+    t =    14.74s     Wait for com.keeline.xunju.ios to idle
+    t =    14.74s     Find the "Hide identical attributes" Switch
+    t =    14.82s     Check for interrupting elements affecting "Hide identical attributes" Switch
+    t =    14.89s     Synthesize event
+    t =    14.89s         Find the "Hide identical attributes" Switch
+    t =    14.97s         Find the "Hide identical attributes" Switch
+    t =    15.06s         Find the "Hide identical attributes" Switch
+    t =    15.43s     Wait for com.keeline.xunju.ios to idle
+    t =    16.47s Checking `Expect predicate `value == "1"` for object "Hide identical attributes" Switch`
+    t =    16.47s     Find the "Hide identical attributes" Switch
+    t =    16.52s Waiting 3.0s for "compare.row.simple_01" Other to exist
+    t =    17.55s     Checking `Expect predicate `existsNoRetry == 1` for object "compare.row.simple_01" Other`
+    t =    17.55s         Checking existence of `"compare.row.simple_01" Other`
+    t =    17.59s Checking existence of `"USD 1500" StaticText`
+    t =    17.61s Checking existence of `"USD 1900" StaticText`
+    t =    17.63s Find the Target Application 'com.keeline.xunju.ios'
+    t =    17.70s Added attachment named 'examples-ios-english-comparison'
+    t =    17.70s Terminate com.keeline.xunju.ios:30897
+    t =    18.75s Open com.keeline.xunju.ios
+    t =    18.75s     Launch com.keeline.xunju.ios
+2026-10-31 22:50:38.049 xcodebuild[30782:498216] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-10-31 22:50:38.049 xcodebuild[30782:498216] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =    18.97s         Setting up automation session
+    t =    19.75s         Wait for com.keeline.xunju.ios to idle
+    t =    21.05s Waiting 10.0s for "house.Demo · Metro 1BR" Button to exist
+    t =    22.08s     Checking `Expect predicate `existsNoRetry == 1` for object "house.Demo · Metro 1BR" Button`
+    t =    22.08s         Checking existence of `"house.Demo · Metro 1BR" Button`
+    t =    22.17s Get number of matches for: Elements matching predicate '"house.Demo · Metro 1BR" IN identifiers'
+    t =    22.18s Get number of matches for: Elements matching predicate '"house.Demo · Sunny 2BR" IN identifiers'
+    t =    22.20s Find the "house.Demo · Metro 1BR" Button
+    t =    22.21s Find the "house.Demo · Sunny 2BR" Button
+    t =    22.23s Tear Down
+Test Case '-[XunjuUITests.ExampleHousesLaunchTests testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText]' passed (22.464 seconds).
+Test Suite 'ExampleHousesLaunchTests' passed at 2026-10-31 22:50:41.758.
+	 Executed 1 test, with 0 failures (0 unexpected) in 22.464 (22.466) seconds
+Test Suite 'XunjuUITests.xctest' passed at 2026-10-31 22:50:41.759.
+	 Executed 1 test, with 0 failures (0 unexpected) in 22.464 (22.466) seconds
+Test Suite 'Selected tests' passed at 2026-10-31 22:50:41.760.
+	 Executed 1 test, with 0 failures (0 unexpected) in 22.464 (22.468) seconds
+2026-10-31 22:50:42.130 xcodebuild[30782:498216] [MT] IDETestOperationsObserverDebug: 30.156 elapsed -- Testing started completed.
+2026-10-31 22:50:42.130 xcodebuild[30782:498216] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-31 22:50:42.130 xcodebuild[30782:498216] [MT] IDETestOperationsObserverDebug: 30.156 sec, +30.156 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/rent-room-english-usd-20261031/ios-b.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

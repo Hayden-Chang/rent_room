@@ -28,9 +28,9 @@ struct AppReviewPrompt: ViewModifier {
                 // Persist before calling: there is no display/completion callback.
                 if (try? store.call("reviewRequest"))?.bool == true {
                     #if DEBUG
-                    // Capacity UI tests retain eligibility/persistence while isolating
+                    // Business UI tests retain eligibility/persistence while isolating
                     // the external StoreKit rating window, like their payment service.
-                    if CapacityBusinessFixture.suppressesSystemReview() { return }
+                    if CapacityBusinessFixture.suppressesSystemReview() || ReturningBusinessFixture.suppressesSystemReview() { return }
                     #endif
                     requestReview()
                 }

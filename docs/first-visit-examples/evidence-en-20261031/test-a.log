@@ -1,0 +1,39 @@
+** TEST BUILD SUCCEEDED **
+Test Suite 'Selected tests' started at 2026-10-31 00:57:58.943.
+Test Suite 'XunjuTests.xctest' started at 2026-10-31 00:57:58.944.
+Test Suite 'AppCopyTests' started at 2026-10-31 00:57:58.944.
+Test Case '-[XunjuTests.AppCopyTests testCanonicalComparisonAndWheelUnitsPreserveCustomValues]' started.
+Test Case '-[XunjuTests.AppCopyTests testCanonicalComparisonAndWheelUnitsPreserveCustomValues]' passed (0.185 seconds).
+Test Suite 'AppCopyTests' passed at 2026-10-31 00:57:59.130.
+	 Executed 1 test, with 0 failures (0 unexpected) in 0.185 (0.186) seconds
+Test Suite 'ExampleHousesTests' started at 2026-10-31 00:57:59.130.
+Test Case '-[XunjuTests.ExampleHousesTests testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange]' passed (0.213 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testExamplePhotosSurviveBackupExportAndImport]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testExamplePhotosSurviveBackupExportAndImport]' passed (1.611 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testExistingEmptyFileAndRecoveryCopyAreNeverSeeded]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testExistingEmptyFileAndRecoveryCopyAreNeverSeeded]' passed (0.041 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testExistingEmptyInstallationAndOldHouseAreNeverSeeded]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testExistingEmptyInstallationAndOldHouseAreNeverSeeded]' passed (0.110 seconds).
+Test Case '-[XunjuTests.ExampleHousesTests testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart]' started.
+Test Case '-[XunjuTests.ExampleHousesTests testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart]' passed (0.152 seconds).
+Test Suite 'ExampleHousesTests' passed at 2026-10-31 00:58:01.259.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 2.128 (2.130) seconds
+Test Suite 'XunjuTests.xctest' passed at 2026-10-31 00:58:01.260.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 2.313 (2.316) seconds
+Test Suite 'Selected tests' passed at 2026-10-31 00:58:01.260.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 2.313 (2.317) seconds
+Test Suite 'Selected tests' started at 2026-10-31 00:58:03.830.
+Test Suite 'XunjuUITests.xctest' started at 2026-10-31 00:58:03.831.
+Test Suite 'ExampleHousesReviewTests' started at 2026-10-31 00:58:03.831.
+Test Case '-[XunjuUITests.ExampleHousesReviewTests testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText]' started.
+Test Case '-[XunjuUITests.ExampleHousesReviewTests testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText]' passed (18.611 seconds).
+Test Case '-[XunjuUITests.ExampleHousesReviewTests testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch]' started.
+Test Case '-[XunjuUITests.ExampleHousesReviewTests testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch]' passed (18.325 seconds).
+Test Suite 'ExampleHousesReviewTests' passed at 2026-10-31 00:58:40.771.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 36.936 (36.940) seconds
+Test Suite 'XunjuUITests.xctest' passed at 2026-10-31 00:58:40.771.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 36.936 (36.941) seconds
+Test Suite 'Selected tests' passed at 2026-10-31 00:58:40.772.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 36.936 (36.942) seconds
+** TEST EXECUTE SUCCEEDED **

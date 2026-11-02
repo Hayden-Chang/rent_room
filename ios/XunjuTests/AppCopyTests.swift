@@ -2,6 +2,37 @@ import XCTest
 @testable import Xunju
 
 @MainActor final class AppCopyTests: XCTestCase {
+    func testChineseYuanComparisonUsesYuanWithoutChangingUserTextOrOtherCurrencies() {
+        let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
+        defer { AppLanguage.shared.value = prior }
+        let rent: JSONValue = .object(["currency": .bool(true), "values": .array([.string("CNY 2800"), .string("USD 1500")])])
+        XCTAssertEqual(AppCopy.comparisonValue(rent, index: 0), "2800 元")
+        XCTAssertEqual(AppCopy.comparisonValue(rent, index: 1), "USD 1500")
+        let note: JSONValue = .object(["values": .array([.string("CNY 2800 原始备注")])])
+        XCTAssertEqual(AppCopy.comparisonValue(note, index: 0), "CNY 2800 原始备注")
+        AppLanguage.shared.value = .english
+        XCTAssertEqual(AppCopy.comparisonValue(rent, index: 0), "CNY 2800")
+        XCTAssertEqual(AppCopy.comparisonValue(rent, index: 1), "USD 1500")
+    }
+    func testEnglishIssueCountUsesSingularOnlyForOne() {
+        XCTAssertEqual(AppCopy.text("1 个问题", language: .english), "1 Issue")
+        XCTAssertEqual(AppCopy.text("2 个问题", language: .english), "2 Issues")
+        XCTAssertEqual(AppCopy.text("11 个问题", language: .english), "11 Issues")
+        XCTAssertEqual(AppCopy.text("1 个问题", language: .chinese), "1 个问题")
+    }
+    func testMonthlyRentUsesYuanInChineseAndKeepsEnglishCurrencyCodes() {
+        let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
+        defer { AppLanguage.shared.value = prior }
+        XCTAssertEqual(AppCopy.monthlyRent("2800", currency: "CNY"), "2800 元/月")
+        XCTAssertEqual(AppCopy.monthlyRent("0", currency: "CNY"), "0 元/月")
+        XCTAssertEqual(AppCopy.monthlyRent("", currency: "CNY"), "租金待填写")
+        XCTAssertEqual(AppCopy.monthlyRent("1500", currency: "USD"), "USD 1500 / 月")
+        AppLanguage.shared.value = .english
+        XCTAssertEqual(AppCopy.monthlyRent("1500", currency: "USD"), "USD 1500 / month")
+        XCTAssertEqual(AppCopy.monthlyRent("1900", currency: "USD"), "USD 1900 / month")
+        XCTAssertEqual(AppCopy.monthlyRent("2800", currency: "CNY"), "CNY 2800 / month")
+        XCTAssertFalse(AppCopy.monthlyRent("", currency: "USD").isEmpty)
+    }
     func testChineseYuanFormUnitsPreserveRatesCustomNamesAndOtherCurrencies() {
         let prior = AppLanguage.shared.value; AppLanguage.shared.value = .chinese
         defer { AppLanguage.shared.value = prior }

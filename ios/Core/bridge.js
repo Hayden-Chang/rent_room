@@ -19,7 +19,7 @@ let deliveredHouses = new Map();
 const readOperations = new Set(['form', 'targets', 'issues', 'media', 'compare', 'inspectionGuide', 'templates', 'setupState']);
 let readState, readDay, readBytes = 0;
 const readCache = new Map();
-export function initialize(raw, packs = 0, free = 1, account = 'local') {
+export function initialize(raw, packs = 0, free = 1, account = 'local', firstVisit = false, exampleLanguage = 'zh-Hans') {
   deliveredState = summaryState = cachedSummaries = undefined;
   deliveredHouses = new Map();
   readState = readDay = undefined; readBytes = 0; readCache.clear();
@@ -28,6 +28,10 @@ export function initialize(raw, packs = 0, free = 1, account = 'local') {
     read: () => currencyState(raw),
     readCredits() {const result=JSON.parse(nativeReadCredits());if(result.error)throw Error(result.error);return result.value;},
     writeCredits(text) {const error=nativeWriteCredits(text);if(error)throw Error(error);},
+    prepareExamples() {
+      const error = nativePrepareExamples();
+      if (error) throw Error(error);
+    },
     previous() {
       const result = JSON.parse(nativePrevious());
       if (result.error) throw Error(result.error);
@@ -42,7 +46,7 @@ export function initialize(raw, packs = 0, free = 1, account = 'local') {
       if (error) throw Error(error);
       raw = text;
     }
-  }, {getPacks: () => sessionPacks, getFreeLimit: () => freeLimit, getCreditAccount: () => creditAccount, onHouseCreated: recordHouseCreated});
+  }, {getPacks: () => sessionPacks, getFreeLimit: () => freeLimit, getCreditAccount: () => creditAccount, onHouseCreated: recordHouseCreated, firstVisit, exampleLanguage});
   return dispatch('{"operation":"snapshot"}');
 }
 

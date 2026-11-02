@@ -1,0 +1,35 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "00D0D6E7-2E88-49AB-8F0D-5538272B7BB6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-returning-home-restored_0_93720E28-4486-4724-BD82-38B9C9631012.png",
+        "timestamp" : 1793422393.06
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "6321F4DA-C5A3-422F-B70A-ED30473A6601.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-background-resume-settings_0_12CBAB7E-1103-49C2-ADE5-A624B0FC3B74.png",
+        "timestamp" : 1793422385.229
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9",
+        "deviceName" : "todo-pool-bicycle-20260717111352",
+        "exportedFileName" : "14E9CEDE-1D11-4EF1-A60C-A275DD46CA45.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "launch-returning-home_0_E71D141B-8E81-47E7-801C-BAD6E62C112E.png",
+        "timestamp" : 1793422380.555
+      }
+    ],
+    "testIdentifier" : "LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage"
+  }
+]

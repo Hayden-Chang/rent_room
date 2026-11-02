@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-example-photos-20261031-b",
+  "phase": "development",
+  "taskName": "示例房源照片的本地显示、持久化、备份与旧用户保护",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/private/tmp/rent-room-first-launch-examples-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart",
+      "reason": "照片打包、可解码封面、重启与删除保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyInstallationAndOldHouseAreNeverSeeded",
+      "reason": "已有空目录和旧房源升级保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyFileAndRecoveryCopyAreNeverSeeded",
+      "reason": "空文件和恢复副本保护",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExamplePhotosSurviveBackupExportAndImport",
+      "reason": "内置照片进入普通本地影像与备份流程，导入后字节保持",
+      "source": "new-or-modified"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/ExampleHousesReviewTests/testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch",
+      "reason": "真实首页与选择页显示两张室内照片，并验证对比与重启",
+      "source": "affected-existing"
+    }
+  ],
+  "changedUITests": []
+}

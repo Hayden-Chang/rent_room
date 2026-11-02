@@ -1,0 +1,9 @@
+
+ RUN  v5.0.3 /private/tmp/rent-room-first-launch-examples-20261030/apps/wechat
+
+
+ Test Files  3 passed (3)
+      Tests  30 passed (30)
+   Start at  00:55:37
+   Duration  924ms (tests 59%, transform 22%, import 18%, worker 1%)
+

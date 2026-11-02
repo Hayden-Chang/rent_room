@@ -1,0 +1,14 @@
+** TEST BUILD SUCCEEDED **
+Test Suite 'Selected tests' started at 2026-10-31 01:00:52.803.
+Test Suite 'XunjuTests.xctest' started at 2026-10-31 01:00:52.804.
+Test Suite 'AppCopyTests' started at 2026-10-31 01:00:52.804.
+Test Case '-[XunjuTests.AppCopyTests testEnglishIssueCountUsesSingularOnlyForOne]' started.
+/tmp/rent-room-first-launch-examples-20261030/ios/XunjuTests/AppCopyTests.swift:6: error: -[XunjuTests.AppCopyTests testEnglishIssueCountUsesSingularOnlyForOne] : XCTAssertEqual failed: ("1 Issues") is not equal to ("1 Issue")
+Test Case '-[XunjuTests.AppCopyTests testEnglishIssueCountUsesSingularOnlyForOne]' failed (0.162 seconds).
+Test Suite 'AppCopyTests' failed at 2026-10-31 01:00:52.967.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.162 (0.163) seconds
+Test Suite 'XunjuTests.xctest' failed at 2026-10-31 01:00:52.967.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.162 (0.163) seconds
+Test Suite 'Selected tests' failed at 2026-10-31 01:00:52.967.
+	 Executed 1 test, with 1 failure (0 unexpected) in 0.162 (0.164) seconds
+** TEST EXECUTE FAILED **

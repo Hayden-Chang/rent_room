@@ -1,0 +1,21 @@
+✔ third successful creation survives deletion and relaunch; either condition requests only once (85.961042ms)
+✔ failed creation, import and restore never inflate the creation count (35.63325ms)
+✔ guest transfer combines counts once, including already requested state (94.601583ms)
+✔ request consumption is durable and rolls back when saving fails (1.631333ms)
+✔ legacy records and feedback drafts do not fabricate creation history or satisfaction gates (58.89625ms)
+✔ mini-program default store keeps its existing state contract (6.517833ms)
+{"id":"f116_1","label":"押金退还时限","values":["放弃","3 天"],"localized":[false,true],"choices":[[{"label":"放弃","localized":false,"detail":""}],[{"label":"3 天","localized":true,"detail":""}]]}
+✔ ios/tests/currency-localization.test.mjs (155.302834ms)
+✔ currency creation retains review progress atomically across failed saves and restart (91.904875ms)
+✔ simple: same-phase C-D-E-F is quiet, while intro, phase and completion remain (21.149708ms)
+✔ detailed: same-phase C-D-E-F is quiet, while intro, phase and completion remain (8.121208ms)
+✔ saved same-phase recommendation stays hidden on reopen and stale accept cannot expand it (2.905375ms)
+✔ first-use teaching, new-house introduction and disabled guidance keep their existing boundaries (7.401833ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 411.4995

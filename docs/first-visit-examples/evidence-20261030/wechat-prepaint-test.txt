@@ -1,0 +1,8 @@
+NATIVE_READY: 等待首次欢迎页
+NATIVE_READY: 点击排好啦
+NATIVE_READY: 选择精简模式并点击选好啦
+NATIVE_READY: 点击底部对比
+NATIVE_READY: 依次点击两套示例卡片
+NATIVE_READY: 点击对比这 2 套房源
+NATIVE_READY: 点击隐藏相同属性开关
+NATIVE_READY: 点击开发者工具 Compile 重载应用，核对存档

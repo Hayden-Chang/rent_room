@@ -1,0 +1,42 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "modelName" : "iPhone 14 Pro",
+        "osBuildNumber" : "22D8075",
+        "osVersion" : "18.3.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 0,
+      "passedTests" : 8,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "Xunju · Built with macOS 26.2",
+  "expectedFailures" : 0,
+  "failedTests" : 0,
+  "finishTime" : 1793379521.214,
+  "passedTests" : 8,
+  "result" : "Passed",
+  "skippedTests" : 0,
+  "startTime" : 1793379471.554,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+
+  ],
+  "title" : "Test - Xunju",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 8
+}

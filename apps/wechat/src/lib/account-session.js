@@ -4,9 +4,14 @@ import {guestStorage,claimGuestRecords} from './guest-storage.js';
 import {CREDIT_VERSION,validateEntitlement} from './capacity-policy.js';
 import {prepareCreditMigration,validateCreditBalance} from './credit-client.js';
 
-export function createAccountSession(wx) {
+export function createAccountSession(wx,{firstVisitExamples=false}={}) {
   const fs=wx.getFileSystemManager(),base=dataRoot(wx),rememberPath=base+'/login.json';
-  let account=null,active=createPlatform(wx,guestStorage(wx)),state='signed-out',error='',pending=null,generation=0,restoreAttempted=false;
+  let firstVisit=false;
+  if(firstVisitExamples){
+    try{fs.accessSync(base);}
+    catch(error){firstVisit=/ENOENT|no such file|not exist/i.test(error.message||error.errMsg||'');}
+  }
+  let account=null,active=createPlatform(wx,{...guestStorage(wx),firstVisit}),state='signed-out',error='',pending=null,generation=0,restoreAttempted=false;
   const listeners=new Set();
   const snapshot=()=>({state,error,account:state==='authenticated'?account:null});
   const emit=()=>{for(const fn of listeners)fn(snapshot());};

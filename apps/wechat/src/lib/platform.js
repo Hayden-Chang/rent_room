@@ -10,7 +10,7 @@ import {dataRoot,validAccountId} from './account-storage.js';
 import {createCreditClient} from './credit-client.js';
 import {createAccountProfile} from './account-profile.js';
 
-export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{},migrationActive=0}={}) {
+export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{},migrationActive=0,firstVisit=false}={}) {
   const fs=wx.getFileSystemManager(),current=root+'/state.json',previous=root+'/previous.json';
   try{fs.mkdirSync(root,true);}catch{}
   try{fs.mkdirSync(root+'/media',true);}catch{}
@@ -19,6 +19,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
   const adapter={readCredits:()=>exists(creditsPath)?fs.readFileSync(creditsPath,'utf8'):null,
     writeCredits(text){const tmp=creditsPath+'.pending';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,creditsPath);},
     read:()=>exists(current)?fs.readFileSync(current,'utf8'):null,previous:()=>exists(previous)?fs.readFileSync(previous,'utf8'):null,
+    prepareExamples(houses){for(const house of houses){const media=house.media[0],path=root+'/'+media.path;fs.writeFileSync(path,fs.readFileSync('assets/examples/'+house.id+'.jpg'));media.path=path;}},
     write(text,{keepPrevious=false}={}){const tmp=root+'/state.pending.json';fs.writeFileSync(tmp,text,'utf8');if(exists(current)&&!keepPrevious)fs.copyFileSync(current,previous);fs.renameSync(tmp,current);},
     preserveCorrupt(){if(exists(current))fs.copyFileSync(current,root+'/preserved-'+Date.now()+'.json');}
   };
@@ -46,7 +47,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
   });
   const remoteCredits=validAccountId(session?.account);let creditReserved=null;
   const ensureActive=()=>{if(!active)throw Error('登录状态已变化，请重新操作');};
-  rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit,
+  rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit,firstVisit:firstVisit&&!exists(previous),
     spendCreation:remoteCredits?()=>{if(!creditReserved)throw Error('请联网确认房源点数后新建');}:null,
     onHouseCreated:remoteCredits?s=>{s._creditCreation=creditReserved;}:()=>{}});const store={};
   for(const [name,fn] of Object.entries(rawStore))store[name]=(...args)=>{if(!active)throw Error('请先登录');return fn(...args);};

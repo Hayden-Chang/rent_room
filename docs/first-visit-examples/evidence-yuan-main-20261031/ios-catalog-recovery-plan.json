@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-yuan-main-20261031-catalog-recovery",
+  "phase": "development",
+  "headSha": "d6972ff33cffbab4015043f91748ab88e1caf2f9",
+  "taskName": "Single failed method recovery after test-only catalog count correction",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/Users/pc/.codex/worktrees/english-demo-usd/rent_room",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/AppCopyTests/testPackagedEnglishCatalogPermissionsAndMoneyUnits",
+      "reason": "Exact failed method from final campaign; main added four translations; production code unchanged",
+      "source": "new-or-modified"
+    }
+  ],
+  "uiTests": [],
+  "changedUITests": []
+}

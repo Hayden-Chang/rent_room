@@ -44,6 +44,7 @@ import SwiftUI
 
     static func text(_ source: String, language: SupportedLanguage? = nil, translatingArguments: Bool = false) -> String {
         guard (language ?? AppLanguage.shared.value) == .english else { return source }
+        if source == "1 个问题" { return "1 Issue" }
         return translate(source, depth: 0, translatingArguments: translatingArguments)
     }
     private static func translate(_ source: String, depth: Int, translatingArguments: Bool = false) -> String {
@@ -77,7 +78,11 @@ import SwiftUI
         id.hasPrefix("cost_") ? source : text(source)
     }
     static func comparisonValue(_ row: JSONValue, index: Int) -> String {
-        if AppLanguage.shared.value == .chinese { return row["values"].array.indices.contains(index) ? row["values"].array[index].string : "" }
+        if AppLanguage.shared.value == .chinese {
+            guard row["values"].array.indices.contains(index) else { return "" }
+            let value = row["values"].array[index].string
+            return row["currency"].bool && value.hasPrefix("CNY ") ? String(value.dropFirst(4)) + " 元" : value
+        }
         let choices = row["choices"].array
         if choices.indices.contains(index), !choices[index].array.isEmpty {
             return choices[index].array.map { choice in
@@ -88,6 +93,11 @@ import SwiftUI
         let values = row["values"].array, flags = row["localized"].array
         guard values.indices.contains(index) else { return "" }
         return flags.indices.contains(index) && flags[index].bool ? text(values[index].string) : values[index].string
+    }
+    static func monthlyRent(_ amount: String, currency: String) -> String {
+        guard !amount.isEmpty else { return text("租金待填写") }
+        if AppLanguage.shared.value == .chinese && currency == "CNY" { return "\(amount) 元/月" }
+        return text("\(currency) \(amount) / 月")
     }
     static func moneyLabel(_ source: String, currency: String, verbatim: Bool = false) -> String {
         let code = CurrencyCatalog.codes.contains(currency) ? currency : "CNY"

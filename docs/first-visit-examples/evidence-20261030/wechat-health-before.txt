@@ -1,0 +1,18 @@
+Loading automation SDK
+Connecting, attempt 1
+Connecting, attempt 2
+Connecting, attempt 3
+Connected; waiting for app/page
+Connecting, attempt 4
+Connected; waiting for app/page
+Connecting, attempt 5
+Connected; waiting for app/page
+Connecting, attempt 6
+Connected; waiting for app/page
+Connecting, attempt 7
+Connected; waiting for app/page
+Connecting, attempt 8
+Connected; waiting for app/page
+Connecting, attempt 9
+Connected; waiting for app/page
+{"app":true,"routes":["pages/home/index"]}

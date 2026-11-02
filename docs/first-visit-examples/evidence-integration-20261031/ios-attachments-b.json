@@ -1,0 +1,116 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "BA179E90-4DD1-4660-9D49-9B49A73BAC24.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "App UI hierarchy for com.keeline.xunju_0_7BAB808E-BE38-4FBC-9FBF-EBD26D90E347.ios",
+        "timestamp" : 1793421831.556
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "015FA21F-05D9-4A6E-A630-FC0F47D7E940",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-31 at 12.43.51",
+        "timestamp" : 1793421831.556
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "E0A40D69-D37E-488E-95B5-7AAC1DF8F512.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"currency.prompt.title\" StaticText`_0_590F181D-46E5-45BB-9A6C-B962FADCC7BF.txt",
+        "timestamp" : 1793421831.44
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "35D25EB3-1A74-4BB0-9114-CE7CF337F247.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"currency.prompt.title\" StaticText`_0_C0F39ECF-2E9A-4E1E-BBEF-C8CCAD51C4B3.txt",
+        "timestamp" : 1793421831.086
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "E2EA12D2-D4C2-45AE-957C-13BC5751AFE2",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-31 at 12.43.43",
+        "timestamp" : 1793421823.806
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "815EAD7E-550C-4094-9CF7-3EB232F14586",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Synthesized Event 2026-10-31 at 12.43.46",
+        "timestamp" : 1793421826.336
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "8036E0B7-C43E-4627-86F9-97C2A12FA1D3.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "App UI hierarchy for com.keeline.xunju_0_C55F703B-3B64-4513-9364-E6588D1227F7.ios",
+        "timestamp" : 1793421822.304
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "AE97E2BA-2026-42A0-B081-668939A6F0C2",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "UI Snapshot 2026-10-31 at 12.43.42",
+        "timestamp" : 1793421822.304
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "9FEB53CF-1B9D-42E4-9B87-A63648674F95.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"以后\" Button`_0_0C450303-0375-43AE-BA95-1BA282ED47F5.txt",
+        "timestamp" : 1793421821.682
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "484B7922-F13C-433D-B6BB-157B5C678F62.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"以后\" Button`_0_99D67534-DBEB-4956-B391-DDB0D50E43C0.txt",
+        "timestamp" : 1793421820.414
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "BB0F0F42-897E-4F4E-AEA0-E019576D2CD1.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Debug description for `\"以后\" Button`_0_D3A3775A-E970-41DD-A4AE-1F3F182E8DC9.txt",
+        "timestamp" : 1793421819.746
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8F178971-C203-4690-A83B-253046EACBB1",
+        "deviceName" : "todo-pool-ios18-compat-iphone14pro-20261022",
+        "exportedFileName" : "6995ADA3-CAA2-45F6-BF5E-8BC185DF33F2.mp4",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "Screen Recording 2026-10-31 at 12.43.12.mp4",
+        "timestamp" : 1793421792.633
+      }
+    ],
+    "testIdentifier" : "LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage()",
+    "testIdentifierURL" : "test://com.apple.xcode/Xunju/XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage"
+  }
+]

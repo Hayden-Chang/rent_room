@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "ids": [
+    "example-metro-v1",
+    "example-sunny-v1"
+  ],
+  "reloadedIds": [
+    "example-metro-v1",
+    "example-sunny-v1"
+  ],
+  "sameRoot": true,
+  "allHouseFieldsPreserved": true,
+  "interaction": "native DevTools controls and Compile reload; observer only reads state",
+  "reviewBuild": true,
+  "productionStartupEnabled": false
+}

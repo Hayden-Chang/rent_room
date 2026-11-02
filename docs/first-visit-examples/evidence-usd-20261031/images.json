@@ -1,0 +1,23 @@
+[
+  {
+    "file": "examples-ios-english-home.png",
+    "source": "427A6BD6-9AD1-40DC-973B-8C583648811B.png",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "9af0dde64e760e12c906a38630e188af324159a100dc898d9717207b0337fc8d"
+  },
+  {
+    "file": "examples-ios-english-selected.png",
+    "source": "AE797082-7978-4F29-A164-A9A6868AD647.png",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "4608a58543d51f2d2d656ed19782e31398386fb731489c8d4ae76ba8c5de499e"
+  },
+  {
+    "file": "examples-ios-english-comparison.png",
+    "source": "108FEDDD-C79E-4141-8776-037FFC3F6D36.png",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "3ea798950168b8e75c740ddee65e78dbe710acfc5f3dcc9703d0248f31bccaa4"
+  }
+]

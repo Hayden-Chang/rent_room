@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-english-usd-20261031-b",
+  "phase": "final-pr-head",
+  "headSha": "5c4a805b3ef77a4c7af48c5357b16c37f9408f68",
+  "taskName": "English demo USD amounts on cards comparison and restart",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/Users/pc/.codex/worktrees/english-demo-usd/rent_room",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange",
+      "reason": "英文 USD 默认值、中文分支、旧存档保护和示例照片/备份的直接调用",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testFirstInstallationSeedsTwoSimpleExamplesOnceAndDeletionSurvivesRestart",
+      "reason": "英文 USD 默认值、中文分支、旧存档保护和示例照片/备份的直接调用",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyInstallationAndOldHouseAreNeverSeeded",
+      "reason": "英文 USD 默认值、中文分支、旧存档保护和示例照片/备份的直接调用",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingKeychainSessionDoesNotReceiveExamplesEvenWithoutDataDirectory",
+      "reason": "英文 USD 默认值、中文分支、旧存档保护和示例照片/备份的直接调用",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExistingEmptyFileAndRecoveryCopyAreNeverSeeded",
+      "reason": "英文 USD 默认值、中文分支、旧存档保护和示例照片/备份的直接调用",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/ExampleHousesTests/testExamplePhotosSurviveBackupExportAndImport",
+      "reason": "英文 USD 默认值、中文分支、旧存档保护和示例照片/备份的直接调用",
+      "source": "affected-existing"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText",
+      "reason": "唯一受影响的英文 UI：首启卡片、双选、差异租金及重启保留",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/ExampleHousesLaunchTests/testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText"
+  ]
+}

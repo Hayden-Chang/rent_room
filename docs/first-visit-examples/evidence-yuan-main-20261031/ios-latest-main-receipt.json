@@ -1,0 +1,28 @@
+{
+  "runId": "rent-room-yuan-main-20261031-latest-main",
+  "token": "206557c9-68c9-4b9e-b736-63b6f26e2f81",
+  "resultBundlePath": "/private/tmp/rent-room-yuan-main-20261031/rent-room-yuan-main-20261031-latest-main.xcresult",
+  "requestedAt": 1793459501253,
+  "cacheWaitSeconds": 0.019,
+  "queueSeconds": 0.542,
+  "buildResultBundlePath": "/private/tmp/rent-room-yuan-main-20261031/rent-room-yuan-main-20261031-latest-main.build.xcresult",
+  "stages": {
+    "build": {
+      "queuedAt": 1793459501273,
+      "startedAt": 1793459501436,
+      "queueSeconds": 0.163,
+      "finishedAt": 1793459517879,
+      "exitCode": 0
+    },
+    "test": {
+      "queuedAt": 1793459517880,
+      "startedAt": 1793459518259,
+      "queueSeconds": 0.379,
+      "finishedAt": 1793459595963,
+      "exitCode": 0
+    }
+  },
+  "commandStartedAt": 1793459518259,
+  "finishedAt": 1793459595965,
+  "exitCode": 0
+}

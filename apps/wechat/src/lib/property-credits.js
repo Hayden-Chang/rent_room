@@ -8,7 +8,7 @@ export function validateCredits(value) {
 }
 export function initializeCredits(state,packs,freeLimit,account='local') {
   if(!accountKey(account))throw Error('购买账号信息无效');
-  const legacy=capacityInfo(state.houses,packs,freeLimit);
+  const legacy=capacityInfo(state.houses.filter(h=>!h.example),packs,freeLimit);
   if(!state.propertyCredits){
     const spent=Math.min(legacy.used,legacy.limit),freeSpent=Math.min(spent,freeLimit);
     state.propertyCredits={version:1,freeSpent,paidSpent:{[account]:spent-freeSpent},boundAccount:account==='local'?null:account};

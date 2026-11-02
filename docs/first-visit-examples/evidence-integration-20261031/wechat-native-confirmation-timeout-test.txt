@@ -1,0 +1,10 @@
+NATIVE_READY: 等待首次欢迎页
+NATIVE_READY: 点击排好啦
+NATIVE_READY: 选择精简模式并点击选好啦
+CAPTURE_READY: examples-wechat-home (confirm visible controls, then create examples-wechat-home.ready in WECHAT_ARTIFACT_DIR)
+Error: Native render confirmation timed out: examples-wechat-home
+    at shot (/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/tests/e2e/example-houses.cjs:20:34)
+    at async /private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/tests/e2e/example-houses.cjs:34:3
+Error: Native render confirmation timed out: examples-wechat-home
+    at shot (/private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/tests/e2e/example-houses.cjs:20:34)
+    at async /private/tmp/rent-room-first-launch-examples-20261030/apps/wechat/tests/e2e/example-houses.cjs:34:3

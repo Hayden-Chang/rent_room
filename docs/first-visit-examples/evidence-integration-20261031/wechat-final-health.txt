@@ -1,0 +1,48 @@
+Loading automation SDK
+Connecting, attempt 1
+Connecting, attempt 2
+Connecting, attempt 3
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3511 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 4
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3057 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 5
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3090 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 6
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3614 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 7
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3061 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 8
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3008 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 9
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3123 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 10
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate failed 3112 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 11
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate finished 45 {"app":true,"routes":["pages/home/index"]}
+[readiness] screenshot started
+[readiness] screenshot failed 2964 Connection closed, check if wechat web devTools is still running
+Connecting, attempt 12
+Connected; waiting for app/page
+[readiness] evaluate started
+[readiness] evaluate finished 31 {"app":true,"routes":["pages/home/index","pages/welcome/index"]}
+[readiness] screenshot started
+[readiness] screenshot finished 1218 image=true
+{"app":true,"routes":["pages/home/index","pages/welcome/index"]}

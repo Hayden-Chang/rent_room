@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-examples-integration-20261031-b",
+  "phase": "final-pr-head",
+  "headSha": "6f3448852c34d2d5b72f718cd0c95c9630dbb786",
+  "taskName": "Single failed returning-user flow after optional StoreKit observation repair",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/private/tmp/rent-room-first-launch-examples-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage",
+      "reason": "正式老用户入口没有示例且原记录和导航恢复",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/LaunchIntegrationTests/testReturningLaunchRestoresHomesAndResumeKeepsCurrentPage"
+  ]
+}

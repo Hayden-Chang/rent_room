@@ -1,0 +1,5 @@
+** TEST BUILD SUCCEEDED **
+Test Case '-[XunjuUITests.ExampleHousesReviewTests testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch]' started.
+/tmp/rent-room-first-launch-examples-20261030/ios/XunjuUITests/ExampleHousesReviewTests.swift:36: error: -[XunjuUITests.ExampleHousesReviewTests testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch] : XCTAssertGreaterThanOrEqual failed: ("-3.666656494140625") is less than ("9.0") - 照片不能撑宽卡片或挤掉两列间距
+Test Case '-[XunjuUITests.ExampleHousesReviewTests testTwoSimpleExamplesCanBeComparedAndSurviveRelaunch]' failed (6.919 seconds).
+** TEST EXECUTE FAILED **

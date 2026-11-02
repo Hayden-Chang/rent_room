@@ -1,0 +1,56 @@
+[
+  {
+    "file": "examples-ios-english-comparison-a.png",
+    "sha256": "f905f27eaab2dad55335a07790c340a0175565151e0d0dd18e5997e518fc2786",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "D45DF8CE-A36C-41C0-973C-787B52C6C0AA.png"
+  },
+  {
+    "file": "examples-ios-english-selected-a.png",
+    "sha256": "e2984b741f9393ae5c5b0bd1e95103919dea9d850a928d1d0b1d5a46b125fd18",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "4F14B90E-738C-4BF7-8C50-1F0F6914C5DB.png"
+  },
+  {
+    "file": "examples-ios-english-home-a.png",
+    "sha256": "2c337091193b2a26fa085540c4a878d08672a28963d86f8e738b4344b783d9c9",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "2FF19935-CB53-480A-B7D1-A1DD6A4C050E.png"
+  },
+  {
+    "file": "examples-ios-comparison-a.png",
+    "sha256": "3651ea9f124c22354d2f8a9dddadf890f4a82d94b4e13b74d997820b63a40527",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "30ABCF31-1332-42EB-8EFB-83429E0CA81F.png"
+  },
+  {
+    "file": "examples-ios-selected-a.png",
+    "sha256": "18af5e7ef6521490cd22c9a3e005ecf68ca40420b657f9841652e5586faff063",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "76D1B70B-1D6A-4FB1-9309-E6621B14C74A.png"
+  },
+  {
+    "file": "examples-ios-home-a.png",
+    "sha256": "98a263984a5487a46991547f496b659254da8554c4a3382c56767e07d770dea5",
+    "dimensions": [
+      1178,
+      2556
+    ],
+    "source": "5DB4CEE9-4A9A-4DE6-90DC-D1EEEA2807F1.png"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-examples-en-20261031-singular-before",
+  "phase": "development",
+  "taskName": "英文问题数量单复数标签修复前回归",
+  "sessionId": "01a18c34-450b-7f32-86d6-a9abd0f5d7ed",
+  "workspace": "/private/tmp/rent-room-first-launch-examples-20261030",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/AppCopyTests/testEnglishIssueCountUsesSingularOnlyForOne",
+      "reason": "实际英文截图出现 1 Issues，自动断言正确单复数",
+      "source": "new-or-modified"
+    }
+  ],
+  "uiTests": [],
+  "changedUITests": []
+}

@@ -1,0 +1,1 @@
+/tmp/rent-room-first-launch-examples-20261030/ios/XunjuTests/ExampleHousesTests.swift:59:84: error: cannot convert value of type '[String]' to expected argument type 'Set<String>'
