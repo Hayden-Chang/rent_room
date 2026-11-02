@@ -37,7 +37,7 @@ const permissions = {
   CFBundleDisplayName: '寻居',
   NSCameraUsageDescription: '拍摄看房照片和视频，保存在本机房源记录中',
   NSMicrophoneUsageDescription: '录制看房视频时收录现场声音',
-  NSLocationWhenInUseUsageDescription: '获取当前位置，用于识别货币类型、选择房源或上班地点。拒绝定位时货币默认使用美元。'
+  NSLocationWhenInUseUsageDescription: '获取当前位置，用于识别货币类型、选择房源或上班地点。'
 };
 for (const locale of ['en', 'zh-Hans']) {
   const text = Object.entries(permissions).map(([key, value]) => {

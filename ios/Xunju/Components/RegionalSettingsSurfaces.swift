@@ -156,6 +156,7 @@ private struct RegionalChoiceRow: View {
 /// permission request, denial handling and the one-time onboarding trigger.
 struct CurrencyLocationPrompt: View {
     var busy = false
+    var fallbackCurrency = CurrencyCatalog.fallbackCurrency(for: Locale.preferredLanguages)
     let automatic: () -> Void
     let manual: () -> Void
     let decline: () -> Void
@@ -168,15 +169,15 @@ struct CurrencyLocationPrompt: View {
                 Image(systemName: "location.circle.fill").font(.system(size: 42)).foregroundStyle(XJTheme.primary).accessibilityHidden(true)
                 Text(copy("location.title")).font(.system(size: 20, weight: .semibold)).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("currency.prompt.title")
-                Text(copy("location.body")).font(.system(size: 14)).foregroundStyle(XJTheme.muted)
-                    .lineSpacing(4).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 if busy {
                     ProgressView(copy("location.loading")).font(.system(size: 14)).accessibilityIdentifier("currency.prompt.loading")
                 } else {
                     VStack(spacing: 8) {
                         Button(copy("location.allow"), action: automatic).buttonStyle(MPButtonStyle(kind: .primary)).accessibilityIdentifier("currency.prompt.allow")
                         Button(copy("location.manual"), action: manual).buttonStyle(MPButtonStyle(kind: .soft)).accessibilityIdentifier("currency.prompt.manual")
-                        Button(copy("location.decline"), action: decline).buttonStyle(MPButtonStyle(kind: .plain)).accessibilityIdentifier("currency.prompt.decline")
+                        Button(RegionalCopy.text("location.decline", language: language,
+                            values: ["currency": language == .chinese ? CurrencyCatalog.name(fallbackCurrency, language: language) : fallbackCurrency]),
+                            action: decline).buttonStyle(MPButtonStyle(kind: .plain)).accessibilityIdentifier("currency.prompt.decline")
                     }
                 }
             }.padding(24).frame(maxWidth: 360).background(.white, in: RoundedRectangle(cornerRadius: 20))

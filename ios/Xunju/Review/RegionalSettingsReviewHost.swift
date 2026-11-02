@@ -41,7 +41,7 @@ struct RegionalSettingsReviewHost: View {
             .allowsHitTesting(!prompt)
             .overlay {
                 if prompt {
-                    CurrencyLocationPrompt(automatic: {
+                    CurrencyLocationPrompt(fallbackCurrency: model.fallbackCurrency, automatic: {
                         let denied = ProcessInfo.processInfo.arguments.contains("--regional-review-denied")
                         if denied { model.declineLocation(); message = copy("location.unavailable") }
                         else { model.detect(countryCode: "GB"); message = RegionalCopy.text("location.detected", language: model.language, values: ["currency": CurrencyCatalog.name(model.preferences.currencyCode, language: model.language), "code": model.preferences.currencyCode]) }

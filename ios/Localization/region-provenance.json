@@ -4,7 +4,21 @@
   "entryCount": 190,
   "promptSHA256": "95a7c0114018fc4ba10967c7e4bae90d591cd9bb4ea553bd83176a0dd8c8e02b",
   "rawResponseSHA256": "39c748d25179fad0f503854ebdc6e24e1a914483ebe0c490eb24573ed3ec9406",
-  "validation": "Exact key set and placeholder parity; English values copied without manual rewriting.",
+  "validation": "Base English retained verbatim from agy; explicitly attributed revisions are applied in order. Exact key set and placeholder parity verified.",
   "englishSHA256": "39c748d25179fad0f503854ebdc6e24e1a914483ebe0c490eb24573ed3ec9406",
-  "sourceSHA256": "8c5f487d431b28b5f5f597bdb39683eed5d0c1b3ae976ed842011b03b1a0433d"
+  "sourceSHA256": "0d0077cdcce3dc0e7d43766883c0bb7cac6be73c6a269293832bdf1ca49ebdb4",
+  "revisions": [
+    {
+      "generator": "Codex",
+      "date": "2026-11-02",
+      "keys": [
+        "location.decline",
+        "location.unavailable"
+      ],
+      "prompt": "region-currency-default-prompt.txt",
+      "english": "region-currency-default-en.json",
+      "promptSHA256": "30c82ad1ecada2dbd1f558d895df5d9285402f83a02580e456124e2eaf6bbce6",
+      "englishSHA256": "379d303b93afc608d5333a2a9c8477bdd283402b86ed2190c4ebd908606ea943"
+    }
+  ]
 }

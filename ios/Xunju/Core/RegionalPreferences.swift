@@ -50,16 +50,21 @@ struct RegionalPreferences: Codable, Equatable {
         return CurrencyCatalog.codes.contains(code) ? code : "USD"
     }
 
-    mutating func detect(countryCode: String?) {
+    mutating func updateUnselectedDefault(_ code: String) {
+        guard !currencyPromptHandled, currencySelection == .automatic else { return }
+        automaticCurrency = code
+    }
+
+    mutating func detect(countryCode: String?, fallbackCurrency: String = "USD") {
         guard currencySelection == .automatic else { return }
         self.countryCode = countryCode?.uppercased()
-        automaticCurrency = CurrencyCatalog.currency(for: countryCode)
+        automaticCurrency = CurrencyCatalog.currency(for: countryCode, fallback: fallbackCurrency)
         currencyPromptHandled = true
     }
 
-    mutating func declineLocation() {
+    mutating func declineLocation(fallbackCurrency: String = "USD") {
         automaticLocationRequested = false
-        detect(countryCode: nil)
+        detect(countryCode: nil, fallbackCurrency: fallbackCurrency)
     }
 
     mutating func markCurrencyPromptHandled() { currencyPromptHandled = true }
@@ -102,9 +107,14 @@ enum CurrencyCatalog {
     })
     static let common = ["USD", "EUR", "GBP", "CNY", "JPY", "HKD", "AUD", "CAD", "SGD", "NZD"]
 
-    static func currency(for country: String?) -> String {
+    static func fallbackCurrency(for preferredLanguages: [String]) -> String {
+        let primary = preferredLanguages.first?.replacingOccurrences(of: "_", with: "-").lowercased().split(separator: "-").first
+        return primary == "zh" ? "CNY" : "USD"
+    }
+
+    static func currency(for country: String?, fallback: String = "USD") -> String {
         guard let region = country?.uppercased(), Locale.Region.isoRegions.contains(where: { $0.identifier == region }),
-              let code = Locale(identifier: "und_\(region)").currency?.identifier, codes.contains(code) else { return "USD" }
+              let code = Locale(identifier: "und_\(region)").currency?.identifier, codes.contains(code) else { return fallback }
         return code
     }
 
@@ -131,15 +141,20 @@ enum CurrencyCatalog {
         self.defaults = defaults
         self.preferredLanguages = preferredLanguages
         preferences = defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(RegionalPreferences.self, from: $0) } ?? RegionalPreferences()
+        preferences.updateUnselectedDefault(CurrencyCatalog.fallbackCurrency(for: preferredLanguages))
     }
 
     var language: SupportedLanguage { preferences.language.resolve(preferredLanguages) }
+    var fallbackCurrency: String { CurrencyCatalog.fallbackCurrency(for: preferredLanguages) }
 
-    func updateSystemLanguages(_ values: [String]) { preferredLanguages = values }
+    func updateSystemLanguages(_ values: [String]) {
+        preferredLanguages = values
+        update { $0.updateUnselectedDefault(fallbackCurrency) }
+    }
     func selectLanguage(_ value: LanguageSelection) { update { $0.language = value } }
     func selectCurrency(_ code: String?) { update { $0.selectCurrency(code) } }
-    func detect(countryCode: String?) { update { $0.detect(countryCode: countryCode) } }
-    func declineLocation() { update { $0.declineLocation() } }
+    func detect(countryCode: String?) { update { $0.detect(countryCode: countryCode, fallbackCurrency: fallbackCurrency) } }
+    func declineLocation() { update { $0.declineLocation(fallbackCurrency: fallbackCurrency) } }
     func markCurrencyPromptHandled() { update { $0.markCurrencyPromptHandled() } }
     func beginLocationDetection() { update { $0.beginLocationDetection() } }
 
