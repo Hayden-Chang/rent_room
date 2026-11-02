@@ -1,0 +1,77 @@
+Running rent-template-drop-red-transaction-20261102 test; command PID 18318; simulator 8F178971-C203-4690-A83B-253046EACBB1.
+Native core: 69 canonical sources, 342608 bytes
+Regional copy: 190 paired entries; agy provenance and placeholders verified.
+App copy: 1350 entries; agy provenance and placeholders verified
+Native map configuration: configured
+XcodeGen 2.45.4: deterministic project verified
+Refreshed XCTest runner for rent-template-drop-red-transaction-20261102; application data retained
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project /private/tmp/rent-room-ios-template-drop-20261102/ios/Xunju.xcodeproj -scheme XunjuLaunch -destination "platform=iOS Simulator,id=8F178971-C203-4690-A83B-253046EACBB1" -derivedDataPath /Volumes/mac2/codex-builds/time-fragment-dd-shared-07ee9c75284186c7e82e7eb4-simulator -resultBundlePath /Volumes/mac2/codex-builds/rent-template-drop-red-transaction-20261102.xcresult test-without-building "-only-testing:XunjuUITests/InspectionSetupReviewTests/testNativeDropCommitsInPlaceInBothDirections"
+
+Resolve Package Graph
+
+
+Resolved source packages:
+  ZIPFoundation: https://github.com/weichsel/ZIPFoundation.git @ 0.9.20
+
+Writing result bundle at path:
+	/Volumes/mac2/codex-builds/rent-template-drop-red-transaction-20261102.xcresult
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:8F178971-C203-4690-A83B-253046EACBB1, OS:18.3.1, name:todo-pool-ios18-compat-iphone14pro-20261022 }
+{ platform:iOS Simulator, arch:x86_64, id:8F178971-C203-4690-A83B-253046EACBB1, OS:18.3.1, name:todo-pool-ios18-compat-iphone14pro-20261022 }
+2026-11-02 12:52:20.766488+0800 XunjuUITests-Runner[18433:2096705] [Default] Running tests...
+Test Suite 'Selected tests' started at 2026-11-02 12:52:22.591.
+Test Suite 'XunjuUITests.xctest' started at 2026-11-02 12:52:22.594.
+Test Suite 'InspectionSetupReviewTests' started at 2026-11-02 12:52:22.594.
+Test Case '-[XunjuUITests.InspectionSetupReviewTests testNativeDropCommitsInPlaceInBothDirections]' started.
+    t =     0.00s Start Test at 2026-11-02 12:52:22.596
+    t =     0.08s Set Up
+    t =     0.09s Open com.keeline.xunju.ios
+    t =     0.09s     Launch com.keeline.xunju.ios
+2026-11-02 12:52:22.941 xcodebuild[18318:2096100] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-02 12:52:22.941 xcodebuild[18318:2096100] [MT] IDELaunchParametersSnapshot: no debugger version
+    t =     1.60s         Setting up automation session
+    t =     3.03s         Wait for com.keeline.xunju.ios to idle
+    t =     4.96s Waiting 10.0s for "setup.next" Button to exist
+    t =     5.99s     Checking `Expect predicate `existsNoRetry == 1` for object "setup.next" Button`
+    t =     6.00s         Checking existence of `"setup.next" Button`
+    t =     6.16s Find the "setup.drag.通风与采光" StaticText
+    t =     6.21s Find the Target Application 'com.keeline.xunju.ios'
+    t =     6.30s Added attachment named 'drop-01-before'
+    t =     6.30s Press "setup.drag.通风与采光" StaticText for 0.1 seconds, drag to "setup.title.房源基本信息" StaticText with velocity of 500.00 pixels per second, and then hold for 0.0 seconds
+    t =     6.30s     Wait for com.keeline.xunju.ios to idle
+    t =     6.30s     Find the "setup.drag.通风与采光" StaticText
+    t =     6.33s     Check for interrupting elements affecting "setup.drag.通风与采光" StaticText
+    t =     6.37s     Synthesize event
+    t =     6.37s         Find the "setup.title.房源基本信息" StaticText
+    t =     6.39s         Compute first hitpoint
+    t =     6.40s         Compute second hitpoint
+    t =     7.07s     Wait for com.keeline.xunju.ios to idle
+    t =     7.08s Find the "setup.title.通风与采光" StaticText
+    t =     7.11s Find the "setup.title.房源基本信息" StaticText
+    t =     7.14s Find the Target Application 'com.keeline.xunju.ios'
+    t =     7.22s Added attachment named 'drop-02-upward'
+    t =     7.22s Find the "setup.review.dropTransaction" StaticText
+/tmp/rent-room-ios-template-drop-20261102/ios/XunjuUITests/InspectionSetupReviewTests.swift:31: error: -[XunjuUITests.InspectionSetupReviewTests testNativeDropCommitsInPlaceInBothDirections] : XCTAssertEqual failed: ("重复换位动画") is not equal to ("无换位动画") - The drag preview is already in place; release must not animate the order again.
+    t =     7.38s Tear Down
+Test Case '-[XunjuUITests.InspectionSetupReviewTests testNativeDropCommitsInPlaceInBothDirections]' failed (7.617 seconds).
+Test Suite 'InspectionSetupReviewTests' failed at 2026-11-02 12:52:30.213.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.617 (7.618) seconds
+Test Suite 'XunjuUITests.xctest' failed at 2026-11-02 12:52:30.213.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.617 (7.619) seconds
+Test Suite 'Selected tests' failed at 2026-11-02 12:52:30.214.
+	 Executed 1 test, with 1 failure (0 unexpected) in 7.617 (7.623) seconds
+2026-11-02 12:52:46.585 xcodebuild[18318:2096100] [MT] IDETestOperationsObserverDebug: 28.428 elapsed -- Testing started completed.
+2026-11-02 12:52:46.585 xcodebuild[18318:2096100] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-02 12:52:46.585 xcodebuild[18318:2096100] [MT] IDETestOperationsObserverDebug: 28.428 sec, +28.428 sec -- end
+
+Test session results, code coverage, and logs:
+	/Volumes/mac2/codex-builds/rent-template-drop-red-transaction-20261102.xcresult
+
+Failing tests:
+	InspectionSetupReviewTests.testNativeDropCommitsInPlaceInBothDirections()
+
+** TEST EXECUTE FAILED **
+
+Testing started

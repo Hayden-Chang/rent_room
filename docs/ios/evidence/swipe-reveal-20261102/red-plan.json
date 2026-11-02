@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-swipe-reveal-red-01a19a99",
+  "phase": "development",
+  "taskName": "引导左滑动画修复前回归",
+  "sessionId": "01a19a99-7662-7402-a7bb-16b54adf2430",
+  "workspace": "/private/tmp/rent-room-ios-swipe-reveal-animation-20261102",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+      "reason": "实际拖动期间采样真实行画面，要求操作按钮经过中间宽度",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths"
+  ]
+}

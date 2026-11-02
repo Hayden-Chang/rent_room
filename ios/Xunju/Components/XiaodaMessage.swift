@@ -118,6 +118,7 @@ struct XiaodaTutorialOverlay: View {
     let guide: JSONValue
     let target: CGRect?
     var swipeCompleted: (() -> Void)? = nil
+    var swipeProgress: (CGFloat) -> Void = { _ in }
     var decoratedSpeech = false
     var adjustScroll: (CGFloat, UnitPoint) -> Void = { _, _ in }
     let next: () -> Void
@@ -136,7 +137,7 @@ struct XiaodaTutorialOverlay: View {
                         .frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY).allowsHitTesting(false)
                 } else { shade(width: geometry.size.width, height: geometry.size.height) }
                 if step == 3, let rect, let swipeCompleted {
-                    XiaodaSwipeTarget(completed: swipeCompleted)
+                    XiaodaSwipeTarget(completed: swipeCompleted, progress: swipeProgress)
                         .frame(width: rect.width, height: rect.height).offset(x: rect.minX, y: rect.minY)
                 }
                 XiaodaTutorialCardLayout(target: rect) {

@@ -1,0 +1,4 @@
+{
+  "location.decline": "Use {currency}",
+  "location.unavailable": "Unable to determine your location. You can choose your currency in Settings."
+}

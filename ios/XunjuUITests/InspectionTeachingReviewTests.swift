@@ -6,6 +6,22 @@ import UIKit
     private func capture(_ name: String, _ app: XCUIApplication) {
         let image = XCTAttachment(screenshot: app.screenshot()); image.name = name; image.lifetime = .keepAlways; add(image)
     }
+    func testTeachingSwipeRendersIntermediateActionWidths() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--component-review", "inspection-teaching", "--record-teaching-swipe",
+            "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        let target = app.otherElements["coach.swipeTarget"]
+        XCTAssertTrue(target.waitForExistence(timeout: 10))
+        capture("swipe-before", app)
+        let start = target.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5))
+        start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: -85, dy: 0)),
+            withVelocity: XCUIGestureVelocity(rawValue: 70), thenHoldForDuration: 0.1)
+        XCTAssertTrue(app.buttons["coach.next"].waitForExistence(timeout: 4))
+        capture("swipe-after", app)
+        try assertRenderedSwipeProgress(app, prefix: "component")
+        XCTAssertEqual(app.staticTexts["teaching.events"].label, "未选择；操作次数：0")
+    }
     func testGuardedSwipeTeachingAndRentFreeNumberKeyboard() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--component-review", "inspection-teaching", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
