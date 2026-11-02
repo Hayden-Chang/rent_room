@@ -24,8 +24,14 @@ export function initialize(raw, packs = 0, free = 1, account = 'local', firstVis
   deliveredHouses = new Map();
   readState = readDay = undefined; readBytes = 0; readCache.clear();
   sessionPacks = packs; freeLimit = free; creditAccount = account;
+  let currencyRead = false;
   store = createStore({
-    read: () => currencyState(raw),
+    read: () => {
+      // Migration is needed once per load, not for every credit-journal read
+      // during an answer save. Successful writes already contain currency codes.
+      if (!currencyRead) { raw = currencyState(raw); currencyRead = true; }
+      return raw;
+    },
     readCredits() {const result=JSON.parse(nativeReadCredits());if(result.error)throw Error(result.error);return result.value;},
     writeCredits(text) {const error=nativeWriteCredits(text);if(error)throw Error(error);},
     prepareExamples() {
@@ -233,15 +239,14 @@ export function dispatch(json, incremental = false) {
     if (summaryState !== state) {
       nextHouses = new Map();
       cachedSummaries = state.houses.map(h => {
-        // Store transactions clone all houses. Compare complete serialized records
-        // so unchanged houses need neither statistics nor another native decode.
-        const text = JSON.stringify(h), old = deliveredHouses.get(h.id);
-        const entry = old?.text === text ? old : {text, summary: {
+        const old = deliveredHouses.get(h.id);
+        const text = old?.house === h ? old.text : JSON.stringify(h);
+        const entry = old?.text === text ? {...old, house: h} : {house: h, text, summary: {
           id: h.id, name: h.name, archived: !!h.archived, currencyCode: h.currencyCode || 'CNY',
           rent: String(h.answers.f1_6?.value ?? ''), area: String(h.answers.f1_3?.value ?? '—'),
           address: h.address || '', decision: h.decision || '', stats: model.stats(h),
           cover: h.media?.find(m => m.type === 'image')?.path || ''}};
-        if (entry !== old) changed.push(h);
+        if (text !== old?.text) changed.push(h);
         nextHouses.set(h.id, entry);
         return entry.summary;
       });
