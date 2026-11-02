@@ -1,0 +1,7 @@
+<view wx:if="{{visible}}" class="touch-menu-layer" catchtap="dismiss" catchtouchmove="stop">
+  <scroll-view class="touch-menu-panel" scroll-y enhanced show-scrollbar="{{false}}" catchtap="stop" style="left:{{frame.left}}px;top:{{frame.top}}px;width:{{frame.width}}px;height:{{frame.height}}px;">
+    <view class="touch-menu-items">
+      <button wx:for="{{actions}}" wx:key="index" class="touch-menu-action {{item.destructive?'destructive':''}}" data-index="{{index}}" catchtap="choose">{{item.title}}</button>
+    </view>
+  </scroll-view>
+</view>
