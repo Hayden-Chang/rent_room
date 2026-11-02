@@ -1,0 +1,18 @@
+[
+  {
+    "file": "stage-guide-chinese.png",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "33740831defc790c206b9ae246e4c21ef5218c9d8a0b1c663f90129521b6cce6",
+    "test": "StageGuideCopyUITests/testChineseGuideKeepsMatchingPhaseTabLabels()",
+    "evidenceSHA": "9a49676ba2af728b2b78991a58c1fd23523c9c7a"
+  },
+  {
+    "file": "stage-guide-english.png",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "36392f006a1af7842805e349878e125ba286ffcacf94556ef0c73a7fe7c98dd1",
+    "test": "StageGuideCopyUITests/testEnglishGuideRepeatsItsPhaseTabLabels()",
+    "evidenceSHA": "9a49676ba2af728b2b78991a58c1fd23523c9c7a"
+  }
+]
