@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-room-swipe-reveal-integrated-01a19a99",
+  "phase": "final-pr-head",
+  "taskName": "正式引导左滑动画最终验证",
+  "sessionId": "01a19a99-7662-7402-a7bb-16b54adf2430",
+  "workspace": "/private/tmp/rent-room-ios-swipe-reveal-animation-20261102",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureExposesClampedProgressAndClearsRejectedAttempts",
+      "reason": "新增位移暴露、夹紧、取消后重试",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureRejectsTapRightVerticalAndAllowsRetry",
+      "reason": "手势方向及取消保持原有契约",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/XiaodaTeachingTests/testTeachingGestureUsesChecklistShortFlickThreshold",
+      "reason": "保留短划速度阈值",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/MiniProgramComponentTests/testSwipeFollowsFingerAndHandlesReverseAndVerticalScroll",
+      "reason": "引导进度接入现有 coordinator.move/reveal/close",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/InspectionBusinessTests/testTutorialRequiresActualSwipeAndResumesStoredStep",
+      "reason": "真实引导推进与重开步骤保留",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/InspectionBusinessTests/testTutorialSaveFailureRollsBackAndDuplicateSwipeCannotSkipStepFour",
+      "reason": "动画结束推进的保存失败与重复完成边界",
+      "source": "affected-existing"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+      "reason": "实际拖动期间采样真实行画面，要求操作按钮经过中间宽度",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/InspectionBusinessUITests/testSimpleSwipeGuideTracksVisibleRow",
+      "reason": "Simple正式引导路径的手势防误触、可视行连续展开及说明卡布局",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuUITests/InspectionBusinessUITests/testDetailedSwipeGuideTracksVisibleRow",
+      "reason": "Detailed正式引导路径的手势防误触、可视行连续展开及说明卡布局",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/InspectionTeachingReviewTests/testTeachingSwipeRendersIntermediateActionWidths",
+    "XunjuUITests/InspectionBusinessUITests/testSimpleSwipeGuideTracksVisibleRow",
+    "XunjuUITests/InspectionBusinessUITests/testDetailedSwipeGuideTracksVisibleRow"
+  ],
+  "headSha": "b24fdb482a49ccd6125a947d64c40cd6ca214cb6"
+}

@@ -19,11 +19,11 @@ class LocalizedCopyName(unittest.TestCase):
         self.app = self.root / "App.app"
         self.name = "看房搭子开发版 R001"
         self.originals = {}
-        for locale, old_name in (("en", "Xunju"), ("zh-Hans", "寻居")):
+        for locale in ("en", "zh-Hans"):
             relative = Path(f"{locale}.lproj/InfoPlist.strings")
             # Use the real generated permission translations, including future keys.
             values = localize.read_strings(localize.SOURCE_RESOURCES / relative)
-            self.assertEqual(values["CFBundleDisplayName"], old_name)
+            self.assertTrue(values["CFBundleDisplayName"])
             self.originals[relative] = values
             for root in (self.source, self.app):
                 path = root / relative

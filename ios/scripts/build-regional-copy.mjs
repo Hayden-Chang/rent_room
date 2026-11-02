@@ -12,6 +12,19 @@ if (hash(await readFile(prompt)) !== provenance.promptSHA256 || hash(await readF
     hash(await readFile(source)) !== provenance.sourceSHA256) {
   throw Error('Translation provenance changed. Regenerate English through agy -p and update its receipt.');
 }
+for (const revision of provenance.revisions ?? []) {
+  const directory = new URL('../Localization/', import.meta.url);
+  const promptText = await readFile(new URL(revision.prompt, directory));
+  const translatedText = await readFile(new URL(revision.english, directory));
+  if (hash(promptText) !== revision.promptSHA256 || hash(translatedText) !== revision.englishSHA256) {
+    throw Error('Regional copy revision provenance changed.');
+  }
+  const entries = JSON.parse(translatedText);
+  if (JSON.stringify(Object.keys(entries).sort()) !== JSON.stringify([...revision.keys].sort())) {
+    throw Error('Regional copy revision keys differ.');
+  }
+  Object.assign(en, entries);
+}
 const keys = Object.keys(zh).sort();
 if (JSON.stringify(keys) !== JSON.stringify(Object.keys(en).sort())) throw Error('Chinese and English keys must match.');
 for (const key of keys) {
@@ -26,4 +39,4 @@ const destination = new URL('../Xunju/Resources/RegionalCopy.json', import.meta.
 if (process.argv.includes('--check')) {
   if (await readFile(destination, 'utf8') !== text) throw Error('Regional copy is stale. Run node ios/scripts/build-regional-copy.mjs.');
 } else { await writeFile(destination, text); }
-console.log(`Regional copy: ${keys.length} paired entries; agy provenance and placeholders verified.`);
+console.log(`Regional copy: ${keys.length} paired entries; provenance and placeholders verified.`);

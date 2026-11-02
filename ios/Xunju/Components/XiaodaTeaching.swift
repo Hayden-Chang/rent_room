@@ -123,6 +123,7 @@ struct XiaodaTutorialCardLayout: Layout {
 struct XiaodaSwipeGesture {
     private var motion = MPSwipeMotion()
     private var cancelled = false
+    var offset: CGFloat { cancelled ? 0 : motion.offset }
     mutating func move(x: CGFloat, y: CGFloat, time: Double) {
         motion.sample(x: x, y: y, time: time)
         if motion.axis == .vertical || (motion.axis == .horizontal && x > 0) { cancelled = true }
@@ -137,10 +138,14 @@ struct XiaodaSwipeGesture {
 
 struct XiaodaSwipeTarget: View {
     let completed: () -> Void
+    var progress: (CGFloat) -> Void = { _ in }
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var gesture = XiaodaSwipeGesture()
     @State private var started = Date()
+    @State private var settling = false
+    @State private var finished = false
+    @State private var generation = 0
     var body: some View {
         Rectangle().fill(.white.opacity(0.001)).contentShape(Rectangle())
             .overlay {
@@ -159,14 +164,38 @@ struct XiaodaSwipeTarget: View {
                 }.allowsHitTesting(false).accessibilityHidden(true)
             }
             .gesture(DragGesture(minimumDistance: 0)
-                .onChanged { value in gesture.move(x: value.translation.width, y: value.translation.height, time: value.time.timeIntervalSinceReferenceDate) }
+                .onChanged { value in
+                    guard !settling else { return }
+                    gesture.move(x: value.translation.width, y: value.translation.height, time: value.time.timeIntervalSinceReferenceDate)
+                    withAnimation(nil) { progress(gesture.offset) }
+                }
                 .onEnded { value in
-                    if gesture.end(x: value.translation.width, y: value.translation.height, time: value.time.timeIntervalSinceReferenceDate) { completed() }
+                    guard !settling else { return }
+                    settle(accepted: gesture.end(x: value.translation.width, y: value.translation.height, time: value.time.timeIntervalSinceReferenceDate))
                 })
             .accessibilityElement(children: .ignore).accessibilityLabel(AppCopy.text("在此检查项上向左滑"))
             .accessibilityIdentifier("coach.swipeTarget")
-            .accessibilityAction(named: AppCopy.text("向左滑")) { completed() }
-            .onChange(of: scenePhase) { _, _ in gesture = XiaodaSwipeGesture() }
-            .onDisappear { gesture = XiaodaSwipeGesture() }
+            .accessibilityAction(named: AppCopy.text("向左滑")) { settle(accepted: true) }
+            .onChange(of: scenePhase) { _, phase in if phase != .active { reset() } }
+            .onDisappear { reset(keepRevealed: finished) }
+    }
+    private func settle(accepted: Bool) {
+        guard !settling else { return }
+        settling = true
+        let token = generation
+        // Finish the row's motion before replacing the gesture with the next card.
+        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.22), completionCriteria: .removed) {
+            progress(accepted ? -132 : 0)
+        } completion: {
+            guard generation == token else { return }
+            if accepted { finished = true; completed() }
+            else { settling = false }
+        }
+    }
+    private func reset(keepRevealed: Bool = false) {
+        generation += 1
+        gesture = XiaodaSwipeGesture()
+        settling = false
+        if !keepRevealed { withAnimation(nil) { progress(0) } }
     }
 }

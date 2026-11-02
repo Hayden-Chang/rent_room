@@ -107,6 +107,14 @@ struct ChecklistPage: View {
                             VStack(spacing: 0) {
                                 ForEach(Array(rows.enumerated()), id: \.element.rowKey) { index, row in
                                     checklistRow(row, hideDivider: ChecklistPresentation.hidesDivider(at: index, rows: rows))
+                                        .background {
+                                            #if DEBUG
+                                            if showCoach, row.id == coachTarget["field"].id,
+                                               ProcessInfo.processInfo.arguments.contains("--record-teaching-swipe") {
+                                                TeachingRevealRecorder().allowsHitTesting(false)
+                                            }
+                                            #endif
+                                        }
                                         .anchorPreference(key: CoachAnchors.self, value: .bounds) { row.id == coachTarget["field"].id ? [3: $0, 4: $0] : [:] }
                                         .padding(.leading, ChecklistPresentation.indent(row)).id(row.id)
                                 }
@@ -120,7 +128,10 @@ struct ChecklistPage: View {
             if showCoach {
                 GeometryReader { geometry in
                     XiaodaTutorialOverlay(guide: guidance, target: anchors[coachStep].map { geometry[$0] },
-                        swipeCompleted: { advanceCoach(swiped: true) }, decoratedSpeech: true,
+                        swipeCompleted: { advanceCoach(swiped: true) }, swipeProgress: { offset in
+                            if offset == 0 { coordinator.close() }
+                            else { coordinator.move(coachTarget["field"].id, x: offset, y: 0, time: ProcessInfo.processInfo.systemUptime) }
+                        }, decoratedSpeech: true,
                         adjustScroll: { delta, anchor in
                             if coachStep >= 3 {
                                 // Resolve the expanded row through SwiftUI instead of clamping

@@ -16,17 +16,17 @@ import XCTest
     func testDefaultChangesOnlyNewHousesAndPersistsAmountsAndCurrency() throws {
         let store = try store(), settings = settings()
         store.currencyProvider = { settings.preferences.currencyCode }
-        let usd = try store.add("放弃")
-        try store.answer(usd, field: "f1_6", value: .string("2500"))
+        let yuan = try store.add("放弃")
+        try store.answer(yuan, field: "f1_6", value: .string("2500"))
         settings.detect(countryCode: "GB")
         let gbp = try store.add("英国房源")
         settings.selectCurrency("EUR")
         let eur = try store.add("欧洲房源")
         settings.detect(countryCode: "JP")
         let restored = try NativeStore(directory: store.records.directory, freeLimit: 3)
-        XCTAssertEqual(restored.house(usd)["currencyCode"].string, "USD")
-        XCTAssertEqual(restored.house(usd)["answers"]["f1_6"]["value"].string, "2500")
-        XCTAssertEqual(restored.house(usd)["name"].string, "放弃")
+        XCTAssertEqual(restored.house(yuan)["currencyCode"].string, "CNY")
+        XCTAssertEqual(restored.house(yuan)["answers"]["f1_6"]["value"].string, "2500")
+        XCTAssertEqual(restored.house(yuan)["name"].string, "放弃")
         XCTAssertEqual(restored.house(gbp)["currencyCode"].string, "GBP")
         XCTAssertEqual(restored.house(eur)["currencyCode"].string, "EUR")
         XCTAssertEqual(settings.preferences.currencyCode, "EUR")
@@ -63,7 +63,7 @@ import XCTest
         let all = try store.call("compare", ["ids": .array([.string(gbp), .string(usd)])]).array
         XCTAssertEqual(all.first { $0.id == "summary" }?["localized"].array, [.bool(false), .bool(true)])
     }
-    func testCurrencyPromptDoesNotLocateBeforeChoiceAndDeclineRemainsUSD() async {
+    func testCurrencyPromptDoesNotLocateBeforeChoiceAndDeclineUsesCNY() async {
         let settings = settings(), locator = CountryProbe()
         let flow = CurrencyLocationFlow(settings: settings, locator: locator)
         flow.afterChecklist(false); XCTAssertFalse(flow.showsPrompt)
@@ -71,7 +71,7 @@ import XCTest
         flow.decline(); flow.afterChecklist(true); flow.refreshOnForeground()
         await Task.yield()
         XCTAssertFalse(flow.showsPrompt); XCTAssertEqual(locator.calls, 0)
-        XCTAssertEqual(settings.preferences.currencyCode, "USD")
+        XCTAssertEqual(settings.preferences.currencyCode, "CNY")
         XCTAssertTrue(settings.preferences.currencyPromptHandled)
     }
     func testExplicitLocationSuccessFailureAndManualChoiceWinOverLateResult() async {
@@ -82,7 +82,7 @@ import XCTest
         XCTAssertEqual(settings.preferences.currencyCode, "GBP")
         flow.refreshOnForeground(); await locator.waitForRequest()
         locator.finish(.failure(LocationFailure.denied)); await finish(flow)
-        XCTAssertEqual(settings.preferences.currencyCode, "USD")
+        XCTAssertEqual(settings.preferences.currencyCode, "CNY")
         XCTAssertEqual(flow.messageKey, "location.unavailable")
         flow.request(); await locator.waitForRequest()
         flow.chooseCurrency("EUR"); locator.finish(.success("JP")); await Task.yield()

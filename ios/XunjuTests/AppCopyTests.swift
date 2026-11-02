@@ -62,7 +62,8 @@ import XCTest
         XCTAssertEqual(AppCopy.moneyLabel("单元清洁", currency: "GBP", verbatim: true), "单元清洁（GBP）")
         let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "en.lproj"))
         let permissions = try XCTUnwrap(try PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String]).values.joined(separator: " ")
-        XCTAssertTrue(permissions.contains("USD")); XCTAssertFalse(permissions.contains("获取当前位置"))
+        XCTAssertTrue(permissions.contains("identify currency"))
+        XCTAssertFalse(permissions.contains("USD")); XCTAssertFalse(permissions.contains("获取当前位置"))
     }
     func testMergedLocalSettingsAndPurchaseCopyAreLocalized() {
         for source in [LocalSettingsAction.capacity.title, LocalSettingsAction.archive.title, LegalPage.privacy.title, LegalPage.terms.title,

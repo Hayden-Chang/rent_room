@@ -1,0 +1,28 @@
+{
+  "runId": "rent-room-swipe-reveal-red-01a19a99",
+  "token": "c09ffb7d-13ca-4d9f-ad47-75bed2c82970",
+  "resultBundlePath": "/private/tmp/rent-room-swipe-reveal-evidence/red.xcresult",
+  "requestedAt": 1793595669367,
+  "cacheWaitSeconds": 0.004,
+  "queueSeconds": 11.423,
+  "buildResultBundlePath": "/private/tmp/rent-room-swipe-reveal-evidence/red.build.xcresult",
+  "stages": {
+    "build": {
+      "queuedAt": 1793595669371,
+      "startedAt": 1793595679948,
+      "queueSeconds": 10.577,
+      "finishedAt": 1793595740012,
+      "exitCode": 0
+    },
+    "test": {
+      "queuedAt": 1793595740014,
+      "startedAt": 1793595740860,
+      "queueSeconds": 0.846,
+      "finishedAt": 1793595779638,
+      "exitCode": 65
+    }
+  },
+  "commandStartedAt": 1793595740860,
+  "finishedAt": 1793595779649,
+  "exitCode": 65
+}

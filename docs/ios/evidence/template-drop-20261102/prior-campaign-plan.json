@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "runId": "rent-template-drop-final-geometry-20261102",
+  "phase": "final-pr-head",
+  "taskName": "iOS template drop final regression",
+  "sessionId": "01a19a8e-c6f1-7720-b62d-88b7f6c7eae1",
+  "workspace": "/private/tmp/rent-room-ios-template-drop-20261102",
+  "unitTestTarget": "XunjuTests",
+  "uiTestTarget": "XunjuUITests",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/InspectionSetupTests/testReorderBothDirectionsPreservesDisabledCategories",
+      "reason": "Release still commits both directions without modifying disabled categories",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/InspectionSetupTests/testInvalidDropAndToggleCannotAlterDraft",
+      "reason": "Same-position and invalid drops remain no-ops",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/InspectionSetupTests/testSetupReviewRequiresExplicitArgument",
+      "reason": "Transaction observer stays behind explicit DEBUG component review launch",
+      "source": "affected-existing"
+    }
+  ],
+  "uiTests": [
+    {
+      "selector": "XunjuUITests/InspectionSetupReviewTests/testNativeDropCommitsInPlaceInBothDirections",
+      "reason": "Real upward/downward drag release must not replay structural order animation",
+      "source": "new-or-modified"
+    }
+  ],
+  "changedUITests": [
+    "XunjuUITests/InspectionSetupReviewTests/testNativeDropCommitsInPlaceInBothDirections"
+  ],
+  "headSha": "9d41194a8bf7748c5d8abc198d7ee4e261b1008e"
+}

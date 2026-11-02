@@ -1,0 +1,28 @@
+{
+  "runId": "rent-template-drop-final-landing-20261102",
+  "token": "2450e6d1-4738-4ba2-b930-05290cc5ef40",
+  "resultBundlePath": "/Volumes/mac2/codex-builds/rent-template-drop-final-landing-20261102.xcresult",
+  "requestedAt": 1793595943499,
+  "cacheWaitSeconds": 0.02,
+  "queueSeconds": 0.858,
+  "buildResultBundlePath": "/Volumes/mac2/codex-builds/rent-template-drop-final-landing-20261102.build.xcresult",
+  "stages": {
+    "build": {
+      "queuedAt": 1793595943519,
+      "startedAt": 1793595943729,
+      "queueSeconds": 0.21,
+      "finishedAt": 1793595963452,
+      "exitCode": 0
+    },
+    "test": {
+      "queuedAt": 1793595963453,
+      "startedAt": 1793595964101,
+      "queueSeconds": 0.648,
+      "finishedAt": 1793595980143,
+      "exitCode": 0
+    }
+  },
+  "commandStartedAt": 1793595964101,
+  "finishedAt": 1793595980151,
+  "exitCode": 0
+}
