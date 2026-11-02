@@ -41,6 +41,7 @@ PR #118 保持草稿，未合并、部署或安装真机。没有新增地址供
 | green-02 | 1c8b30c，19 UT + 3 UI，iOS 26.5 | 20 过 / 2 失败：单测写死中文附近词；真实 California 返回北京。两个夹具业务 UI 全程通过 |
 | green-03 | b07242a，19 UT + 3 UI，iOS 18.3.1 | **22 过 / 0 失败 / 0 跳过**。修正单测语言假设，并在坐标断言前留截图；生产源码未变 |
 | us-english-26 | d8c17f4，0 UT + 2 UI，同一 iPhone 16 / iOS 26.5 | 0 过 / 2 失败 / 0 跳过。英文流程实际语言断言通过，完整纽约街道返回北京；中文流程上海成功后，在第二次输入前等待键盘失败，此项不作为 California 查询证据 |
+| us-proxy-26 | 9b28f02，0 UT + 1 UI，同一 iPhone 16 / iOS 26.5 | 0 过 / 1 失败 / 0 跳过。已启用扩展并仅选择本任务模拟器进程树，但没有捕获到任何连接；纽约首条仍为北京，纬度 39.940298。此轮不能作为美国出口 A/B |
 
 `green-03` 的 3 个 UI 场景：
 
@@ -65,8 +66,23 @@ PR #118 保持草稿，未合并、部署或安装真机。没有新增地址供
 
 [mitmproxy Local Capture](https://docs.mitmproxy.org/stable/concepts/modes/#local-capture) 支持精确 PID 选择；其 [macOS 扩展源码](https://github.com/mitmproxy/mitmproxy_rs/blob/main/mitmproxy-macos/redirector/network-extension/TransparentProxyProvider.swift) 将未命中 PID 的流量交回系统。可在共享 runner 的本任务有效租约内解析目标模拟器的 `launchd_sim`，仅匹配该进程树。按应用名称匹配不能代替这一隔离边界。
 
-任务临时目录中已准备 `isolated_proxy.py` 和独立 Python 环境。CONNECT → SOCKS5 1081 的传输探针返回 `loc=US`，保留 HTTPS 原证书校验；官方组件通过签名、公证校验。尚未安装或启用网络扩展，用户授权待确认。没有安装 CA，也没有解密 HTTPS。
+用户随后明确批准安装与启用。官方 PyPI `mitmproxy-rs` / `mitmproxy-macos` 0.12.15 安装在任务独立 Python 环境；应用安装到 `/Applications/Mitmproxy Redirector.app`。签名、公证校验通过，Team ID `S8XHQB96PW`；系统回读扩展 `org.mitmproxy.macos-redirector.network-extension` 为 `[activated enabled]`。授权步骤已完成，没有待确认的授权提示。没有安装 CA，也没有解密 HTTPS。
 
-这是待验证方案，不是已完成的模拟器网络切换。仍需验证 MapKit 请求的进程归属、到既有本机代理的 loopback 连接是否可见、UDP/TCP 回退与动态 PID 覆盖。当前临时桥接只实现 TCP；任何共享宿主服务不能为了通过测试而加入转发名单。正式美国出口对照、真机与美国用户上线验收均未完成。
+已完成以下诊断，原始记录在证据根目录：
+
+| 诊断 | 观察 | 能证明的范围 |
+| --- | --- | --- |
+| `pid-isolation-probe-03.log` | 被选 PID 的直接 HTTPS 连接与 DNS 被捕获，出口 US；未选对照继续经 7897，出口 JP | 精确 PID 筛选和 SOCKS5 转发可工作 |
+| 同一探针中的 loopback 分支 | 即使选中 PID，其到 `127.0.0.1:7897` 的连接仍未被捕获，出口 JP | 当前扩展不能接管该本机代理连接 |
+| `process-proxy-mapkit-probe.log`，macOS 独立程序 | 设置 Apple 公开进程代理 API 后，普通 URLSession 为 US；MapKit 仍返回北京，转发日志没有地图连接 | 进程内普通 HTTPS 的出口不能代替 MapKit 出口证据；不是 iOS 设备测试 |
+| `us-proxy-26.xcresult` / `us-proxy-network.log` | 有效租约内只选择目标 `launchd_sim` 进程树，包含其 geod；51 次 PID 名单更新、0 个连接事件；纽约结果仍错误 | 未建立 MapKit 经美国出口的证据，不能据此判断美国用户也会失败 |
+
+当前扩展源码用 remote/local 均为 nil 的 `NENetworkRule`。Apple 的 [规则说明](https://developer.apple.com/documentation/networkextension/nenetworkrule/init(remotenetwork:remoteprefix:localnetwork:localprefix:protocol:direction:)) 及本机 Xcode 26.5 SDK 的 `NENetworkRule.h` 明确此类规则排除 loopback。结合独立探针，确认了现有 `7897` 本机代理路径的覆盖缺口。由于本轮没有实际 MapKit 连接，仍不能断言它具体走了该路径；缓存、已有连接或共享服务等可能性尚未排除。
+
+临时桥接已实现 TCP 和经 SOCKS5 转发的 DNS；其他 UDP 未支持，不能作为完整 VPN。动态 PID 发现也可能漏掉新进程的首次连接。未修改扩展签名或源码，未把共享宿主服务纳入范围。单模拟器美国出口方案目前尚未达标，需要解决 loopback/实际服务连接覆盖后再做网络对照；不因普通探针通过而放行上线。
+
+本轮 run ID `rent-room-us-proxy-en26-01a19adf`，目标 SHA `9b28f02ebeb520bd0cf5fe47addcb7efe8d839ce`，UDID `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`，选择器 `XunjuUITests/LivePlaceSearchTests/testEnglishUSAddressSearchAcrossStatesAndPersist`。配置为证据目录的 `us-english-config.json`，构建缓存由共享 runner 分配为 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-6daf59b494416c091df13e6b-simulator`，scheme 为 Xunju。构建退出 0，测试退出 65，完整 summary 与附件已导出，原始截图已检查。
+
+测试租约已释放，转发控制会话和 `18081` 临时监听器已停止，扩展保留安装及启用状态。`proxy-after-network-extension.json` 与原备份逐项一致。正式美国出口对照、真机与美国用户上线验收均未完成。
 
 英文对照 run ID 为 `rent-room-us-market-en26-01a19adf`，UDID 为 `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`，完整证据为 `us-english-26.xcresult` / `us-english-26-summary.json`。退出码 65，租约已释放。新增测试提交 `d8c17f4e3eccaecd2b4b694ec59476f8256339e7` 没有修改生产源码。
