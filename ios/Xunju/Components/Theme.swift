@@ -6,6 +6,7 @@ enum XJTheme {
     static let ink = Color(red: 28 / 255, green: 38 / 255, blue: 56 / 255)
     static let muted = Color(red: 102 / 255, green: 113 / 255, blue: 135 / 255)
     static let primary = Color(red: 77 / 255, green: 86 / 255, blue: 223 / 255)
+    static let noteInk = Color(red: 181 / 255, green: 101 / 255, blue: 22 / 255)
     static let soft = Color(red: 236 / 255, green: 238 / 255, blue: 255 / 255)
     static let line = Color(red: 229 / 255, green: 233 / 255, blue: 241 / 255)
     static let danger = Color(red: 187 / 255, green: 65 / 255, blue: 73 / 255)
