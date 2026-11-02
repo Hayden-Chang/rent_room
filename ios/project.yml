@@ -1,4 +1,6 @@
 name: Xunju
+fileGroups:
+  - ci_scripts
 options:
   bundleIdPrefix: com.keeline.xunju
   deploymentTarget:
@@ -10,6 +12,7 @@ settings:
     SWIFT_VERSION: "6.0"
     TARGETED_DEVICE_FAMILY: "1,2"
     CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: N3Z6DDSQCJ
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
@@ -86,6 +89,22 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
 schemes:
+  XunjuLiveUSSearch:
+    build:
+      targets:
+        Xunju: [testing]
+    test:
+      config: Debug
+      language: en-US
+      region: US
+      gatherCoverageData: false
+      captureScreenshotsAutomatically: true
+      deleteScreenshotsWhenEachTestSucceeds: false
+      targets:
+        - name: XunjuUITests
+          parallelizable: false
+          selectedTests:
+            - LivePlaceSearchTests/testEnglishUSAddressSearchAcrossStatesAndPersist()
   Xunju:
     build:
       targets:

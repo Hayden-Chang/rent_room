@@ -1,0 +1,304 @@
+{
+  "candidateHead": "8b3344ba46c5963546d967f05c8d5b09c07f23d6",
+  "baseHead": "a127f4e1ba7e8ff922c795756bae730549a57513",
+  "priorValidatedSource": "d292a1f2e320af6b5a2ea767455e6f48d949683b",
+  "authorization": "User explicitly requested merge on 2026-11-03 after receiving screenshots and limitations.",
+  "integration": "Automatic merge; no conflicts or manual resolution. Global input and store changes invalidate blanket equivalence, so all 23 relevant UT and three selected UI methods run on integrated candidate.",
+  "unitTests": [
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testKeywordSearchIgnoresSavedCenterAndKeepsCrossRegionRelevance",
+      "reason": "关键词全局查询、相关性顺序、附近排序、SDK 地址、无结果及取消",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testNearbyRetainsCenterAndDistanceOrdering",
+      "reason": "关键词全局查询、相关性顺序、附近排序、SDK 地址、无结果及取消",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testSystemSearchKeepsNamesAddressesAndRelevanceOrderWithoutCredentials",
+      "reason": "关键词全局查询、相关性顺序、附近排序、SDK 地址、无结果及取消",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testKeywordNoMatchIsEmptyButNetworkFailureRemainsAnError",
+      "reason": "关键词全局查询、相关性顺序、附近排序、SDK 地址、无结果及取消",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testNearbyKeepsExactSelectedPointWhenLocalSearchFails",
+      "reason": "关键词全局查询、相关性顺序、附近排序、SDK 地址、无结果及取消",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testNearbyKeepsSearchResultsWhenReverseGeocodingFailsAndLimitsCandidates",
+      "reason": "关键词全局查询、相关性顺序、附近排序、SDK 地址、无结果及取消",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testFailuresAndCancellationNeverInventSelectableLocations",
+      "reason": "关键词全局查询、相关性顺序、附近排序、SDK 地址、无结果及取消",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testMapKitItemConvertsAddressAndCoordinatesWithoutProviderSpecificFields",
+      "reason": "关键词全局查询、相关性顺序、附近排序、SDK 地址、无结果及取消",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testPlaceSearchStartsWithoutTiandituKeyAndDoesNotChangeRecords",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testConfiguredWorkspaceUsesApplePlacesAndPreservesSavedCoordinate",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testOverseasSelectionKeepsWGS84AndPersistsHouseAndWorkplace",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testAppleFailureKeepsSavedAddressAndDoesNotFallbackToTianditu",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testUsingPlaceDismissesCandidatesUntilAnotherSearch",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testHouseSelectionRoundTripKeepsCandidatesDismissed",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testPlaceSelectionPersistsCanonicalAddressAndWorkplaceWithoutChangingAnswers",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testCancelledPlaceResponseDoesNotRestoreCandidatesOrChangeRecords",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testSystemPlacesKeepManualWorkplaceAndCanSearchWithoutMapKey",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testClearingOrInvalidatingLocationRemovesDisplayedPointAndOldCandidates",
+      "reason": "PlaceSearch Apple 路由、候选生命周期、坐标持久化与作用域",
+      "source": "affected-existing"
+    },
+    {
+      "selector": "XunjuTests/OfflineWorkspaceTests/testSavedAddressAndCoordinatesDoNotQueryUntilExplicitMapAction",
+      "reason": "保存地址重新打开不自动请求",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testDeadlineReturnsEvenWhenSDKDoesNotCompleteCancellation",
+      "reason": "Bounded callback bridge: timeout/cancel/late completion and recovery without modifying saved state",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testCancellationReleasesCallerWithoutSDKReplyAndIgnoresLateReply",
+      "reason": "Bounded callback bridge: timeout/cancel/late completion and recovery without modifying saved state",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/SystemPlacesTests/testSynchronousCompletionAndCancelCallbackSettleOnlyOnce",
+      "reason": "Bounded callback bridge: timeout/cancel/late completion and recovery without modifying saved state",
+      "source": "new-or-modified"
+    },
+    {
+      "selector": "XunjuTests/UtilityFlowTests/testTimedOutSearchStopsLoadingPreservesAddressAndAllowsFreshSearch",
+      "reason": "Bounded callback bridge: timeout/cancel/late completion and recovery without modifying saved state",
+      "source": "new-or-modified"
+    }
+  ],
+  "rankedUI": [
+    {
+      "rank": 1,
+      "selector": "XunjuUITests/LivePlaceSearchTests/testEnglishUSAddressSearchAcrossStatesAndPersist",
+      "environment": "Xcode Cloud iPhone 16 iOS 26.5",
+      "risk": "Real US cross-state lookup, selection, keyboard handoff and persisted address under current main",
+      "runId": "0b4f31b3-e88f-4cb5-9f7e-fc71cc05ec11"
+    },
+    {
+      "rank": 2,
+      "selector": "XunjuUITests/UtilityBusinessTests/testHouseMapReentryFocusAndAddressPersistAfterRelaunch",
+      "reason": "房源页面 Apple 客户端选点、回显、手动改址和重启（固定地点响应）",
+      "source": "new-or-modified",
+      "environment": "local iPhone 14 Pro iOS 18.3.1; fixed place client / simulated CoreLocation"
+    },
+    {
+      "rank": 3,
+      "selector": "XunjuUITests/UtilityBusinessTests/testSystemLocationWithSimulatedPointCanSelectWorkplace",
+      "reason": "CoreLocation 模拟坐标、Apple 附近与逆地理编码接口、重复选点保存（固定地点响应）",
+      "source": "new-or-modified",
+      "environment": "local iPhone 14 Pro iOS 18.3.1; fixed place client / simulated CoreLocation"
+    }
+  ],
+  "notCovered": [
+    "Physical US device / GPS",
+    "Domestic iOS 26 provider-region behavior",
+    "Full English UI and map tile rendering"
+  ],
+  "checksBeforeIntegration": {
+    "requiredStatuses": [],
+    "checkRuns": [],
+    "reviews": [],
+    "unresolvedReviewThreads": []
+  },
+  "mainAgentReview": "Task source, tests and cloud scripts unchanged from validated d292a1f2; project automatically preserves main provisioning config and task team/scheme. Verified callback ownership and one-shot completion, stale-result guard, canonical save boundaries, exact UI selection, no new provider or device data access. New main input and persistence behavior covered by integrated campaign.",
+  "localResult": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "8F178971-C203-4690-A83B-253046EACBB1",
+          "deviceName": "todo-pool-ios18-compat-iphone14pro-20261022",
+          "modelName": "iPhone 14 Pro",
+          "osBuildNumber": "22D8075",
+          "osVersion": "18.3.1",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 25,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "Xunju · Built with macOS 26.2",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1793636054.587,
+    "passedTests": 25,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1793635943.681,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - Xunju",
+    "topInsights": [
+      {
+        "category": "Longest Test Runs",
+        "impact": "27% of duration",
+        "text": "1 longest test run with outlier durations exceeding 0.27s (three standard deviations)"
+      }
+    ],
+    "totalTestCount": 25
+  },
+  "localLeaseReleased": true,
+  "localScreenshotsInspected": [
+    "00FDFEA7-A282-417B-A1DA-0F60BBFA8AD0.png",
+    "40761AF9-579B-4676-A123-AB84F690A679.png"
+  ],
+  "cloudResult": {
+    "devicesAndConfigurations": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "DD7FDBF5-9F50-4199-98AB-52C10985922F",
+          "deviceName": "iPhone 16",
+          "modelName": "iPhone 16",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 1,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "environmentDescription": "XunjuLiveUSSearch · Built with macOS 26.5.1",
+    "expectedFailures": 0,
+    "failedTests": 0,
+    "finishTime": 1793636289.642,
+    "passedTests": 1,
+    "result": "Passed",
+    "skippedTests": 0,
+    "startTime": 1793636202.854,
+    "statistics": [],
+    "testFailures": [],
+    "title": "Test - XunjuLiveUSSearch",
+    "topInsights": [],
+    "totalTestCount": 1
+  },
+  "cloudRun": {
+    "buildRunId": "0b4f31b3-e88f-4cb5-9f7e-fc71cc05ec11",
+    "buildNumber": 4,
+    "executionProgress": "COMPLETE",
+    "completionStatus": "SUCCEEDED",
+    "startReason": "MANUAL",
+    "createdDate": "2026-11-02T16:12:28.264Z",
+    "startedDate": "2026-11-02T16:12:49.303Z",
+    "finishedDate": "2026-11-02T16:19:24.301Z",
+    "sourceCommit": {
+      "commitSha": "8b3344ba46c5963546d967f05c8d5b09c07f23d6",
+      "author": {
+        "displayName": "Hayden-Chang",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/62008508?v=4"
+      },
+      "committer": {
+        "displayName": "Hayden-Chang",
+        "avatarUrl": "https://avatars.githubusercontent.com/u/62008508?v=4"
+      },
+      "message": "Merge commit 'a127f4e1ba7e8ff922c795756bae730549a57513' into codex/ios-apple-place-search-20261102",
+      "webUrl": "https://github.com/Hayden-Chang/rent_room/commit/8b3344ba46c5963546d967f05c8d5b09c07f23d6"
+    }
+  },
+  "cloudHTTPObservation": {
+    "country": "US",
+    "edge": "SJC",
+    "utc": "2026-11-02T16:16:40Z"
+  },
+  "screenshots": [
+    {
+      "file": "merge-cloud26-california.png",
+      "sourceAttachment": "58D2859F-0E90-4813-AC4E-6D6C3D4E1E46.png",
+      "sha256": "c327a00f163175aea2d589e72e49e55ebc35b9baf5d192867a1f1f5fe4ba0ee8",
+      "inspected": true
+    },
+    {
+      "file": "merge-cloud26-cupertino.png",
+      "sourceAttachment": "D5D4C54D-7B0C-4B51-A0BE-59A4D2D70867.png",
+      "sha256": "296b92462eb41a4809d2f548562775ff32839378851314e8127a8bd4ec328e5a",
+      "inspected": true
+    },
+    {
+      "file": "merge-cloud26-relaunch.png",
+      "sourceAttachment": "BB39801C-CC65-4F68-99CE-1C2628BEDC50.png",
+      "sha256": "cbb096e28e15c114fd6f7bd8a03f5d68e048545a65dbfe6a80978d8c83818c2e",
+      "inspected": true
+    }
+  ],
+  "gate": "PASS for code merge after explicit user authorization; not App Store release acceptance",
+  "workflowDisabled": true,
+  "quota": {
+    "used": 18,
+    "available": 1482,
+    "total": 1500
+  },
+  "remoteChecks": {
+    "commit": "8b3344ba46c5963546d967f05c8d5b09c07f23d6",
+    "combinedStatus": "success",
+    "checkRun": "success",
+    "reviews": [],
+    "unresolvedThreads": []
+  }
+}

@@ -17,6 +17,11 @@ import CoreLocation
         if !app.keyboards.firstMatch.waitForExistence(timeout: 1) { field.tap() }
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
     }
+    private func chooseInitialCurrency(_ app: XCUIApplication) {
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 5)); currency.tap()
+        XCTAssertTrue(currency.waitForNonExistence(timeout: 5))
+    }
     private func assertCandidatesStayDismissed(_ app: XCUIApplication) {
         let result = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'place.result.'")).firstMatch
         XCTAssertTrue(result.waitForNonExistence(timeout: 4), "Using a place must dismiss all candidates")
@@ -97,6 +102,7 @@ import CoreLocation
     }
     func testHouseMapReentryFocusAndAddressPersistAfterRelaunch() {
         let app = launch()
+        chooseInitialCurrency(app)
         app.buttons["home.add"].tap()
         let name = app.textFields["prompt.text"]; XCTAssertTrue(name.waitForExistence(timeout: 3))
         name.replacePromptText("地图状态回归"); app.buttons["prompt.confirm"].tap()
@@ -181,7 +187,9 @@ import CoreLocation
         let prior = XCUIDevice.shared.location
         addTeardownBlock { @MainActor in XCUIDevice.shared.location = prior }
         XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 31.2304, longitude: 121.4737))
-        let app = launch(resetLocationPermission: true); app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
+        let app = launch(resetLocationPermission: true)
+        chooseInitialCurrency(app)
+        app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
         let locate = app.buttons["place.locate"]; XCTAssertTrue(locate.waitForExistence(timeout: 3)); locate.tap()
         let system = XCUIApplication(bundleIdentifier: "com.apple.springboard"), alert = system.alerts.firstMatch
         if alert.waitForExistence(timeout: 2) {

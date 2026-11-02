@@ -24,4 +24,8 @@ TASK_SECOND="$(shasum -a 256 "$TASK_ROOT/ios/Xunju.xcodeproj/project.pbxproj" | 
 for TASK_TARGET in Xunju XunjuTests XunjuUITests; do
   /usr/bin/grep -q "name = $TASK_TARGET;" "$TASK_ROOT/ios/Xunju.xcodeproj/project.pbxproj"
 done
+# Keep the resolved dependency outside the ignored project and restore it after generation.
+TASK_SWIFTPM="$TASK_ROOT/ios/Xunju.xcodeproj/project.xcworkspace/xcshareddata/swiftpm"
+mkdir -p "$TASK_SWIFTPM"
+cp "$TASK_ROOT/ios/Package.resolved" "$TASK_SWIFTPM/Package.resolved"
 echo "XcodeGen $TASK_VERSION: deterministic project verified"
