@@ -1,4 +1,4 @@
-import {touchMenuFrame} from '../../lib/touch-menu.js';
+import {touchMenuFrame} from '../../src/lib/touch-menu.js';
 
 Component({
   properties:{visible:Boolean,anchor:Object,actions:Array},

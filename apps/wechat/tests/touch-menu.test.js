@@ -21,7 +21,7 @@ it('reads viewport touch coordinates without adding scroll offsets',()=>{
 });
 it('emits selection and dismiss independently without executing business actions',()=>{
   let definition;const events=[];
-  const code=buildSync({entryPoints:['src/components/touch-menu/index.js'],bundle:true,write:false,format:'iife'}).outputFiles[0].text;
+  const code=buildSync({entryPoints:['review-components/touch-menu/index.js'],bundle:true,write:false,format:'iife'}).outputFiles[0].text;
   vm.runInNewContext(code,{Component:value=>definition=value,wx:{getWindowInfo:()=>({windowWidth:390,windowHeight:720})}});
   const instance={...definition.methods,triggerEvent:(...args)=>events.push(args),setData(value){this.data=value;}};
   definition.observers['visible,anchor,actions'].call(instance,true,{x:360,y:710},[{}, {}, {}]);
