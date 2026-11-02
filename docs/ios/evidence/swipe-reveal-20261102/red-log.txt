@@ -1,0 +1,95 @@
+Validated development plan rent-room-swipe-reveal-red-01a19a99: 0 UT, 1 UI.
+Build cache: /Volumes/mac2/codex-builds/time-fragment-dd-shared-cc334543ebf2fd16b9a7ef7a-simulator; scheme Xunju
+Queued rent-room-swipe-reveal-red-01a19a99; waiting for one of 3 xcodebuild slots.
+Running rent-room-swipe-reveal-red-01a19a99 build; command PID 22949; simulator none.
+Native core: 69 canonical sources, 342608 bytes
+Regional copy: 190 paired entries; agy provenance and placeholders verified.
+App copy: 1350 entries; agy provenance and placeholders verified
+Native map configuration: configured
+XcodeGen 2.45.4: deterministic project verified
+Writing result bundle at path:
+	/private/tmp/rent-room-swipe-reveal-evidence/red.build.xcresult
+
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/StoreKitTest.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | 
+
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/Developer/Library/Frameworks/StoreKitTest.framework/Headers/StoreKitTest.h:14:9: note: in file included from /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/Developer/Library/Frameworks/StoreKitTest.framework/Headers/StoreKitTest.h:14:
+12 | #import <StoreKitTest/SKTestError.h>
+13 | #import <StoreKitTest/SKTestSession.h>
+14 | #import <StoreKitTest/SKTestTransaction.h>
+   |         `- note: in file included from /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/Developer/Library/Frameworks/StoreKitTest.framework/Headers/StoreKitTest.h:14:
+15 | 
+16 | 
+
+1 warning generated.
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks/StoreKitTest.framework/Headers/SKTestTransaction.h:34:32: warning: 'SKPaymentTransactionState' is deprecated: first deprecated in iOS 18.0 - Use PurchaseResult from Product.purchase(confirmIn:options:).
+32 | @property(nonatomic, readonly) NSDate *purchaseDate;
+33 | 
+34 | @property(nonatomic, readonly) SKPaymentTransactionState state;
+   |                                `- warning: 'SKPaymentTransactionState' is deprecated: first deprecated in iOS 18.0 - Use PurchaseResult from Product.purchase(confirmIn:options:).
+35 | 
+36 | @property(nonatomic, readonly) BOOL pendingPriceIncreaseConsent API_AVAILABLE(ios(15.4), macos(12.3), tvos(15.4), watchos(8.5), visionos(1.0)) NS_SWIFT_NAME(isPendingPriceIncreaseConsent);
+
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/StoreKit.framework/Headers/SKPaymentTransaction.h:14:28: note: 'SKPaymentTransactionState' has been explicitly marked deprecated here
+12 | @class SKPayment;
+13 | 
+14 | typedef NS_ENUM(NSInteger, SKPaymentTransactionState) {
+   |                            `- note: 'SKPaymentTransactionState' has been explicitly marked deprecated here
+15 |     SKPaymentTransactionStatePurchasing,    // Transaction is being added to the server queue.
+16 |     SKPaymentTransactionStatePurchased,     // Transaction is in queue, user has been charged.  Client should complete the transaction.
+<module-includes>:1:9: note: in file included from <module-includes>:1:
+1 | #import "Headers/StoreKitTest.h"
+  |         `- note: in file included from <module-includes>:1:
+2 | 
+
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/Developer/Library/Frameworks/StoreKitTest.framework/Headers/StoreKitTest.h:14:9: note: in file included from /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/Developer/Library/Frameworks/StoreKitTest.framework/Headers/StoreKitTest.h:14:
+12 | #import <StoreKitTest/SKTestError.h>
+13 | #import <StoreKitTest/SKTestSession.h>
+14 | #import <StoreKitTest/SKTestTransaction.h>
+   |         `- note: in file included from /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/Developer/Library/Frameworks/StoreKitTest.framework/Headers/StoreKitTest.h:14:
+15 | 
+16 | 
+
+1 warning generated.
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/Developer/Library/Frameworks/StoreKitTest.framework/Headers/SKTestTransaction.h:34:32: warning: 'SKPaymentTransactionState' is deprecated: first deprecated in iOS 18.0 - Use PurchaseResult from Product.purchase(confirmIn:options:).
+32 | @property(nonatomic, readonly) NSDate *purchaseDate;
+33 | 
+34 | @property(nonatomic, readonly) SKPaymentTransactionState state;
+   |                                `- warning: 'SKPaymentTransactionState' is deprecated: first deprecated in iOS 18.0 - Use PurchaseResult from Product.purchase(confirmIn:options:).
+35 | 
+36 | @property(nonatomic, readonly) BOOL pendingPriceIncreaseConsent API_AVAILABLE(ios(15.4), macos(12.3), tvos(15.4), watchos(8.5), visionos(1.0)) NS_SWIFT_NAME(isPendingPriceIncreaseConsent);
+
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk/System/Library/Frameworks/StoreKit.framework/Headers/SKPaymentTransaction.h:14:28: note: 'SKPaymentTransactionState' has been explicitly marked deprecated here
+12 | @class SKPayment;
+13 | 
+14 | typedef NS_ENUM(NSInteger, SKPaymentTransactionState) {
+   |                            `- note: 'SKPaymentTransactionState' has been explicitly marked deprecated here
+15 |     SKPaymentTransactionStatePurchasing,    // Transaction is being added to the server queue.
+16 |     SKPaymentTransactionStatePurchased,     // Transaction is in queue, user has been charged.  Client should complete the transaction.
+Simulator queue rent-room-swipe-reveal-red-01a19a99: 0.5s.
+Running rent-room-swipe-reveal-red-01a19a99 test; command PID 23606; simulator 8F178971-C203-4690-A83B-253046EACBB1.
+Native core: 69 canonical sources, 342608 bytes
+Regional copy: 190 paired entries; agy provenance and placeholders verified.
+App copy: 1350 entries; agy provenance and placeholders verified
+Native map configuration: configured
+XcodeGen 2.45.4: deterministic project verified
+Refreshed XCTest runner for rent-room-swipe-reveal-red-01a19a99; application data retained
+Writing result bundle at path:
+	/private/tmp/rent-room-swipe-reveal-evidence/red.xcresult
+
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:8F178971-C203-4690-A83B-253046EACBB1, OS:18.3.1, name:todo-pool-ios18-compat-iphone14pro-20261022 }
+{ platform:iOS Simulator, arch:x86_64, id:8F178971-C203-4690-A83B-253046EACBB1, OS:18.3.1, name:todo-pool-ios18-compat-iphone14pro-20261022 }
+2026-11-02 13:02:31.893 xcodebuild[23606:2158433] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-02 13:02:31.893 xcodebuild[23606:2158433] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-02 13:02:57.258 xcodebuild[23606:2158433] [MT] IDETestOperationsObserverDebug: 29.658 elapsed -- Testing started completed.
+2026-11-02 13:02:57.258 xcodebuild[23606:2158433] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-02 13:02:57.258 xcodebuild[23606:2158433] [MT] IDETestOperationsObserverDebug: 29.658 sec, +29.658 sec -- end
+Failing tests:
+	InspectionTeachingReviewTests.testTeachingSwipeRendersIntermediateActionWidths()
+
+** TEST EXECUTE FAILED **
+
+Testing started

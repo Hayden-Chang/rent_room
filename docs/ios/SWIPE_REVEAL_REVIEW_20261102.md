@@ -48,8 +48,8 @@
 - runner 使用本工作树独占的缓存键 `cc334543ebf2fd16b9a7ef7a`，实际 DerivedData 为 `/Volumes/mac2/codex-builds/time-fragment-dd-shared-cc334543ebf2fd16b9a7ef7a-simulator`；目录前缀来自共享基础设施，测试项目仍是 Xunju。
 - 修复后 queue 1.078 秒、构建阶段约 14.8 秒、测试命令阶段约 40.0 秒，后者包含安装/启动/收尾，未进一步拆分。不能把它全部当作测试方法耗时。
 - 执行完成后 runner 的设备租约与执行槽已释放，未关闭/清除设备。
-- [修复前计划](evidence/swipe-reveal-20261102/red-plan.json)、[命令](evidence/swipe-reveal-20261102/red-command.sh)、[日志](evidence/swipe-reveal-20261102/red.log)、[结果](evidence/swipe-reveal-20261102/red-summary.json)、[receipt](evidence/swipe-reveal-20261102/red-receipt.json)。
-- [修复后计划](evidence/swipe-reveal-20261102/green-plan.json)、[命令](evidence/swipe-reveal-20261102/green-command.sh)、[日志](evidence/swipe-reveal-20261102/green.log)、[结果](evidence/swipe-reveal-20261102/green-summary.json)、[receipt](evidence/swipe-reveal-20261102/green-receipt.json)。
+- [修复前计划](evidence/swipe-reveal-20261102/red-plan.json)、[命令](evidence/swipe-reveal-20261102/red-command.sh)、[日志](evidence/swipe-reveal-20261102/red-log.txt)、[结果](evidence/swipe-reveal-20261102/red-summary.json)、[receipt](evidence/swipe-reveal-20261102/red-receipt.json)。
+- [修复后计划](evidence/swipe-reveal-20261102/green-plan.json)、[命令](evidence/swipe-reveal-20261102/green-command.sh)、[日志](evidence/swipe-reveal-20261102/green-log.txt)、[结果](evidence/swipe-reveal-20261102/green-summary.json)、[receipt](evidence/swipe-reveal-20261102/green-receipt.json)。
 - [原始截图来源与 SHA-256](evidence/swipe-reveal-20261102/images.json)。全屏 1178 × 2556，行采样 329 × 48。PNG 均从本次 `.xcresult` 导出。
 
 ## 效果
