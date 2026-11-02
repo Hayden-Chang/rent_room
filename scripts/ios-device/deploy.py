@@ -13,11 +13,19 @@ import subprocess
 CANONICAL_BUNDLE = "com.keeline.xunju.ios"
 DISPLAY_NAME = "看房搭子开发版"
 ROOT = Path(__file__).resolve().parents[2]
+BOOT_VOLUME = Path("/")
 
 
 def require(condition, message):
     if not condition:
         raise RuntimeError(message)
+
+
+def on_boot_volume(path):
+    probe = path
+    while not probe.exists() and probe != probe.parent:
+        probe = probe.parent
+    return probe.stat().st_dev == BOOT_VOLUME.stat().st_dev
 
 
 def copy_bundle(copy_id):
@@ -96,6 +104,9 @@ class Deployment:
                     "derived-data must not be inside the output directory")
             require(not self.derived_data.exists() or self.derived_data.is_dir(),
                     "derived-data path must be a directory")
+            require(on_boot_volume(self.derived_data),
+                    "derived-data must be on the boot volume; Xcode's user-script sandbox "
+                    "cannot rewrite the built InfoPlist.strings on another volume")
             self.derived_data_mode = "cache"
         else:
             self.derived_data = self.output / "DerivedData"

@@ -45,9 +45,11 @@ bash scripts/deploy-ios-device.sh \
 ## 重复部署加速（2026-11-02）
 
 - 默认行为不变：DerivedData 位于本次唯一 `--output` 目录内，证据自包含，代价是每次全量构建。
-- 新增可选参数 `--derived-data <目录>`：指定 worktree 外的固定 DerivedData 目录并跨次复用，未改动的源码与配置触发增量编译。建议按副本命名，例如 `/Volumes/mac2/codex-builds/xunju-dd-r005`；同一 copy-id、同一 scheme/配置复用才有意义。
-- 校验：该目录必须在 worktree 外、不能在 `--output` 内，已存在时必须是目录；回执记录 `derivedData` 与 `derivedDataMode`（`cache` / `per-run`）。
+- 新增可选参数 `--derived-data <目录>`：指定 worktree 外的固定 DerivedData 目录并跨次复用，未改动的源码与配置触发增量编译。按副本命名，例如 `~/Library/Developer/Xcode/xunju-dd-r005`；同一 copy-id、同一 scheme/配置复用才有意义。
+- **缓存目录必须在启动卷**（如 `~/Library/Developer/Xcode/…`、`/private/tmp/…`）。Xcode 的用户脚本沙箱只允许构建脚本改写其声明的产物；DerivedData 放在外部卷（如 `/Volumes/…`）时，`Localize isolated app name` 阶段写 `InfoPlist.strings` 会被拒绝（`Sandbox: deny file-write-data`）导致构建失败，脚本会提前报错而不是构建到一半失败。
+- 校验：该目录必须在 worktree 外、不能在 `--output` 内、在启动卷上，已存在时必须是目录；回执记录 `derivedData` 与 `derivedDataMode`（`cache` / `per-run`）。
 - 缓存不绕过任何检查：构建来源 SHA、Bundle ID、显示名、签名、描述文件、本地化资源和设备读回仍在每次部署时重新校验，日志、`build.xcresult` 与 `receipt.json` 仍写入本次唯一 output。
+- 实测（2026-11-02，p10002 / Xcode 26.6，copy-id `r005` 同一 SHA）：空缓存构建 139 秒，同一缓存第二次部署 24 秒；改动一个 Swift 文件后增量构建落在两者之间。
 - 需要“从零构建”的干净证据时不要传该参数；缓存命中失败或产物可疑时，删除该目录重跑一次即可恢复全量行为。
 
 

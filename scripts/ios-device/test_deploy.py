@@ -210,6 +210,20 @@ class DeploymentGuards(unittest.TestCase):
                 deploy.Deployment(self.make_args(
                     folder, derived_data=handle.name))
 
+    def test_derived_data_on_another_volume_is_rejected(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}), \
+                patch.object(deploy, "on_boot_volume", return_value=False), \
+                self.assertRaisesRegex(RuntimeError, "boot volume"):
+            deploy.Deployment(self.make_args(folder, derived_data=f"{folder}/cache"))
+
+    def test_boot_volume_probe_walks_up_from_a_missing_path(self):
+        probe = Path("/private/tmp/xunju-missing-xyz/nested")
+        self.assertTrue(deploy.on_boot_volume(probe))
+        foreign = SimpleNamespace(stat=lambda: SimpleNamespace(st_dev=-1))
+        with patch.object(deploy, "BOOT_VOLUME", foreign):
+            self.assertFalse(deploy.on_boot_volume(probe))
+
 
 if __name__ == "__main__":
     unittest.main()
