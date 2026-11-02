@@ -1,7 +1,7 @@
 {
   "generator": "agy -p",
   "model": "gemini-3.8-flash-high",
-  "sourceSHA256": "b0cf81de0a8c2984e3af26bdbf60049b84872cbbfa7da99973aa52c5847de9f9",
+  "sourceSHA256": "e1f7ef47767883fd5924bf63b95139ce1cdac0ef7752a1cee9696bcb983c96bd",
   "entryCount": 1322,
   "batches": [
     {
@@ -1745,12 +1745,32 @@
         "s1290",
         "s1293",
         "s1294",
-        "s1295"
+        "s1295",
+        "checklist001",
+        "checklist002",
+        "checklist003",
+        "checklist004",
+        "checklist005",
+        "checklist006",
+        "checklist007",
+        "checklist008",
+        "checklist009",
+        "checklist010",
+        "checklist011",
+        "checklist012",
+        "checklist013",
+        "checklist014",
+        "checklist015",
+        "checklist016",
+        "checklist017",
+        "checklist018",
+        "checklist019",
+        "checklist020"
       ],
       "prompt": "app-checklist-consistency-prompt.txt",
       "english": "app-checklist-consistency-en.json",
-      "promptSHA256": "0087e5f2cbefe775645191e1b0026b294912ba581303df08fbf972dfb8f80169",
-      "englishSHA256": "92b28272cd47c45fe901f91cd956e5ca1fe83c1072eb1ae31171539bf5fc04ef"
+      "promptSHA256": "d44eb5cda7528be54ed29f24f608b673c5902563d3b12063f8e32af8d846c769",
+      "englishSHA256": "a050d649bc5c9e7e2fe0648e6777efcabc452ad847412a334c9701b2e42e2d7a"
     }
   ],
   "sourceCorrections": [
@@ -1762,6 +1782,35 @@
       "retainedEnglish": "Xunju",
       "author": "Codex",
       "reason": "User explicitly corrected the Chinese app name to 看房搭子. Existing English translation is unchanged; no new translation run."
+    }
+  ],
+  "sourceAdditions": [
+    {
+      "date": "2026-11-02",
+      "author": "Codex",
+      "keys": [
+        "checklist001",
+        "checklist002",
+        "checklist003",
+        "checklist004",
+        "checklist005",
+        "checklist006",
+        "checklist007",
+        "checklist008",
+        "checklist009",
+        "checklist010",
+        "checklist011",
+        "checklist012",
+        "checklist013",
+        "checklist014",
+        "checklist015",
+        "checklist016",
+        "checklist017",
+        "checklist018",
+        "checklist019",
+        "checklist020"
+      ],
+      "reason": "Register existing generated checklist group titles for whole-phrase English translation; Chinese runtime labels and stored data unchanged."
     }
   ]
 }

@@ -51,7 +51,7 @@ import XCTest
         let yes = app.buttons["mp.field.choice.\(id).是"].firstMatch
         XCTAssertTrue(yes.isHittable, id)
         // Accessibility pixel rounding can report 43⅔ pt for a 44 pt control.
-        // Allow at most one physical pixel on supported 2x/3x screens.
+        // Allow 0.5 pt for pixel quantization on supported 2x/3x screens.
         let roundingTolerance: CGFloat = 0.5
         XCTAssertLessThanOrEqual(title.frame.maxX, yes.frame.minX + roundingTolerance, "English text must not overlap choices: \(id)")
         XCTAssertGreaterThanOrEqual(yes.frame.width + roundingTolerance, 44, id)
@@ -95,9 +95,12 @@ import XCTest
         capture("detailed-ventilation", app)
         search("water pressure", app)
         checkRow("885af4ce-e10e-4937-b745-95272deb90b7", app)
+        XCTAssertTrue(app.staticTexts["Sink and faucet work properly"].firstMatch.exists)
         capture("detailed-water-pressure", app)
         search("sufficient", app)
-        checkRow("f51_0", app); capture("detailed-storage", app)
+        checkRow("f51_0", app)
+        XCTAssertTrue(app.staticTexts["Outlet placement and capacity meet needs"].firstMatch.exists)
+        capture("detailed-storage", app)
         search("Phone calls", app)
         for id in ["f85_0", "f85_1", "f85_2"] { checkRow(id, app) }
         capture("detailed-cellular-calls", app)
