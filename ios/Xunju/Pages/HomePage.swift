@@ -60,7 +60,7 @@ struct HomePage: View {
                 if capacityAfterName { capacityAfterName = false; capacity = true }
                 else if path.isEmpty { workspace.perform { try workspace.store.call("cancelHouseAction") } }
             }) {
-                NavigationStack { NewHouseSurface(name: workspace.store.state["xiaoda"]["intent"]["name"].string.isEmpty ? AppCopy.text("第\(workspace.store.activeHouses.count + 1)套") : workspace.store.state["xiaoda"]["intent"]["name"].string) { value in
+                NavigationStack { NewHouseSurface(name: workspace.store.state["xiaoda"]["intent"]["name"].string.isEmpty ? AppCopy.text("第\(workspace.store.nextHouseNumber)套") : workspace.store.state["xiaoda"]["intent"]["name"].string) { value in
                     if workspace.store.capacity.remaining == 0 {
                         try workspace.store.call("beginHouseAction", ["value": .string("create"), "name": .string(value)])
                         capacityAfterName = true; return

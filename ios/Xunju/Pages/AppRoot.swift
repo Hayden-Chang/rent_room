@@ -33,6 +33,7 @@ struct AppRoot: View {
             .preferredColorScheme(.light)
             .overlay { TouchTrailPresentation() }
             .defaultAppStorage(touchTrailDefaults)
+            .finishInputOnOutsideTap()
     }
     private func load() {
         do {

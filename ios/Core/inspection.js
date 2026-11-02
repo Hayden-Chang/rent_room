@@ -133,9 +133,14 @@ export const inspectionActions = {
     const x = store.get().xiaoda;
     if (x.feedback === 'pending') store.change(state => { state.xiaoda.feedback = 'invited'; }, true);
     return {feedback:store.get().xiaoda.feedback === 'invited', draft:x.feedbackDraft || {},
-      message:!x.firstHouseId && !x.legacy ? '点这里，新建你的第一套房源吧！' : x.returnGuide ? '点这里，添加第二套房源。' : ''};
+      message:!x.firstHouseId && !x.legacy && !x.firstHouseGuideDeferred ? '点这里，新建你的第一套房源吧！' : x.returnGuide ? '点这里，添加第二套房源。' : ''};
   },
-  waitSecondHouse(store) { return store.change(state => { state.xiaoda.returnGuide = false; }, true); },
+  waitSecondHouse(store) {
+    return store.change(state => {
+      if (!state.xiaoda.firstHouseId && !state.xiaoda.legacy) state.xiaoda.firstHouseGuideDeferred = true;
+      state.xiaoda.returnGuide = false;
+    }, true);
+  },
   feedbackDraft(store, {value}) {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error('反馈数据无效');
     return store.change(state => { state.xiaoda.feedbackDraft = clone(value); delete state.xiaoda.feedbackRequest; });

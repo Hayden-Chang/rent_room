@@ -23,7 +23,7 @@ export function completionPrompt(h,completed) {
 }
 export function updateGuidance(previous,next) {
   for(const h of next.houses) {
-    const old=previous.houses.find(p=>p.id===h.id);if(!old||h.archived)continue;
+    const old=previous.houses.find(p=>p.id===h.id);if(!old||old===h||h.archived)continue;
     if(JSON.stringify(old.answers)===JSON.stringify(h.answers)&&JSON.stringify(old.groups)===JSON.stringify(h.groups))continue;
     const before=progress(old),after=progress(h),topics=houseTopics(h);
     // Only actual result edits count as activity. Notes/media never complete an item.

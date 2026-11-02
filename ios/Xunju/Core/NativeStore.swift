@@ -107,6 +107,7 @@ final class NativeStore {
 
     var activeHouses: [HouseSummary] { houses.filter { !$0.archived } }
     var archivedHouses: [HouseSummary] { houses.filter(\.archived) }
+    var nextHouseNumber: Int { state["houses"].array.filter { !$0["archived"].bool && !$0["example"].bool }.count + 1 }
     func house(_ id: String) -> JSONValue { state["houses"].array.first { $0.id == id } ?? .null }
 
     @discardableResult
