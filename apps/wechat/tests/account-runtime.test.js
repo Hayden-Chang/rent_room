@@ -227,3 +227,25 @@ it('clears feedback text and pending thank-you when the home account changes',as
  page.setData({feedbackOpen:true,feedbackDraft:{message:'A 的私人反馈'},homeThank:true});h.app.auth.logout();
  expect(page.data).toMatchObject({feedbackOpen:false,feedbackDraft:{},homeThank:false});
 });
+
+
+it('wires payment device diagnostics and the cautious retry modal through the authenticated platform',async()=>{
+ const h=harness();let orders=0;
+ h.m.wx.getDeviceInfo=()=>({platform:'android',model:'Pixel fixture',system:'Android fixture'});
+ h.m.wx.getAppBaseInfo=()=>({version:'8.0.68',SDKVersion:'3.10.2'});
+ h.m.wx.getAccountInfoSync=()=>({miniProgram:{version:'1.2.3'}});
+ h.m.wx.canIUse=()=>true;h.m.wx.requestVirtualPayment=o=>o.fail({errCode:-5,errMsg:'requestVirtualPayment:fail unknown'});
+ h.m.respond(o=>{
+  const data=h.m.defaultResponse(o).data;
+  if(o.url.endsWith('/catalog'))return {statusCode:200,data:{...data,available:true,paymentDiagnostics:1,product:{id:'room_capacity_10',price:199,size:10}}};
+  if(o.url.endsWith('/diagnostics'))return {statusCode:200,data:{receipt:o.data.eventId}};
+  if(o.url.endsWith('/orders')){const orderId='fixture-'+(++orders);return {statusCode:200,data:{...data,orderId,status:'unpaid',payment:{mode:'short_series_goods',signData:JSON.stringify({offerId:'1450681249',goodsPrice:199,buyQuantity:1,productId:'room_capacity_10',currencyType:'CNY',env:0,outTradeNo:orderId}),paySig:'fixture',signature:'fixture'}}};}
+  if(o.url.includes('/orders/request/'))return {statusCode:200,data:{...data,status:'unpaid'}};
+  return {statusCode:200,data};
+ });
+ await h.app.auth.login();await expect(h.app.service.billing.purchase()).rejects.toMatchObject({errCode:-5});
+ h.m.confirm(false);await expect(h.app.service.billing.purchase()).rejects.toThrow('上一笔支付尚未确认');
+ expect(orders).toBe(1);expect(h.app.service.billing.snapshot().pending).toBe(true);
+ expect(h.m.calls.find(c=>c.modal)?.modal).toMatchObject({title:'确认上一笔付款状态',confirmText:'重新购买',cancelText:'继续查询'});
+ expect(h.m.calls.find(c=>c.data?.stage==='native_fail')?.data).toMatchObject({platform:'android',model:'Pixel fixture',system:'Android fixture',wechatVersion:'8.0.68',sdkVersion:'3.10.2',appVersion:'1.2.3',errCode:-5});
+});

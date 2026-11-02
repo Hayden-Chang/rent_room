@@ -36,6 +36,11 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     read:()=>exists(root+'/purchases.json')?fs.readFileSync(root+'/purchases.json','utf8'):null,
     write:text=>{const tmp=root+'/purchases.pending.json';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,root+'/purchases.json');},
     platform:()=>{const p=wx.getDeviceInfo?.().platform;return p==='ios'?'ios':p==='android'?'android':'unknown';},
+    device:()=>{const d=wx.getDeviceInfo?.()||{},a=wx.getAppBaseInfo?.()||{};return {model:d.model,system:d.system,wechatVersion:a.version,sdkVersion:a.SDKVersion,appVersion:wx.getAccountInfoSync?.().miniProgram?.version};},
+    confirmRetry:async()=>{
+      const result=await api('showModal',{title:'确认上一笔付款状态',content:'上一笔订单尚未确认付款。若已扣款，或正在等待苹果确认，请选择继续查询。仅在确认未扣款、且没有待处理付款时重新购买。',confirmText:'重新购买',cancelText:'继续查询'});
+      return result.confirm===true;
+    },
     supported:()=>{
       if(typeof wx.requestVirtualPayment!=='function'||wx.canIUse&&!wx.canIUse('requestVirtualPayment'))return false;
       if(wx.getDeviceInfo?.().platform==='ios'){

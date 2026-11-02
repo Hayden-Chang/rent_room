@@ -133,3 +133,66 @@ it('finishes an earlier public policy refresh before checkout and uses the fresh
  await Promise.resolve();expect(f.calls.some(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toBe(false);
  release();await Promise.all([refresh,purchase]);expect(f.billing.snapshot()).toMatchObject({packs:1,freeLimit:4});
 });
+
+it('allows a fresh checkout after an explicit native payment failure and unpaid verification, including after reload',async()=>{
+ const f=fixture(),original=f.api.getMockImplementation();f.state('unpaid');
+ f.api.mockImplementation(async(name,args)=>{if(name==='requestVirtualPayment')throw {errCode:-1,errMsg:'requestVirtualPayment:fail payment failed'};return original(name,args);});
+ await expect(f.billing.purchase()).rejects.toBeDefined();
+ const reloaded=f.reload();await reloaded.refresh();
+ f.api.mockImplementation(original);f.state('paid');
+ await reloaded.purchase();
+ expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toHaveLength(2);
+});
+
+it('offers an explicit recovery for a legacy unpaid order and rechecks before a new checkout',async()=>{
+ const confirmRetry=vi.fn(async()=>true),f=fixture({confirmRetry});f.timeout();f.state('unpaid');
+ await expect(f.billing.purchase()).rejects.toBeDefined();
+ await expect(f.reload().purchase()).rejects.toBeDefined();
+ expect(confirmRetry).toHaveBeenCalledTimes(1);
+ expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toHaveLength(2);
+ expect(f.calls.filter(c=>c.name==='request'&&c.args.url.includes('/orders/request/'))).toHaveLength(4);
+});
+
+it('does not create a replacement when the old payment arrives during retry confirmation',async()=>{
+ let f;const confirmRetry=vi.fn(async()=>{f.state('paid');return true;});f=fixture({confirmRetry});f.timeout();f.state('unpaid');
+ await expect(f.billing.purchase()).rejects.toBeDefined();await f.billing.purchase();
+ expect(confirmRetry).toHaveBeenCalledTimes(1);expect(f.billing.snapshot().packs).toBe(1);
+ expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toHaveLength(1);
+});
+
+it.each([-5,-15002,-15003,undefined])('keeps uncertain native code %s pending when recovery is declined',async errCode=>{
+ const confirmRetry=vi.fn(async()=>false),f=fixture({confirmRetry}),original=f.api.getMockImplementation();f.state('unpaid');
+ f.api.mockImplementation(async(name,args)=>{if(name==='requestVirtualPayment')throw {errCode,errMsg:'requestVirtualPayment:fail'};return original(name,args);});
+ await expect(f.billing.purchase()).rejects.toBeDefined();await expect(f.reload().purchase()).rejects.toThrow('上一笔');
+ expect(confirmRetry).toHaveBeenCalledTimes(1);expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toHaveLength(1);
+});
+it('does not replace an uncertain order when the final retry query fails',async()=>{
+ let f;f=fixture({confirmRetry:async()=>{f.fail();return true;}});f.timeout();f.state('unpaid');
+ await expect(f.billing.purchase()).rejects.toBeDefined();await expect(f.billing.purchase()).rejects.toThrow('offline');
+ expect(f.billing.snapshot().pending).toBe(true);expect(f.calls.filter(c=>c.name==='request'&&c.args.url.endsWith('/orders'))).toHaveLength(1);
+});
+it('recognizes numeric cancellation without an English cancel message',async()=>{
+ const f=fixture(),original=f.api.getMockImplementation();
+ f.api.mockImplementation(async(name,args)=>{if(name==='requestVirtualPayment')throw {errCode:-2,errMsg:'用户取消'};return original(name,args);});
+ await expect(f.billing.purchase()).rejects.toMatchObject({errCode:-2});expect(f.billing.snapshot().pending).toBe(false);
+});
+it('keeps diagnostics across restart after upload failure and sends only safe fields without blocking payment',async()=>{
+ const f=fixture({device:()=>({model:'iPhone 15',system:'iOS 18.6',wechatVersion:'8.0.68',sdkVersion:'3.10.2',appVersion:'1.0.0',secret:'private-device-value'})}),original=f.api.getMockImplementation();
+ let offline=true;const reports=[];f.state('unpaid');
+ f.api.mockImplementation(async(name,args)=>{
+  if(name==='requestVirtualPayment')throw {errCode:-1,errMsg:'requestVirtualPayment:fail token=secret-token https://test.invalid/?paySig=secret-signature',signData:'never-send'};
+  if(name==='request'&&args.url.endsWith('/diagnostics')){if(offline)throw Error('offline');reports.push(args.data);return {statusCode:200,data:{receipt:args.data.eventId}};}
+  const r=await original(name,args);if(args?.url.endsWith('/catalog'))r.data.paymentDiagnostics=1;return r;
+ });
+ await expect(f.billing.purchase()).rejects.toMatchObject({errCode:-1});
+ await vi.waitFor(()=>expect(JSON.parse(f.cache()).paymentEvents).toHaveLength(2));
+ expect(f.billing.snapshot()).toMatchObject({pending:false,packs:0});
+ offline=false;const reloaded=f.reload();await reloaded.refresh();await vi.waitFor(()=>expect(reports).toHaveLength(2));
+ expect(reports.map(r=>r.stage)).toEqual(['native_start','native_fail']);
+ expect(reports[1]).toMatchObject({errCode:-1,model:'iPhone 15',wechatVersion:'8.0.68'});
+ for(const secret of ['secret-token','secret-signature','private-device-value','never-send','signData','opaque-token'])expect(JSON.stringify(reports)).not.toContain(secret);
+ await vi.waitFor(()=>expect(JSON.parse(f.cache()).paymentEvents).toHaveLength(0));
+});
+it('does not report diagnostics to a backend that has not advertised support',async()=>{
+ const f=fixture();await f.billing.purchase();expect(f.calls.some(c=>c.args?.url?.endsWith('/diagnostics'))).toBe(false);
+});

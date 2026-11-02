@@ -1,14 +1,38 @@
+import {paymentDiagnostic,paymentFailed,paymentCancelled} from './payment-diagnostics.js';
 import {HOUSE_PACK} from './capacity.js';
 import {CREDIT_VERSION,DEFAULT_FREE_LIMIT,policyFreeLimit,validateEntitlement} from './capacity-policy.js';
 import {validateCreditBalance} from './credit-client.js';
 
 // Purchase state is separate from house backups. Only the server grants packs.
-export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=>null,write=()=>{},readPolicy=()=>null,writePolicy=()=>{},onChange=()=>{},supported=()=>true,platform=()=>'unknown',wait=ms=>new Promise(r=>setTimeout(r,ms))}={}) {
+export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=>null,write=()=>{},readPolicy=()=>null,writePolicy=()=>{},onChange=()=>{},supported=()=>true,platform=()=>'unknown',device=()=>({}),confirmRetry=async()=>false,wait=ms=>new Promise(r=>setTimeout(r,ms))}={}) {
   let cached={packs:0,pending:null},freeLimit=DEFAULT_FREE_LIMIT,refreshTask=null,rulesTask=null,busy=false,available=false,credits=session?.credits?validateCreditBalance(session.credits):null;
   try{const saved=JSON.parse(readPolicy()||'null');if(saved?.url===url)freeLimit=policyFreeLimit(saved.capacity);}catch{}
   try{const saved=JSON.parse(read()||'null');if(saved?.url===url&&saved.account===session?.account&&Number.isSafeInteger(saved.packs)&&saved.packs>=0)cached=saved;}catch{}
   if(session)cached={...cached,account:session.account,packs:session.packs};
   if(session?.capacity!==undefined)acceptPolicy(session.capacity);
+  let diagnosticsEnabled=false,diagnosticsTask=null;
+  cached.paymentEvents=Array.isArray(cached.paymentEvents)?cached.paymentEvents.slice(-10):[];
+  function flushDiagnostics(){
+    if(!diagnosticsEnabled||!session?.token||diagnosticsTask)return diagnosticsTask;
+    diagnosticsTask=(async()=>{
+      while(cached.paymentEvents.length){
+        const item=cached.paymentEvents[0];
+        const response=await api('request',{url:url+'/orders/request/'+encodeURIComponent(item.requestId)+'/diagnostics',method:'POST',timeout:3000,
+          header:{'content-type':'application/json',Authorization:'Bearer '+session.token},data:item.event});
+        if(response.statusCode!==200||response.data?.receipt!==item.event.eventId)return;
+        cached.paymentEvents=cached.paymentEvents.filter(e=>e.event.eventId!==item.event.eventId);persist();
+      }
+    })().catch(()=>{}).finally(()=>{diagnosticsTask=null;});
+    return diagnosticsTask;
+  }
+  function report(stage,error={},durationMs=0){
+    if(!diagnosticsEnabled||!cached.pending)return;
+    try{
+      const event={...paymentDiagnostic(stage,error,{...device(),platform:platform()},durationMs),eventId:'pd'+Date.now().toString(36)+Math.random().toString(36).slice(2,14)};
+      cached.paymentEvents.push({requestId:cached.pending.requestId,event});cached.paymentEvents=cached.paymentEvents.slice(-10);persist();
+      void flushDiagnostics();
+    }catch{} // Diagnostics must never prevent checkout or overwrite its result.
+  }
   const snapshot=()=>({packs:cached.packs,freeLimit,configured:!!url,available,busy,account:cached.account||'',pending:!!cached.pending,credits});
   function persist(){write(JSON.stringify({...cached,url}));}
   function acceptPolicy(policy){
@@ -46,6 +70,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
     rulesTask=(async()=>{
       const result=await request('/catalog','GET',undefined,false);
       acceptPolicy(result.capacity);
+      diagnosticsEnabled=result.paymentDiagnostics===1;void flushDiagnostics();
       available=result.creditVersion===1&&!!result.available&&(platform()!=='ios'||!!result.iosAvailable)&&result.product?.id===HOUSE_PACK.id&&result.product?.price===HOUSE_PACK.price&&result.product?.size===HOUSE_PACK.size;
       return result;
     })().finally(()=>{rulesTask=null;});return rulesTask;
@@ -56,7 +81,7 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
     const order=await request('/orders/request/'+encodeURIComponent(cached.pending.requestId));
     if(!['paid','pending','unpaid','closed','refunded','missing'].includes(order.status))throw Error('订单状态暂时无法确认，请稍后重试');
     accept(order);
-    if(['paid','closed','refunded','missing'].includes(order.status)){cached.pending=null;persist();}
+    if(['paid','closed','refunded','missing'].includes(order.status)||order.status==='unpaid'&&cached.pending?.retryable===true){cached.pending=null;persist();}
     return order;
   }
   async function refresh(){
@@ -84,7 +109,17 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       if(product.product?.id!==HOUSE_PACK.id||product.product?.price!==HOUSE_PACK.price||product.product?.size!==HOUSE_PACK.size)throw Error('房源包信息已更新，请稍后重试');
       const old=await orderState();
       if(old?.status==='paid')return snapshot();
-      if(old&&['pending','unpaid'].includes(old.status))throw Error('上一笔支付正在确认，请点击刷新点数查询，避免重复付款');
+      if(cached.pending&&old&&['pending','unpaid'].includes(old.status)){
+        const unresolved=()=>Error('上一笔支付尚未确认，请刷新点数查询；已扣款或等待苹果确认时请勿重新购买');
+        if(old.status!=='unpaid'||!await confirmRetry())throw unresolved();
+        // Recheck after the user reviews their bill; a delayed payment wins over retry.
+        const latest=await orderState();
+        if(latest?.status==='paid')return snapshot();
+        if(cached.pending){
+          if(latest?.status!=='unpaid')throw unresolved();
+          report('retry_confirmed');cached.pending=null;persist();
+        }
+      }
       cached.pending={requestId:'cp'+Date.now().toString(36)+Math.random().toString(36).slice(2,14)};persist();
       const order=await request('/orders','POST',{requestId:cached.pending.requestId,productId:HOUSE_PACK.id,platform:platform()});
       if(order.capacity!==undefined)accept(order);
@@ -94,9 +129,11 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
       let signed;
       try{signed=JSON.parse(p.signData);}catch{throw Error('支付信息无效，请稍后重试');}
       if(signed.offerId!==HOUSE_PACK.offerId||signed.goodsPrice!==HOUSE_PACK.price||signed.buyQuantity!==1||signed.productId!==HOUSE_PACK.id||signed.currencyType!=='CNY'||signed.env!==0||signed.outTradeNo!==order.orderId)throw Error('支付金额或商品不一致，已取消本次购买');
-      let failure;
+      let failure;const started=Date.now();report('native_start');
       try{await api('requestVirtualPayment',{mode:p.mode,signData:p.signData,paySig:p.paySig,signature:p.signature});}catch(error){failure=error;}
-      if(failure&&/cancel/i.test(failure.errMsg||failure.message||'')){cached.pending=null;persist();throw failure;}
+      report(failure?'native_fail':'native_success',failure||{},Date.now()-started);
+      if(failure&&paymentCancelled(failure)){cached.pending=null;persist();throw failure;}
+      if(failure&&paymentFailed(failure)){cached.pending.retryable=true;persist();}
       // A client success (or timeout) never grants capacity. Reconcile on server.
       for(let n=0;n<(failure?1:4);n++){
         const result=await orderState();
