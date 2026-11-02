@@ -65,6 +65,7 @@ struct InspectionTemplateEditor: View {
     @Binding var draft: InspectionTemplateDraft
     @State private var error = ""
     @State private var frames: [String: CGRect] = [:]
+    @State private var dragFrames: [String: CGRect]?
     @GestureState private var drag: TemplateDrag?
     @State private var scroll = NativeScrollPosition()
 
@@ -79,7 +80,10 @@ struct InspectionTemplateEditor: View {
                             .highPriorityGesture(DragGesture(minimumDistance: 5, coordinateSpace: .global)
                                 .updating($drag) { value, state, _ in
                                     state = TemplateDrag(title: title, translation: value.translation.height)
-                                }.onChanged { value in scroll.track(value.location) }.onEnded { value in
+                                }.onChanged { value in
+                                    if dragFrames == nil { dragFrames = frames }
+                                    scroll.track(value.location)
+                                }.onEnded { value in
                                     let target = destination(TemplateDrag(title: title, translation: value.translation.height))
                                     // The drag offsets already preview this order. Commit the layout
                                     // without replaying a move from the rows' original positions.
@@ -117,9 +121,11 @@ struct InspectionTemplateEditor: View {
                 }
             }.coordinateSpace(name: "template.list")
                 .background(NativeScrollProbe(position: scroll))
-                .onChange(of: drag?.title) { _, value in if value == nil { scroll.stop() } }
-                .onDisappear { scroll.stop() }
-                .onPreferenceChange(TemplateFrames.self) { if drag == nil { frames = $0 } }
+                .onChange(of: drag?.title) { _, value in if value == nil { scroll.stop(); dragFrames = nil } }
+                .onDisappear { scroll.stop(); dragFrames = nil }
+                // Keep the latest layout for the next gesture, including the drop frame.
+                // The active gesture uses its own fixed snapshot while rows move.
+                .onPreferenceChange(TemplateFrames.self) { frames = $0 }
                 .padding(2).clipShape(RoundedRectangle(cornerRadius: 20))
                 .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(SetupStyle.border, lineWidth: 2))
             if !error.isEmpty {
@@ -135,16 +141,17 @@ struct InspectionTemplateEditor: View {
     }
 
     private func destination(_ drag: TemplateDrag) -> String {
-        guard let start = frames[drag.title] else { return drag.title }
+        let positions = dragFrames ?? frames
+        guard let start = positions[drag.title] else { return drag.title }
         let center = start.midY + drag.translation + scroll.dragOffset
-        return draft.order.min { abs((frames[$0]?.midY ?? center) - center) < abs((frames[$1]?.midY ?? center) - center) } ?? drag.title
+        return draft.order.min { abs((positions[$0]?.midY ?? center) - center) < abs((positions[$1]?.midY ?? center) - center) } ?? drag.title
     }
 
     private func offset(_ title: String) -> CGFloat {
         guard let drag, let from = draft.order.firstIndex(of: drag.title),
               let to = draft.order.firstIndex(of: destination(drag)), let index = draft.order.firstIndex(of: title) else { return 0 }
         if title == drag.title { return drag.translation + scroll.dragOffset }
-        let height = (frames[drag.title]?.height ?? 64) + 1
+        let height = ((dragFrames ?? frames)[drag.title]?.height ?? 64) + 1
         if from < to && index > from && index <= to { return -height }
         if from > to && index >= to && index < from { return height }
         return 0

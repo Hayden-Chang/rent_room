@@ -24,15 +24,18 @@ final class InspectionSetupReviewTests: XCTestCase {
         let handle = app.staticTexts["setup.drag.通风与采光"]
         let transaction = app.staticTexts["setup.review.dropTransaction"]
         XCTAssertTrue(handle.isHittable)
+        let firstY = first.frame.minY, thirdY = third.frame.minY
         capture("drop-01-before", app)
         handle.press(forDuration: 0.1, thenDragTo: first)
         XCTAssertLessThan(third.frame.minY, first.frame.minY)
+        XCTAssertEqual(third.frame.minY, firstY, accuracy: 2)
         capture("drop-02-upward", app)
         XCTAssertEqual(transaction.label, "无换位动画", "The drag preview is already in place; release must not animate the order again.")
 
         let second = app.staticTexts["setup.title.周边与小区"]
         handle.press(forDuration: 0.1, thenDragTo: second)
         XCTAssertGreaterThan(third.frame.minY, second.frame.minY)
+        XCTAssertEqual(third.frame.minY, thirdY, accuracy: 2, "A second drag must use the current row positions, not the previous layout.")
         capture("drop-03-downward", app)
         XCTAssertEqual(transaction.label, "无换位动画")
     }
