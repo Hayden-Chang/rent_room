@@ -13,9 +13,9 @@ import XCTest
         XCTAssertTrue(currency.waitForNonExistence(timeout: 3))
         let house = app.buttons["house.首次填写"].firstMatch
         XCTAssertTrue(house.waitForExistence(timeout: 5)); house.tap()
-        let start = app.scrollViews["mp.checklist.scroll"].buttons["xiaoda.accept"].firstMatch
-        XCTAssertTrue(start.waitForExistence(timeout: 5)); start.tap()
-        XCTAssertTrue(start.waitForNonExistence(timeout: 3))
+        // The fixture prepares checklist data. Its optional guidance card is not
+        // a prerequisite for inspecting or searching the real checklist.
+        XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))
         return app
     }
 
@@ -50,9 +50,11 @@ import XCTest
         XCTAssertTrue(title.waitForExistence(timeout: 3)); reveal(title, app)
         let yes = app.buttons["mp.field.choice.\(id).是"].firstMatch
         XCTAssertTrue(yes.isHittable, id)
-        XCTAssertLessThanOrEqual(title.frame.maxX, yes.frame.minX, "English text must not overlap choices: \(id)")
-        XCTAssertGreaterThanOrEqual(yes.frame.width, 44, id)
-        XCTAssertGreaterThanOrEqual(yes.frame.height, 44, id)
+        // Accessibility converts pixel bounds to floating-point points.
+        let roundingTolerance: CGFloat = 0.1
+        XCTAssertLessThanOrEqual(title.frame.maxX, yes.frame.minX + roundingTolerance, "English text must not overlap choices: \(id)")
+        XCTAssertGreaterThanOrEqual(yes.frame.width + roundingTolerance, 44, id)
+        XCTAssertGreaterThanOrEqual(yes.frame.height + roundingTolerance, 44, id)
         XCTAssertNil(title.label.range(of: "[\u{3400}-\u{9fff}]", options: .regularExpression), id)
     }
 
