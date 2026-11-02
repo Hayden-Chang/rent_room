@@ -40,9 +40,15 @@ import UIKit
                 bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
             context.draw(source, in: CGRect(x: 0, y: 0, width: source.width, height: source.height))
         }
-        return stride(from: 0, to: pixels.count, by: 4).reduce(0) { count, index in
-            count + (abs(Int(pixels[index]) - 181) <= 5 && abs(Int(pixels[index + 1]) - 101) <= 5
-                && abs(Int(pixels[index + 2]) - 22) <= 5 && pixels[index + 3] > 250 ? 1 : 0)
+        var count = 0
+        for index in stride(from: 0, to: pixels.count, by: 4) {
+            let redMatches = abs(Int(pixels[index]) - 181) <= 5
+            let greenMatches = abs(Int(pixels[index + 1]) - 101) <= 5
+            let blueMatches = abs(Int(pixels[index + 2]) - 22) <= 5
+            if redMatches && greenMatches && blueMatches && pixels[index + 3] > 250 {
+                count += 1
+            }
         }
+        return count
     }
 }
