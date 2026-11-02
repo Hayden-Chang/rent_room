@@ -6,6 +6,34 @@ import UIKit
     private func capture(_ name: String, _ app: XCUIApplication) {
         let image = XCTAttachment(screenshot: app.screenshot()); image.name = name; image.lifetime = .keepAlways; add(image)
     }
+    func testTeachingSwipeRendersIntermediateActionWidths() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--component-review", "inspection-teaching", "--record-teaching-swipe",
+            "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        let target = app.otherElements["coach.swipeTarget"]
+        XCTAssertTrue(target.waitForExistence(timeout: 10))
+        capture("swipe-before", app)
+        let start = target.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5))
+        start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: -85, dy: 0)),
+            withVelocity: XCUIGestureVelocity(rawValue: 70), thenHoldForDuration: 0.1)
+        XCTAssertTrue(app.buttons["coach.next"].waitForExistence(timeout: 4))
+        capture("swipe-after", app)
+        let raw = try XCTUnwrap(app.otherElements["teaching.motion"].value as? String)
+        let samples = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(raw.utf8)) as? [[String: Any]])
+        let widths = samples.compactMap { $0["width"] as? Int }
+        let trace = XCTAttachment(string: String(describing: widths)); trace.name = "rendered-action-widths"; trace.lifetime = .keepAlways; add(trace)
+        for (index, sample) in samples.enumerated() {
+            let data = try XCTUnwrap(Data(base64Encoded: try XCTUnwrap(sample["png"] as? String)))
+            let frame = XCTAttachment(data: data, uniformTypeIdentifier: "public.png")
+            frame.name = "swipe-frame-\(index)-width-\(sample["width"] ?? 0)"; frame.lifetime = .keepAlways; add(frame)
+        }
+        XCTAssertTrue(widths.contains(0), "Capture must see the closed row: \(widths)")
+        XCTAssertTrue(widths.contains { $0 >= 40 }, "Capture must see the fully revealed action: \(widths)")
+        XCTAssertGreaterThanOrEqual(Set(widths.filter { (3...39).contains($0) }).count, 3,
+            "The action must visibly slide through intermediate widths, not appear in one jump: \(widths)")
+        XCTAssertEqual(app.staticTexts["teaching.events"].label, "未选择；操作次数：0")
+    }
     func testGuardedSwipeTeachingAndRentFreeNumberKeyboard() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--component-review", "inspection-teaching", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
