@@ -1,6 +1,6 @@
 # 首套房源首页提示：“再等等”修复
 
-状态：`REVIEW_READY`，待用户确认 UI 和授权 GitHub 推送。本地已修复并验证，未创建 PR、合并、安装真机或发布应用。
+状态：`APPROVED`，用户在查看实际截图后要求“合入”，已授权推送、PR 与合并。以下保留开发验证记录；最新主线组合后的最终验证另见文末。本任务不包含真机安装或应用发布。
 
 ## 问题与改动
 
@@ -70,3 +70,9 @@ node --test ios/tests/home-guide.test.mjs ios/tests/quiet-guidance.test.mjs
 首次构建因本机全局 Git 的 HTTPS→SSH 改写导致 ZIPFoundation 下载失败，未执行测试。第二轮仅对当前进程设置 `GIT_CONFIG_GLOBAL=/dev/null`，相同提交与选择器通过；没有修改全局 Git 配置。原始 `runner.log` 和 `tests.build.xcresult` 保留。导出截图时普通沙盒无法写入 Xcode 的 TestReport 缓存，获工具授权后完成本地导出。
 
 GitHub 推送被自动审批拒绝，理由是尚无向 `Hayden-Chang/rent_room` 上传完整源码分支的明确授权。未重试或改走其他上传方式；后续须由用户授权，再通过 GitHub Connector 创建 PR 并完成最终审查及适用门禁。
+
+## 获准合入后的主线组合
+
+2026-11-02，用户明确要求“合入”，解除上述授权阻碍并批准已展示的 UI。最新 main 已包含 PR #120、#124、#125；其中保存性能优化改变了共享 store 和原生 bridge，导致 `XunjuCore.js` 的生成内容冲突。保留全部主线源码，用规范生成脚本重新构建该资源，未手工拼接生成包。
+
+原开发证据不冒充组合后证据。最终重新执行本次 3 项 Node 回归、4 项相邻引导回归以及表中 4 UT + 1 UI；选择器仍直接对应最终 PR 的首套提示关闭、保存失败、反馈边界、第二套提示和真实新建教学风险。未扩大全量测试范围。最终证据使用新的 run ID、计划、日志和 xcresult，与原始开发证据分别保留。

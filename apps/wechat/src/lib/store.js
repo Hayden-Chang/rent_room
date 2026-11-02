@@ -14,9 +14,18 @@ export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1,getCredit
   try {const raw=adapter.read();if(raw){state=migrateXiaoda(validateState(JSON.parse(raw)));state.houses.forEach(migrate);state.version=2;state.settings={...emptyState().settings,...state.settings};}else if(firstVisit&&raw===null){const examples=exampleHouses(exampleLanguage);adapter.prepareExamples?.(examples);state.houses=examples;seeded=true;}initializeCredits(state,getPacks(),getFreeLimit(),getCreditAccount());}
   catch(e){blocked=true;error='已有记录读取失败，未覆盖原文件。请前往设置尝试恢复。';}
   function emit(){for(const f of listeners)f({error,blocked,revision});}
-  function save(options){if(blocked){emit();return false;}try{adapter.write(JSON.stringify(state),options);error='';emit();return true;}catch(e){error='保存失败，输入仍保留在本次会话。请重试或立即导出备份。';emit();return false;}}
-  function change(fn,mustSave=false){if(blocked)throw Error(error);const prior=state,draft=clone(state);fn(draft);updateGuidance(state,draft);draft.updatedAt=new Date().toISOString();state=draft;revision++;if(!save()&&mustSave){state=prior;emit();throw Error('保存失败，操作未生效，请稍后重试');}return state;}
-  function edit(id,fn,mustSave=false){return change(s=>{const h=s.houses.find(h=>h.id===id);if(!h)throw Error('房源不存在');if(h.archived)throw Error('归档房源只读，请先还原');fn(h);},mustSave);}
+  function save(options){if(blocked){emit();return false;}try{if(adapter.writeState)adapter.writeState(state,options);else adapter.write(JSON.stringify(state),options);error='';emit();return true;}catch(e){error='保存失败，输入仍保留在本次会话。请重试或立即导出备份。';emit();return false;}}
+  function commit(prior,draft,mustSave){updateGuidance(prior,draft);draft.updatedAt=new Date().toISOString();state=draft;revision++;if(!save()&&mustSave){state=prior;emit();throw Error('保存失败，操作未生效，请稍后重试');}return state;}
+  function change(fn,mustSave=false){if(blocked)throw Error(error);const prior=state,draft=clone(state);fn(draft);return commit(prior,draft,mustSave);}
+  function edit(id,fn,mustSave=false){
+    if(blocked)throw Error(error);
+    const prior=state,index=prior.houses.findIndex(h=>h.id===id),house=prior.houses[index];
+    if(!house)throw Error('房源不存在');if(house.archived)throw Error('归档房源只读，请先还原');
+    // Only this house is writable. Retain other immutable snapshots so editing
+    // one filled record does not clone every saved template, answer and photo.
+    const draft={...prior,houses:[...prior.houses]};draft.houses[index]=clone(house);
+    fn(draft.houses[index]);return commit(prior,draft,mustSave);
+  }
   if(seeded)save();
   return {
     get:()=>state,status:()=>({error,blocked,revision}),subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},save,change,edit,

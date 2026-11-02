@@ -24,7 +24,9 @@ async function walk(dir){const out=[];for(const e of await fs.readdir(dir,{withF
 const files=await walk('src');
 // These source JSON files are embedded by esbuild in each importing JS bundle.
 const bundledData=new Set(['src/lib/topics.json','src/lib/simple-topics.json']);
-for(const file of files.filter(f=>!f.endsWith('.js')&&!bundledData.has(f))){const dest=file.replace(/^src/,'dist');await fs.mkdir(path.dirname(dest),{recursive:true});await fs.copyFile(file,dest);}
+// Paired icon SVGs are source artwork; runtime icons use PNG. Keep standalone SVGs.
+const sourceIcons=new Set(files.filter(f=>f.startsWith('src/assets/icons/')&&f.endsWith('.svg')&&files.includes(f.replace(/\.svg$/,'.png'))));
+for(const file of files.filter(f=>!f.endsWith('.js')&&!bundledData.has(f)&&!sourceIcons.has(f))){const dest=file.replace(/^src/,'dist');await fs.mkdir(path.dirname(dest),{recursive:true});await fs.copyFile(file,dest);}
 const entries=files.filter(f=>f==='src/app.js'||/\/pages\/.*\/index.js$|\/components\/.*\/index.js$/.test(f));
 await build({entryPoints:entries,outdir:'dist',outbase:'src',bundle:true,format:'iife',platform:'browser',target:'es2018',minify:true,define:{__TEST_DATA_ROOT__:JSON.stringify(testRoot||'xunju'),__TIANDITU_KEY__:JSON.stringify(mapKey),__WECHAT_API_URL__:JSON.stringify(serviceUrl)}});
 // app owns the singleton store; page bundles must use getApp().service.
