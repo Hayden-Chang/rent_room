@@ -10,6 +10,7 @@
 | --- | --- |
 | iPhone 14 Pro / iOS 18.3.1 模拟器，中文 | 上海 → California → Cupertino 街道 → 选择 → 重启回显，全程通过 |
 | iPhone 16 / iOS 26.5 模拟器，中文 | 上海查询通过；California 首条为北京加州健身房，坐标 39.952368,116.42034，验收失败 |
+| 同一 iPhone 16 / iOS 26.5，en-US / en_US，原网络 | 完整纽约街道 `350 Fifth Avenue, New York, NY, United States` 首条为北京口腔诊所，纬度 39.940298，验收失败 |
 | macOS 26.2 独立 Apple SDK 查询 | 美国地址解析无匹配；全球范围、显式美国区域、英文 locale、补全查询均未获得美国结果 |
 
 两个模拟器使用相同生产代码，运行于同一 Mac；未修改机器网络设置。iOS 26 检查使用 `1c8b30c`，iOS 18 最终检查使用 `b07242a9841586d6d5ac22ee9d73386ef5762782`，两者只差测试的语言断言与截图时机，生产源码完全一致。测试不启用真实位置，也不访问用户记录。结果不证明所有 iOS 18 可用或所有 iOS 26 均失败。
@@ -39,6 +40,7 @@ PR #118 保持草稿，未合并、部署或安装真机。没有新增地址供
 | green | 60c1d50，19 UT + 3 UI | 18 过 / 4 失败：单测浮点严格相等及 3 UI 被首次货币弹窗阻挡；未到在线搜索 |
 | green-02 | 1c8b30c，19 UT + 3 UI，iOS 26.5 | 20 过 / 2 失败：单测写死中文附近词；真实 California 返回北京。两个夹具业务 UI 全程通过 |
 | green-03 | b07242a，19 UT + 3 UI，iOS 18.3.1 | **22 过 / 0 失败 / 0 跳过**。修正单测语言假设，并在坐标断言前留截图；生产源码未变 |
+| us-english-26 | d8c17f4，0 UT + 2 UI，同一 iPhone 16 / iOS 26.5 | 0 过 / 2 失败 / 0 跳过。英文流程实际语言断言通过，完整纽约街道返回北京；中文流程上海成功后，在第二次输入前等待键盘失败，此项不作为 California 查询证据 |
 
 `green-03` 的 3 个 UI 场景：
 
@@ -53,5 +55,18 @@ PR #118 保持草稿，未合并、部署或安装真机。没有新增地址供
 - [iOS 18：California 正确结果](evidence/apple-place-search-20261102/ios18-california.png)
 - [iOS 18：美国街道地址重启后保留](evidence/apple-place-search-20261102/ios18-us-address-relaunch.png)
 - [iOS 26：California 错误匹配北京](evidence/apple-place-search-20261102/ios26-california-failure.png)（从原测试录像末帧提取，未修改内容）
+- [iOS 26 英文：完整纽约街道仍返回北京](evidence/apple-place-search-20261102/ios26-english-new-york-failure.png)
 
 主 agent 已逐张检查。iOS 18 美国街道结果截图中地图瓦片尚未加载完整，因此不宣称海外地图渲染验收完成。真机、不同网络/地区组合和 iOS 26 剩余在线问题仍需验证。
+
+## 单模拟器美国出口隔离研究
+
+用户要求仅本任务模拟器使用美国出口，不影响 Mac 其他应用或其他模拟器。原 Wi-Fi HTTP/HTTPS/SOCKS 均指向 `127.0.0.1:7897`，本次只读备份与复核完全一致，没有切换系统代理。`127.0.0.1:1081` 的独立请求出口已验证为美国，但这不证明 MapKit 使用该出口。
+
+[mitmproxy Local Capture](https://docs.mitmproxy.org/stable/concepts/modes/#local-capture) 支持精确 PID 选择；其 [macOS 扩展源码](https://github.com/mitmproxy/mitmproxy_rs/blob/main/mitmproxy-macos/redirector/network-extension/TransparentProxyProvider.swift) 将未命中 PID 的流量交回系统。可在共享 runner 的本任务有效租约内解析目标模拟器的 `launchd_sim`，仅匹配该进程树。按应用名称匹配不能代替这一隔离边界。
+
+任务临时目录中已准备 `isolated_proxy.py` 和独立 Python 环境。CONNECT → SOCKS5 1081 的传输探针返回 `loc=US`，保留 HTTPS 原证书校验；官方组件通过签名、公证校验。尚未安装或启用网络扩展，用户授权待确认。没有安装 CA，也没有解密 HTTPS。
+
+这是待验证方案，不是已完成的模拟器网络切换。仍需验证 MapKit 请求的进程归属、到既有本机代理的 loopback 连接是否可见、UDP/TCP 回退与动态 PID 覆盖。当前临时桥接只实现 TCP；任何共享宿主服务不能为了通过测试而加入转发名单。正式美国出口对照、真机与美国用户上线验收均未完成。
+
+英文对照 run ID 为 `rent-room-us-market-en26-01a19adf`，UDID 为 `5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9`，完整证据为 `us-english-26.xcresult` / `us-english-26-summary.json`。退出码 65，租约已释放。新增测试提交 `d8c17f4e3eccaecd2b4b694ec59476f8256339e7` 没有修改生产源码。
