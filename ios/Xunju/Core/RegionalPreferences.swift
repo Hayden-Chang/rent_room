@@ -122,6 +122,12 @@ enum CurrencyCatalog {
         RegionalCopy.text("currency.\(code)", language: language)
     }
 
+    static func settingsLabel(_ code: String, language: SupportedLanguage, automatic: Bool = false) -> String {
+        let title = automatic ? RegionalCopy.text("currency.automatic", language: language) : name(code, language: language)
+        let unit = language == .chinese && code == "CNY" ? "元" : code
+        return title + "/" + unit
+    }
+
     static func matching(_ query: String, language: SupportedLanguage) -> [String] {
         let query = query.trimmingCharacters(in: .whitespacesAndNewlines)
         return codes.filter { code in
