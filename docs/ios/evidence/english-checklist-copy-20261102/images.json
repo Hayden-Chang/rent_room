@@ -1,0 +1,47 @@
+[
+  {
+    "name": "english-checklist-detailed-storage.png",
+    "original": "78F090B6-F178-46F8-94F0-4DD92705D70C.png",
+    "test": "EnglishChecklistCopyUITests/testDetailedEnglishSearchFindsParallelChecksWithReadableChoices()",
+    "evidenceSha": "9cd1ee1dbbe81ca829e1b9e0f50d5554dc715cb1",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "21cd9ab32d04b0253526f01dac267672a922d7d9396de4aba205e9a64cca1a65"
+  },
+  {
+    "name": "english-checklist-detailed-water-pressure.png",
+    "original": "BC1ED709-F5E1-4771-AD83-B0CC164CE941.png",
+    "test": "EnglishChecklistCopyUITests/testDetailedEnglishSearchFindsParallelChecksWithReadableChoices()",
+    "evidenceSha": "9cd1ee1dbbe81ca829e1b9e0f50d5554dc715cb1",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "1a9a16d92a158bb5dfe955ad223b77432d7d6dbd899521f270a110ab16278873"
+  },
+  {
+    "name": "english-checklist-detailed-ventilation.png",
+    "original": "13A1A8B9-9CF2-47CD-8EA0-863B3F9BCEF1.png",
+    "test": "EnglishChecklistCopyUITests/testDetailedEnglishSearchFindsParallelChecksWithReadableChoices()",
+    "evidenceSha": "9cd1ee1dbbe81ca829e1b9e0f50d5554dc715cb1",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "574c6413ba6eac0793ab9443a1f88a54521649dc391556f1a8a614a20b5a707a"
+  },
+  {
+    "name": "english-checklist-simple-storage-restored.png",
+    "original": "257C6F9B-44BF-4367-9B1F-FFA41DF66D63.png",
+    "test": "EnglishChecklistCopyUITests/testSimpleEnglishRowsKeepChoicesAccessibleAndAnswersPersist()",
+    "evidenceSha": "9cd1ee1dbbe81ca829e1b9e0f50d5554dc715cb1",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "033d7af28e81b1fb9fa844076bdf9ddd41da3cfc2afccd4adbc99894a61976b6"
+  },
+  {
+    "name": "english-checklist-simple-furniture-storage.png",
+    "original": "6F845CD7-4A39-4214-A530-07036919A756.png",
+    "test": "EnglishChecklistCopyUITests/testSimpleEnglishRowsKeepChoicesAccessibleAndAnswersPersist()",
+    "evidenceSha": "9cd1ee1dbbe81ca829e1b9e0f50d5554dc715cb1",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "f9210992cb87283ab2795605b9ba2ea2d3ca0906c631e8330905c98e3bc9266c"
+  }
+]

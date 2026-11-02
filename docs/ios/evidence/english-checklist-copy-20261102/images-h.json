@@ -1,0 +1,83 @@
+[
+  {
+    "name": "english-checklist-detailed-cellular-calls.png",
+    "original": "6CD1662B-ECC4-4697-AF0E-21448C14ADF2.png",
+    "test": "EnglishChecklistCopyUITests/testDetailedEnglishSearchFindsParallelChecksWithReadableChoices()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "cba5cfcd372508b75dc54880158dd6b247982d05a13466ca9163e0db08722a55"
+  },
+  {
+    "name": "english-checklist-detailed-storage.png",
+    "original": "105A460B-3842-4F15-B3A2-5E015229F574.png",
+    "test": "EnglishChecklistCopyUITests/testDetailedEnglishSearchFindsParallelChecksWithReadableChoices()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "d65c9232b188635219b87309b93dac7b8711c5309634450dceff3e829c732e6c"
+  },
+  {
+    "name": "english-checklist-detailed-water-pressure.png",
+    "original": "949C67E8-997A-4955-9FDB-9CB6AF6E5AA9.png",
+    "test": "EnglishChecklistCopyUITests/testDetailedEnglishSearchFindsParallelChecksWithReadableChoices()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "e9507c3cbd29a5e5c6cbf12a9b609afdb5a0c9feb4e022dcf13c954f16bb1575"
+  },
+  {
+    "name": "english-checklist-detailed-ventilation.png",
+    "original": "DF748DE8-BB3A-46DF-950F-67E29E5A4D83.png",
+    "test": "EnglishChecklistCopyUITests/testDetailedEnglishSearchFindsParallelChecksWithReadableChoices()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "cc8a3878ebd43e85bd4be58e1baa539bf1711fac2ae5229c1021b22bae1ac77a"
+  },
+  {
+    "name": "english-checklist-simple-storage-restored.png",
+    "original": "D3D67966-60C4-4C33-931A-EB82383E7FA2.png",
+    "test": "EnglishChecklistCopyUITests/testSimpleEnglishRowsKeepChoicesAccessibleAndAnswersPersist()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "a0b0412b5884c3cd9d7dd9b8afd720e46961ae9eebc6894063dfc1e8cfd2c01a"
+  },
+  {
+    "name": "english-checklist-simple-bathroom.png",
+    "original": "F44DA438-5CBB-4972-B94A-BC060C9FA9B6.png",
+    "test": "EnglishChecklistCopyUITests/testSimpleEnglishRowsKeepChoicesAccessibleAndAnswersPersist()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "59579d144d436c7fe2ce31d09de0d8661e64c30c782c4986c67445dc7037141b"
+  },
+  {
+    "name": "english-checklist-simple-appliances.png",
+    "original": "F8FE3C47-1EF0-4682-818B-939072340B26.png",
+    "test": "EnglishChecklistCopyUITests/testSimpleEnglishRowsKeepChoicesAccessibleAndAnswersPersist()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "d24424b42290c4c6d24bdb35873a02e63d3a58c3b45fdbc34dff7acb7f19961f"
+  },
+  {
+    "name": "english-checklist-simple-furniture-storage.png",
+    "original": "E2BF8E91-CFB5-43D8-884A-AD7E7AD0A13C.png",
+    "test": "EnglishChecklistCopyUITests/testSimpleEnglishRowsKeepChoicesAccessibleAndAnswersPersist()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "97337f3afcb15c2cc2992ac85d07882eceac4f89f3d5ee756446cb712c6ee9f1"
+  },
+  {
+    "name": "english-checklist-simple-furniture-top.png",
+    "original": "76D14D2D-285D-4E90-A18B-AB2AEC9D3F28.png",
+    "test": "EnglishChecklistCopyUITests/testSimpleEnglishRowsKeepChoicesAccessibleAndAnswersPersist()",
+    "evidenceSha": "238788b800de652816207b59c54e9360e2f74c44",
+    "width": 1178,
+    "height": 2556,
+    "sha256": "7680ee4904b2d89616c7377a7fb7ebef07f0c20e72812387f587997811a65a32"
+  }
+]
