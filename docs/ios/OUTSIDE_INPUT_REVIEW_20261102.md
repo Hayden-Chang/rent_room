@@ -65,3 +65,9 @@ PR 创建后已另行复核最终代码、测试映射和证据；未发现新�
 新增 `OutsideInputBusinessTests/testChecklistAndSummarySaveOnOutsideTapAfterRelaunch`：独立 business-test 数据目录，经过真实新增房源、清单中文输入、点击字段标题、总结多行备注、点击意向按钮，再启动后核对 NativeStore 保存内容。没有用评审 UserDefaults 代替业务保存。
 
 接入后的最终验证选择原 4 个单元测试和 3 个精确 UI 方法（上述业务方法及原 2 个组件方法），覆盖生产挂载与持久化、外部按钮/焦点转移、完成/多行边界。微信源码、测试及构建输入未改动，复用已记录的 Node 24 结果。微信实例池再次检查仍三槽不可用，真实页面与实体设备效果仍待验收，不能描述为已通过；用户已知该缺口并授权合入。接入后的运行结果待补充。
+
+`9c72d2b1633a175561e36fcbc4b037021291ea77` 的 e 轮（iPhone 16 / iOS 26.5，UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56`）为 6 通过 / 1 失败：真实房源清单及总结中文输入、外部点击和 NativeStore 重启保存通过；组件多行用例输入到 `qu` 后键盘消失，未到主动外部点击步骤。保留 `ios-e.log`、`attachments-e` 中失败录像及 `keyboard-e.log`，系统 InputUI 同期记录键盘状态异常，但不能据此确定根因。
+
+f 轮按单失败恢复规则，保持同 SHA、同设备、同超时和断言，仅精确复跑 `testOtherTextMultilineAndDoneKeepContent`，22.494 秒通过；没有代码修复，保留偶发异常限制。结果包分别为 `/Volumes/mac2/codex-builds/rent-room-outside-input-e.xcresult`、`/Volumes/mac2/codex-builds/rent-room-outside-input-f.xcresult`；本地证据根中的 `plan-e.json`/`plan-f.json` 和 `run-e.sh`/`run-f.sh` 记录完整命令。
+
+准备合并时主线前进至 `4293b686f0e12f231f4d28c4c59c17731a6dbd22`，新增 store/credit-storage/bridge 保存优化，不能直接判定旧验证等价。合并模拟树 `208d9e2ba8d690b1d6f3c39ee17db14e573124b8` 无冲突；已在任务分支合入该主线，安排相同 4 单元 + 3 UI 方法以及微信保存相关用例重新验证组合结果。未操作主工作区。
