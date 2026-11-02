@@ -3,9 +3,10 @@ import Vision
 
 @MainActor final class InspectionBusinessUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch() -> XCUIApplication {
+    private func launch(recordSwipe: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if recordSwipe { app.launchArguments.append("--record-teaching-swipe") }
         app.launch(); XCTAssertTrue(app.buttons["setup.next"].waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String, _ app: XCUIApplication) {
@@ -84,11 +85,11 @@ import Vision
         field.typeText(text); app.buttons["checklist.keyboard.done"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
     }
-    func testDetailedSwipeGuideTracksVisibleRow() {
-        verifySwipeGuideGeometry(mode: "detailed", fieldID: "f56_1")
+    func testDetailedSwipeGuideTracksVisibleRow() throws {
+        try verifySwipeGuideGeometry(mode: "detailed", fieldID: "f56_1")
     }
-    func testSimpleSwipeGuideTracksVisibleRow() {
-        verifySwipeGuideGeometry(mode: "simple", fieldID: "simple_01")
+    func testSimpleSwipeGuideTracksVisibleRow() throws {
+        try verifySwipeGuideGeometry(mode: "simple", fieldID: "simple_01")
     }
     private func chooseGuidanceCurrency(_ app: XCUIApplication) {
         let manual = app.buttons["currency.prompt.manual"]
@@ -146,8 +147,8 @@ import Vision
         XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 4))
         XCTAssertFalse(close.exists)
     }
-    private func verifySwipeGuideGeometry(mode: String, fieldID: String) {
-        let app = launch()
+    private func verifySwipeGuideGeometry(mode: String, fieldID: String) throws {
+        let app = launch(recordSwipe: true)
         finishSetup(app, mode: mode)
         chooseGuidanceCurrency(app)
         app.homeAddButton.tap()
@@ -181,15 +182,18 @@ import Vision
         XCTAssertEqual(card.frame.minY - target.frame.maxY, 16, accuracy: 1)
         XCTAssertLessThanOrEqual(card.frame.maxY, tab.frame.minY - 12)
         print("GUIDE \(mode) target=\(target.frame) row=\(row.frame) card=\(card.frame) header=\(header.frame) tab=\(tab.frame)")
-        target.tap(); target.swipeRight()
+        target.tap(); target.swipeRight(); target.swipeUp()
         XCTAssertTrue(target.exists, "Only a left swipe completes teaching")
-        target.swipeLeft()
+        let start = target.coordinate(withNormalizedOffset: CGVector(dx: 0.9, dy: 0.5))
+        start.press(forDuration: 0.1, thenDragTo: start.withOffset(CGVector(dx: -85, dy: 0)),
+            withVelocity: XCUIGestureVelocity(rawValue: 70), thenHoldForDuration: 0.1)
         let title = app.staticTexts["coach.title"]
         let advanced = expectation(for: NSPredicate(format: "label == %@", "随手记下房屋细节"), evaluatedWith: title)
         wait(for: [advanced], timeout: 4)
         let note = app.buttons["mp.field.action." + fieldID + ".备注"]
         XCTAssertTrue(note.isHittable, "The revealed actions remain visible above the guide")
         capture(mode + "-swipe-actions", app)
+        try assertRenderedSwipeProgress(app, prefix: mode)
         XCTAssertEqual(card.frame.minY - row.frame.maxY - 4, 16, accuracy: 1)
         XCTAssertLessThanOrEqual(card.frame.maxY, tab.frame.minY - 12)
         XCTAssertEqual(row.value as? String, "操作已展开")

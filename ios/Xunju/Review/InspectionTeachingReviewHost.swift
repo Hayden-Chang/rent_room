@@ -21,6 +21,11 @@ struct InspectionTeachingReviewHost: View {
             MPCard {
                 MPFieldRow(item: MPFieldItem(id: "teaching", title: "窗户密封", options: ["是", "否"]), state: $field,
                     coordinator: coordinator, note: { events += 1 }, capture: { events += 1 })
+                    .background {
+                        if ProcessInfo.processInfo.arguments.contains("--record-teaching-swipe") {
+                            TeachingRevealRecorder().allowsHitTesting(false)
+                        }
+                    }
                     .anchorPreference(key: CoachAnchors.self, value: .bounds) { [3: $0] }
             }
             if step == 0 {
@@ -40,6 +45,9 @@ struct InspectionTeachingReviewHost: View {
                     if step != 0 {
                         XiaodaTutorialOverlay(guide: guide, target: anchors[3].map { geometry[$0] }, swipeCompleted: {
                             coordinator.reveal("teaching"); step = 4
+                        }, swipeProgress: { offset in
+                            if offset == 0 { coordinator.close() }
+                            else { coordinator.move("teaching", x: offset, y: 0, time: ProcessInfo.processInfo.systemUptime) }
                         }, decoratedSpeech: true, next: { step = 0; coordinator.close() })
                     }
                 }

@@ -70,6 +70,28 @@ final class XiaodaTeachingTests: XCTestCase {
         XCTAssertTrue(gesture.end(x: -70, y: 1, time: 7))
         XCTAssertFalse(gesture.end(x: 0, y: 0, time: 8))
     }
+    func testTeachingGestureExposesClampedProgressAndClearsRejectedAttempts() {
+        var gesture = XiaodaSwipeGesture()
+        XCTAssertEqual(gesture.offset, 0)
+        gesture.move(x: -6, y: 0, time: 0)
+        XCTAssertEqual(gesture.offset, 0)
+        gesture.move(x: -25, y: 0, time: 1)
+        XCTAssertEqual(gesture.offset, -25)
+        gesture.move(x: -200, y: 0, time: 2)
+        XCTAssertEqual(gesture.offset, -132)
+        XCTAssertTrue(gesture.end(x: -85, y: 0, time: 3))
+        XCTAssertEqual(gesture.offset, 0)
+        gesture.move(x: 30, y: 0, time: 4)
+        gesture.move(x: -70, y: 0, time: 5)
+        XCTAssertEqual(gesture.offset, 0)
+        XCTAssertFalse(gesture.end(x: -70, y: 0, time: 6))
+        gesture.move(x: 0, y: 30, time: 7)
+        gesture.move(x: -70, y: 0, time: 8)
+        XCTAssertEqual(gesture.offset, 0)
+        XCTAssertFalse(gesture.end(x: -70, y: 0, time: 9))
+        gesture.move(x: -30, y: 0, time: 10)
+        XCTAssertEqual(gesture.offset, -30)
+    }
     func testTeachingGestureUsesChecklistShortFlickThreshold() {
         var gesture = XiaodaSwipeGesture()
         gesture.move(x: -8, y: 0, time: 0)
