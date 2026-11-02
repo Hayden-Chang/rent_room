@@ -102,7 +102,7 @@ struct MediaPickerSheet: View {
                     case .success(let payload): if payload.image != nil || payload.video != nil { save(image: payload.image, video: payload.video) }
                     case .failure(let failure): error = failure.localizedDescription
                     }
-                }
+                }.accessibilityIdentifier("media.camera")
             }
     }
     private func load(_ items: [PhotosPickerItem]) {
