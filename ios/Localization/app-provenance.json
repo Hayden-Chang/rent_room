@@ -1503,6 +1503,7 @@
         "s0155",
         "s0156",
         "s0158",
+        "s0159",
         "s0160",
         "s0165",
         "s0184",
@@ -1620,6 +1621,7 @@
         "s0713",
         "s0715",
         "s0716",
+        "s0772",
         "s0773",
         "s0796",
         "s0798",
@@ -1627,6 +1629,7 @@
         "s0821",
         "s0823",
         "s0825",
+        "s0827",
         "s0830",
         "s0831",
         "s0836",
@@ -1650,6 +1653,7 @@
         "s0864",
         "s0865",
         "s0866",
+        "s0868",
         "s0884",
         "s0885",
         "s0896",
@@ -1734,8 +1738,8 @@
       ],
       "prompt": "app-checklist-consistency-prompt.txt",
       "english": "app-checklist-consistency-en.json",
-      "promptSHA256": "7befbee06744cb6d3330d13a9c5ae92cf105441a1e0b60954d72e6f45832de4c",
-      "englishSHA256": "443df6d0b3d23c534163deb0c002c8d4373823a9a3cf2a02a98feccd0957dbea"
+      "promptSHA256": "0087e5f2cbefe775645191e1b0026b294912ba581303df08fbf972dfb8f80169",
+      "englishSHA256": "92b28272cd47c45fe901f91cd956e5ca1fe83c1072eb1ae31171539bf5fc04ef"
     }
   ],
   "sourceCorrections": [
