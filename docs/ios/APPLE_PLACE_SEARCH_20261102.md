@@ -1,6 +1,27 @@
 # Apple 地点搜索与跨地区验证（2026-11-02）
 
-## 当前结论
+最新合入前验证已在 2026-11-03 完成，见下节；此前各轮状态保留为历史记录。
+
+## 2026-11-03 合入前最终验证
+
+用户在查看修复结果和截图后明确要求“合入”。此授权允许本次代码合入；物理美国设备、完整英文 UI、地图完整渲染与发布验收仍保持各自边界。
+
+远程主线已到 `a127f4e1ba7e8ff922c795756bae730549a57513`。先通过 `git merge-tree --write-tree` 验证无冲突，再在任务分支自动合入主线，候选 `8b3344ba46c5963546d967f05c8d5b09c07f23d6`；tree `7631e9a632412347337ec3f731787ca8a7136e27` 与模拟一致，无人工冲突修改。主线增加全局结束输入和存储路径改动，因而没有直接复用旧测试结论。
+
+重新核对本 PR 对最新 main 的范围，仍是 Apple 地点搜索、回调超时、相应回归与云测试准备；未带入其他任务的分支变更。地点生产源码、测试与云脚本相对已验证 d292a1f2 不变，工程自动同时保留主线 provisioning 配置与本 PR team/scheme。按同样三个直接风险重新选定最终范围，全部在整合候选执行：
+
+| 环境 | 范围 | 实际结果 |
+| --- | --- | --- |
+| 本地共享 runner，iPhone 14 Pro / iOS 18.3.1 | 23 UT + 房源地址输入/保存/重启、模拟 CoreLocation 重复选点 2 UI | **25 通过 / 0 失败 / 0 跳过** |
+| Xcode Cloud #4，iPhone 16 / iOS 26.5 (23F77)，Xcode 26.6 | 1 英文在线 UI：纽约 → California → Cupertino → 选中 → 重启保存 | **1 通过 / 0 失败 / 0 跳过**，38.545 秒 |
+
+本地 run `rent-room-place-merge-20261103-01a19adf`，UDID `8F178971-C203-4690-A83B-253046EACBB1`；完整计划、命令、日志、`merge-final.xcresult`、统计及附件在 `/private/tmp/rent-room-apple-search-evidence/`，共享租约已释放。云 run `0b4f31b3-e88f-4cb5-9f7e-fc71cc05ec11`，UDID `DD7FDBF5-9F50-4199-98AB-52C10985922F`；UTC 开始 `2026-11-02T16:12:49.303Z`，结束 `16:19:24.301Z`，SUCCEEDED。原始 76,245,894 字节结果 zip、xcresult、日志、录像与附件保存于证据根目录 `cloud-run-4/`。`2026-11-02T16:16:40Z` 测试 worker HTTP 出口 US / SJC，仍不作为物理位置或全部 MapKit 流量证明。
+
+[California 结果](evidence/apple-place-search-20261102/merge-cloud26-california.png)、[Cupertino 街道](evidence/apple-place-search-20261102/merge-cloud26-cupertino.png)、[重启地址回显](evidence/apple-place-search-20261102/merge-cloud26-relaunch.png) 均已检查。完整方法映射、风险排序、设备统计与截图哈希见 [最终验证记录](evidence/apple-place-search-20261102/merge-gate-20261103.json)。总计 23 UT + 3 个精确 UI 方法，未运行全量；既有失败继续保留。
+
+主 agent 已复查最终差异、自动合并结果、回调和保存边界及真实证据。GitHub 对候选的 Xcode Cloud status 和 check run 均 success，无评审阻断。云工作流独立回读 disabled: true；会员累计用 18 / 剩余 1,482 分钟，没有付费升级。验证后仅补此文档和原始证据，生产代码、测试、配置和脚本不再改变；按文档变更等价规则复用该候选结果。此次通过支持代码合入，不扩大为国内跨地区全面可用或美国真机发布验收。
+
+## 2026-11-02 阶段结论
 
 房源和上班地址已统一切换到原生 Apple 地点服务。关键词查询移除旧房源/地图中心的偏置，保留 Apple 相关性顺序；定位和拖图继续按附近范围及距离排序。保留保存、重启回显、取消、手动地址与坐标存储边界。微信和通勤接口不在本次范围。
 
