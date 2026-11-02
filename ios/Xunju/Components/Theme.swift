@@ -28,10 +28,11 @@ struct XJButtonStyle: ButtonStyle {
 }
 
 struct XJCard<Content: View>: View {
+    var verticalPadding: CGFloat = 16
     @ViewBuilder var content: Content
 
     var body: some View {
-        content.padding(16)
+        content.padding(.horizontal, 16).padding(.vertical, verticalPadding)
             .background(.white)
             .clipShape(RoundedRectangle(cornerRadius: 16))
     }

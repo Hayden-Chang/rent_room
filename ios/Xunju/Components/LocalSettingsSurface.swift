@@ -31,8 +31,8 @@ struct LocalSettingsSurface: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            XJCard { row(.capacity, detail: AppLanguage.shared.value == .english ? "\(remaining) credits" : "\(remaining) 点", rawDetail: true) }
-            XJCard {
+            XJCard(verticalPadding: 4) { row(.capacity, detail: AppLanguage.shared.value == .english ? "\(remaining) credits" : "\(remaining) 点", rawDetail: true) }
+            XJCard(verticalPadding: 4) {
                 VStack(spacing: 0) {
                     row(.workplace, detail: workplace.isEmpty ? AppCopy.text("未设置") : workplace, rawDetail: true)
                     row(.archive, detail: "\(archived) 套")
@@ -43,10 +43,10 @@ struct LocalSettingsSurface: View {
                 }
             }
             AppText("数据与备份").font(.system(size: 16, weight: .semibold)).padding(.top, 8)
-            XJCard { VStack(spacing: 0) { row(.importFile); row(.export) } }
-            XJCard { row(.permissions) }
-            XJCard { VStack(spacing: 0) { row(.feedback); AppStoreReviewRow(appID: AppStoreReview.appID); row(.share) } }
-            XJCard {
+            XJCard(verticalPadding: 4) { VStack(spacing: 0) { row(.importFile); row(.export) } }
+            XJCard(verticalPadding: 4) { row(.permissions) }
+            XJCard(verticalPadding: 4) { VStack(spacing: 0) { row(.feedback); AppStoreReviewRow(appID: AppStoreReview.appID); row(.share) } }
+            XJCard(verticalPadding: 4) {
                 VStack(spacing: 0) {
                     ForEach(LegalPage.allCases, id: \.self) { page in
                         Button { openLegal(page) } label: { menu(page.title) }
@@ -54,8 +54,8 @@ struct LocalSettingsSurface: View {
                     }
                 }
             }
-            XJCard { TouchTrailSettingsRow() }
-            XJCard {
+            XJCard(verticalPadding: 4) { TouchTrailSettingsRow() }
+            XJCard(verticalPadding: 4) {
                 HStack { AppText("版本"); Spacer(); Text(verbatim: version).foregroundStyle(XJTheme.muted) }
                     .font(.system(size: 14)).frame(minHeight: 50)
             }

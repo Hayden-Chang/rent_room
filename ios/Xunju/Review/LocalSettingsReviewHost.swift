@@ -22,7 +22,9 @@ struct LocalSettingsReviewHost: View {
             ScrollView {
                 VStack(spacing: 12) {
                     if route == .settings {
-                        LocalSettingsSurface(remaining: 0, archived: 2, workplace: "", version: "0.1.0",
+                        RegionalSettingsSection(preferences: regionalPreferences,
+                            chooseLanguage: { event = "语言" }, chooseCurrency: { event = "货币类型" })
+                        LocalSettingsSurface(remaining: 0, archived: 0, workplace: "", version: "0.1.0",
                             onboarding: $onboarding, action: { event = $0.title }, openLegal: openLegal)
                     } else {
                         AccountFreeCapacitySurface(remaining: 0, price: "¥9.90",
@@ -39,6 +41,12 @@ struct LocalSettingsReviewHost: View {
                     if route == .settings { XJTabBar(selection: .constant("我的"), items: [("房源", "home"), ("对比", "compare"), ("我的", "settings")]) }
                 }
         }.tint(XJTheme.primary).preferredColorScheme(.light)
+    }
+    private var regionalPreferences: RegionalPreferences {
+        var preferences = RegionalPreferences()
+        preferences.language = .chinese
+        preferences.detect(countryCode: "CN")
+        return preferences
     }
     private func openLegal(_ page: LegalPage) { event = page.url.absoluteString }
 }

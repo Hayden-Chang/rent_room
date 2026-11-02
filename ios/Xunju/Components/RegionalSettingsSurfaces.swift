@@ -19,7 +19,7 @@ struct RegionalSettingsSection: View {
     @Environment(\.regionalLanguage) private var language
 
     var body: some View {
-        XJCard {
+        XJCard(verticalPadding: 4) {
             VStack(spacing: 0) {
                 row("settings.language", detail: copy(preferences.language.titleKey), action: chooseLanguage)
                 Divider()
