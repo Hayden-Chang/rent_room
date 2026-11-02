@@ -11,12 +11,13 @@
 | iPhone 14 Pro / iOS 18.3.1 模拟器，中文 | 上海 → California → Cupertino 街道 → 选择 → 重启回显，全程通过 |
 | iPhone 16 / iOS 26.5 模拟器，中文 | 上海查询通过；California 首条为北京加州健身房，坐标 39.952368,116.42034，验收失败 |
 | 同一 iPhone 16 / iOS 26.5，en-US / en_US，原网络 | 完整纽约街道 `350 Fifth Avenue, New York, NY, United States` 首条为北京口腔诊所，纬度 39.940298，验收失败 |
-| Xcode Cloud / iPhone 16 / iOS 26.5，en-US，测试 worker HTTP 出口 US | 纽约街道坐标正确并成功选中；California 18 秒后仍在查询，流程失败；Cupertino 和重启未执行。详见 [云端记录](XCODE_CLOUD_PLACE_SEARCH.md) |
+| Xcode Cloud #2 / iPhone 16 / iOS 26.5，en-US，HTTP 出口 US | 纽约成功；California 18 秒后仍在查询，流程失败；后续未执行，保留失败记录 |
+| Xcode Cloud #3 / 同型号与 runtime，en-US，HTTP 出口 US | 修复请求等待后，纽约 → California → Cupertino → 保存 → 重启回显全程通过。实际地区坐标断言通过；详见 [云端记录](XCODE_CLOUD_PLACE_SEARCH.md) |
 | macOS 26.2 独立 Apple SDK 查询 | 美国地址解析无匹配；全球范围、显式美国区域、英文 locale、补全查询均未获得美国结果 |
 
 两个模拟器使用相同生产代码，运行于同一 Mac；未修改机器网络设置。iOS 26 检查使用 `1c8b30c`，iOS 18 最终检查使用 `b07242a9841586d6d5ac22ee9d73386ef5762782`，两者只差测试的语言断言与截图时机，生产源码完全一致。测试不启用真实位置，也不访问用户记录。结果不证明所有 iOS 18 可用或所有 iOS 26 均失败。
 
-Xcode Cloud 已完成仅 `rent_room` 的接入与单方法实测；首轮准备失败已修复，第二轮 App 构建成功但真实搜索流程未通过。云端结果不是物理美国设备验收。
+Xcode Cloud 已完成仅 `rent_room` 的接入与单方法实测；首轮准备失败已修复，第二轮 App 构建成功但真实搜索流程未通过；修复后第三轮完整流程通过。云端结果不是物理美国设备验收。
 
 PR #118 保持草稿，未合并、部署或安装真机。没有新增地址供应商、转发后台或改变机器代理配置。
 
@@ -53,6 +54,27 @@ PR #118 保持草稿，未合并、部署或安装真机。没有新增地址供
 - `UtilityBusinessTests/testSystemLocationWithSimulatedPointCanSelectWorkplace`：CoreLocation 模拟坐标和固定地点响应，权限、两次定位选择与重启；不代表真机 GPS 成功。
 
 19 UT 覆盖 Apple 路由（带天地图 Key 仍不请求旧传输）、海外坐标存储、附近/关键词顺序、取消/过期响应、无匹配与断网区别、候选关闭、手动地址以及重新打开不发请求。
+
+## 2026-11-02 请求超时修复
+
+确认了一个可独立复现的应用缺陷：旧 `perform` 在 12 秒后仅调用 SDK cancel，仍等待 SDK 自己恢复 async 调用；SDK 没有及时回调时，页面可一直 busy。新实现改用回调，超时/取消由应用独立结束，后续回调忽略，已有地址保留；采用旧版 CLGeocoder 时显式切换 MainActor。没有增加查询重试、延长 UI 超时或切换网络。
+
+| 轮次 | 源码 / 范围 | 实际结果 |
+| --- | --- | --- |
+| timeout-red | fd8cff6a 的旧逻辑，仅暴露测试入口/可注入期限 + 新回归，1 UT | 0 过 / 1 失败：SDK cancel 被调用但调用者未释放；测试清理会恢复假 SDK，未遗留挂起任务 |
+| timeout-green | 随后提交为 165d6315，23 UT + 2 UI | 25 过 / 0 失败 / 0 跳过；旧 CLGeocoder actor 告警随后修复 |
+| timeout-final | d292a1f2e320af6b5a2ea767455e6f48d949683b，23 UT + 2 UI，iOS 18.3.1 | **25 过 / 0 失败 / 0 跳过**，新增 actor 告警消除 |
+| cloud #3 | 相同 d292a1f2，1 英文真实 UI，iOS 26.5 | **1 过 / 0 失败 / 0 跳过**，纽约/California/Cupertino 的坐标、选择和重启回显全通过 |
+
+新增回归为 `SystemPlacesTests/testDeadlineReturnsEvenWhenSDKDoesNotCompleteCancellation`、`testCancellationReleasesCallerWithoutSDKReplyAndIgnoresLateReply`、`testSynchronousCompletionAndCancelCallbackSettleOnlyOnce` 和 `UtilityFlowTests/testTimedOutSearchStopsLoadingPreservesAddressAndAllowsFreshSearch`。红灯时前者接旧 async 操作，修复后适配回调接口；同一个“SDK 不回复也应结束调用者”的断言保留。没有将 SDK 必须回调当作前提。
+
+原 19 UT 与新增 4 UT 一起运行，覆盖关键词/附近映射、服务路由、地址和坐标持久化、候选取消/作用域及不自动查询。最终三项 UI 按风险选择：①云端真实美国跨州搜索/保存/重启；②本地房源选点、手动改址、聚焦和重启；③本地模拟 CoreLocation 连续定位/选中。后两项使用固定地点响应，不是实时 SDK 或 GPS 证据。中文真实 UI 在先前开发轮次执行，最终未另加第四项，不把历史通过表述为新源码中文在线复测。
+
+本地最终 run ID `rent-room-place-timeout-final-01a19adf`，UDID `8F178971-C203-4690-A83B-253046EACBB1`。所有命令/选择器/映射在证据根目录 `timeout-*-plan.json`、`timeout-*-command.sh`，完整日志和 `timeout-{red,green,final}.xcresult` 保留，最终 `timeout-final-summary.json` 为 25/0/0。红灯生产文件 `SystemPlaces-timeout-red.swift`、原测试方法 `timeout-red-test-method.swift` 也保留。
+
+云端新截图已逐张检查：[California](evidence/apple-place-search-20261102/cloud26-california-passed.png)、[Cupertino](evidence/apple-place-search-20261102/cloud26-cupertino-passed.png)、[重启回显](evidence/apple-place-search-20261102/cloud26-us-address-relaunch.png)。成功不是通过重复运行同一未修改版本或放宽断言得到的；仍保留第二轮失败，不能归因为 Apple SDK 特定内部故障已获证明。国内原环境错误匹配、物理美国设备、完整地图瓦片与英文距离单位仍不在本轮通过结论内。
+
+源码验证后冻结，仅补文档/原始截图；其余源代码、测试、生成输入及配置相对 d292a1f2 完全不变。GitHub 的主线已前进，回读 PR `mergeable: false`，未证明整合后的等价性，保持草稿且不宣称合并/发布就绪。云工作流停用，额度已用 12 / 剩余 1,488 分钟。
 
 ## 已检查的真实截图
 

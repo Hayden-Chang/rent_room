@@ -1,6 +1,6 @@
 # 地址搜索的 Xcode Cloud 对照
 
-更新日期：2026-11-02。已完成接入并取得第二轮真实 UI 结果；**纽约地址通过，California 在等待窗口内未完成，整条流程失败**。此前失败与本地证据见 [Apple 地点搜索记录](APPLE_PLACE_SEARCH_20261102.md)。
+更新日期：2026-11-02。已修复请求超时不能独立结束等待的问题；**第三轮真实 UI 完成纽约 → California → Cupertino 街道 → 选中保存 → 重启回显，1/0/0 通过**。第二轮失败完整保留。此前失败与本地证据见 [Apple 地点搜索记录](APPLE_PLACE_SEARCH_20261102.md)。
 
 ## 范围
 
@@ -42,7 +42,7 @@ Apple Cloud 要求 Swift Package 锁文件，不能依赖云端自动解版本�
 
 Apple 的构建 worker 和测试 worker 是不同环境，且云端环境有自己的 HTTP 代理。因此该探针**仅证明测试 worker 的 HTTP 出口观测**，不能单独证明 MapKit 服务路由、物理设备位置或美国真实用户行为。云端不保证美国出口；不将地区语言设置或模拟 GPS 当美国网络证据。
 
-## 运行记录与待完成
+## 运行记录
 
 首轮 run `a651ec1a-bae2-4d28-a2f6-8b18aaf1cdb9`，build #1，手动触发，源码 `8e11afc5e58b63308f31ad359f7ba66a9458720f`。开始 `2026-11-02T10:28:13.919Z`，结束 `10:30:49.156Z`，结果 FAILED。
 
@@ -57,12 +57,30 @@ Apple 的构建 worker 和测试 worker 是不同环境，且云端环境有自�
 - 测试 worker 在 `2026-11-02T10:38:05Z` 的 HTTP 出口观测为 `US`，边缘机房 `PHX`。这仍不等同于物理美国设备或所有 MapKit 请求路由证明。
 - en-US 语言断言通过；纽约 `350 Fifth Avenue` 返回 `40.7482378,-73.9850579`，坐标断言和选中回填成功。[纽约结果截图](evidence/apple-place-search-20261102/cloud26-new-york-result.png)。
 - California 输入正确；18 秒内没有结果按钮，失败时 UI 仍显示 `Searching for location…`。**测试的 `no result` 是等待超时诊断，不能解释为服务明确返回空集或不支持 California。** [等待超时截图](evidence/apple-place-search-20261102/cloud26-california-still-searching.png) 来自原始测试录像末帧，未改变内容。
-- 系统日志在 California 提交后记录缺少 `siri_kg` 归属信息，并向 geod 请求下载 Apple 域名下的 Wikipedia logo；随后有连接 stall 和取消记录。可作为 SDK/云网络收尾问题的线索，尚未证明这些素材请求就是根因。当前包装的 12 秒逻辑仅调用 SDK cancel，并不独立结束等待；仍需针对无回调/超时行为建立回归证据后修复，不能单纯延长 UI 等待来称通过。
+- 系统日志在 California 提交后记录缺少 `siri_kg` 归属信息，并向 geod 请求下载 Apple 域名下的 Wikipedia logo；随后有连接 stall 和取消记录。可作为 SDK/云网络收尾问题的线索，尚未证明这些素材请求就是根因。第二轮源码的 12 秒逻辑仅调用 SDK cancel，并不独立结束等待；后续已建立行为性红灯并修复，见下一节，未延长 UI 等待。
 - Cupertino 与重启持久化未执行。没有获得完整美国地址路径的通过证据，不批准上线。
 
 完整日志、`test-results.xcresult.zip`、解包后的 `.xcresult`、36 个附件、原始录像、诊断日志与 `receipt.json` 保留于本机 `/private/tmp/rent-room-apple-search-evidence/cloud-run-2-final/`。`test-summary.json` 由实际 xcresult 导出。第二轮失败保留，未重复跑同一测试追求绿灯。结束后独立网页接口回读 `disabled: true`；额度已用 7 分钟、剩余 1,493 分钟，无付费升级。PR 仍为草稿，未合入或发布。
 
 每次真实运行保留 workflow ID、build run ID/URL、源码 SHA、源分支、Xcode/macOS/iOS 与设备、出口观测、实际方法数/通过/失败/跳过数、完整日志、`.xcresult` 与截图。查询未执行到的后续步骤必须标记未覆盖。
+
+## 第三轮：修复与最终证据
+
+修复提交 `165d6315` / `d292a1f2e320af6b5a2ea767455e6f48d949683b` 将 MapKit/旧版 Core Location 接到独立完成的回调桥接。12 秒期限直接以超时错误恢复调用者，再取消 SDK；主动取消也释放调用者。MainActor 串行处理确保只完成一次，迟到或同步取消回调不能覆盖结果；旧版 CLGeocoder 回调显式切回 MainActor。复用现有错误提示和手动地址入口，保留已有地址，不加供应商或网络代理。
+
+自动回归先用不响应 cancel 的假 SDK 验证旧包装确实不能结束等待，测试失败原因是调用者未完成，不是编译失败。修复后 4 个新用例覆盖期限、取消、重复/迟到回调，以及 PlaceSearch 停止 busy、保留地址并允许下一次查询。该证据证明应用包装缺陷；**不能据此认定 Apple 的 Swift async overlay 或 Wikipedia 素材加载是第二轮网络停滞的根因**。
+
+第三轮 run `c834e906-65a6-415b-888a-bce11abf59c2`，build #3，源码 `d292a1f2e320af6b5a2ea767455e6f48d949683b`。开始 `2026-11-02T11:10:10.183Z`，结束 `11:15:52.664Z`，结果 SUCCEEDED。相同 workflow、设备型号/runtime、英文 UI 方法、18 秒等待与坐标断言，未启用重试或预热查询。实际 worker/模拟器为新环境，不能作为严格同机网络 A/B。
+
+- Xcode 26.6 (17F113)，macOS 26.5.1，iPhone 16 / iOS 26.5 (23F77) / arm64，UDID `5258BD0E-F2C4-4406-9146-C86338ECF6B3`。
+- `2026-11-02T11:13:14Z` HTTP 出口观测 US / PHX；仅为 HTTP 探针范围。
+- 实际 xcresult：**1 执行 / 1 通过 / 0 失败 / 0 跳过**，方法 40.430 秒。真实 Apple 查询依次返回纽约地址、California、`1 Apple Park Way`；全部地区坐标断言、选择回填与重启持久化断言通过。
+- 原始截图已检查：[California](evidence/apple-place-search-20261102/cloud26-california-passed.png)、[Cupertino 街道](evidence/apple-place-search-20261102/cloud26-cupertino-passed.png)、[重启回显](evidence/apple-place-search-20261102/cloud26-us-address-relaunch.png)。截图仍有原有中文“公里”单位，部分地图瓦片在截图时未加载完整，不能宣称完整英文 UI/地图视觉验收通过。
+- 完整日志、73,641,501 字节原始结果 zip、解包 xcresult、28 个附件、原始录像、`test-summary.json` 与带截图哈希的 `receipt.json` 在 `/private/tmp/rent-room-apple-search-evidence/cloud-run-3/`。合并多目标日志是 22 字节空 zip，因此 doctor 提示无可读文本；实际单目标测试日志和 xcresult 均已读取，不将此提示算测试失败或隐藏。
+
+同一源码的本地 final-pr-head campaign `rent-room-place-timeout-final-01a19adf`：iPhone 14 Pro / iOS 18.3.1，**23 UT + 2 UI = 25 通过 / 0 失败 / 0 跳过**。加云端这一项，共 23 UT + 3 个精确 UI 方法。详细映射、红绿证据与剩余边界见 [修复记录](APPLE_PLACE_SEARCH_20261102.md)。没有运行全量测试。
+
+结束后独立网页接口回读 `disabled: true`。会员额度总量 1,500 分钟，已用 12，剩余 1,488；无付费升级。源码冻结，后续仅补文档和截图，不改变执行或测试选择。主 agent 复查回调生命周期、取消与保存边界及实际证据，未发现本次修复阻断项；PR #118 仍为草稿，GitHub 回读 `mergeable: false`，未处理最新主线整合或声称合并就绪，也未合入、归档、分发或发布。用户视觉批准和美国物理设备验收未完成。
 
 ## 官方依据
 
