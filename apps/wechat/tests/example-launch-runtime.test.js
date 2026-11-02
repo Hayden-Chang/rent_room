@@ -17,8 +17,24 @@ function boot(m){
   vm.runInNewContext(bundle,{wx:m.wx,App:value=>{app=value;},console,setTimeout,clearTimeout});
   app.onLaunch();return app;
 }
+function home(app,m){
+  let page;
+  vm.runInNewContext(fs.readFileSync('dist/pages/home/index.js','utf8'),{wx:m.wx,getApp:()=>app,Page:value=>{page=value;},console,setTimeout,clearTimeout});
+  page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(value){Object.assign(this.data,value);};
+  page.onLoad();page.onShow();return page;
+}
 const base=boot(fixture()).service.root.split('/guests/')[0];
 describe('built application first-launch entry',()=>{
+  it('keeps the first-home reminder dismissed after the actual App and home bundles restart',()=>{
+    const m=fixture(),app=boot(m);app.service.store.change(s=>{s.xiaoda.setup='done';},true);
+    const before=structuredClone(app.service.store.get().houses),credits=app.service.store.capacity(),page=home(app,m);
+    expect(page.data.homeMessage).toBe('点这里，新建你的第一套房源吧！');expect(page.data.houses).toHaveLength(2);
+    page.waitSecondHouse();expect(page.data.homeMessage).toBe('');page.onUnload();app.onHide();
+    const reopened=boot(m),next=home(reopened,m);expect(next.data.homeMessage).toBe('');
+    expect(reopened.service.store.get().houses).toEqual(before);expect(reopened.service.store.capacity()).toEqual(credits);
+    expect(reopened.service.store.get().xiaoda).toMatchObject({firstHouseId:'',tutorialStep:1,enabled:true});
+    next.onUnload();
+  });
   it('seeds two photo examples without a review flag and never restores deleted examples',()=>{
     const m=fixture(),app=boot(m),service=app.service,houses=service.store.get().houses;
     expect(houses.map(h=>h.name)).toEqual(['示例·地铁一居','示例·阳光两居']);
