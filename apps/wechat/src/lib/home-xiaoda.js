@@ -10,7 +10,7 @@ export const homeXiaodaMethods={
    this.setData({feedbackOpen:true,feedbackDraft:x.feedbackDraft||{},homeMessage:'刚才用起来怎么样？说说你的感受吧！',homePose:'greet'});return;
   }
   if(this.data.homeThank){this.homeTyped();return;}if(this.data.feedbackOpen)return;
-  this.setData({homeMessage:!x.firstHouseId&&!x.legacy?'点这里，新建你的第一套房源吧！':x.returnGuide?'点这里，添加第二套房源。':'',homePose:'greet'});
+  this.setData({homeMessage:!x.firstHouseId&&!x.legacy&&!x.firstHouseGuideDeferred?'点这里，新建你的第一套房源吧！':x.returnGuide?'点这里，添加第二套房源。':'',homePose:'greet'});
  },
  feedbackChoice(e){this.setFeedback({...this.data.feedbackDraft,[e.currentTarget.dataset.key]:e.detail.value});},
  feedbackText(e){this.setFeedback({...this.data.feedbackDraft,message:e.detail.value});},
@@ -27,7 +27,7 @@ export const homeXiaodaMethods={
   }catch(error){if(platform===getApp().service&&!this.accountUnloaded)this.setData({feedbackError:error.message});}finally{if(platform===getApp().service&&!this.accountUnloaded)this.setData({feedbackBusy:false});}
  },
  skipFeedback(){if(this.data.feedbackBusy)return;try{service().store.change(s=>s.xiaoda.feedback='done',true);this.setData({feedbackOpen:false});this.showHomeXiaoda();}catch(error){notify(error);}},
- waitSecondHouse(){if(this.data.feedbackOpen||this.data.homeThank)return;try{service().store.change(s=>s.xiaoda.returnGuide=false,true);this.showHomeXiaoda();}catch(error){notify(error);}},
+ waitSecondHouse(){if(this.data.feedbackOpen||this.data.homeThank)return;try{service().store.change(s=>{if(!s.xiaoda.firstHouseId&&!s.xiaoda.legacy)s.xiaoda.firstHouseGuideDeferred=true;s.xiaoda.returnGuide=false;},true);this.showHomeXiaoda();}catch(error){notify(error);}},
  homeTyped(){if(this.data.homeThank){clearTimeout(this.homeTimer);this.homeTimer=setTimeout(()=>{if(this.visible&&!this.accountUnloaded){this.setData({homeThank:false});this.showHomeXiaoda();}},1200);}},
  noop(){}
 };
