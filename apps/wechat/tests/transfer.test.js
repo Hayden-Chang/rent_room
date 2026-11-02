@@ -110,11 +110,13 @@ describe('house ZIP transfer transactions',()=>{
   m.io.readSync=options=>{lengths.push(options.length);return read(options);};m.io.closeSync=options=>{closed++;close(options);};
   await p.commitImport(pending,[{id:h.id,mode:'add'}]);const exported=await p.exportFile([h.id]);p.discardExport(exported);expect(Math.max(...lengths)).toBeLessThanOrEqual(256*1024);expect(lengths.length).toBeGreaterThan(2);expect(closed).toBe(2);
  });
+ // This exercises two complete 201-house transactions plus a full reload, not
+ // interactive latency. The old 5s budget also times out on unmodified main.
  it('permits copies and replacement beyond 200 houses without spending',async()=>{
   const m=mockWx(),p=createPlatform(m.wx,{session:{account:'transfer-fixture',packs:20}});p.store.change(s=>s.houses=Array.from({length:201},(_,i)=>freshHouse('房源'+i)));const source=clone(p.store.get().houses[0]),pending=await select(m,p,[{...source,name:'覆盖成功'}]);
   await p.commitImport(pending,[{id:source.id,mode:'copy'}]);expect(p.store.get().houses).toHaveLength(202);expect(p.store.capacity().remaining).toBe(201);
   await p.commitImport(pending,[{id:source.id,mode:'replace'}]);expect(createPlatform(m.wx).store.house(source.id).name).toBe('覆盖成功');expect(p.store.get().houses).toHaveLength(202);
- });
+ },30_000);
  it('exports only selected archived and active houses with actual bytes and no global settings',async()=>{
   const m=mockWx(),p=createPlatform(m.wx,{session:{account:'transfer-fixture',packs:1}}),a=p.store.add('A'),b=p.store.add('B'),c=p.store.add('C');p.store.change(s=>s.settings.workplace='不随包迁移');p.store.archive(b,true);m.disk.set('/photo',new Uint8Array([4,5]).buffer);p.store.edit(a,h=>media(h,'/photo'));
   let bytes;m.callbacks.shareFileMessage=o=>{expect(o.fileName).toMatch(/2套.*\.zip$/);bytes=new Uint8Array(m.disk.get(o.filePath));o.success({});};const exported=await p.exportFile([a,b]);expect(bytes).toBeUndefined();expect(await p.shareExport(exported)).toEqual({shared:true});

@@ -173,7 +173,7 @@ struct MPFieldRow: View {
             }
             if !state.note.isEmpty {
                 Button { if !coordinator.consumeTap() { note() } } label: {
-                    Text(verbatim: state.note).font(.system(size: 12)).foregroundStyle(XJTheme.primary).multilineTextAlignment(.leading)
+                    Text(verbatim: state.note).font(.system(size: 12)).foregroundStyle(XJTheme.noteInk).multilineTextAlignment(.leading)
                         .lineLimit(item.heading ? nil : 2).frame(maxWidth: .infinity, alignment: .leading)
                 }.buttonStyle(.plain).padding(.top, 8)
             }
