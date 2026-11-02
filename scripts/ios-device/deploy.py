@@ -149,7 +149,7 @@ class Deployment:
                 "CODE_SIGN_IDENTITY=Apple Development", f"PRODUCT_BUNDLE_IDENTIFIER={self.bundle}"]
             if self.provisioning_profile:
                 command.extend(["CODE_SIGN_STYLE=Manual",
-                                f"PROVISIONING_PROFILE_SPECIFIER={self.provisioning_profile}"])
+                                f"XUNJU_PROVISIONING_PROFILE={self.provisioning_profile}"])
             else:
                 command.extend(["CODE_SIGN_STYLE=Automatic", "-allowProvisioningUpdates",
                                 "-allowProvisioningDeviceRegistration"])

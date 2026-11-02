@@ -17,7 +17,7 @@
 
 使用 `--canonical` 替换 `--copy-id`，其他来源、设备、签名参数仍必须全部填写。该模式继续使用普通 `Xunju` scheme、Release 配置和 Apple Development 签名，不启用 `.storekit` 本地测试配置或注入交易；保留 main 的中英文 App 名称和权限文案。正式身份必须使用精确 App ID 的开发 provisioning profile，拒绝 wildcard profile。
 
-如果 Xcode 自动签名选中了通配描述文件，先为正式 App ID、现有开发证书和目标设备创建并安装专用开发描述文件，然后传 `--provisioning-profile <profile-uuid>`。该选项使用手动签名，不自动更新描述文件或注册设备；安装前再次核对打包 UUID、App ID、团队、设备和有效期，不回退到其他 profile。省略该选项时保留自动签名方式。
+如果 Xcode 自动签名选中了通配描述文件，先为正式 App ID、现有开发证书和目标设备创建并安装专用开发描述文件，然后传 `--provisioning-profile <profile-uuid>`。该选项使用手动签名，不自动更新描述文件或注册设备；安装前再次核对打包 UUID、App ID、团队、设备和有效期，不回退到其他 profile。描述文件通过 `XUNJU_PROVISIONING_PROFILE` 只绑定 `project.yml` 的 App 目标，避免把 profile 传给不支持签名的 Swift Package 资源包。省略该选项时保留自动签名方式。
 
 安装后在真机的「设置 → 开发者 → 沙盒 Apple 账户」登录同开发者团队的测试账号，再从 App 的「我的 → 房源点数」购买。开发签名 App 不要求退出正常 Apple 账户，也不要求先上传或提审；购买确认中应显示 Sandbox 环境。沙盒使用 Apple 服务器和 App Store Connect 商品，不实际扣款。参考 [Apple 沙盒测试说明](https://developer.apple.com/documentation/storekit/testing-in-app-purchases-with-sandbox)。
 
