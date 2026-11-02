@@ -50,8 +50,10 @@ struct NativePlace: Equatable, Sendable {
             let cancel: @MainActor @Sendable () -> Void = { geocoder.cancelGeocode() }
             return try await perform(cancel: cancel) { complete in
                 geocoder.reverseGeocodeLocation(location, preferredLocale: AppLanguage.shared.value.locale) { values, error in
-                    if let error { complete(.failure(error)) }
-                    else { complete(.success(values?.first.map { NativePlace(name: $0.name ?? "", address: Self.address($0), point: point) })) }
+                    Task { @MainActor in
+                        if let error { complete(.failure(error)) }
+                        else { complete(.success(values?.first.map { NativePlace(name: $0.name ?? "", address: Self.address($0), point: point) })) }
+                    }
                 }
             }
         }
