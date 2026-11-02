@@ -12,18 +12,21 @@ import {inspectionActions} from './inspection.js';
 import {currencyState,normalizeCurrency,addCurrencyHouse,currencyComparison} from './currency.js';
 import {recordHouseCreated, mergeReviewProgress, reviewActions} from './app-review.js';
 import {localDay} from '../../apps/wechat/src/lib/xiaoda-state.js';
+import {grantDevelopmentCredits} from './development-credits.js';
 
 let store, sessionPacks = 0, freeLimit = 1, creditAccount = 'local';
+let developmentCredits = false;
 let deliveredState, summaryState, cachedSummaries;
 let deliveredHouses = new Map();
 const readOperations = new Set(['form', 'targets', 'issues', 'media', 'compare', 'inspectionGuide', 'templates', 'setupState']);
 let readState, readDay, readBytes = 0;
 const readCache = new Map();
-export function initialize(raw, packs = 0, free = 1, account = 'local', firstVisit = false, exampleLanguage = 'zh-Hans') {
+export function initialize(raw, packs = 0, free = 1, account = 'local', firstVisit = false, exampleLanguage = 'zh-Hans', enableDevelopmentCredits = false) {
   deliveredState = summaryState = cachedSummaries = undefined;
   deliveredHouses = new Map();
   readState = readDay = undefined; readBytes = 0; readCache.clear();
   sessionPacks = packs; freeLimit = free; creditAccount = account;
+  developmentCredits = enableDevelopmentCredits === true;
   store = createStore({
     read: () => currencyState(raw),
     readCredits() {const result=JSON.parse(nativeReadCredits());if(result.error)throw Error(result.error);return result.value;},
@@ -46,7 +49,7 @@ export function initialize(raw, packs = 0, free = 1, account = 'local', firstVis
       if (error) throw Error(error);
       raw = text;
     }
-  }, {getPacks: () => sessionPacks, getFreeLimit: () => freeLimit, getCreditAccount: () => creditAccount, onHouseCreated: recordHouseCreated, firstVisit, exampleLanguage});
+  }, {getPacks: () => sessionPacks, getFreeLimit: () => freeLimit, getCreditAccount: () => creditAccount, onHouseCreated: recordHouseCreated, firstVisit, exampleLanguage, developmentCredits});
   return dispatch('{"operation":"snapshot"}');
 }
 
@@ -66,6 +69,7 @@ function execute({operation, id, name, field, property, value, group, view, fold
   if (Object.hasOwn(reviewActions, operation)) return reviewActions[operation](store, {value});
   switch (operation) {
     case 'snapshot': return null;
+    case 'grantDevelopmentCredits': return grantDevelopmentCredits(store, developmentCredits);
     case 'setPurchaseContext': {
       if(!value||!Number.isSafeInteger(value.packs)||value.packs<0||!Number.isSafeInteger(freeLimit+10*value.packs))throw Error('房源点数无效');
       store.bindCreditAccount(value.account);sessionPacks=value.packs;creditAccount=value.account;return null;

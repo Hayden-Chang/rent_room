@@ -20,6 +20,9 @@ struct SettingsPage: View {
                     onboarding: Binding(get: { workspace.store.state["xiaoda"]["enabled"].bool }, set: { value in
                         workspace.perform { try workspace.store.call("settings", ["property": .string("onboarding"), "value": .bool(value)]) }
                     }), action: act, openLegal: { openURL($0.url) })
+                    #if DEBUG
+                    .developmentCreditGrant { try workspace.store.grantDevelopmentCredits() }
+                    #endif
             }.padding(16)
         }.miniNavigation(AppCopy.text("我的"), showsBack: showsBack)
             .navigationDestination(item: $destination) { action in

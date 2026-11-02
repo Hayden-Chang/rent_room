@@ -5,7 +5,7 @@ import {initializeCredits,bindCredits,creditsInfo,assertCredits,spendCredit} fro
 import {withCreditStorage} from './credit-storage.js';
 import {exampleHouses} from './example-houses.js';
 
-export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1,getCreditAccount=()=>'local',onHouseCreated=()=>{},spendCreation=null,firstVisit=false,exampleLanguage='zh-Hans'}={}) {
+export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1,getCreditAccount=()=>'local',onHouseCreated=()=>{},spendCreation=null,firstVisit=false,exampleLanguage='zh-Hans',developmentCredits=false}={}) {
   adapter=withCreditStorage(adapter);
   let state=emptyState(),blocked=false,error='',revision=0,seeded=false;const listeners=new Set();
   const migrate=h=>syncElevatorPresence(mergeElectricity(migrateTopFloor(h)));
@@ -21,10 +21,10 @@ export function createStore(adapter,{getPacks=()=>0,getFreeLimit=()=>1,getCredit
   return {
     get:()=>state,status:()=>({error,blocked,revision}),subscribe(fn){listeners.add(fn);return()=>listeners.delete(fn);},save,change,edit,
     house:id=>state.houses.find(h=>h.id===id),
-    capacity:()=>blocked?{used:state.houses.filter(h=>!h.archived).length,limit:0,remaining:0,over:0,packs:0}:creditsInfo(state,getPacks(),getFreeLimit(),getCreditAccount()),refreshCapacity:emit,
+    capacity:()=>blocked?{used:state.houses.filter(h=>!h.archived).length,limit:0,remaining:0,over:0,packs:0}:creditsInfo(state,getPacks(),getFreeLimit(),getCreditAccount(),developmentCredits),refreshCapacity:emit,
     bindCreditAccount(account){return change(s=>bindCredits(s,account),true);},
-    checkCapacity(additional=1){if(blocked)throw Error(error);return assertCredits(state,getPacks(),getFreeLimit(),getCreditAccount(),additional);},
-    add(name,configure=()=>{}){let id;change(s=>{if(spendCreation)spendCreation();else spendCredit(s,getPacks(),getFreeLimit(),getCreditAccount());const h=freshHouse(name,{templates:s.settings.templates,selectedTemplate:s.settings.selectedTemplate});configure(h);id=h.id;s.houses.push(h);delete s.xiaoda.intent;s.xiaoda.returnGuide=false;if(!s.xiaoda.firstHouseId&&!s.xiaoda.legacy){s.xiaoda.firstHouseId=id;}onHouseCreated(s);},true);return id;},
+    checkCapacity(additional=1){if(blocked)throw Error(error);return assertCredits(state,getPacks(),getFreeLimit(),getCreditAccount(),additional,developmentCredits);},
+    add(name,configure=()=>{}){let id;change(s=>{if(spendCreation)spendCreation();else spendCredit(s,getPacks(),getFreeLimit(),getCreditAccount(),developmentCredits);const h=freshHouse(name,{templates:s.settings.templates,selectedTemplate:s.settings.selectedTemplate});configure(h);id=h.id;s.houses.push(h);delete s.xiaoda.intent;s.xiaoda.returnGuide=false;if(!s.xiaoda.firstHouseId&&!s.xiaoda.legacy){s.xiaoda.firstHouseId=id;}onHouseCreated(s);},true);return id;},
     answer(id,field,prop,value){return edit(id,h=>updateAnswer(h,field,prop,value));},
     group(id,group,operation,value){return edit(id,h=>updateGroup(h,group,operation,value));},
     archive(id,value){return change(s=>{const h=s.houses.find(h=>h.id===id);if(!h)throw Error('房源不存在');h.archived=value;},true);},
