@@ -2,6 +2,17 @@ import XCTest
 @testable import Xunju
 
 final class RegionalPreferencesTests: XCTestCase {
+    func testSettingsCurrencyLabelsUseLocalizedYuanAndActualCurrencyCode() {
+        XCTAssertEqual(CurrencyCatalog.settingsLabel("CNY", language: .chinese, automatic: true), "自动识别/元")
+        XCTAssertEqual(CurrencyCatalog.settingsLabel("CNY", language: .chinese), "人民币/元")
+        XCTAssertEqual(CurrencyCatalog.settingsLabel("USD", language: .english, automatic: true), "Auto-Detect/USD")
+        XCTAssertEqual(CurrencyCatalog.settingsLabel("USD", language: .english), "US Dollar/USD")
+        XCTAssertEqual(CurrencyCatalog.settingsLabel("CNY", language: .english, automatic: true), "Auto-Detect/CNY")
+        XCTAssertEqual(CurrencyCatalog.settingsLabel("JPY", language: .english), "Japanese Yen/JPY")
+        XCTAssertEqual(CurrencyCatalog.settingsLabel("JPY", language: .chinese), "日元/JPY")
+        XCTAssertEqual(CurrencyCatalog.settingsLabel("GBP", language: .english, automatic: true), "Auto-Detect/GBP")
+    }
+
     func testSystemLanguageMatchesPreferenceOrderAndFallsBackToEnglish() {
         XCTAssertEqual(LanguageSelection.system.resolve(["fr-FR", "zh-Hant-TW", "en-US"]), .chinese)
         XCTAssertEqual(LanguageSelection.system.resolve(["en-GB", "zh-Hans"]), .english)

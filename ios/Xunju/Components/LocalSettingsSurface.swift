@@ -31,8 +31,8 @@ struct LocalSettingsSurface: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            XJCard { row(.capacity, detail: AppLanguage.shared.value == .english ? "\(remaining) credits" : "\(remaining) 点", rawDetail: true) }
-            XJCard {
+            XJCard(verticalPadding: 4) { row(.capacity, detail: AppLanguage.shared.value == .english ? "\(remaining) credits" : "\(remaining) 点", rawDetail: true, showsDivider: false) }
+            XJCard(verticalPadding: 4) {
                 VStack(spacing: 0) {
                     row(.workplace, detail: workplace.isEmpty ? AppCopy.text("未设置") : workplace, rawDetail: true)
                     row(.archive, detail: "\(archived) 套")
@@ -43,10 +43,10 @@ struct LocalSettingsSurface: View {
                 }
             }
             AppText("数据与备份").font(.system(size: 16, weight: .semibold)).padding(.top, 8)
-            XJCard { VStack(spacing: 0) { row(.importFile); row(.export) } }
-            XJCard { row(.permissions) }
-            XJCard { VStack(spacing: 0) { row(.feedback); AppStoreReviewRow(appID: AppStoreReview.appID); row(.share) } }
-            XJCard {
+            XJCard(verticalPadding: 4) { VStack(spacing: 0) { row(.importFile); row(.export) } }
+            XJCard(verticalPadding: 4) { row(.permissions, showsDivider: false) }
+            XJCard(verticalPadding: 4) { VStack(spacing: 0) { row(.feedback); AppStoreReviewRow(appID: AppStoreReview.appID); row(.share) } }
+            XJCard(verticalPadding: 4) {
                 VStack(spacing: 0) {
                     ForEach(LegalPage.allCases, id: \.self) { page in
                         Button { openLegal(page) } label: { menu(page.title) }
@@ -54,25 +54,25 @@ struct LocalSettingsSurface: View {
                     }
                 }
             }
-            XJCard { TouchTrailSettingsRow() }
-            XJCard {
+            XJCard(verticalPadding: 4) { TouchTrailSettingsRow() }
+            XJCard(verticalPadding: 4) {
                 HStack { AppText("版本"); Spacer(); Text(verbatim: version).foregroundStyle(XJTheme.muted) }
                     .font(.system(size: 14)).frame(minHeight: 50)
             }
         }.foregroundStyle(XJTheme.ink).buttonStyle(.plain)
     }
-    private func row(_ item: LocalSettingsAction, detail: String = "", rawDetail: Bool = false) -> some View {
-        Button { action(item) } label: { menu(item.title, detail: detail, rawDetail: rawDetail) }
+    private func row(_ item: LocalSettingsAction, detail: String = "", rawDetail: Bool = false, showsDivider: Bool = true) -> some View {
+        Button { action(item) } label: { menu(item.title, detail: detail, rawDetail: rawDetail, showsDivider: showsDivider) }
             .accessibilityIdentifier("local-settings.\(item.rawValue)")
     }
-    private func menu(_ title: String, detail: String = "", rawDetail: Bool = false) -> some View {
+    private func menu(_ title: String, detail: String = "", rawDetail: Bool = false, showsDivider: Bool = true) -> some View {
         HStack(spacing: 16) {
             AppText(title).fontWeight(.medium).fixedSize()
             Spacer(minLength: 0)
             Text(verbatim: (rawDetail ? detail : AppCopy.text(detail)) + (detail.isEmpty ? "›" : " ›"))
                 .font(.system(size: 12, weight: .medium)).foregroundStyle(XJTheme.muted).lineLimit(1)
         }.font(.system(size: 14)).frame(minHeight: 50).contentShape(Rectangle())
-            .overlay(alignment: .bottom) { XJTheme.line.frame(height: 1) }
+            .overlay(alignment: .bottom) { if showsDivider { XJTheme.line.frame(height: 1) } }
     }
 }
 

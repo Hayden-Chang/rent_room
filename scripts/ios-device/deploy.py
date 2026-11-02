@@ -13,11 +13,19 @@ import subprocess
 CANONICAL_BUNDLE = "com.keeline.xunju.ios"
 DISPLAY_NAME = "看房搭子开发版"
 ROOT = Path(__file__).resolve().parents[2]
+BOOT_VOLUME = Path("/")
 
 
 def require(condition, message):
     if not condition:
         raise RuntimeError(message)
+
+
+def on_boot_volume(path):
+    probe = path
+    while not probe.exists() and probe != probe.parent:
+        probe = probe.parent
+    return probe.stat().st_dev == BOOT_VOLUME.stat().st_dev
 
 
 def copy_bundle(copy_id):
@@ -96,6 +104,22 @@ class Deployment:
         self.display_name = "看房搭子" if self.canonical else copy_display_name(args.copy_id)
         self.output = Path(args.output).resolve()
         require(not self.output.is_relative_to(ROOT), "output must be outside the source worktree")
+        cache = getattr(args, "derived_data", None)
+        if cache:
+            self.derived_data = Path(cache).resolve()
+            require(not self.derived_data.is_relative_to(ROOT),
+                    "derived-data must be outside the source worktree")
+            require(not self.derived_data.is_relative_to(self.output),
+                    "derived-data must not be inside the output directory")
+            require(not self.derived_data.exists() or self.derived_data.is_dir(),
+                    "derived-data path must be a directory")
+            require(on_boot_volume(self.derived_data),
+                    "derived-data must be on the boot volume; Xcode's user-script sandbox "
+                    "cannot rewrite the built InfoPlist.strings on another volume")
+            self.derived_data_mode = "cache"
+        else:
+            self.derived_data = self.output / "DerivedData"
+            self.derived_data_mode = "per-run"
         require(re.fullmatch(r"[A-Z0-9]{10}", args.team), "invalid signing team")
         self.receipt = {
             "source": source_identity(args.branch, args.expected_head),
@@ -104,7 +128,8 @@ class Deployment:
             "copyID": args.copy_id, "bundleID": self.bundle, "displayName": self.display_name,
             "team": args.team, "deviceID": args.device, "deviceName": args.device_name,
             "provisioningProfile": self.provisioning_profile,
-            "deviceUDID": args.udid, "steps": {},
+            "deviceUDID": args.udid, "derivedData": str(self.derived_data),
+            "derivedDataMode": self.derived_data_mode, "steps": {},
         }
 
     def save(self):
@@ -136,14 +161,16 @@ class Deployment:
 
     def execute(self):
         self.output.mkdir(parents=True, exist_ok=False)
+        self.derived_data.mkdir(parents=True, exist_ok=True)
         self.save()
+        print(f"derived-data: {self.derived_data_mode} {self.derived_data}", flush=True)
         try:
             device = self.device_command("device", ["device", "info", "details"])
             validate_device(device, self.args.device_name, self.args.udid)
             command = [str(ROOT / "scripts/run-xcodebuild.sh"),
                 "-project", str(ROOT / "ios/Xunju.xcodeproj"), "-scheme", "Xunju",
                 "-configuration", "Release", "-destination", f"id={self.args.udid}",
-                "-derivedDataPath", str(self.output / "DerivedData"),
+                "-derivedDataPath", str(self.derived_data),
                 "-resultBundlePath", str(self.output / "build.xcresult"),
                 f"DEVELOPMENT_TEAM={self.args.team}",
                 "CODE_SIGN_IDENTITY=Apple Development", f"PRODUCT_BUNDLE_IDENTIFIER={self.bundle}"]
@@ -161,7 +188,7 @@ class Deployment:
                 command.append("XUNJU_ISOLATED_DISPLAY_NAME=")
             self.run("build", [*command, "build"])
             source_identity(self.args.branch, self.args.expected_head)
-            app = self.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
+            app = self.derived_data / "Build/Products/Release-iphoneos/Xunju.app"
             self.run("signature", ["/usr/bin/codesign", "--verify", "--deep", "--strict", str(app)])
             entitlements = plistlib.loads(capture([
                 "/usr/bin/codesign", "-d", "--entitlements", ":-", str(app)]))
@@ -213,6 +240,9 @@ def main():
                         help="Use this installed development profile UUID with manual signing")
     for flag in ("team", "device", "device-name", "udid", "branch", "expected-head", "output"):
         parser.add_argument(f"--{flag}", required=True)
+    parser.add_argument("--derived-data",
+                        help="Reuse a persistent DerivedData directory outside the worktree; "
+                             "omitting it keeps one build directory inside the unique output directory")
     args = parser.parse_args()
     try:
         Deployment(args).execute()

@@ -8,6 +8,30 @@ import UIKit
         addTeardownBlock { try? FileManager.default.removeItem(at: url) }
         return url
     }
+    func testNextHouseNumberCountsOnlyRealActiveHomesAfterReload() throws {
+        let url = root(), store = try NativeStore(directory: url, freeLimit: 3, firstVisit: true)
+        XCTAssertEqual(store.houses.count, 2)
+        XCTAssertEqual(store.nextHouseNumber, 1)
+        let examples = store.houses.map(\.id)
+        try store.call("rename", ["id": .string(examples[0]), "value": .string("自定义示例名称")])
+        try store.archive(examples[1], archived: true)
+        XCTAssertEqual(store.nextHouseNumber, 1)
+        let real = try store.add("第1套")
+        XCTAssertEqual(store.nextHouseNumber, 2)
+        let reopened = try NativeStore(directory: url, freeLimit: 3, firstVisit: true)
+        XCTAssertEqual(reopened.nextHouseNumber, 2)
+        XCTAssertEqual(reopened.house(real)["name"].string, "第1套")
+        try reopened.archive(real, archived: true)
+        XCTAssertEqual(reopened.nextHouseNumber, 1)
+        try reopened.call("remove", ["id": .string(examples[1])])
+        XCTAssertEqual(reopened.nextHouseNumber, 1)
+    }
+    func testNextHouseNumberStillCountsOldRealHomesWithExampleLikeNames() throws {
+        let store = try NativeStore(directory: root(), freeLimit: 3)
+        _ = try store.add("示例·地铁一居")
+        _ = try store.add("旧房源")
+        XCTAssertEqual(store.nextHouseNumber, 3)
+    }
     func testEnglishPreferenceSeedsEnglishContentAndPreservesEditsAfterLanguageChange() throws {
         let url = root(), suite = "examples-english." + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!

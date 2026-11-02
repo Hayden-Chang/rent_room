@@ -49,7 +49,7 @@ it('deduplicates a legacy custom template containing only the second field and r
  h.answers[duplicate]={value:'18'};const {io,store}=open(h);expect(rows(store.house(h.id))[0]).toMatchObject({id:primary,value:'18'});
  store.recover();expect(rows(store.house(h.id))[0]).toMatchObject({id:primary,value:'18'});
 });
-it('migrates imported electricity within capacity and preserves both records and input when full',()=>{
+it('migrates imported electricity beyond the creation limit without spending credits or changing input',()=>{
  let disk='';const io={read:()=>disk,write:value=>{disk=value;}};
  const store=createStore(io,{getPacks:()=>1});for(let i=0;i<10;i++)store.add('已有房源 '+i);
  const h=legacy();h.answers[duplicate]={value:'42',note:'旧费用'};const before=JSON.stringify(h);
@@ -58,9 +58,13 @@ it('migrates imported electricity within capacity and preserves both records and
  expect(rows(createStore(io).house(h.id))[0]).toMatchObject({id:primary,value:'42',note:'旧费用'});
  expect(JSON.stringify(h)).toBe(before);
  const extra=legacy();extra.answers[duplicate]={value:'68'};
- const input=JSON.stringify(extra),saved=disk;
- expect(()=>store.import([extra])).toThrow('容量');
- expect(disk).toBe(saved);expect(store.get().houses).toHaveLength(11);expect(JSON.stringify(extra)).toBe(input);
+ const input=JSON.stringify(extra),remaining=store.capacity().remaining;
+ store.import([extra]);
+ const reopened=createStore(io,{getPacks:()=>1});
+ expect(reopened.get().houses).toHaveLength(12);expect(reopened.capacity().remaining).toBe(remaining);
+ expect(rows(reopened.house(h.id))[0]).toMatchObject({id:primary,value:'42',note:'旧费用'});
+ expect(rows(reopened.house(extra.id))[0]).toMatchObject({id:primary,value:'68'});
+ expect(JSON.stringify(extra)).toBe(input);
 });
 it('combines electricity recovery with transactional retries without replacing the readable backup',()=>{
  const h=legacy();h.answers[duplicate]={value:'42',note:'旧电费'};h.media=[{id:'bill',type:'image',path:'/local/bill.jpg',fieldId:duplicate}];

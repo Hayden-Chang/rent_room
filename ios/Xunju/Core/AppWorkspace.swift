@@ -81,6 +81,10 @@ final class AppWorkspace {
         if ReturningBusinessFixture.enabled(arguments), arguments.contains("--pixel-parity-fixture"), store.houses.isEmpty {
             try PixelParityFixture.populate(store)
         }
+        if FilledChoiceFixture.enabled(arguments), store.houses.count == 3 {
+            try FilledChoiceFixture.prepare(store)
+            store = try NativeStore(directory: store.records.directory, packs: store.capacity.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
+        }
         #endif
         store.currencyProvider = { [regional] in regional.preferences.currencyCode }
     }
