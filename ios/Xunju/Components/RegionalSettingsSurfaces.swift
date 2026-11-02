@@ -19,7 +19,7 @@ struct RegionalSettingsSection: View {
     @Environment(\.regionalLanguage) private var language
 
     var body: some View {
-        XJCard {
+        XJCard(verticalPadding: 4) {
             VStack(spacing: 0) {
                 row("settings.language", detail: copy(preferences.language.titleKey), action: chooseLanguage)
                 Divider()
@@ -29,8 +29,8 @@ struct RegionalSettingsSection: View {
     }
 
     private var currencyDetail: String {
-        if preferences.currencySelection == .automatic { return copy("currency.automatic") + " · " + preferences.currencyCode }
-        return CurrencyCatalog.name(preferences.currencyCode, language: language) + " · " + preferences.currencyCode
+        CurrencyCatalog.settingsLabel(preferences.currencyCode, language: language,
+            automatic: preferences.currencySelection == .automatic)
     }
 
     private func copy(_ key: String) -> String { RegionalCopy.text(key, language: language) }
@@ -94,8 +94,8 @@ struct CurrencySelectionSurface: View {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                         XJCard {
-                            RegionalChoiceRow(title: copy("currency.automatic"),
-                                subtitle: copy("currency.automaticHelp") + " · " + preferences.automaticCurrency,
+                            RegionalChoiceRow(title: CurrencyCatalog.settingsLabel(preferences.automaticCurrency, language: language, automatic: true),
+                                subtitle: copy("currency.automaticHelp"),
                                 selected: preferences.currencySelection == .automatic, identifier: "currency.automatic") { select(nil) }
                         }
                         Text(copy("currency.help")).font(.system(size: 13)).foregroundStyle(XJTheme.muted).padding(.horizontal, 4)
@@ -119,7 +119,7 @@ struct CurrencySelectionSurface: View {
             if let title { Text(copy(title)).font(.system(size: 13, weight: .medium)).foregroundStyle(XJTheme.muted).padding(.horizontal, 4) }
             LazyVStack(spacing: 0) {
                 ForEach(codes, id: \.self) { code in
-                    RegionalChoiceRow(title: CurrencyCatalog.name(code, language: language), subtitle: code,
+                    RegionalChoiceRow(title: CurrencyCatalog.settingsLabel(code, language: language),
                         selected: preferences.currencySelection == .manual(code), identifier: "currency.\(code)") { select(code) }
                         .padding(.horizontal, 16)
                     if code != codes.last { Divider().padding(.horizontal, 16) }
