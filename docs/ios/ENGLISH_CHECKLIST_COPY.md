@@ -1,6 +1,6 @@
 # English checklist copy review — 2026-11-02
 
-Status: `REVIEW_READY`; final evidence inspected, user visual approval pending. PR #117 remains a draft.
+Status: `APPROVED`; after reviewing the evidence, the user explicitly requested “先合入到主线”. The latest pre-merge campaign is h below; campaign g is preserved as the original review evidence.
 
 ## Result and scope
 
@@ -53,7 +53,7 @@ Exactly two UI methods under `XunjuUITests/EnglishChecklistCopyUITests/` were se
 
 No full unit/UI suite was run. No physical-device, deployment, TestFlight, or release acceptance is implied.
 
-### Final run
+### Original review run (g)
 
 Campaign **g passed: 6 tests, 0 failures, 0 skipped** (four unit methods and two XCUITest methods), at the exact evidence SHA above. Device: **iPhone 14 Pro / iOS Simulator 18.3.1 (22D8075)**, UDID `8F178971-C203-4690-A83B-253046EACBB1`. All nine exported PNGs are **1178 × 2556** pixels. The runner exited 0; its device lease, queue entry and run slot were released. No application source, resource, build configuration or test changed after this green run. Only this report and unedited evidence copies were added.
 
@@ -87,4 +87,18 @@ Run a stopped in ZIPFoundation resolution due to the local HTTPS-to-SSH rewrite;
 
 Screenshot review after d identified the missing generated headings, so the source was corrected and a complete recalculated campaign was required. Run f was cancelled during UI validation to correct the alteration heading to `Listed property alterations are allowed`, matching the bulk Yes behavior. Campaign g uses the final executable inputs. Old screenshots are not the final evidence. The main agent inspected the final exported images, source/generated boundaries and remote PR file hashes; no additional code issue was found. Final PR metadata and Checks are read back after the documentation push. GitHub reports no check runs or commit statuses; that is not a green remote CI result.
 
-User visual approval remains required before merge. No merge, deployment, upload or release was performed.
+At the original review boundary, user visual approval was pending and no merge, deployment, upload or release had been performed.
+
+## Approved merge validation (h)
+
+On 2026-11-02 the user explicitly authorized merging PR #117. Main had advanced from `f1cc82617ed69e446b8f8fee3f0ced94ff6414a5` to `fb83df100f1b69dbb9c9d67e1fc9bcd236fb7d05`. A fresh merge simulation was clean, and the task branch integrated that base without manual conflict resolution at **`238788b800de652816207b59c54e9360e2f74c44`**. All 16 PR file patches remained byte-for-byte identical against the advanced base. Because upstream changes touched answer persistence and outside-tap input completion, the complete focused campaign was rerun instead of assuming the old runtime evidence was equivalent.
+
+Run **`rent-room-english-checklist-20261102-h` passed all 6 tests, 0 failures, 0 skipped**, using the same four unit and two UI methods mapped above. This directly reconfirms English search, generated headings, representative title/Yes geometry and answer preservation after relaunch on the combined code. The copy generator, core generator and 55-heading projection check also passed. No full suite or physical-device test ran.
+
+The device was iPhone 14 Pro / iOS Simulator 18.3.1 (22D8075), UDID `8F178971-C203-4690-A83B-253046EACBB1`. All nine raw PNG attachments are 1178 × 2556 and were inspected by the main agent. The approved copy and representative layout are preserved, with the existing floating-button coverage limitation described above. The runner's build and test stages exited 0 and its slot/device lease were released.
+
+Exact invocation, plan, log, result and all nine attachments are preserved under `artifacts/english-checklist-copy/` as `run-h.sh`, `plan-h.json`, `run-h.log`, `results-h.xcresult`, `summary-h.json` and `attachments-h/manifest.json`. These are local artifacts in the task worktree recorded above. The repository includes [summary h](evidence/english-checklist-copy-20261102/test-summary-h.json), [all screenshot hashes and dimensions](evidence/english-checklist-copy-20261102/images-h.json), and two unchanged representative screenshots below. Only documentation and raw evidence copies were added after the green candidate; executable inputs and test selection are unchanged.
+
+![Approved copy on latest main](evidence/english-checklist-copy-20261102/h-simple-furniture-storage.png)
+
+![Saved answer after relaunch on latest main](evidence/english-checklist-copy-20261102/h-simple-storage-restored.png)
