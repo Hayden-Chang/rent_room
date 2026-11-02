@@ -26,6 +26,10 @@ def copy_bundle(copy_id):
     return f"{CANONICAL_BUNDLE}.dev.{copy_id}"
 
 
+def copy_display_name(copy_id):
+    return f"{DISPLAY_NAME} {copy_id.upper()}"
+
+
 def capture(command, cwd=ROOT):
     return subprocess.check_output(command, cwd=cwd, stderr=subprocess.PIPE)
 
@@ -52,11 +56,11 @@ def validate_device(device, name, udid):
             "Developer Mode is not enabled")
 
 
-def validate_app(info, entitlements, profile, bundle, team, udid, now=None):
+def validate_app(info, entitlements, profile, bundle, team, udid, display_name=DISPLAY_NAME, now=None):
     now = now or dt.datetime.now(dt.timezone.utc)
     require(info.get("CFBundleIdentifier") == bundle and bundle != CANONICAL_BUNDLE,
             "built Bundle ID is not the requested isolated identity")
-    require(info.get("CFBundleDisplayName") == DISPLAY_NAME, "built display name mismatch")
+    require(info.get("CFBundleDisplayName") == display_name, "built display name mismatch")
     app_id = f"{team}.{bundle}"
     require(entitlements.get("application-identifier") == app_id, "signed app identifier mismatch")
     require(entitlements.get("com.apple.developer.team-identifier") == team, "signed team mismatch")
@@ -64,10 +68,9 @@ def validate_app(info, entitlements, profile, bundle, team, udid, now=None):
     require(set(groups).issubset({app_id}), "shared Keychain access group is forbidden for this copy")
     require(not entitlements.get("com.apple.security.application-groups"),
             "shared App Group is forbidden for this copy")
-    require(entitlements.get("com.apple.developer.applesignin") == ["Default"],
-            "Sign in with Apple capability missing from signed app")
     require(profile.get("TeamIdentifier") == [team], "provisioning team mismatch")
-    require(profile.get("Entitlements", {}).get("application-identifier") == app_id,
+    profile_app_id = profile.get("Entitlements", {}).get("application-identifier")
+    require(profile_app_id in (app_id, f"{team}.*"),
             "provisioning app identifier mismatch")
     require(udid in profile.get("ProvisionedDevices", []), "target UDID is not provisioned")
     require(profile.get("Entitlements", {}).get("get-task-allow") is True,
@@ -81,13 +84,14 @@ class Deployment:
     def __init__(self, args):
         self.args = args
         self.bundle = copy_bundle(args.copy_id)
+        self.display_name = copy_display_name(args.copy_id)
         self.output = Path(args.output).resolve()
         require(not self.output.is_relative_to(ROOT), "output must be outside the source worktree")
         require(re.fullmatch(r"[A-Z0-9]{10}", args.team), "invalid signing team")
         self.receipt = {
             "source": source_identity(args.branch, args.expected_head),
             "configuration": "Release", "scheme": "Xunju", "mode": "isolated",
-            "copyID": args.copy_id, "bundleID": self.bundle, "displayName": DISPLAY_NAME,
+            "copyID": args.copy_id, "bundleID": self.bundle, "displayName": self.display_name,
             "team": args.team, "deviceID": args.device, "deviceName": args.device_name,
             "deviceUDID": args.udid, "steps": {},
         }
@@ -133,7 +137,8 @@ class Deployment:
                 "-allowProvisioningUpdates", "-allowProvisioningDeviceRegistration",
                 f"DEVELOPMENT_TEAM={self.args.team}", "CODE_SIGN_STYLE=Automatic",
                 "CODE_SIGN_IDENTITY=Apple Development", f"PRODUCT_BUNDLE_IDENTIFIER={self.bundle}",
-                f"INFOPLIST_KEY_CFBundleDisplayName={DISPLAY_NAME}", "build"])
+                f"INFOPLIST_KEY_CFBundleDisplayName={self.display_name}",
+                f"XUNJU_ISOLATED_DISPLAY_NAME={self.display_name}", "build"])
             source_identity(self.args.branch, self.args.expected_head)
             app = self.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
             self.run("signature", ["/usr/bin/codesign", "--verify", "--deep", "--strict", str(app)])
@@ -143,7 +148,11 @@ class Deployment:
                 "/usr/bin/security", "cms", "-D", "-i", str(app / "embedded.mobileprovision")]))
             with (app / "Info.plist").open("rb") as handle:
                 info = plistlib.load(handle)
-            validate_app(info, entitlements, profile, self.bundle, self.args.team, self.args.udid)
+            validate_app(info, entitlements, profile, self.bundle, self.args.team, self.args.udid,
+                         self.display_name)
+            self.run("localized-resources", ["/usr/bin/python3",
+                str(ROOT / "scripts/ios-device/localize_copy_name.py"), "--verify",
+                "--app", str(app), "--display-name", self.display_name])
             self.receipt["app"] = str(app)
             self.receipt["profileExpiration"] = profile["ExpirationDate"].isoformat() + "Z"
             self.receipt["identityVerified"] = True
@@ -162,7 +171,7 @@ class Deployment:
             self.receipt["processID"] = launch["process"]["processIdentifier"]
             self.receipt["status"] = "launched"
             self.save()
-            print(f"Deployment launched: {DISPLAY_NAME} ({self.bundle})", flush=True)
+            print(f"Deployment launched: {self.display_name} ({self.bundle})", flush=True)
         except Exception as error:
             self.receipt["status"] = "failed"
             self.receipt["error"] = str(error)

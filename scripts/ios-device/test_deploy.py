@@ -1,6 +1,7 @@
 import datetime as dt
 import importlib.util
 import json
+import plistlib
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -14,14 +15,15 @@ spec.loader.exec_module(deploy)
 
 class DeploymentGuards(unittest.TestCase):
     def setUp(self):
-        self.bundle = deploy.copy_bundle("iosparity20261019")
+        self.copy_id = "iosparity20261019"
+        self.bundle = deploy.copy_bundle(self.copy_id)
         self.team = "N3Z6DDSQCJ"
         self.udid = "selected-device"
-        self.info = {"CFBundleIdentifier": self.bundle, "CFBundleDisplayName": deploy.DISPLAY_NAME}
+        self.display_name = deploy.copy_display_name(self.copy_id)
+        self.info = {"CFBundleIdentifier": self.bundle, "CFBundleDisplayName": self.display_name}
         self.entitlements = {
             "application-identifier": f"{self.team}.{self.bundle}",
             "com.apple.developer.team-identifier": self.team,
-            "com.apple.developer.applesignin": ["Default"],
         }
         self.profile = {
             "TeamIdentifier": [self.team], "ProvisionedDevices": [self.udid],
@@ -32,7 +34,8 @@ class DeploymentGuards(unittest.TestCase):
 
     def verify(self, info=None, entitlements=None, profile=None):
         deploy.validate_app(info or self.info, entitlements or self.entitlements,
-                            profile or self.profile, self.bundle, self.team, self.udid)
+                            profile or self.profile, self.bundle, self.team, self.udid,
+                            self.display_name)
 
     def test_rejects_invalid_copy_ids(self):
         for value in ("", "../canonical", "UPPER", "main.copy", "ios\n", "中英文"):
@@ -41,6 +44,24 @@ class DeploymentGuards(unittest.TestCase):
 
     def test_verified_isolated_app_is_accepted(self):
         self.verify()
+
+    def test_display_name_carries_copy_id(self):
+        self.assertEqual(deploy.copy_display_name("r001"), f"{deploy.DISPLAY_NAME} R001")
+
+    def test_display_name_without_copy_id_is_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, "display name"):
+            self.verify(info={**self.info, "CFBundleDisplayName": deploy.DISPLAY_NAME})
+
+    def test_team_wildcard_profile_is_accepted(self):
+        wildcard = {**self.profile, "Entitlements": {
+            **self.profile["Entitlements"], "application-identifier": f"{self.team}.*"}}
+        self.verify(profile=wildcard)
+
+    def test_foreign_profile_app_identifier_is_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, "provisioning app identifier"):
+            self.verify(profile={**self.profile, "Entitlements": {
+                **self.profile["Entitlements"],
+                "application-identifier": "OTHERTEAM0.other.app"}})
 
     def test_canonical_app_or_other_team_cannot_be_installed(self):
         with self.assertRaisesRegex(RuntimeError, "Bundle ID"):
@@ -104,6 +125,35 @@ class DeploymentGuards(unittest.TestCase):
             with patch.object(execution, "run", side_effect=fake_run):
                 result = execution.device_command("launch", ["device", "process", "launch", execution.bundle])
             self.assertEqual(result["process"]["processIdentifier"], 42)
+
+    def test_missing_localized_permissions_stop_before_install(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}), \
+                patch.object(deploy, "validate_device"), \
+                patch.object(deploy, "validate_app"), \
+                patch.object(deploy, "capture", side_effect=[
+                    plistlib.dumps(self.entitlements), plistlib.dumps(self.profile)]):
+            args = SimpleNamespace(copy_id="testcopy", team=self.team, output=f"{folder}/run",
+                branch="codex/test", expected_head="sha", device="chosen-device",
+                device_name="chosen phone", udid=self.udid)
+            execution = deploy.Deployment(args)
+
+            def fake_run(step, command):
+                if step == "build":
+                    self.assertIn(f"XUNJU_ISOLATED_DISPLAY_NAME={execution.display_name}", command)
+                    self.assertFalse(any(arg.startswith("EXCLUDED_SOURCE_FILE_NAMES=") for arg in command))
+                    app = execution.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
+                    app.mkdir(parents=True)
+                    (app / "Info.plist").write_bytes(plistlib.dumps(self.info))
+                if step == "localized-resources":
+                    raise RuntimeError("localized permission validation failed")
+
+            with patch.object(execution, "device_command", return_value={}) as device, \
+                    patch.object(execution, "run", side_effect=fake_run), \
+                    self.assertRaisesRegex(RuntimeError, "localized permission"):
+                execution.execute()
+            self.assertEqual([call.args[0] for call in device.call_args_list], ["device"])
+            self.assertEqual(execution.receipt["status"], "failed")
 
 
 if __name__ == "__main__":

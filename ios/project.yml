@@ -44,6 +44,22 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
     dependencies:
       - package: ZIPFoundation
+    postBuildScripts:
+      - name: Localize isolated app name
+        script: |
+          /usr/bin/python3 -B "$SRCROOT/../scripts/ios-device/localize_copy_name.py" \
+            --app "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH" \
+            --display-name "${XUNJU_ISOLATED_DISPLAY_NAME:-}"
+        basedOnDependencyAnalysis: false
+        inputFiles:
+          - $(SRCROOT)/../scripts/ios-device/localize_copy_name.py
+          - $(SRCROOT)/Xunju/Resources/en.lproj/InfoPlist.strings
+          - $(SRCROOT)/Xunju/Resources/zh-Hans.lproj/InfoPlist.strings
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/en.lproj/InfoPlist.strings
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/zh-Hans.lproj/InfoPlist.strings
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/en.lproj
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/zh-Hans.lproj
     entitlements:
       path: Xunju/Xunju.entitlements
       properties: {}
