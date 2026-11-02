@@ -1483,6 +1483,17 @@
       "english": "app-currency-default-en.json",
       "promptSHA256": "0be0781698b6cfa0cbb587842ebf84109ac2c0fc2d7bf8161c53bf44700df38e",
       "englishSHA256": "66587a289d98f10ca61fedee25f3b3c5cac80ae22338dbf11554148cad5a8263"
+    },
+    {
+      "generator": "Codex",
+      "date": "2026-11-02",
+      "keys": [
+        "s0530"
+      ],
+      "prompt": "app-setting-label-prompt.txt",
+      "english": "app-setting-label-en.json",
+      "promptSHA256": "02b8991dc4612e4a58e9707594e619554f84dcf9b84f6d1eb8c4dd989969ec27",
+      "englishSHA256": "27fdc2a5fe789e900b3281ae12cebcb4d316abeccfd5fa54d242a8f67b032772"
     }
   ],
   "sourceCorrections": [
