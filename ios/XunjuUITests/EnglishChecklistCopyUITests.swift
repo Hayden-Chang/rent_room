@@ -73,7 +73,7 @@ import XCTest
         XCTAssertTrue(app.buttons["mp.field.choice.simple_40.是"].isSelected)
         search("Appliances", app)
         checkRow("simple_44", app); capture("simple-appliances", app)
-        search("Bathroom", app)
+        search("Hot and cold", app)
         checkRow("simple_26", app); capture("simple-bathroom", app)
         app.terminate(); app.launch()
         let house = app.buttons["house.首次填写"].firstMatch
