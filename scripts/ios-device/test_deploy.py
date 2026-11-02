@@ -14,10 +14,12 @@ spec.loader.exec_module(deploy)
 
 class DeploymentGuards(unittest.TestCase):
     def setUp(self):
-        self.bundle = deploy.copy_bundle("iosparity20261019")
+        self.copy_id = "iosparity20261019"
+        self.bundle = deploy.copy_bundle(self.copy_id)
         self.team = "N3Z6DDSQCJ"
         self.udid = "selected-device"
-        self.info = {"CFBundleIdentifier": self.bundle, "CFBundleDisplayName": deploy.DISPLAY_NAME}
+        self.display_name = deploy.copy_display_name(self.copy_id)
+        self.info = {"CFBundleIdentifier": self.bundle, "CFBundleDisplayName": self.display_name}
         self.entitlements = {
             "application-identifier": f"{self.team}.{self.bundle}",
             "com.apple.developer.team-identifier": self.team,
@@ -31,7 +33,8 @@ class DeploymentGuards(unittest.TestCase):
 
     def verify(self, info=None, entitlements=None, profile=None):
         deploy.validate_app(info or self.info, entitlements or self.entitlements,
-                            profile or self.profile, self.bundle, self.team, self.udid)
+                            profile or self.profile, self.bundle, self.team, self.udid,
+                            self.display_name)
 
     def test_rejects_invalid_copy_ids(self):
         for value in ("", "../canonical", "UPPER", "main.copy", "ios\n", "中英文"):
@@ -40,6 +43,13 @@ class DeploymentGuards(unittest.TestCase):
 
     def test_verified_isolated_app_is_accepted(self):
         self.verify()
+
+    def test_display_name_carries_copy_id(self):
+        self.assertEqual(deploy.copy_display_name("r001"), f"{deploy.DISPLAY_NAME} R001")
+
+    def test_display_name_without_copy_id_is_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, "display name"):
+            self.verify(info={**self.info, "CFBundleDisplayName": deploy.DISPLAY_NAME})
 
     def test_team_wildcard_profile_is_accepted(self):
         wildcard = {**self.profile, "Entitlements": {
