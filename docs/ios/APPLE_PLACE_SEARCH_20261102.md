@@ -11,9 +11,12 @@
 | iPhone 14 Pro / iOS 18.3.1 模拟器，中文 | 上海 → California → Cupertino 街道 → 选择 → 重启回显，全程通过 |
 | iPhone 16 / iOS 26.5 模拟器，中文 | 上海查询通过；California 首条为北京加州健身房，坐标 39.952368,116.42034，验收失败 |
 | 同一 iPhone 16 / iOS 26.5，en-US / en_US，原网络 | 完整纽约街道 `350 Fifth Avenue, New York, NY, United States` 首条为北京口腔诊所，纬度 39.940298，验收失败 |
+| Xcode Cloud / iPhone 16 / iOS 26.5，en-US，测试 worker HTTP 出口 US | 纽约街道坐标正确并成功选中；California 18 秒后仍在查询，流程失败；Cupertino 和重启未执行。详见 [云端记录](XCODE_CLOUD_PLACE_SEARCH.md) |
 | macOS 26.2 独立 Apple SDK 查询 | 美国地址解析无匹配；全球范围、显式美国区域、英文 locale、补全查询均未获得美国结果 |
 
 两个模拟器使用相同生产代码，运行于同一 Mac；未修改机器网络设置。iOS 26 检查使用 `1c8b30c`，iOS 18 最终检查使用 `b07242a9841586d6d5ac22ee9d73386ef5762782`，两者只差测试的语言断言与截图时机，生产源码完全一致。测试不启用真实位置，也不访问用户记录。结果不证明所有 iOS 18 可用或所有 iOS 26 均失败。
+
+Xcode Cloud 已完成仅 `rent_room` 的接入与单方法实测；首轮准备失败已修复，第二轮 App 构建成功但真实搜索流程未通过。云端结果不是物理美国设备验收。
 
 PR #118 保持草稿，未合并、部署或安装真机。没有新增地址供应商、转发后台或改变机器代理配置。
 

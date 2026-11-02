@@ -1,6 +1,6 @@
 # 地址搜索的 Xcode Cloud 对照
 
-更新日期：2026-11-02。已完成接入并运行首轮云任务；**首轮在准备脚本失败，未执行 App 测试**。此前失败与本地证据见 [Apple 地点搜索记录](APPLE_PLACE_SEARCH_20261102.md)。
+更新日期：2026-11-02。已完成接入并取得第二轮真实 UI 结果；**纽约地址通过，California 在等待窗口内未完成，整条流程失败**。此前失败与本地证据见 [Apple 地点搜索记录](APPLE_PLACE_SEARCH_20261102.md)。
 
 ## 范围
 
@@ -11,7 +11,7 @@
 
 ## 工作流配置
 
-已从 Xcode 的 **Integrate → Create Workflow** 完成产品与代码仓连接。用户授权且界面确认 `Hayden-Chang/rent_room` 绿勾；没有为公共依赖 `weichsel/ZIPFoundation` 增加授权。按向导警告继续完成配置，是否能拉取该依赖仍以实际构建为准。
+已从 Xcode 的 **Integrate → Create Workflow** 完成产品与代码仓连接。用户授权且界面确认 `Hayden-Chang/rent_room` 绿勾；没有为公共依赖 `weichsel/ZIPFoundation` 增加授权。按向导警告继续完成配置，第二轮已成功拉取并编译 ZIPFoundation 0.9.20，证实无需增加该公共仓库的授权。
 
 产品 ID `3740E3EE-CB27-4313-A049-ABEF35969C20`，工作流 ID `DCDCE178-FFAF-4B52-867B-25FD95D17C62`，SCM 仓库 ID `208a0356-45ff-41f9-a3fd-3668f85d1ad6`。先在停用状态通过 API 收窄配置，回读确认后启用并手动运行。
 
@@ -48,11 +48,19 @@ Apple 的构建 worker 和测试 worker 是不同环境，且云端环境有自�
 
 失败发生在 `ci_post_clone.sh` 安装 Node：云端 Intel x86_64 主机的 Homebrew 没有对应新包的 bottle，改为源码编译依赖 `pkgconf` 后报 `C compiler cannot create executables`。未生成工程、未编译 App、未启动模拟器测试，没有美国出口观测或 `.xcresult`；这不是地址搜索断言失败。保留日志：本机 `/private/tmp/rent-room-apple-search-evidence/cloud-run-1/ci_post_clone.log` 及同目录原始 LOG_BUNDLE。
 
-已将 bootstrap 改为官方 Node 24.22.2 二进制、按 CPU 选择并固定校验值，临时目录退出清理；本地 arm64 在隔离任务 worktree 执行完整脚本通过，包括真实工具下载/校验、npm ci、资源一致性、XcodeGen 两次确定性生成。日志 `/private/tmp/rent-room-apple-search-evidence/cloud-bootstrap-local-arm64.log`。没有安装或修改宿主共享 Node/Homebrew；这仍不是云端 x64 成功证据。
+已将 bootstrap 改为官方 Node 24.22.2 二进制、按 CPU 选择并固定校验值，临时目录退出清理；本地 arm64 在隔离任务 worktree 执行完整脚本通过，包括真实工具下载/校验、npm ci、资源一致性、XcodeGen 两次确定性生成。日志 `/private/tmp/rent-room-apple-search-evidence/cloud-bootstrap-local-arm64.log`。没有安装或修改宿主共享 Node/Homebrew；随后第二轮云端同一脚本也通过；首轮 Intel 环境故障证据保留，不把不同 worker 当同机器复测。
 
 其他已有准备验证：共享 scheme 唯一 UI 方法白名单、串行执行、保留附件、无 archive build；两个 shell 脚本语法通过；测试阶段探针的阶段/scheme/local/失败分支检查通过。上述脚本检查不等同于真实网络测试。
 
-下一轮只验证 bootstrap 修复及原定单个在线 UI 测试，不扩大测试范围、不自动重试失败测试。待完成：云端构建、真实方法执行、出口观测与 `.xcresult`/截图下载。PR 仍为草稿，未合入或发布，不能据此批准美国市场上线。
+第二轮 run `e1e8d5ab-899a-4d9f-b6d1-8544597fc869`，build #2，源码 `b54661d1f028266dc0ed20df00a480e7ce07e4e4`，同一个手动单方法工作流，无测试重试。post-clone、公共依赖解析、`TEST BUILD SUCCEEDED` 均确认。真实 XCUITest：**1 执行 / 0 通过 / 1 失败 / 0 跳过**；iPhone 16 / iOS 26.5 (23F77) / arm64，方法耗时约 43.89 秒。
+
+- 测试 worker 在 `2026-11-02T10:38:05Z` 的 HTTP 出口观测为 `US`，边缘机房 `PHX`。这仍不等同于物理美国设备或所有 MapKit 请求路由证明。
+- en-US 语言断言通过；纽约 `350 Fifth Avenue` 返回 `40.7482378,-73.9850579`，坐标断言和选中回填成功。[纽约结果截图](evidence/apple-place-search-20261102/cloud26-new-york-result.png)。
+- California 输入正确；18 秒内没有结果按钮，失败时 UI 仍显示 `Searching for location…`。**测试的 `no result` 是等待超时诊断，不能解释为服务明确返回空集或不支持 California。** [等待超时截图](evidence/apple-place-search-20261102/cloud26-california-still-searching.png) 来自原始测试录像末帧，未改变内容。
+- 系统日志在 California 提交后记录缺少 `siri_kg` 归属信息，并向 geod 请求下载 Apple 域名下的 Wikipedia logo；随后有连接 stall 和取消记录。可作为 SDK/云网络收尾问题的线索，尚未证明这些素材请求就是根因。当前包装的 12 秒逻辑仅调用 SDK cancel，并不独立结束等待；仍需针对无回调/超时行为建立回归证据后修复，不能单纯延长 UI 等待来称通过。
+- Cupertino 与重启持久化未执行。没有获得完整美国地址路径的通过证据，不批准上线。
+
+完整日志、`test-results.xcresult.zip`、解包后的 `.xcresult`、36 个附件、原始录像、诊断日志与 `receipt.json` 保留于本机 `/private/tmp/rent-room-apple-search-evidence/cloud-run-2-final/`。`test-summary.json` 由实际 xcresult 导出。第二轮失败保留，未重复跑同一测试追求绿灯。结束后独立网页接口回读 `disabled: true`；额度已用 7 分钟、剩余 1,493 分钟，无付费升级。PR 仍为草稿，未合入或发布。
 
 每次真实运行保留 workflow ID、build run ID/URL、源码 SHA、源分支、Xcode/macOS/iOS 与设备、出口观测、实际方法数/通过/失败/跳过数、完整日志、`.xcresult` 与截图。查询未执行到的后续步骤必须标记未覆盖。
 
