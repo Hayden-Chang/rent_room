@@ -2,6 +2,32 @@ import XCTest
 
 @MainActor final class ExampleHousesLaunchTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
+    func testFirstRealHomeNameExcludesExamplesAfterRelaunch() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        XCTAssertTrue(app.buttons["setup.next"].waitForExistence(timeout: 10))
+        app.buttons["setup.next"].tap()
+        XCTAssertTrue(app.buttons["setup.mode.simple"].waitForExistence(timeout: 3))
+        app.buttons["setup.mode.simple"].tap(); app.buttons["setup.next"].tap()
+        let decline = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(decline.waitForExistence(timeout: 5)); decline.tap()
+        XCTAssertTrue(decline.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["house.示例·地铁一居"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["house.示例·阳光两居"].exists)
+        capture("numbering-ios-two-examples", app)
+        app.buttons["home.add"].tap()
+        let name = app.textFields["prompt.text"]
+        XCTAssertTrue(name.waitForExistence(timeout: 3))
+        capture("numbering-ios-first-real-home", app)
+        XCTAssertEqual(name.value as? String, "第1套")
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["house.示例·地铁一居"].waitForExistence(timeout: 10))
+        app.buttons["home.add"].tap()
+        XCTAssertTrue(name.waitForExistence(timeout: 3))
+        XCTAssertEqual(name.value as? String, "第1套")
+        capture("numbering-ios-first-real-home-reopened", app)
+    }
     func testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText() {
         let app = XCUIApplication(), names = ["Demo · Metro 1BR", "Demo · Sunny 2BR"]
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
