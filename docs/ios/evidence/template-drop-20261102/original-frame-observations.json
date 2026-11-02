@@ -1,0 +1,384 @@
+{
+  "video": "/private/tmp/rent-room-ios-template-drop-evidence/red-confirmed-attachments/5B998740-4C31-4D89-B3CA-7DF3782CE751.mp4",
+  "screenshot": "/private/tmp/rent-room-ios-template-drop-evidence/red-confirmed-attachments/60DB0D40-A44C-4198-9511-FE0986E7E749.png",
+  "frames": [
+    {
+      "t": 3.965,
+      "y": 1377,
+      "score": 0.9068,
+      "dragHighlight": false
+    },
+    {
+      "t": 3.9733,
+      "y": 1377,
+      "score": 0.9135,
+      "dragHighlight": false
+    },
+    {
+      "t": 3.99,
+      "y": 1377,
+      "score": 0.9217,
+      "dragHighlight": false
+    },
+    {
+      "t": 3.9967,
+      "y": 1377,
+      "score": 0.9219,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.0133,
+      "y": 1377,
+      "score": 0.9226,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.0283,
+      "y": 1377,
+      "score": 0.9294,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.045,
+      "y": 1377,
+      "score": 0.9365,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.05,
+      "y": 1377,
+      "score": 0.9389,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.0667,
+      "y": 1377,
+      "score": 0.9389,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.0733,
+      "y": 1377,
+      "score": 0.9381,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.09,
+      "y": 1377,
+      "score": 0.9375,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.0983,
+      "y": 1377,
+      "score": 0.9384,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.115,
+      "y": 1377,
+      "score": 0.9382,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.13,
+      "y": 1377,
+      "score": 0.94,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.1467,
+      "y": 1377,
+      "score": 0.941,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.1483,
+      "y": 1377,
+      "score": 0.9404,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.165,
+      "y": 1377,
+      "score": 0.9404,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.1767,
+      "y": 1377,
+      "score": 0.9404,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.1817,
+      "y": 1377,
+      "score": 0.9412,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.2667,
+      "y": 1377,
+      "score": 0.9412,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.285,
+      "y": 1377,
+      "score": 0.9412,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.3017,
+      "y": 1377,
+      "score": 0.9412,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.32,
+      "y": 1377,
+      "score": 0.9412,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.345,
+      "y": 1377,
+      "score": 0.9411,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.37,
+      "y": 1377,
+      "score": 0.9413,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.3967,
+      "y": 1377,
+      "score": 0.9411,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.42,
+      "y": 1377,
+      "score": 0.941,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.455,
+      "y": 1377,
+      "score": 0.9411,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.47,
+      "y": 1377,
+      "score": 0.9411,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.4967,
+      "y": 1377,
+      "score": 0.9411,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.5233,
+      "y": 1377,
+      "score": 0.9411,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.5483,
+      "y": 1377,
+      "score": 0.939,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.5733,
+      "y": 1377,
+      "score": 0.9392,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.6033,
+      "y": 1377,
+      "score": 0.9392,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.6283,
+      "y": 1377,
+      "score": 0.9392,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.6533,
+      "y": 1377,
+      "score": 0.9388,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.6817,
+      "y": 1377,
+      "score": 0.9388,
+      "dragHighlight": false
+    },
+    {
+      "t": 4.7033,
+      "y": 1377,
+      "score": 0.9388,
+      "dragHighlight": false
+    },
+    {
+      "t": 6.1067,
+      "y": 1377,
+      "score": 0.9388,
+      "dragHighlight": false
+    },
+    {
+      "t": 6.505,
+      "y": 1360,
+      "score": 0.9448,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.5167,
+      "y": 1341,
+      "score": 0.9443,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.53,
+      "y": 1319,
+      "score": 0.9443,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.5467,
+      "y": 1297,
+      "score": 0.9441,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.5633,
+      "y": 1273,
+      "score": 0.9444,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.58,
+      "y": 1249,
+      "score": 0.9452,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.5967,
+      "y": 1224,
+      "score": 0.9448,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.6133,
+      "y": 1199,
+      "score": 0.9452,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.63,
+      "y": 1174,
+      "score": 0.9462,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.6467,
+      "y": 1149,
+      "score": 0.9456,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.6633,
+      "y": 1124,
+      "score": 0.9458,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.68,
+      "y": 1100,
+      "score": 0.9456,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.6967,
+      "y": 1076,
+      "score": 0.9456,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.715,
+      "y": 1054,
+      "score": 0.9452,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.73,
+      "y": 1032,
+      "score": 0.9452,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.7467,
+      "y": 1012,
+      "score": 0.9452,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.765,
+      "y": 994,
+      "score": 0.9454,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.7817,
+      "y": 980,
+      "score": 0.9458,
+      "dragHighlight": true
+    },
+    {
+      "t": 6.8083,
+      "y": 1377,
+      "score": 0.9439,
+      "dragHighlight": false
+    },
+    {
+      "t": 6.8417,
+      "y": 1377,
+      "score": 0.9439,
+      "dragHighlight": false
+    },
+    {
+      "t": 6.8467,
+      "y": 1370,
+      "score": 0.9228,
+      "dragHighlight": false
+    },
+    {
+      "t": 6.8633,
+      "y": 1349,
+      "score": 0.9413,
+      "dragHighlight": false
+    },
+    {
+      "t": 6.995,
+      "y": 979,
+      "score": 0.9121,
+      "dragHighlight": false
+    },
+    {
+      "t": 7.0117,
+      "y": 975,
+      "score": 0.9412,
+      "dragHighlight": false
+    }
+  ]
+}
