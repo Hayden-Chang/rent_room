@@ -28,6 +28,47 @@ import XCTest
         XCTAssertEqual(name.value as? String, "第1套")
         capture("numbering-ios-first-real-home-reopened", app)
     }
+    func testFirstHomeWaitDismissesReminderAndKeepsCreationAndTeachingAvailable() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        app.launch()
+        XCTAssertTrue(app.buttons["setup.next"].waitForExistence(timeout: 10))
+        app.buttons["setup.next"].tap()
+        XCTAssertTrue(app.buttons["setup.mode.simple"].waitForExistence(timeout: 3))
+        app.buttons["setup.mode.simple"].tap(); app.buttons["setup.next"].tap()
+        let decline = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(decline.waitForExistence(timeout: 5)); decline.tap()
+        XCTAssertTrue(decline.waitForNonExistence(timeout: 3))
+        let later = app.buttons["再等等"], message = app.otherElements["xiaoda.message"].firstMatch
+        XCTAssertTrue(later.waitForExistence(timeout: 5))
+        XCTAssertEqual(message.label, "点这里，新建你的第一套房源吧！")
+        let typed = expectation(for: NSPredicate(format: "value == %@", "完整显示"), evaluatedWith: message)
+        wait(for: [typed], timeout: 4)
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'house.'")).count, 2)
+        capture("first-home-wait-01-before", app)
+        later.tap()
+        XCTAssertTrue(later.waitForNonExistence(timeout: 3))
+        XCTAssertFalse(message.exists)
+        XCTAssertTrue(app.buttons["home.add"].isHittable)
+        capture("first-home-wait-02-dismissed", app)
+        app.buttons["tab.我的"].tap(); app.buttons["tab.房源"].tap()
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 3))
+        XCTAssertFalse(later.exists)
+        app.terminate(); app.launch()
+        XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
+        XCTAssertFalse(later.exists)
+        XCTAssertFalse(message.exists)
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'house.'")).count, 2)
+        capture("first-home-wait-03-reopened", app)
+        app.buttons["home.add"].tap()
+        XCTAssertTrue(app.textFields["prompt.text"].waitForExistence(timeout: 3))
+        capture("first-home-wait-04-create-available", app)
+        app.buttons["prompt.confirm"].tap()
+        let title = app.staticTexts["coach.title"]
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        XCTAssertEqual(title.label, "看房的三个阶段")
+        capture("first-home-wait-05-teaching-preserved", app)
+    }
     func testEnglishExamplesShowPhotosAndCompareWithoutChineseSampleText() {
         let app = XCUIApplication(), names = ["Demo · Metro 1BR", "Demo · Sunny 2BR"]
         app.launchArguments = ["--business-test", UUID().uuidString, "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
