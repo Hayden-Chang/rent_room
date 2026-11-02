@@ -10,7 +10,16 @@ async function bounded(label,run){
  let timer;try{return await Promise.race([run(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Timed out: '+label)),10000);})]);}
  finally{clearTimeout(timer);}
 }
-const evaluate=(fn,...args)=>bounded('read runtime',()=>mini.evaluate('function(){return ('+fn.toString()+').apply(null,arguments);}',...args));
+async function evaluate(fn,...args){
+ for(let attempt=0;attempt<3;attempt++){
+  try{return await bounded('read runtime',()=>mini.evaluate('function(){return ('+fn.toString()+').apply(null,arguments);}',...args));}
+  catch(error){
+   if(attempt===2)throw error;
+   console.log('RECONNECT after runtime reload: '+error.message);mini.disconnect();
+   mini=await bounded('reconnect',()=>automator.connect({wsEndpoint:process.env.WECHAT_WS_ENDPOINT}));
+  }
+ }
+}
 const state=()=>evaluate(function(){
  const app=getApp(),p=getCurrentPages().slice(-1)[0],store=app?.service?.store;
  return {route:p?.route,data:p?.data,root:app?.service?.root,boot:app?.__firstHomeWaitBoot,houses:store?.get().houses,xiaoda:store?.get().xiaoda,capacity:store?.capacity()};
