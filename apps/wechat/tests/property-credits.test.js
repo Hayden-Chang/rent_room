@@ -1,6 +1,7 @@
 import {it,expect} from 'vitest';
 import {createStore} from '../src/lib/store.js';
 import {emptyState,freshHouse} from '../src/lib/model.js';
+import {withCreditStorage} from '../src/lib/credit-storage.js';
 
 function disk(initial='') {
  let current=initial,previous='',ledger='',failState=false,failPrepare=false,failCleanup=false;
@@ -68,4 +69,30 @@ it('retains the debit commit marker across later edits while journal cleanup sti
  const reopened=createStore(io);expect(reopened.capacity().remaining).toBe(0);
  expect(reopened.house(id).answers.f1_6.value).toBe('1800');
  io.fail();reopened.archive(id,false);expect(createStore(io).capacity().remaining).toBe(0);
+});
+it('encodes a snapshot once per save without mutating it and keeps the legacy string adapter',()=>{
+ const io=disk(),s=createStore(io);s.add('已记录');
+ const adapter=withCreditStorage(io),snapshot=JSON.parse(io.read());
+ let encodings=0;
+ snapshot.houses[0].toJSON=function(){encodings++;return {...this,toJSON:undefined};};
+ const marker=snapshot._creditsCommit;
+ Object.freeze(snapshot);
+ adapter.writeState(snapshot);
+ expect(encodings).toBe(1);expect(snapshot._creditsCommit).toBe(marker);
+ adapter.write(JSON.stringify({...snapshot,settings:{...snapshot.settings,workplace:'办公室'}}));
+ expect(createStore(io).get().settings.workplace).toBe('办公室');
+ expect(createStore(io).capacity().remaining).toBe(0);
+});
+it('invalidates the cached commit marker when disk contents change before an unresolved debit is retried',()=>{
+ const io=disk(),s=createStore(io);s.save();
+ io.fail({cleanup:true});const id=s.add('已扣点');
+ const committedState=JSON.parse(io.read()),pending=JSON.parse(io.readCredits()).pending;
+ // Simulate a complete snapshot replaced outside this adapter. A cached marker
+ // must never decide the debit against different on-disk bytes.
+ io.write(JSON.stringify({...committedState,_creditsCommit:pending.id+'-different'}));
+ s.answer(id,'f1_top','value','是');
+ expect(JSON.parse(io.read())._creditsCommit).not.toBe(pending.id);
+ const reopened=createStore(io);
+ expect(reopened.capacity().remaining).toBe(0);
+ expect(reopened.house(id).answers.f1_top.value).toBe('是');
 });

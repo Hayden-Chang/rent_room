@@ -4,13 +4,24 @@ import XCTest
     override func setUpWithError() throws { continueAfterFailure = false }
 
     func testYesNoAndGroupResultsUpdateAndSurviveRelaunch() {
+        runChoices(populated: false)
+    }
+    func testFilledRecordsYesNoAndGroupResultsSurviveRelaunch() {
+        runChoices(populated: true)
+    }
+    private func runChoices(populated: Bool) {
         let app = XCUIApplication()
         app.launchArguments = ["--business-test", UUID().uuidString, "--returning-business-fixture", "--pixel-parity-fixture",
                                "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        if populated { app.launchArguments.append("--filled-choice-fixture") }
         app.launch()
         let house = app.buttons["house.阳光小区"]
         XCTAssertTrue(house.waitForExistence(timeout: 10)); house.tap()
         search("顶楼", app)
+        if populated {
+            XCTAssertTrue(app.buttons["mp.field.choice.f1_top.否"].isSelected)
+            XCTAssertTrue(app.buttons["已填写的顶楼备注"].exists)
+        }
         choose("f1_top", "是", app); choose("f1_top", "否", app)
         choose("f1_top", "否", app, selected: false); choose("f1_top", "是", app)
         capture("choice-top-floor-yes", app)
