@@ -64,7 +64,7 @@ struct XiaodaGreeting: View {
 struct InspectionTemplateEditor: View {
     @Binding var draft: InspectionTemplateDraft
     @State private var error = ""
-    @State private var frames: [String: CGRect] = [:]
+    @State private var rowHeights: [String: CGFloat] = [:]
     @State private var dragFrames: [String: CGRect]?
     @GestureState private var drag: TemplateDrag?
     @State private var scroll = NativeScrollPosition()
@@ -81,7 +81,7 @@ struct InspectionTemplateEditor: View {
                                 .updating($drag) { value, state, _ in
                                     state = TemplateDrag(title: title, translation: value.translation.height)
                                 }.onChanged { value in
-                                    if dragFrames == nil { dragFrames = frames }
+                                    if dragFrames == nil { dragFrames = layoutFrames() }
                                     scroll.track(value.location)
                                 }.onEnded { value in
                                     let target = destination(TemplateDrag(title: title, translation: value.translation.height))
@@ -113,19 +113,14 @@ struct InspectionTemplateEditor: View {
                     }
                     .frame(minHeight: 66)
                     .background(drag?.title == title ? XJTheme.soft : draft.disabled.contains(title) ? XJTheme.background : .white)
-                    .background(GeometryReader { geometry in
-                        Color.clear.preference(key: TemplateFrames.self, value: [title: geometry.frame(in: .named("template.list"))])
-                    })
+                    .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { rowHeights[title] = $0 }
                     .offset(y: offset(title)).zIndex(drag?.title == title ? 1 : 0)
                     if title != draft.order.last { Color(red: 238/255, green: 240/255, blue: 246/255).frame(height: 1) }
                 }
-            }.coordinateSpace(name: "template.list")
+            }
                 .background(NativeScrollProbe(position: scroll))
                 .onChange(of: drag?.title) { _, value in if value == nil { scroll.stop(); dragFrames = nil } }
                 .onDisappear { scroll.stop(); dragFrames = nil }
-                // Keep the latest layout for the next gesture, including the drop frame.
-                // The active gesture uses its own fixed snapshot while rows move.
-                .onPreferenceChange(TemplateFrames.self) { frames = $0 }
                 .padding(2).clipShape(RoundedRectangle(cornerRadius: 20))
                 .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(SetupStyle.border, lineWidth: 2))
             if !error.isEmpty {
@@ -140,8 +135,20 @@ struct InspectionTemplateEditor: View {
         draft.move(title, to: draft.order[index + offset])
     }
 
+    private func layoutFrames() -> [String: CGRect] {
+        // Row origins reported by a reused GeometryReader can retain the previous
+        // order after a drop. Heights plus the current stack order define the layout.
+        var top: CGFloat = 0
+        return Dictionary(uniqueKeysWithValues: draft.order.map { title in
+            let height = rowHeights[title] ?? 66
+            let frame = CGRect(x: 0, y: top, width: 0, height: height)
+            top += height + 1 // One-point divider between rows.
+            return (title, frame)
+        })
+    }
+
     private func destination(_ drag: TemplateDrag) -> String {
-        let positions = dragFrames ?? frames
+        let positions = dragFrames ?? layoutFrames()
         guard let start = positions[drag.title] else { return drag.title }
         let center = start.midY + drag.translation + scroll.dragOffset
         return draft.order.min { abs((positions[$0]?.midY ?? center) - center) < abs((positions[$1]?.midY ?? center) - center) } ?? drag.title
@@ -151,7 +158,7 @@ struct InspectionTemplateEditor: View {
         guard let drag, let from = draft.order.firstIndex(of: drag.title),
               let to = draft.order.firstIndex(of: destination(drag)), let index = draft.order.firstIndex(of: title) else { return 0 }
         if title == drag.title { return drag.translation + scroll.dragOffset }
-        let height = ((dragFrames ?? frames)[drag.title]?.height ?? 64) + 1
+        let height = (dragFrames?[drag.title]?.height ?? rowHeights[drag.title] ?? 66) + 1
         if from < to && index > from && index <= to { return -height }
         if from > to && index >= to && index < from { return height }
         return 0
@@ -159,10 +166,6 @@ struct InspectionTemplateEditor: View {
 }
 
 private struct TemplateDrag: Equatable { let title: String; let translation: CGFloat }
-private struct TemplateFrames: PreferenceKey {
-    static let defaultValue: [String: CGRect] = [:]
-    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) { value.merge(nextValue(), uniquingKeysWith: { _, next in next }) }
-}
 
 struct InspectionModeChoice: View {
     @Binding var selection: InspectionMode
