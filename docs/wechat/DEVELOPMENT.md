@@ -53,6 +53,7 @@ npm run package
 | ZIP 与媒体备份 | `tests/files.test.js`；微信文件操作加 `tests/platform.test.js`，多选/覆盖/原子导入加 `tests/transfer.test.js`，页面编排加构建后的 `tests/transfer-page.test.js`；见 [传输验收](ZIP_TRANSFER.md) |
 | 微信接口、权限/文件失败和存储 adapter | `tests/platform.test.js` |
 | 构建后 App/Page 与共享 service | 先 `npm run build`，再 `tests/runtime.test.js` |
+| 登录服务构建地址 | `tests/auth-build-config.test.js` 验证默认后端的打包登录流程、测试地址覆盖、显式离线及 HTTPS 限制；先构建，再运行 `tests/account-runtime.test.js` 验证账号与失败边界 |
 | 输入焦点、占位及左滑组件行为 | `tests/field-row-placeholder.test.js`、`tests/field-row-swipe.test.js`，并做实际页面交互验收 |
 
 - `npm test` 运行当前全部 Vitest 用例；共享模型或影响范围较广时按测试门禁决定是否执行，不因纯文档修改运行应用全套。

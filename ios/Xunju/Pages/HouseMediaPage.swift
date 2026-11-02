@@ -103,6 +103,9 @@ struct MediaPickerSheet: View {
                     case .failure(let failure): error = failure.localizedDescription
                     }
                 }
+                .ignoresSafeArea()
+                .presentationBackground(.black)
+                .accessibilityIdentifier("media.camera")
             }
     }
     private func load(_ items: [PhotosPickerItem]) {

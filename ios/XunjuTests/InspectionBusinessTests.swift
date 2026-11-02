@@ -10,6 +10,35 @@ import XCTest
     private func finishTutorial(_ store: NativeStore, _ id: String) throws {
         for value in ["next", "next", "swiped", "next"] { try store.call("tutorialAdvance", ["id": .string(id), "value": .string(value)]) }
     }
+    func testWaitDismissesFirstHomeReminderAcrossRelaunchAndPreservesTeaching() throws {
+        let store = try makeStore()
+        try store.call("setupFinish", ["value": .string("simple")])
+        XCTAssertEqual(try store.call("homeGuide")["message"].string, "点这里，新建你的第一套房源吧！")
+        let houses = store.state["houses"], capacity = store.capacity.remaining
+        try store.call("waitSecondHouse")
+        XCTAssertEqual(try store.call("homeGuide")["message"].string, "")
+        let reopened = try NativeStore(directory: store.records.directory)
+        XCTAssertEqual(try reopened.call("homeGuide")["message"].string, "")
+        XCTAssertEqual(reopened.state["houses"], houses)
+        XCTAssertEqual(reopened.capacity.remaining, capacity)
+        XCTAssertEqual(reopened.state["xiaoda"]["firstHouseId"].string, "")
+        XCTAssertEqual(reopened.state["xiaoda"]["tutorialStep"].int, 1)
+        XCTAssertTrue(reopened.state["xiaoda"]["enabled"].bool)
+        let id = try reopened.add("我的第一套")
+        XCTAssertEqual(reopened.state["xiaoda"]["firstHouseId"].string, id)
+        XCTAssertEqual(try reopened.call("inspectionGuide", ["id": .string(id)])["tutorial"].int, 1)
+    }
+    func testFailedHomeReminderDismissalKeepsPromptAndCanRetry() throws {
+        let store = try makeStore(), before = store.state
+        try withBlockedWrites(store) {
+            XCTAssertThrowsError(try store.call("waitSecondHouse"))
+            XCTAssertEqual(store.state, before)
+            XCTAssertEqual(try store.call("homeGuide")["message"].string, "点这里，新建你的第一套房源吧！")
+        }
+        try store.call("waitSecondHouse")
+        let reopened = try NativeStore(directory: store.records.directory)
+        XCTAssertEqual(try reopened.call("homeGuide")["message"].string, "")
+    }
     func testReturningFixtureRequiresExplicitFlagAndValidIsolatedDirectory() {
         XCTAssertFalse(ReturningBusinessFixture.enabled([]))
         XCTAssertFalse(ReturningBusinessFixture.enabled(["--returning-business-fixture"]))
