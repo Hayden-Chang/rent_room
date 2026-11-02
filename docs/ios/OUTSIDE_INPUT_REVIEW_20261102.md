@@ -10,7 +10,7 @@
 
 ## 本次可审查范围
 
-iOS `OutsideInputTap` 以不取消/延迟目标触摸的窗口手势观察器实现，现阶段仅挂载在 DEBUG `outside-input` 组件评审入口，尚未接入 `AppRoot` 或业务页面。评审页复用 `MPFieldRow` 和 `SummaryInput`，使用每次测试独立的 UserDefaults suite 验证重新打开保留；这不是生产 NativeStore 端到端保存证据。
+iOS `OutsideInputTap` 以不取消/延迟目标触摸的窗口手势观察器实现，组件经用户批准后已在 `AppRoot` 接入。DEBUG `outside-input` 评审页复用 `MPFieldRow` 和 `SummaryInput`，使用独立 UserDefaults suite 验证组件保留；另以真实房源、清单及总结流程验证生产 NativeStore 保存，最终结果见文末。
 
 微信 `field-row` 的 blur/confirm 先提交原生事件中的最终 value/otherText，复用原来的 answer/store 路径；blur 不调用 hideKeyboard，避免打断新输入框；confirm 结束输入并收起键盘。输入范围覆盖数值、文本、其他补充、费用、手填测速和通勤。
 
@@ -21,6 +21,7 @@ iOS `OutsideInputTap` 以不取消/延迟目标触摸的窗口手势观察器实
 | iOS 外部目标、输入内部、附件及焦点转移 | `XunjuTests/OutsideInputTapTests` 四个精确方法 |
 | iOS 真键盘、标题/按钮点击、字段切换及重开 | `XunjuUITests/OutsideInputReviewTests/testOutsideTitleButtonAndFocusTransferRetainValuesAfterRelaunch` |
 | iOS 其他文字、多行输入、完成及重开 | `XunjuUITests/OutsideInputReviewTests/testOtherTextMultilineAndDoneKeepContent` |
+| iOS 真实清单/总结中文内容、按钮及 NativeStore 重启保存 | `XunjuUITests/OutsideInputBusinessTests/testChecklistAndSummarySaveOnOutsideTapAfterRelaunch` |
 | 微信最终文字、清空、只读、落盘重读 | `tests/field-row-finish-input.test.js` |
 | 微信占位、焦点同步、问题列表、左滑保护 | `field-row-placeholder.test.js`、`missing-items-runtime.test.js`、`field-row-swipe.test.js` |
 | 微信真实渲染、输入和外部按钮、存储重载 | 共享池执行 `tests/e2e/finish-input.cjs` |
@@ -64,10 +65,21 @@ PR 创建后已另行复核最终代码、测试映射和证据；未发现新�
 
 新增 `OutsideInputBusinessTests/testChecklistAndSummarySaveOnOutsideTapAfterRelaunch`：独立 business-test 数据目录，经过真实新增房源、清单中文输入、点击字段标题、总结多行备注、点击意向按钮，再启动后核对 NativeStore 保存内容。没有用评审 UserDefaults 代替业务保存。
 
-接入后的最终验证选择原 4 个单元测试和 3 个精确 UI 方法（上述业务方法及原 2 个组件方法），覆盖生产挂载与持久化、外部按钮/焦点转移、完成/多行边界。微信源码、测试及构建输入未改动，复用已记录的 Node 24 结果。微信实例池再次检查仍三槽不可用，真实页面与实体设备效果仍待验收，不能描述为已通过；用户已知该缺口并授权合入。接入后的运行结果待补充。
+接入后的最终验证选择原 4 个单元测试和 3 个精确 UI 方法（上述业务方法及原 2 个组件方法），覆盖生产挂载与持久化、外部按钮/焦点转移、完成/多行边界。微信实例池再次检查仍三槽不可用，真实页面与实体设备效果仍待验收，不能描述为已通过；用户已知该缺口并授权合入。
 
 `9c72d2b1633a175561e36fcbc4b037021291ea77` 的 e 轮（iPhone 16 / iOS 26.5，UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56`）为 6 通过 / 1 失败：真实房源清单及总结中文输入、外部点击和 NativeStore 重启保存通过；组件多行用例输入到 `qu` 后键盘消失，未到主动外部点击步骤。保留 `ios-e.log`、`attachments-e` 中失败录像及 `keyboard-e.log`，系统 InputUI 同期记录键盘状态异常，但不能据此确定根因。
 
 f 轮按单失败恢复规则，保持同 SHA、同设备、同超时和断言，仅精确复跑 `testOtherTextMultilineAndDoneKeepContent`，22.494 秒通过；没有代码修复，保留偶发异常限制。结果包分别为 `/Volumes/mac2/codex-builds/rent-room-outside-input-e.xcresult`、`/Volumes/mac2/codex-builds/rent-room-outside-input-f.xcresult`；本地证据根中的 `plan-e.json`/`plan-f.json` 和 `run-e.sh`/`run-f.sh` 记录完整命令。
 
-准备合并时主线前进至 `4293b686f0e12f231f4d28c4c59c17731a6dbd22`，新增 store/credit-storage/bridge 保存优化，不能直接判定旧验证等价。合并模拟树 `208d9e2ba8d690b1d6f3c39ee17db14e573124b8` 无冲突；已在任务分支合入该主线，安排相同 4 单元 + 3 UI 方法以及微信保存相关用例重新验证组合结果。未操作主工作区。
+准备合并时主线前进至 `4293b686f0e12f231f4d28c4c59c17731a6dbd22`，新增 store/credit-storage/bridge 保存优化，不能直接判定旧验证等价。合并模拟树 `208d9e2ba8d690b1d6f3c39ee17db14e573124b8` 无冲突；已在任务分支合入该主线，随后使用相同 4 单元 + 3 UI 方法以及微信保存相关用例重新验证组合结果。未操作主工作区。
+
+
+## 合并前最终验证
+
+- 已验证提交：`f2ac67dfd203cb4f50bc10228d2a69e3f2e2c588`，包含主线 `4293b686f0e12f231f4d28c4c59c17731a6dbd22`；运行期间工作树干净且冻结。
+- iOS g 轮：4 个单元测试 + 3 个精确 UI 方法全部通过，0 失败、0 跳过，本轮无重试。iPhone 16 / iOS Simulator 26.5（23F77），UDID `759E28A9-21EB-4AA1-9F4F-EF1850989C56`。业务用例 45.957 秒，多行用例 25.012 秒，标题/按钮/切换用例 34.294 秒。
+- 计划、命令、日志：证据根中的 `plan-g.json`、`run-g.sh`、`validate-g.sh`、`ios-g.log`。结果包 `/Volumes/mac2/codex-builds/rent-room-outside-input-g.xcresult`；receipt `/tmp/todo-ios-sim-pool/run-receipts/rent-room-outside-input-20261102-g.json`，build/test exit code 均为 0。
+- 原始截图在证据根 `attachments-g/manifest.json` 对应目录，9 张均为 1178 × 2556 px；主 agent 逐张检查。真实业务截图显示“衣柜、书桌”在点击标题后保留、键盘收起；总结“采光好 / 入住时间待确认”和“考虑租住”在一次外部按钮点击后及重启后保留。组件截图覆盖数字键盘、标题、按钮、重开和多行输入，未观察到布局异常。
+- 微信在 Node 24.22.2、`--maxWorkers=1` 下运行上述 4 个测试文件，31/31 通过；`npm run build && npm run check` 通过，官方 WXML/WXSS 编译 21/23 个文件，普通配置 2,091,723 bytes。日志 `wechat-g.log`。本轮结果不抹去前文保留的早期超时。
+- 证据提交之后只补充本 Markdown，源码、测试、生成输入、构建配置及测试选择器均未改变；最终文档提交复用 g 轮证据，不宣称截图来自后续文档提交。PR 发布后另行复核最终 diff、范围和验证映射，无新增可操作代码问题。GitHub combined status 空列表，不等同远程 CI 通过。
+- e 轮键盘偶发异常仍按原记录保留，根因未定；同设备精确恢复及最新主线完整定向验证通过。微信 DevTools 实际页面、手机系统键盘和中文组合输入仍未验收；用户已知验收缺口并批准合并。未执行部署、上传或发布。
