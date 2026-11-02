@@ -30,7 +30,7 @@ struct TouchMenuReviewHost: View {
         HouseCard(house: HouseCardContent(name: name, rent: "2800", address: "朝阳路18号", area: "45",
                                          decision: "", done: 0, total: 302, issues: 0)) { event = "打开" }
             .accessibilityIdentifier("touch-menu.card.\(id)")
-            .gesture(TouchMenuLongPress { anchor = $0 })
+            .modifier(TouchMenuPressActions(tap: { event = "打开" }, hold: { anchor = $0 }))
     }
 
     private func choose(_ value: String) { event = value; anchor = nil }

@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum TouchMenuPlacement {
     static func frame(anchor: CGPoint, menu: CGSize, bounds: CGRect) -> CGRect {
@@ -11,20 +12,91 @@ enum TouchMenuPlacement {
     }
 }
 
-// The converter keeps the actual touch and overlay in the same coordinate space.
-struct TouchMenuLongPress: UIGestureRecognizerRepresentable {
-    let open: (CGPoint) -> Void
+// Keep the existing exclusive high-priority press/tap gesture in charge of the
+// Button. The passive observer supplies coordinates without competing for input.
+struct TouchMenuPressActions: ViewModifier {
+    let tap: () -> Void
+    let hold: (CGPoint) -> Void
+    @State private var location = TouchMenuTouchLocation()
 
-    func makeUIGestureRecognizer(context: Context) -> UILongPressGestureRecognizer {
-        let recognizer = UILongPressGestureRecognizer()
-        recognizer.minimumPressDuration = 0.45
-        recognizer.allowableMovement = 10
-        return recognizer
+    func body(content: Content) -> some View {
+        content.background {
+            GeometryReader { geometry in
+                TouchMenuTouchObservation { point in
+                    let frame = geometry.frame(in: .global)
+                    location.point = CGPoint(x: frame.minX + point.x, y: frame.minY + point.y)
+                }.frame(width: geometry.size.width, height: geometry.size.height).allowsHitTesting(false)
+            }
+        }.modifier(MPPressActions(tap: tap, hold: {
+            if let point = location.point { hold(point) }
+        }))
+    }
+}
+
+private final class TouchMenuTouchLocation {
+    var point: CGPoint?
+}
+
+private struct TouchMenuTouchObservation: UIViewRepresentable {
+    let record: (CGPoint) -> Void
+    func makeUIView(context: Context) -> TouchMenuTouchObserver { TouchMenuTouchObserver() }
+    func updateUIView(_ view: TouchMenuTouchObserver, context: Context) { view.record = record }
+    static func dismantleUIView(_ view: TouchMenuTouchObserver, coordinator: ()) { view.detach() }
+}
+
+@MainActor
+final class TouchMenuTouchObserver: UIView {
+    var record: (CGPoint) -> Void = { _ in }
+    private weak var observedWindow: UIWindow?
+    private(set) var recognizer: TouchMenuTouchRecognizer?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+        accessibilityElementsHidden = true
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        detach()
+        guard let window else { return }
+        let recognizer = TouchMenuTouchRecognizer(observer: self)
+        self.recognizer = recognizer
+        observedWindow = window
+        window.addGestureRecognizer(recognizer)
     }
 
-    func handleUIGestureRecognizerAction(_ recognizer: UILongPressGestureRecognizer, context: Context) {
-        if recognizer.state == .began { open(context.converter.location(in: .global)) }
+    func detach() {
+        if let recognizer { observedWindow?.removeGestureRecognizer(recognizer) }
+        recognizer = nil
+        observedWindow = nil
     }
+
+    func recordIfInside(_ point: CGPoint) {
+        if bounds.contains(point) { record(point) }
+    }
+}
+
+@MainActor
+final class TouchMenuTouchRecognizer: UIGestureRecognizer {
+    private weak var observer: TouchMenuTouchObserver?
+
+    init(observer: TouchMenuTouchObserver) {
+        self.observer = observer
+        super.init(target: nil, action: nil)
+        cancelsTouchesInView = false
+        delaysTouchesBegan = false
+        delaysTouchesEnded = false
+    }
+    override func canPrevent(_ other: UIGestureRecognizer) -> Bool { false }
+    override func canBePrevented(by other: UIGestureRecognizer) -> Bool { false }
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        guard let observer, let touch = touches.first else { return }
+        observer.recordIfInside(touch.location(in: observer))
+    }
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) { state = .failed }
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) { state = .failed }
 }
 
 struct TouchActionMenu: View {

@@ -31,7 +31,7 @@ struct HomePage: View {
                         ForEach(workspace.store.activeHouses) { house in
                             HouseCard(house: house.card, cover: houseCover(house, store: workspace.store)) { path.append(house.id) }
                                 .accessibilityIdentifier("house.\(house.name)")
-                                .gesture(TouchMenuLongPress { menuAnchor = $0; managed = house })
+                                .modifier(TouchMenuPressActions(tap: { path.append(house.id) }, hold: { menuAnchor = $0; managed = house }))
                         }
                     }
                 }
@@ -122,7 +122,7 @@ struct ArchivePage: View {
                     ForEach(workspace.store.archivedHouses) { house in
                         MPHouseCard(item: MPHouseItem(id: house.id, card: house.card, cover: houseCover(house, store: workspace.store)), archived: true) { openedHouse = house.id }
                             .accessibilityIdentifier("archive.open.\(house.name)")
-                            .gesture(TouchMenuLongPress { menuAnchor = $0; managed = house })
+                            .modifier(TouchMenuPressActions(tap: { openedHouse = house.id }, hold: { menuAnchor = $0; managed = house }))
                     }
                 }
                 if !workspace.store.archivedHouses.isEmpty {
