@@ -138,7 +138,7 @@ class Deployment:
                 f"DEVELOPMENT_TEAM={self.args.team}", "CODE_SIGN_STYLE=Automatic",
                 "CODE_SIGN_IDENTITY=Apple Development", f"PRODUCT_BUNDLE_IDENTIFIER={self.bundle}",
                 f"INFOPLIST_KEY_CFBundleDisplayName={self.display_name}",
-                "EXCLUDED_SOURCE_FILE_NAMES=InfoPlist.strings", "build"])
+                f"XUNJU_ISOLATED_DISPLAY_NAME={self.display_name}", "build"])
             source_identity(self.args.branch, self.args.expected_head)
             app = self.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
             self.run("signature", ["/usr/bin/codesign", "--verify", "--deep", "--strict", str(app)])
@@ -150,6 +150,9 @@ class Deployment:
                 info = plistlib.load(handle)
             validate_app(info, entitlements, profile, self.bundle, self.args.team, self.args.udid,
                          self.display_name)
+            self.run("localized-resources", ["/usr/bin/python3",
+                str(ROOT / "scripts/ios-device/localize_copy_name.py"), "--verify",
+                "--app", str(app), "--display-name", self.display_name])
             self.receipt["app"] = str(app)
             self.receipt["profileExpiration"] = profile["ExpirationDate"].isoformat() + "Z"
             self.receipt["identityVerified"] = True

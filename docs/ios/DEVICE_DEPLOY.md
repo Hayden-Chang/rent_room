@@ -34,6 +34,14 @@ bash scripts/deploy-ios-device.sh \
 
 工具保护的定向验证：`/usr/bin/python3 -m unittest discover -s scripts/ios-device -p 'test_*.py'`。这些测试不代表 App 业务或真实系统授权、短信、GPS、支付已通过。
 
+## 开发副本名称与权限本地化（2026-11-02）
+
+- 开发副本显示名带大写 copy-id，例如 `r001` 对应“看房搭子开发版 R001”。部署入口同时设置 Info.plist 名称与 `XUNJU_ISOLATED_DISPLAY_NAME`。
+- XcodeGen 的构建后阶段在签名前只替换编译产物 `InfoPlist.strings` 的 `CFBundleDisplayName`，保留中英文相机、麦克风和定位用途说明；不排除本地化资源，也不改写仓库中的生成文案。
+- 普通构建不传上述变量，保留原有本地化名称；同一 DerivedData 从开发副本切回普通构建时也会恢复原有名称。
+- 部署入口在安装前执行 `localized-resources` 检查，将所有源 `InfoPlist.strings` 与打包结果逐键比较，只允许显示名变化。缺少语言、权限文案改变或副本名错误都会停止安装并保留日志。
+- 相关测试入口：`cd scripts/ios-device && /usr/bin/python3 -B -m unittest -v test_deploy test_localize_copy_name`。实际产物检查：`/usr/bin/python3 scripts/ios-device/localize_copy_name.py --verify --app <Xunju.app> --display-name '看房搭子开发版 R001'`。
+
 ## 2026-10-20 实际部署结果
 
 - 构建来源：worktree `/Volumes/mac2/projects/git_repo/run_self/rent_room/.worktrees/ios-parity-20261019`，分支 `codex/ios-parity-20261019`，完整 SHA `87e2383d10c8f895accab4bfcda54b19e5bfd619`。相对用户确认的 `4a3bb4d`，`ios/` 与 `apps/wechat/` 无源码差异。后续变更只修正部署 CLI 参数与补充本记录，不更改已安装 App 的业务源码。

@@ -1,6 +1,7 @@
 import datetime as dt
 import importlib.util
 import json
+import plistlib
 from pathlib import Path
 import tempfile
 from types import SimpleNamespace
@@ -124,6 +125,35 @@ class DeploymentGuards(unittest.TestCase):
             with patch.object(execution, "run", side_effect=fake_run):
                 result = execution.device_command("launch", ["device", "process", "launch", execution.bundle])
             self.assertEqual(result["process"]["processIdentifier"], 42)
+
+    def test_missing_localized_permissions_stop_before_install(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}), \
+                patch.object(deploy, "validate_device"), \
+                patch.object(deploy, "validate_app"), \
+                patch.object(deploy, "capture", side_effect=[
+                    plistlib.dumps(self.entitlements), plistlib.dumps(self.profile)]):
+            args = SimpleNamespace(copy_id="testcopy", team=self.team, output=f"{folder}/run",
+                branch="codex/test", expected_head="sha", device="chosen-device",
+                device_name="chosen phone", udid=self.udid)
+            execution = deploy.Deployment(args)
+
+            def fake_run(step, command):
+                if step == "build":
+                    self.assertIn(f"XUNJU_ISOLATED_DISPLAY_NAME={execution.display_name}", command)
+                    self.assertFalse(any(arg.startswith("EXCLUDED_SOURCE_FILE_NAMES=") for arg in command))
+                    app = execution.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
+                    app.mkdir(parents=True)
+                    (app / "Info.plist").write_bytes(plistlib.dumps(self.info))
+                if step == "localized-resources":
+                    raise RuntimeError("localized permission validation failed")
+
+            with patch.object(execution, "device_command", return_value={}) as device, \
+                    patch.object(execution, "run", side_effect=fake_run), \
+                    self.assertRaisesRegex(RuntimeError, "localized permission"):
+                execution.execute()
+            self.assertEqual([call.args[0] for call in device.call_args_list], ["device"])
+            self.assertEqual(execution.receipt["status"], "failed")
 
 
 if __name__ == "__main__":
