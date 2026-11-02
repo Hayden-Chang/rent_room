@@ -32,6 +32,8 @@
 
 `ios/ci_scripts/ci_post_clone.sh` 仅在 Xcode Cloud 中运行：按 `.nvmrc` 准备 Node 24，`npm ci` 使用现有应用锁文件；下载官方 XcodeGen 2.45.4，验证固定 SHA-256 后，在临时工具目录运行仓库原有 `scripts/check-xcodegen.sh`。生成项目、密钥、本地配置均不提交；不需要把本机地图 Key 上传到云端。
 
+Apple Cloud 要求 Swift Package 锁文件，不能依赖云端自动解版本。`ios/Package.resolved` 保存现有 ZIPFoundation 0.9.20 的解析结果；`check-xcodegen.sh` 在生成后复制到工程内的 `project.xcworkspace/xcshareddata/swiftpm/Package.resolved`，保持生成工程忽略规则与现有依赖版本。升级依赖时同步该锁文件。
+
 `ios/ci_scripts/ci_pre_xcodebuild.sh` 仅在专用 scheme 的 `test-without-building` 阶段记录测试 worker 的提交、设备、runtime、UTC 时间，并向 Cloudflare trace 发起一次有超时的 HTTP 请求。输出只保留国家码与边缘机房码，不记录 IP、完整 trace 或代理变量。探针失败输出 `unknown`，不伪装为美国，也不吞掉随后 XCUITest 的失败。
 
 Apple 的构建 worker 和测试 worker 是不同环境，且云端环境有自己的 HTTP 代理。因此该探针**仅证明测试 worker 的 HTTP 出口观测**，不能单独证明 MapKit 服务路由、物理设备位置或美国真实用户行为。云端不保证美国出口；不将地区语言设置或模拟 GPS 当美国网络证据。
@@ -39,9 +41,12 @@ Apple 的构建 worker 和测试 worker 是不同环境，且云端环境有自�
 ## 已完成与待完成
 
 - 本地 `check-xcodegen.sh` 通过：核心与中英文资源一致，XcodeGen 2.45.4 两次生成结果一致。
+- 已将云脚本固定的同一个官方 XcodeGen ZIP 解包并用于本地生成检查，通过；源锁文件与生成工程内的锁文件逐字节一致，依赖仍为 ZIPFoundation 0.9.20。这没有执行云端 Node 安装或 post-clone 全流程。
 - 已检查生成的共享 scheme：唯一 UI 方法白名单、串行执行、保留附件、没有 archive build。
 - 两个 shell 脚本语法检查通过；隔离合成检查覆盖：测试阶段输出、构建阶段跳过、其他 scheme 跳过、本地跳过、探针失败为 unknown、本地拒绝 bootstrap；这些不是网络或云构建测试。
 - 待完成：首次开通/代码仓授权、实际额度核对、云端 post-clone 构建、单个在线 UI 测试及 `.xcresult`/截图下载。未声明本轮应用测试通过，也未声明 PR 可合并或适合上线。
+
+首次接入现场：Xcode 能识别该 bundle ID 与 Haichao Zhang 团队；专用方案及标准 Xunju 方案分别尝试初始化，均停在 Review Workflow 的 Loading 状态，Edit Workflow / Next 不可用。账号设置显示 Admin 与 Certificates, Identifiers, & Profiles 权限，未显示重新登录提示。现有证据不能确定向导卡住的根因。公共 API 可以列出云端 Xcode 版本（包含固定 Xcode 26.6），但应用尚无 ciProduct，不能凭空创建/启动 build run。网页用量入口仍回到首次接入页；CLI 网页会话返回 `2fa required`，已请求用户在终端完成验证以继续读取额度。此认证问题与向导加载问题不能直接认定为同一根因。
 
 每次真实运行保留 workflow ID、build run ID/URL、源码 SHA、源分支、Xcode/macOS/iOS 与设备、出口观测、实际方法数/通过/失败/跳过数、完整日志、`.xcresult` 与截图。查询未执行到的后续步骤必须标记未覆盖。
 
@@ -51,4 +56,5 @@ Apple 的构建 worker 和测试 worker 是不同环境，且云端环境有自�
 - [首次工作流配置](https://developer.apple.com/documentation/xcode/configuring-your-first-xcode-cloud-workflow)
 - [自定义脚本的位置与运行阶段](https://developer.apple.com/documentation/xcode/writing-custom-build-scripts)
 - [环境变量与云端 HTTP 代理](https://developer.apple.com/documentation/xcode/environment-variable-reference)
+- [Swift Package 锁文件要求](https://developer.apple.com/documentation/xcode/making-dependencies-available-to-xcode-cloud)
 - [XcodeGen 2.45.4](https://github.com/yonaskolb/XcodeGen/releases/tag/2.45.4)
