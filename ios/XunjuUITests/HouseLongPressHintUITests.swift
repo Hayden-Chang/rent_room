@@ -68,7 +68,7 @@ import XCTest
         capture("house-hint-home-reopened", app)
         house.press(forDuration: 1)
         XCTAssertTrue(app.buttons["重命名"].waitForExistence(timeout: 3))
-        app.buttons["取消"].tap()
+        app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: 4, dy: app.frame.height / 2)).tap()
         XCTAssertTrue(app.buttons["重命名"].waitForNonExistence(timeout: 3))
         house.tap()
         XCTAssertTrue(app.buttons["tab.清单"].waitForExistence(timeout: 5))

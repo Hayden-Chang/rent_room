@@ -7,9 +7,9 @@ if(!out||!path.isAbsolute(out))throw Error('An absolute, disposable output direc
 const root=path.resolve(import.meta.dirname,'../..');
 await fs.mkdir(path.join(out,'pages/review'),{recursive:true});
 await fs.mkdir(path.join(out,'components/touch-menu'),{recursive:true});
-for(const suffix of ['json','wxml','wxss'])await fs.copyFile(path.join(root,'review-components/touch-menu/index.'+suffix),path.join(out,'components/touch-menu/index.'+suffix));
+for(const suffix of ['json','wxml','wxss'])await fs.copyFile(path.join(root,'src/components/touch-menu/index.'+suffix),path.join(out,'components/touch-menu/index.'+suffix));
 for(const suffix of ['js','wxml','wxss'])await fs.copyFile(path.join(import.meta.dirname,'index.'+suffix),path.join(out,'pages/review/index.'+suffix));
-await build({entryPoints:[path.join(root,'review-components/touch-menu/index.js')],outfile:path.join(out,'components/touch-menu/index.js'),bundle:true,format:'iife',platform:'browser'});
+await build({entryPoints:[path.join(root,'src/components/touch-menu/index.js')],outfile:path.join(out,'components/touch-menu/index.js'),bundle:true,format:'iife',platform:'browser'});
 await build({entryPoints:[path.join(import.meta.dirname,'index.js')],outfile:path.join(out,'pages/review/index.js'),bundle:true,format:'iife',platform:'browser'});
 await fs.writeFile(path.join(out,'pages/review/index.json'),JSON.stringify({usingComponents:{'touch-menu':'/components/touch-menu/index'}}));
 await fs.writeFile(path.join(out,'app.js'),'App({})');

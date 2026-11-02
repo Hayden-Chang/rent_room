@@ -1,7 +1,7 @@
 import {it,expect} from 'vitest';
 import vm from 'node:vm';
 import {buildSync} from 'esbuild';
-import {touchMenuFrame,menuTouchPoint} from '../src/lib/touch-menu.js';
+import {touchMenuFrame,menuTouchPoint,showTouchMenu,closeTouchMenu,touchMenuMethods} from '../src/lib/touch-menu.js';
 
 const menu={width:220,height:156},bounds={width:390,height:720};
 it('tracks the actual touch and shifts left only as much as needed',()=>{
@@ -19,9 +19,22 @@ it('reads viewport touch coordinates without adding scroll offsets',()=>{
   expect(menuTouchPoint({touches:[],changedTouches:[{clientX:360,clientY:710}]})).toEqual({x:360,y:710});
   expect(menuTouchPoint({detail:{x:70,y:220}})).toEqual({x:70,y:220});
 });
+it('resolves dismissal and replacement without selecting an action',async()=>{
+  const page={data:{touchMenu:null},setData(patch){Object.assign(this.data,patch);},...touchMenuMethods};
+  const event={touches:[{clientX:40,clientY:180}]},actions=[{title:'重命名'},{title:'删除',destructive:true}];
+  const first=showTouchMenu(page,event,actions),second=showTouchMenu(page,event,actions);
+  expect(await first).toBeNull();expect(page.data.touchMenu).toEqual({anchor:{x:40,y:180},actions});
+  page.chooseTouchMenu({detail:{index:3}});expect(page.data.touchMenu).not.toBeNull();
+  page.chooseTouchMenu({detail:{index:1}});expect(await second).toEqual({tapIndex:1});
+  expect(page.data.touchMenu).toBeNull();expect(page.touchMenuResolve).toBeNull();
+  const dismissed=showTouchMenu(page,event,actions);page.closeTouchMenu();
+  expect(await dismissed).toBeNull();
+  const hidden=showTouchMenu(page,event,actions);closeTouchMenu(page);closeTouchMenu(page);
+  expect(await hidden).toBeNull();expect(page.data.touchMenu).toBeNull();
+});
 it('emits selection and dismiss independently without executing business actions',()=>{
   let definition;const events=[];
-  const code=buildSync({entryPoints:['review-components/touch-menu/index.js'],bundle:true,write:false,format:'iife'}).outputFiles[0].text;
+  const code=buildSync({entryPoints:['src/components/touch-menu/index.js'],bundle:true,write:false,format:'iife'}).outputFiles[0].text;
   vm.runInNewContext(code,{Component:value=>definition=value,wx:{getWindowInfo:()=>({windowWidth:390,windowHeight:720})}});
   const instance={...definition.methods,triggerEvent:(...args)=>events.push(args),setData(value){this.data=value;}};
   definition.observers['visible,anchor,actions'].call(instance,true,{x:360,y:710},[{}, {}, {}]);

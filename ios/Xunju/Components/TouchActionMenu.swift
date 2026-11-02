@@ -30,6 +30,7 @@ struct TouchMenuLongPress: UIGestureRecognizerRepresentable {
 struct TouchActionMenu: View {
     let anchor: CGPoint
     let actions: [(String, Bool, () -> Void)]
+    var identifiers: [String] = []
     let close: () -> Void
     @ScaledMetric(relativeTo: .body) private var rowHeight: CGFloat = 48
 
@@ -51,7 +52,7 @@ struct TouchActionMenu: View {
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .frame(height: rowHeight)
                                     .padding(.horizontal, 18).contentShape(Rectangle())
-                            }.buttonStyle(.plain).accessibilityIdentifier("touch-menu.action.\(index)")
+                            }.buttonStyle(.plain).accessibilityIdentifier(index < identifiers.count ? identifiers[index] : "touch-menu.action.\(index)")
                         }
                     }.padding(.vertical, 6)
                 }.scrollBounceBehavior(.basedOnSize)
