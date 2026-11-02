@@ -92,6 +92,7 @@ class DeploymentGuards(unittest.TestCase):
 
     def test_canonical_deployment_uses_main_branding_and_verified_exact_identity(self):
         info, entitlements, profile = self.canonical_fixture()
+        profile["UUID"] = "12345678-1234-1234-1234-123456789abc"
         with tempfile.TemporaryDirectory() as folder, \
                 patch.object(deploy, "source_identity", return_value={"head": "sha"}), \
                 patch.object(deploy, "validate_device"), \
@@ -99,7 +100,7 @@ class DeploymentGuards(unittest.TestCase):
                     plistlib.dumps(entitlements), plistlib.dumps(profile)]):
             args = SimpleNamespace(copy_id=None, canonical=True, team=self.team, output=f"{folder}/run",
                 branch="codex/test", expected_head="sha", device="chosen-device",
-                device_name="chosen phone", udid=self.udid)
+                device_name="chosen phone", udid=self.udid, provisioning_profile=profile["UUID"])
             execution = deploy.Deployment(args)
             commands = {}
 
@@ -124,6 +125,11 @@ class DeploymentGuards(unittest.TestCase):
             self.assertEqual(build[build.index("-scheme") + 1], "Xunju")
             self.assertEqual(build[build.index("-configuration") + 1], "Release")
             self.assertIn("CODE_SIGN_IDENTITY=Apple Development", build)
+            self.assertIn("CODE_SIGN_STYLE=Manual", build)
+            self.assertIn(f"PROVISIONING_PROFILE_SPECIFIER={profile['UUID']}", build)
+            self.assertNotIn("CODE_SIGN_STYLE=Automatic", build)
+            self.assertNotIn("-allowProvisioningUpdates", build)
+            self.assertNotIn("-allowProvisioningDeviceRegistration", build)
             self.assertIn(f"PRODUCT_BUNDLE_IDENTIFIER={deploy.CANONICAL_BUNDLE}", build)
             self.assertIn("XUNJU_ISOLATED_DISPLAY_NAME=", build)
             self.assertFalse(any(arg.startswith("INFOPLIST_KEY_CFBundleDisplayName=") for arg in build))
@@ -131,6 +137,7 @@ class DeploymentGuards(unittest.TestCase):
             self.assertEqual([call.args[0] for call in device.call_args_list],
                              ["device", "device-before-install", "install", "installed-app", "launch"])
             self.assertEqual(execution.receipt["mode"], "canonical")
+            self.assertEqual(execution.receipt["provisioningProfile"], profile["UUID"])
             self.assertTrue(execution.receipt["identityVerified"])
             self.assertEqual(execution.receipt["status"], "launched")
 
@@ -139,6 +146,25 @@ class DeploymentGuards(unittest.TestCase):
             self.verify(profile={**self.profile, "Entitlements": {
                 **self.profile["Entitlements"],
                 "application-identifier": "OTHERTEAM0.other.app"}})
+
+    def test_requested_profile_mismatch_stops_before_install(self):
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}), \
+                patch.object(deploy, "validate_device"), \
+                patch.object(deploy, "capture", side_effect=[
+                    plistlib.dumps(self.entitlements),
+                    plistlib.dumps({**self.profile, "UUID": "another-profile"})]):
+            args = SimpleNamespace(copy_id="testcopy", team=self.team, output=f"{folder}/run",
+                branch="codex/test", expected_head="sha", device="chosen-device",
+                device_name="chosen phone", udid=self.udid,
+                provisioning_profile="12345678-1234-1234-1234-123456789abc")
+            execution = deploy.Deployment(args)
+            with patch.object(execution, "device_command", return_value={}) as device, \
+                    patch.object(execution, "run"), \
+                    self.assertRaisesRegex(RuntimeError, "requested UUID"):
+                execution.execute()
+            self.assertEqual([call.args[0] for call in device.call_args_list], ["device"])
+            self.assertEqual(execution.receipt["status"], "failed")
 
     def test_canonical_app_or_other_team_cannot_be_installed(self):
         with self.assertRaisesRegex(RuntimeError, "Bundle ID"):
@@ -218,6 +244,8 @@ class DeploymentGuards(unittest.TestCase):
             def fake_run(step, command):
                 if step == "build":
                     self.assertIn(f"XUNJU_ISOLATED_DISPLAY_NAME={execution.display_name}", command)
+                    self.assertIn("CODE_SIGN_STYLE=Automatic", command)
+                    self.assertIn("-allowProvisioningUpdates", command)
                     self.assertFalse(any(arg.startswith("EXCLUDED_SOURCE_FILE_NAMES=") for arg in command))
                     app = execution.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
                     app.mkdir(parents=True)

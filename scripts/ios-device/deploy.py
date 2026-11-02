@@ -88,6 +88,10 @@ class Deployment:
         self.args = args
         self.canonical = getattr(args, "canonical", False)
         require(bool(args.copy_id) != self.canonical, "choose exactly one of --copy-id or --canonical")
+        self.provisioning_profile = getattr(args, "provisioning_profile", None)
+        require(self.provisioning_profile is None or re.fullmatch(
+            r"[A-Fa-f0-9]{8}(?:-[A-Fa-f0-9]{4}){3}-[A-Fa-f0-9]{12}", self.provisioning_profile),
+            "provisioning-profile must be the installed profile UUID")
         self.bundle = CANONICAL_BUNDLE if self.canonical else copy_bundle(args.copy_id)
         self.display_name = "看房搭子" if self.canonical else copy_display_name(args.copy_id)
         self.output = Path(args.output).resolve()
@@ -99,6 +103,7 @@ class Deployment:
             "mode": "canonical" if self.canonical else "isolated",
             "copyID": args.copy_id, "bundleID": self.bundle, "displayName": self.display_name,
             "team": args.team, "deviceID": args.device, "deviceName": args.device_name,
+            "provisioningProfile": self.provisioning_profile,
             "deviceUDID": args.udid, "steps": {},
         }
 
@@ -140,9 +145,14 @@ class Deployment:
                 "-configuration", "Release", "-destination", f"id={self.args.udid}",
                 "-derivedDataPath", str(self.output / "DerivedData"),
                 "-resultBundlePath", str(self.output / "build.xcresult"),
-                "-allowProvisioningUpdates", "-allowProvisioningDeviceRegistration",
-                f"DEVELOPMENT_TEAM={self.args.team}", "CODE_SIGN_STYLE=Automatic",
+                f"DEVELOPMENT_TEAM={self.args.team}",
                 "CODE_SIGN_IDENTITY=Apple Development", f"PRODUCT_BUNDLE_IDENTIFIER={self.bundle}"]
+            if self.provisioning_profile:
+                command.extend(["CODE_SIGN_STYLE=Manual",
+                                f"PROVISIONING_PROFILE_SPECIFIER={self.provisioning_profile}"])
+            else:
+                command.extend(["CODE_SIGN_STYLE=Automatic", "-allowProvisioningUpdates",
+                                "-allowProvisioningDeviceRegistration"])
             if not self.canonical:
                 command.extend([f"INFOPLIST_KEY_CFBundleDisplayName={self.display_name}",
                                 f"XUNJU_ISOLATED_DISPLAY_NAME={self.display_name}"])
@@ -157,6 +167,9 @@ class Deployment:
                 "/usr/bin/codesign", "-d", "--entitlements", ":-", str(app)]))
             profile = plistlib.loads(capture([
                 "/usr/bin/security", "cms", "-D", "-i", str(app / "embedded.mobileprovision")]))
+            if self.provisioning_profile:
+                require(profile.get("UUID", "").lower() == self.provisioning_profile.lower(),
+                        "built provisioning profile does not match the requested UUID")
             with (app / "Info.plist").open("rb") as handle:
                 info = plistlib.load(handle)
             validate_app(info, entitlements, profile, self.bundle, self.args.team, self.args.udid,
@@ -196,6 +209,8 @@ def main():
     identity.add_argument("--copy-id", help="Install an isolated development copy")
     identity.add_argument("--canonical", action="store_true",
                           help="Install the original App identity for Apple sandbox; updates any existing installation and reuses its data")
+    parser.add_argument("--provisioning-profile",
+                        help="Use this installed development profile UUID with manual signing")
     for flag in ("team", "device", "device-name", "udid", "branch", "expected-head", "output"):
         parser.add_argument(f"--{flag}", required=True)
     args = parser.parse_args()
