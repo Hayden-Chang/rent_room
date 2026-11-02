@@ -1771,6 +1771,18 @@
       "english": "app-checklist-consistency-en.json",
       "promptSHA256": "d44eb5cda7528be54ed29f24f608b673c5902563d3b12063f8e32af8d846c769",
       "englishSHA256": "cb344de98b990956e86e4f11d3dd44865f3bb7016c3f75558f3c211719a9b090"
+    },
+    {
+      "generator": "Codex editorial revision",
+      "date": "2026-11-02",
+      "reason": "User requested exact phase-tab names in the matching guide descriptions so existing emphasis applies in English as in Chinese.",
+      "keys": [
+        "s0967"
+      ],
+      "prompt": "app-stage-guide-prompt.txt",
+      "english": "app-stage-guide-en.json",
+      "promptSHA256": "fefb2e4340a6240936e257f3f6b594fd7aa9060cded61f52620b2978e1273b05",
+      "englishSHA256": "a0cb1734deb2b1753dfd1f4f9638c5fdc297a227dd778abd53bf28c3804e1ca4"
     }
   ],
   "sourceCorrections": [

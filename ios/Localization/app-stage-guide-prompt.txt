@@ -1,0 +1,6 @@
+2026-11-02: User-requested correction of the first checklist guide. Each English description must repeat its corresponding phase-tab label verbatim: Basic Info, On-site Inspection, Expenses & Contract. These exact phrases use the existing egg-yellow emphasis, matching Chinese iOS and WeChat. Preserve Chinese copy, phase labels, tutorial behavior and stored data. Editorial revision authored by Codex; no new agy translation run.
+
+Source:
+{
+  "s0967": "看房分成三个阶段，可以在这里切换哦！\n看房前—了解房屋基本情况\n看房中—现场检查房屋细节\n选定后——核对费用与合同条款"
+}
