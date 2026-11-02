@@ -85,11 +85,11 @@ import CoreLocation
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["currency.prompt.title"].exists)
     }
-    func testDeclineUSDManualCurrencyNewHouseAndExistingAmountPersist() {
+    func testDeclineCNYManualCurrencyNewHouseAndExistingAmountPersist() {
         let app = launch(returning: true)
         tap("currency.prompt.decline", app)
         openSettings(app)
-        XCTAssertTrue(app.buttons["settings.currency"].label.contains("USD"))
+        XCTAssertTrue(app.buttons["settings.currency"].label.contains("CNY"))
         chooseCurrency("GBP", app); tap("tab.房源", app)
         app.homeAddButton.tap()
         let input = app.textFields["prompt.text"]; XCTAssertTrue(input.waitForExistence(timeout: 5))
@@ -151,7 +151,7 @@ import CoreLocation
         tap("settings.language", app); tap("language.system", app); app.navigationBackButton.tap()
         XCTAssertTrue(app.buttons["settings.language"].label.contains("跟随系统"))
     }
-    func testSystemLocationDenialUsesUSDAndDoesNotRepeatAfterRelaunch() {
+    func testSystemLocationDenialUsesCNYAndDoesNotRepeatAfterRelaunch() {
         let app = launch(returning: true)
         tap("currency.prompt.allow", app)
         let system = XCUIApplication(bundleIdentifier: "com.apple.springboard")
@@ -160,8 +160,8 @@ import CoreLocation
         let deny = alert.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Allow' OR label CONTAINS '允许'")).allElementsBoundByIndex.first { $0.label.contains("Don’t") || $0.label.contains("Don't") || $0.label.contains("不允许") }
         XCTAssertNotNil(deny); deny?.tap()
         XCTAssertTrue(app.staticTexts["currency.prompt.title"].waitForNonExistence(timeout: 8))
-        openSettings(app); XCTAssertTrue(app.buttons["settings.currency"].label.contains("USD"))
-        capture("regional-business-07-system-denial-usd", app)
+        openSettings(app); XCTAssertTrue(app.buttons["settings.currency"].label.contains("CNY"))
+        capture("regional-business-07-system-denial-cny", app)
         app.terminate(); app.launch()
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 10))
         XCTAssertFalse(app.staticTexts["currency.prompt.title"].exists)

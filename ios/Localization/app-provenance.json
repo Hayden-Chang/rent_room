@@ -1,7 +1,7 @@
 {
   "generator": "agy -p",
   "model": "gemini-3.8-flash-high",
-  "sourceSHA256": "686e0a83f501d240d00d6db211262f66d8a1a8b195d5133bb517ff271b7040e5",
+  "sourceSHA256": "3e42338b66adac3443bb37be213cd39c5aac1c1904c7f9e2dc790221152efb26",
   "entryCount": 1322,
   "batches": [
     {
@@ -1472,6 +1472,17 @@
       "englishSHA256": "5bf0ae867602a550b8388c941e8266e4b683a3491c9f9690aed91453c82416c9",
       "author": "Codex",
       "reason": "User requested recoverable deletion wording on iOS and WeChat; no storage or action changes."
+    },
+    {
+      "generator": "Codex",
+      "date": "2026-11-02",
+      "keys": [
+        "s1080"
+      ],
+      "prompt": "app-currency-default-prompt.txt",
+      "english": "app-currency-default-en.json",
+      "promptSHA256": "0be0781698b6cfa0cbb587842ebf84109ac2c0fc2d7bf8161c53bf44700df38e",
+      "englishSHA256": "66587a289d98f10ca61fedee25f3b3c5cac80ae22338dbf11554148cad5a8263"
     }
   ]
 }
