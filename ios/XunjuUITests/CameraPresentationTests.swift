@@ -36,10 +36,12 @@ import UIKit
             for x in [image.width / 5, image.width * 4 / 5] {
                 let pixel = try XCTUnwrap(image.cropping(to: CGRect(x: x, y: y, width: 1, height: 1)))
                 var rgba = [UInt8](repeating: 0, count: 4)
-                let context = try XCTUnwrap(CGContext(data: &rgba, width: 1, height: 1,
-                    bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
-                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
-                context.draw(pixel, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+                try rgba.withUnsafeMutableBytes { bytes in
+                    let context = try XCTUnwrap(CGContext(data: bytes.baseAddress, width: 1, height: 1,
+                        bitsPerComponent: 8, bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+                    context.draw(pixel, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+                }
                 XCTAssertTrue(rgba.prefix(3).allSatisfy { $0 < 40 }, "Expected black camera edge at \(x),\(y); got \(rgba)")
             }
         }
