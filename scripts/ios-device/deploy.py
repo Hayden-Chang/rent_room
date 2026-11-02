@@ -91,6 +91,7 @@ class Deployment:
         self.receipt = {
             "source": source_identity(args.branch, args.expected_head),
             "configuration": "Release", "scheme": "Xunju", "mode": "isolated",
+            "developmentCredits": True,
             "copyID": args.copy_id, "bundleID": self.bundle, "displayName": self.display_name,
             "team": args.team, "deviceID": args.device, "deviceName": args.device_name,
             "deviceUDID": args.udid, "steps": {},
@@ -136,6 +137,7 @@ class Deployment:
                 "-resultBundlePath", str(self.output / "build.xcresult"),
                 "-allowProvisioningUpdates", "-allowProvisioningDeviceRegistration",
                 f"DEVELOPMENT_TEAM={self.args.team}", "CODE_SIGN_STYLE=Automatic",
+                "SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) XUNJU_DEVELOPMENT_CREDITS",
                 "CODE_SIGN_IDENTITY=Apple Development", f"PRODUCT_BUNDLE_IDENTIFIER={self.bundle}",
                 f"INFOPLIST_KEY_CFBundleDisplayName={self.display_name}",
                 f"XUNJU_ISOLATED_DISPLAY_NAME={self.display_name}", "build"])

@@ -28,6 +28,12 @@ struct LocalSettingsSurface: View {
     @Binding var onboarding: Bool
     let action: (LocalSettingsAction) -> Void
     let openLegal: (LegalPage) -> Void
+    #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
+    var grantDevelopmentCredits: (() throws -> Void)?
+    func developmentCreditGrant(_ action: @escaping () throws -> Void) -> Self {
+        var copy = self; copy.grantDevelopmentCredits = action; return copy
+    }
+    #endif
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -56,10 +62,19 @@ struct LocalSettingsSurface: View {
             }
             XJCard(verticalPadding: 4) { TouchTrailSettingsRow() }
             XJCard(verticalPadding: 4) {
-                HStack { AppText("版本"); Spacer(); Text(verbatim: version).foregroundStyle(XJTheme.muted) }
-                    .font(.system(size: 14)).frame(minHeight: 50)
+                #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
+                if let grantDevelopmentCredits {
+                    DevelopmentCreditsVersionRow(version: version, grant: grantDevelopmentCredits)
+                } else { versionLabel }
+                #else
+                versionLabel
+                #endif
             }
         }.foregroundStyle(XJTheme.ink).buttonStyle(.plain)
+    }
+    private var versionLabel: some View {
+        HStack { AppText("版本"); Spacer(); Text(verbatim: version).foregroundStyle(XJTheme.muted) }
+            .font(.system(size: 14)).frame(minHeight: 50)
     }
     private func row(_ item: LocalSettingsAction, detail: String = "", rawDetail: Bool = false, showsDivider: Bool = true) -> some View {
         Button { action(item) } label: { menu(item.title, detail: detail, rawDetail: rawDetail, showsDivider: showsDivider) }

@@ -2,7 +2,7 @@
 import SwiftUI
 
 enum LocalSettingsReviewRoute: String {
-    case settings, capacity
+    case settings, capacity, developmentCredits, developmentCreditsFailure
     static func parse(_ arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--local-settings-review"),
               arguments.indices.contains(index + 1) else { return nil }

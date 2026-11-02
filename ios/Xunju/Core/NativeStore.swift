@@ -41,7 +41,7 @@ final class NativeStore {
     @ObservationIgnored private let context: JSContext
     @ObservationIgnored private let mapQueryTimeout: Duration
 
-    init(directory: URL, packs: Int = 0, freeLimit: Int = 1, creditAccount: String = "local", network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15), firstVisit: Bool = false, exampleLanguage: SupportedLanguage = .chinese) throws {
+    init(directory: URL, packs: Int = 0, freeLimit: Int = 1, creditAccount: String = "local", network: any MapTransport = NativeMapTransport(), mapQueryTimeout: Duration = .seconds(15), firstVisit: Bool = false, exampleLanguage: SupportedLanguage = .chinese, developmentCreditsEnabled: Bool = true) throws {
         records = try LocalRecords(directory: directory)
         guard let context = JSContext(), let source = Bundle.main.url(forResource: "XunjuCore", withExtension: "js") else {
             throw CoreFailure(message: "清单规则资源缺失")
@@ -99,13 +99,22 @@ final class NativeStore {
         let hasPrevious = FileManager.default.fileExists(atPath: directory.appending(path: "state.previous.json").path)
         let raw: Any
         if missing { raw = NSNull() } else { raw = try records.read() }
+        #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
+        let developmentCredits = developmentCreditsEnabled
+        #else
+        // A caller can disable grants, but cannot enable them in an ordinary Release build.
+        let developmentCredits = false
+        #endif
         let result = context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("initialize", withArguments: [
-            raw, packs, freeLimit, creditAccount, firstVisit && !hasPrevious, exampleLanguage.rawValue
+            raw, packs, freeLimit, creditAccount, firstVisit && !hasPrevious, exampleLanguage.rawValue, developmentCredits
         ])
         _ = try consume(result)
     }
 
     var activeHouses: [HouseSummary] { houses.filter { !$0.archived } }
+    #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
+    func grantDevelopmentCredits() throws { try call("grantDevelopmentCredits") }
+    #endif
     var archivedHouses: [HouseSummary] { houses.filter(\.archived) }
     func house(_ id: String) -> JSONValue { state["houses"].array.first { $0.id == id } ?? .null }
 

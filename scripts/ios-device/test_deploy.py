@@ -99,11 +99,15 @@ class DeploymentGuards(unittest.TestCase):
                 device_name="chosen phone", udid=self.udid)
             execution = deploy.Deployment(args)
             with patch.object(execution, "device_command", return_value={}) as device, \
-                    patch.object(execution, "run", side_effect=RuntimeError("build failed")), \
+                    patch.object(execution, "run", side_effect=RuntimeError("build failed")) as run, \
                     self.assertRaisesRegex(RuntimeError, "build failed"):
                 execution.execute()
             self.assertEqual([x.args[0] for x in device.call_args_list], ["device"])
             self.assertEqual(execution.receipt["status"], "failed")
+            command = run.call_args.args[1]
+            self.assertEqual(command[command.index("-configuration") + 1], "Release")
+            self.assertIn("SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) XUNJU_DEVELOPMENT_CREDITS", command)
+            self.assertTrue(execution.receipt["developmentCredits"])
 
     def test_launch_has_no_options_accidentally_forwarded_to_app(self):
         with tempfile.TemporaryDirectory() as folder, \
