@@ -19,19 +19,7 @@ import UIKit
             withVelocity: XCUIGestureVelocity(rawValue: 70), thenHoldForDuration: 0.1)
         XCTAssertTrue(app.buttons["coach.next"].waitForExistence(timeout: 4))
         capture("swipe-after", app)
-        let raw = try XCTUnwrap(app.otherElements["teaching.motion"].value as? String)
-        let samples = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(raw.utf8)) as? [[String: Any]])
-        let widths = samples.compactMap { $0["width"] as? Int }
-        let trace = XCTAttachment(string: String(describing: widths)); trace.name = "rendered-action-widths"; trace.lifetime = .keepAlways; add(trace)
-        for (index, sample) in samples.enumerated() {
-            let data = try XCTUnwrap(Data(base64Encoded: try XCTUnwrap(sample["png"] as? String)))
-            let frame = XCTAttachment(data: data, uniformTypeIdentifier: "public.png")
-            frame.name = "swipe-frame-\(index)-width-\(sample["width"] ?? 0)"; frame.lifetime = .keepAlways; add(frame)
-        }
-        XCTAssertTrue(widths.contains(0), "Capture must see the closed row: \(widths)")
-        XCTAssertTrue(widths.contains { $0 >= 40 }, "Capture must see the fully revealed action: \(widths)")
-        XCTAssertGreaterThanOrEqual(Set(widths.filter { (3...39).contains($0) }).count, 3,
-            "The action must visibly slide through intermediate widths, not appear in one jump: \(widths)")
+        try assertRenderedSwipeProgress(app, prefix: "component")
         XCTAssertEqual(app.staticTexts["teaching.events"].label, "未选择；操作次数：0")
     }
     func testGuardedSwipeTeachingAndRentFreeNumberKeyboard() throws {
