@@ -17,6 +17,26 @@ final class InspectionSetupReviewTests: XCTestCase {
         attachment.name = name; attachment.lifetime = .keepAlways; add(attachment)
     }
 
+    func testNativeDropCommitsInPlaceInBothDirections() {
+        let app = launch()
+        let first = app.staticTexts["setup.title.房源基本信息"]
+        let third = app.staticTexts["setup.title.通风与采光"]
+        let handle = app.staticTexts["setup.drag.通风与采光"]
+        let transaction = app.staticTexts["setup.review.dropTransaction"]
+        XCTAssertTrue(handle.isHittable)
+        capture("drop-01-before", app)
+        handle.press(forDuration: 0.1, thenDragTo: first)
+        XCTAssertLessThan(third.frame.minY, first.frame.minY)
+        capture("drop-02-upward", app)
+        XCTAssertEqual(transaction.label, "无换位动画", "The drag preview is already in place; release must not animate the order again.")
+
+        let second = app.staticTexts["setup.title.周边与小区"]
+        handle.press(forDuration: 0.1, thenDragTo: second)
+        XCTAssertGreaterThan(third.frame.minY, second.frame.minY)
+        capture("drop-03-downward", app)
+        XCTAssertEqual(transaction.label, "无换位动画")
+    }
+
     func testTemplateToggleAndNativeDragPreserveDraftAcrossSteps() {
         let app = launch()
         capture("01-xiaoda-template-order", app)

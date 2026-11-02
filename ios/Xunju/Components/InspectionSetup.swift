@@ -81,8 +81,14 @@ struct InspectionTemplateEditor: View {
                                     state = TemplateDrag(title: title, translation: value.translation.height)
                                 }.onChanged { value in scroll.track(value.location) }.onEnded { value in
                                     let target = destination(TemplateDrag(title: title, translation: value.translation.height))
-                                    scroll.stop()
-                                    withAnimation(.easeInOut(duration: 0.18)) { draft.move(title, to: target) }
+                                    // The drag offsets already preview this order. Commit the layout
+                                    // without replaying a move from the rows' original positions.
+                                    var transaction = Transaction(animation: nil)
+                                    transaction.disablesAnimations = true
+                                    withTransaction(transaction) {
+                                        scroll.stop()
+                                        draft.move(title, to: target)
+                                    }
                                 })
                             .accessibilityLabel(AppCopy.text("拖动\(AppCopy.text(title))"))
                             .accessibilityIdentifier("setup.drag.\(title)")
