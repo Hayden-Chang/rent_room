@@ -15,10 +15,12 @@ it('runs built Page bundles with an authenticated fixture and shares one store',
    page.data=JSON.parse(JSON.stringify(page.data));page.setData=function(p){applyPageData(this.data,p);};
    page.onLoad?.({id});page.onShow?.();
    if(name==='home'){
-     const originalApi=app.service.api,routes=[];const navigate=wx.navigateTo;
-     app.service.api=async()=>({tapIndex:2});wx.navigateTo=o=>routes.push(o.url);
-     await page.manage({currentTarget:{dataset:{id}}});expect(routes).toEqual(['/pages/import/index?mode=export&id='+id]);
-     app.service.api=originalApi;wx.navigateTo=navigate;
+     const routes=[];const navigate=wx.navigateTo;wx.navigateTo=o=>routes.push(o.url);
+     const pending=page.manage({currentTarget:{dataset:{id}},touches:[{clientX:40,clientY:180}]});
+     expect(page.data.touchMenu.anchor).toEqual({x:40,y:180});expect(routes).toEqual([]);
+     page.chooseTouchMenu({detail:{index:2}});await pending;
+     expect(page.data.touchMenu).toBeNull();expect(routes).toEqual(['/pages/import/index?mode=export&id='+id]);
+     wx.navigateTo=navigate;
    }
    if(name==='detail'){expect(page.data.sections).toHaveLength(13);page.choose({detail:{id:'f1_2',value:'一室一厅'}});expect(app.service.store.house(id).answers.f1_2.value).toBe('一室一厅');page.answer({detail:{id:'f1_6',prop:'value',value:'4800'}});expect(page.data.stats.done).toBe(2);
      app.service.store.edit(id,h=>h.media=[{id:'photo',type:'image',path:'/user/photo.jpg'},{id:'clip',type:'video',path:'/user/clip.mp4'}]);

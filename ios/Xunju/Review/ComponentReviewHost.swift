@@ -16,6 +16,7 @@ enum ReviewSurface: String {
     case regionalSettings = "regional-settings"
     case appStoreReview = "app-store-review"
     case houseLongPressHint = "house-long-press-hint"
+    case touchMenu = "touch-menu"
     case outsideInput = "outside-input"
 
     var utilities: Bool { [.place, .routes, .speed, .coach, .speedConsent, .measurements].contains(self) }
@@ -43,6 +44,8 @@ struct ComponentReviewHost: View {
             OutsideInputReviewHost()
         } else if surface == .propertyCredits {
             PropertyCreditsReviewHost()
+        } else if surface == .touchMenu {
+            TouchMenuReviewHost()
         } else if surface == .houseLongPressHint {
             HouseLongPressHintReviewHost()
         } else if surface == .appUpdate {
@@ -81,7 +84,7 @@ struct ComponentReviewHost: View {
                     case .account: account
                     case .fields: AnswerReviewHost()
                     case .summary: SummaryReviewHost()
-                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching, .appUpdate, .brandLaunch, .regionalSettings, .appStoreReview, .propertyCredits, .houseLongPressHint, .outsideInput: EmptyView()
+                    case .place, .routes, .speed, .coach, .speedConsent, .measurements, .media, .issueMedia, .headings, .corridor, .issueCards, .fieldMedia, .capacity, .topFloor, .wheels, .inspectionSetup, .inspectionTeaching, .appUpdate, .brandLaunch, .regionalSettings, .appStoreReview, .propertyCredits, .houseLongPressHint, .touchMenu, .outsideInput: EmptyView()
                     }
                     if !event.isEmpty {
                         Text(event).font(.system(size: 12)).foregroundStyle(XJTheme.muted)
@@ -110,6 +113,7 @@ struct ComponentReviewHost: View {
         case .propertyCredits: "房源点数"
         case .appStoreReview: "我的"
         case .houseLongPressHint: "我的房源"
+        case .touchMenu: "我的房源"
         case .outsideInput: "输入交互评审"
         case .inspectionTeaching: "小搭教学组件"
         case .wheels: "清单轮盘组件"

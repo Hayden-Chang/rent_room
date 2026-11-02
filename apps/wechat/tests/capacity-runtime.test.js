@@ -65,7 +65,9 @@ it('shows remaining credits independently of imported and archived records',()=>
 });
 it('restores at zero credits without opening purchase',async()=>{
  const r=runtime(),id=r.app.service.store.add('归档');r.app.service.store.archive(id,true);
- const page=r.load('archive');page.manage({currentTarget:{dataset:{id}}});
+ const page=r.load('archive');const pending=page.manage({currentTarget:{dataset:{id}},touches:[{clientX:40,clientY:180}]});
+ expect(r.app.service.store.house(id).archived).toBe(true);
+ page.chooseTouchMenu({detail:{index:0}});await pending;
  await vi.waitFor(()=>expect(r.app.service.store.house(id).archived).toBe(false));expect(r.routes).toEqual([]);expect(r.app.service.store.capacity().remaining).toBe(0);
 });
 it('imports a mixed batch without spending credits and preserves archived copies',async()=>{

@@ -3,3 +3,5 @@
 
 </view>
 <view wx:if="{{!accountReady}}" class="auth-wait">正在确认登录状态…</view>
+
+<touch-menu visible="{{accountReady && !!touchMenu}}" anchor="{{touchMenu.anchor}}" actions="{{touchMenu.actions}}" bind:dismiss="closeTouchMenu" bind:choose="chooseTouchMenu"/>
