@@ -4,14 +4,22 @@
 
 ## 项目契约
 
-- 入口：`bash scripts/deploy-ios-device.sh --help`；只支持隔离副本，不提供 canonical 安装开关。
+- 入口：`bash scripts/deploy-ios-device.sh --help`；必须在 `--copy-id <id>` 隔离副本与 `--canonical` 正式身份之间明确选择。
 - 工程真源：`ios/project.yml`；通过 `scripts/run-xcodebuild.sh` 检查 XcodeGen 并构建。使用正常 `Xunju` scheme、Release 配置，不使用 StoreKit 测试 scheme 或 DEBUG 启动参数。
-- 正式身份：`com.keeline.xunju.ios` / 看房搭子。本入口禁止安装该身份。
+- 正式身份：`com.keeline.xunju.ios` / 看房搭子。仅在用户明确指定原 App 或 StoreKit 沙盒等必须使用该身份的验收中使用 `--canonical`；安装会更新同 Bundle ID 的 App 并沿用数据容器，不卸载或清空数据。
 - 开发副本：`com.keeline.xunju.ios.dev.<copy-id>` / 看房搭子开发版。copy-id 为3至32位小写 ASCII 字母和数字，以字母开头。本任务固定复用 `iosparity20261019`，后续更新沿用此副本及其本机数据。
 - 显式输入当前分支、完整 SHA、设备 CoreDevice ID、设备名、硬件 UDID 和签名团队。拒绝脏 worktree、来源改变、设备不匹配、错误签名或共享 Keychain / App Group；不自动切换设备、身份或团队。
 - 此次从本机 Apple Development 公共证书 OU 核实团队为 `N3Z6DDSQCJ`。不将证书 CN 中的个人后缀当成团队。开发签名允许 Xcode 为该副本更新 provisioning 并注册指定设备。
 - 输出必须在 worktree 外的唯一新目录；保存生成检查/构建日志、xcresult、签名校验、安装、安装后读回和启动 JSON 及总回执。不会卸载、清空、删除或导入房源数据。
 - 本机记录与媒体保存在独立 App 容器；签名检查拒绝共享 Keychain / App Group。隔离副本的 Apple / 微信回调、服务端 audience 和 StoreKit 正式商品需单独配置，不能据本次部署宣称真实登录或购买完成。
+
+## Apple 沙盒购买的正式身份安装
+
+使用 `--canonical` 替换 `--copy-id`，其他来源、设备、签名参数仍必须全部填写。该模式继续使用普通 `Xunju` scheme、Release 配置和 Apple Development 签名，不启用 `.storekit` 本地测试配置或注入交易；保留 main 的中英文 App 名称和权限文案。正式身份必须使用精确 App ID 的开发 provisioning profile，拒绝 wildcard profile。
+
+安装后在真机的「设置 → 开发者 → 沙盒 Apple 账户」登录同开发者团队的测试账号，再从 App 的「我的 → 房源点数」购买。开发签名 App 不要求退出正常 Apple 账户，也不要求先上传或提审；购买确认中应显示 Sandbox 环境。沙盒使用 Apple 服务器和 App Store Connect 商品，不实际扣款。参考 [Apple 沙盒测试说明](https://developer.apple.com/documentation/storekit/testing-in-app-purchases-with-sandbox)。
+
+验收必须分别确认商品价格、Apple 购买确认、交易验证后增加 10 点、重启后余额保持。安装或部署保护测试成功不能作为购买成功证据；测试账号密码留在手机上输入，不写入命令或回执。
 
 ## 本次目标与命令
 

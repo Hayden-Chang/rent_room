@@ -45,6 +45,17 @@ class LocalizedCopyName(unittest.TestCase):
         localize.update_display_name(self.app, "")
         self.assertEqual(before, {p: (self.app / p).read_bytes() for p in before})
 
+    def test_canonical_verification_preserves_localized_names_and_permissions(self):
+        localize.verify_localizations(self.app, "", self.source)
+        path = self.app / "en.lproj/InfoPlist.strings"
+        original = self.originals[Path("en.lproj/InfoPlist.strings")]
+        for key, value in (("CFBundleDisplayName", self.name),
+                           ("NSCameraUsageDescription", "incorrect permission")):
+            with self.subTest(key=key):
+                path.write_bytes(plistlib.dumps({**original, key: value}))
+                with self.assertRaisesRegex(RuntimeError, "text mismatch"):
+                    localize.verify_localizations(self.app, "", self.source)
+
     def test_missing_localization_is_rejected(self):
         localize.update_display_name(self.app, self.name)
         (self.app / "en.lproj/InfoPlist.strings").unlink()

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build, verify, install and launch an isolated Xunju on one explicit device."""
+"""Build, verify, install and launch Xunju on one explicitly selected device."""
 from __future__ import annotations
 
 import argparse
@@ -56,10 +56,12 @@ def validate_device(device, name, udid):
             "Developer Mode is not enabled")
 
 
-def validate_app(info, entitlements, profile, bundle, team, udid, display_name=DISPLAY_NAME, now=None):
+def validate_app(info, entitlements, profile, bundle, team, udid, display_name=DISPLAY_NAME,
+                 now=None, *, canonical=False):
     now = now or dt.datetime.now(dt.timezone.utc)
-    require(info.get("CFBundleIdentifier") == bundle and bundle != CANONICAL_BUNDLE,
-            "built Bundle ID is not the requested isolated identity")
+    require(info.get("CFBundleIdentifier") == bundle
+            and (bundle == CANONICAL_BUNDLE if canonical else bundle != CANONICAL_BUNDLE),
+            "built Bundle ID is not the explicitly requested identity")
     require(info.get("CFBundleDisplayName") == display_name, "built display name mismatch")
     app_id = f"{team}.{bundle}"
     require(entitlements.get("application-identifier") == app_id, "signed app identifier mismatch")
@@ -70,7 +72,8 @@ def validate_app(info, entitlements, profile, bundle, team, udid, display_name=D
             "shared App Group is forbidden for this copy")
     require(profile.get("TeamIdentifier") == [team], "provisioning team mismatch")
     profile_app_id = profile.get("Entitlements", {}).get("application-identifier")
-    require(profile_app_id in (app_id, f"{team}.*"),
+    # Apple sandbox IAP requires an explicit App ID, not a wildcard profile.
+    require(profile_app_id == app_id if canonical else profile_app_id in (app_id, f"{team}.*"),
             "provisioning app identifier mismatch")
     require(udid in profile.get("ProvisionedDevices", []), "target UDID is not provisioned")
     require(profile.get("Entitlements", {}).get("get-task-allow") is True,
@@ -83,14 +86,17 @@ def validate_app(info, entitlements, profile, bundle, team, udid, display_name=D
 class Deployment:
     def __init__(self, args):
         self.args = args
-        self.bundle = copy_bundle(args.copy_id)
-        self.display_name = copy_display_name(args.copy_id)
+        self.canonical = getattr(args, "canonical", False)
+        require(bool(args.copy_id) != self.canonical, "choose exactly one of --copy-id or --canonical")
+        self.bundle = CANONICAL_BUNDLE if self.canonical else copy_bundle(args.copy_id)
+        self.display_name = "看房搭子" if self.canonical else copy_display_name(args.copy_id)
         self.output = Path(args.output).resolve()
         require(not self.output.is_relative_to(ROOT), "output must be outside the source worktree")
         require(re.fullmatch(r"[A-Z0-9]{10}", args.team), "invalid signing team")
         self.receipt = {
             "source": source_identity(args.branch, args.expected_head),
-            "configuration": "Release", "scheme": "Xunju", "mode": "isolated",
+            "configuration": "Release", "scheme": "Xunju",
+            "mode": "canonical" if self.canonical else "isolated",
             "copyID": args.copy_id, "bundleID": self.bundle, "displayName": self.display_name,
             "team": args.team, "deviceID": args.device, "deviceName": args.device_name,
             "deviceUDID": args.udid, "steps": {},
@@ -129,16 +135,21 @@ class Deployment:
         try:
             device = self.device_command("device", ["device", "info", "details"])
             validate_device(device, self.args.device_name, self.args.udid)
-            self.run("build", [str(ROOT / "scripts/run-xcodebuild.sh"),
+            command = [str(ROOT / "scripts/run-xcodebuild.sh"),
                 "-project", str(ROOT / "ios/Xunju.xcodeproj"), "-scheme", "Xunju",
                 "-configuration", "Release", "-destination", f"id={self.args.udid}",
                 "-derivedDataPath", str(self.output / "DerivedData"),
                 "-resultBundlePath", str(self.output / "build.xcresult"),
                 "-allowProvisioningUpdates", "-allowProvisioningDeviceRegistration",
                 f"DEVELOPMENT_TEAM={self.args.team}", "CODE_SIGN_STYLE=Automatic",
-                "CODE_SIGN_IDENTITY=Apple Development", f"PRODUCT_BUNDLE_IDENTIFIER={self.bundle}",
-                f"INFOPLIST_KEY_CFBundleDisplayName={self.display_name}",
-                f"XUNJU_ISOLATED_DISPLAY_NAME={self.display_name}", "build"])
+                "CODE_SIGN_IDENTITY=Apple Development", f"PRODUCT_BUNDLE_IDENTIFIER={self.bundle}"]
+            if not self.canonical:
+                command.extend([f"INFOPLIST_KEY_CFBundleDisplayName={self.display_name}",
+                                f"XUNJU_ISOLATED_DISPLAY_NAME={self.display_name}"])
+            else:
+                # Clear an inherited override while preserving main's localized app names.
+                command.append("XUNJU_ISOLATED_DISPLAY_NAME=")
+            self.run("build", [*command, "build"])
             source_identity(self.args.branch, self.args.expected_head)
             app = self.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
             self.run("signature", ["/usr/bin/codesign", "--verify", "--deep", "--strict", str(app)])
@@ -149,10 +160,10 @@ class Deployment:
             with (app / "Info.plist").open("rb") as handle:
                 info = plistlib.load(handle)
             validate_app(info, entitlements, profile, self.bundle, self.args.team, self.args.udid,
-                         self.display_name)
+                         self.display_name, canonical=self.canonical)
             self.run("localized-resources", ["/usr/bin/python3",
                 str(ROOT / "scripts/ios-device/localize_copy_name.py"), "--verify",
-                "--app", str(app), "--display-name", self.display_name])
+                "--app", str(app), "--display-name", "" if self.canonical else self.display_name])
             self.receipt["app"] = str(app)
             self.receipt["profileExpiration"] = profile["ExpirationDate"].isoformat() + "Z"
             self.receipt["identityVerified"] = True
@@ -164,7 +175,7 @@ class Deployment:
             installed = self.device_command("installed-app", [
                 "device", "info", "apps", "--bundle-id", self.bundle])
             require(any(x.get("bundleIdentifier") == self.bundle for x in installed.get("apps", [])),
-                    "installed app readback did not find the isolated Bundle ID")
+                    "installed app readback did not find the requested Bundle ID")
             launch = self.device_command("launch", ["device", "process", "launch", self.bundle])
             require(launch.get("process", {}).get("processIdentifier", 0) > 0,
                     "launch receipt did not return a process ID")
@@ -181,7 +192,11 @@ class Deployment:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for flag in ("copy-id", "team", "device", "device-name", "udid", "branch", "expected-head", "output"):
+    identity = parser.add_mutually_exclusive_group(required=True)
+    identity.add_argument("--copy-id", help="Install an isolated development copy")
+    identity.add_argument("--canonical", action="store_true",
+                          help="Install the original App identity for Apple sandbox; updates any existing installation and reuses its data")
+    for flag in ("team", "device", "device-name", "udid", "branch", "expected-head", "output"):
         parser.add_argument(f"--{flag}", required=True)
     args = parser.parse_args()
     try:

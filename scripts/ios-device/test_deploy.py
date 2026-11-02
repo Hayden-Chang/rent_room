@@ -57,6 +57,83 @@ class DeploymentGuards(unittest.TestCase):
             **self.profile["Entitlements"], "application-identifier": f"{self.team}.*"}}
         self.verify(profile=wildcard)
 
+    def canonical_fixture(self):
+        bundle = deploy.CANONICAL_BUNDLE
+        info = {"CFBundleIdentifier": bundle, "CFBundleDisplayName": "看房搭子"}
+        entitlements = {**self.entitlements, "application-identifier": f"{self.team}.{bundle}"}
+        profile = {**self.profile, "Entitlements": {
+            **self.profile["Entitlements"], "application-identifier": entitlements["application-identifier"]}}
+        return info, entitlements, profile
+
+    def test_canonical_identity_requires_explicit_opt_in(self):
+        info, entitlements, profile = self.canonical_fixture()
+        args = (info, entitlements, profile, deploy.CANONICAL_BUNDLE, self.team, self.udid, "看房搭子")
+        with self.assertRaisesRegex(RuntimeError, "Bundle ID"):
+            deploy.validate_app(*args)
+        deploy.validate_app(*args, canonical=True)
+
+    def test_canonical_sandbox_rejects_wildcard_profile(self):
+        info, entitlements, profile = self.canonical_fixture()
+        profile["Entitlements"]["application-identifier"] = f"{self.team}.*"
+        with self.assertRaisesRegex(RuntimeError, "provisioning app identifier"):
+            deploy.validate_app(info, entitlements, profile, deploy.CANONICAL_BUNDLE,
+                                self.team, self.udid, "看房搭子", canonical=True)
+
+    def test_canonical_mode_cannot_silently_install_a_copy(self):
+        with self.assertRaisesRegex(RuntimeError, "Bundle ID"):
+            deploy.validate_app(self.info, self.entitlements, self.profile,
+                                self.bundle, self.team, self.udid, self.display_name, canonical=True)
+
+    def test_ambiguous_or_missing_installation_identity_is_rejected(self):
+        for copy_id, canonical in (("testcopy", True), (None, False)):
+            with self.subTest(copy_id=copy_id, canonical=canonical), self.assertRaisesRegex(
+                    RuntimeError, "choose exactly one"):
+                deploy.Deployment(SimpleNamespace(copy_id=copy_id, canonical=canonical))
+
+    def test_canonical_deployment_uses_main_branding_and_verified_exact_identity(self):
+        info, entitlements, profile = self.canonical_fixture()
+        with tempfile.TemporaryDirectory() as folder, \
+                patch.object(deploy, "source_identity", return_value={"head": "sha"}), \
+                patch.object(deploy, "validate_device"), \
+                patch.object(deploy, "capture", side_effect=[
+                    plistlib.dumps(entitlements), plistlib.dumps(profile)]):
+            args = SimpleNamespace(copy_id=None, canonical=True, team=self.team, output=f"{folder}/run",
+                branch="codex/test", expected_head="sha", device="chosen-device",
+                device_name="chosen phone", udid=self.udid)
+            execution = deploy.Deployment(args)
+            commands = {}
+
+            def fake_run(step, command):
+                commands[step] = command
+                if step == "build":
+                    app = execution.output / "DerivedData/Build/Products/Release-iphoneos/Xunju.app"
+                    app.mkdir(parents=True)
+                    (app / "Info.plist").write_bytes(plistlib.dumps(info))
+
+            def fake_device(step, command):
+                if step == "installed-app":
+                    return {"apps": [{"bundleIdentifier": deploy.CANONICAL_BUNDLE}]}
+                if step == "launch":
+                    return {"process": {"processIdentifier": 42}}
+                return {}
+
+            with patch.object(execution, "device_command", side_effect=fake_device) as device, \
+                    patch.object(execution, "run", side_effect=fake_run):
+                execution.execute()
+            build = commands["build"]
+            self.assertEqual(build[build.index("-scheme") + 1], "Xunju")
+            self.assertEqual(build[build.index("-configuration") + 1], "Release")
+            self.assertIn("CODE_SIGN_IDENTITY=Apple Development", build)
+            self.assertIn(f"PRODUCT_BUNDLE_IDENTIFIER={deploy.CANONICAL_BUNDLE}", build)
+            self.assertIn("XUNJU_ISOLATED_DISPLAY_NAME=", build)
+            self.assertFalse(any(arg.startswith("INFOPLIST_KEY_CFBundleDisplayName=") for arg in build))
+            self.assertEqual(commands["localized-resources"][-2:], ["--display-name", ""])
+            self.assertEqual([call.args[0] for call in device.call_args_list],
+                             ["device", "device-before-install", "install", "installed-app", "launch"])
+            self.assertEqual(execution.receipt["mode"], "canonical")
+            self.assertTrue(execution.receipt["identityVerified"])
+            self.assertEqual(execution.receipt["status"], "launched")
+
     def test_foreign_profile_app_identifier_is_rejected(self):
         with self.assertRaisesRegex(RuntimeError, "provisioning app identifier"):
             self.verify(profile={**self.profile, "Entitlements": {
