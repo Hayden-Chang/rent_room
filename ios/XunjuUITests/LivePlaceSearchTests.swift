@@ -10,6 +10,9 @@ import XCTest
                                "--stub-system-review", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
         XCTAssertTrue(app.buttons["home.add"].waitForExistence(timeout: 10))
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 5)); currency.tap()
+        XCTAssertTrue(currency.waitForNonExistence(timeout: 5))
         app.buttons["tab.我的"].tap(); app.buttons["local-settings.workplace"].tap()
         let query = app.textFields["place.query"], address = app.textFields["workplace.address"]
         XCTAssertTrue(query.waitForExistence(timeout: 3))
