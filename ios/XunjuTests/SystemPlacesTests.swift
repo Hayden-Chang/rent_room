@@ -96,6 +96,60 @@ import MapKit
         catch { XCTAssertTrue(error is CancellationError) }
         XCTAssertEqual(client.queries.count, before)
     }
+    func testDeadlineReturnsEvenWhenSDKDoesNotCompleteCancellation() async throws {
+        let cancelled = expectation(description: "SDK cancellation requested")
+        let completed = expectation(description: "Caller released by deadline")
+        var reply: (@MainActor @Sendable (Result<Int, Error>) -> Void)?
+        var observed: Error?
+        let operation = Task { @MainActor in
+            do {
+                _ = try await SystemPlacesClient().perform(deadline: .milliseconds(30), cancel: { cancelled.fulfill() }) { reply = $0 }
+                XCTFail("Deadline must not accept a late result")
+            } catch { observed = error }
+            completed.fulfill()
+        }
+        let cancelResult = await XCTWaiter.fulfillment(of: [cancelled], timeout: 1)
+        XCTAssertEqual(cancelResult, .completed)
+        let completionResult = await XCTWaiter.fulfillment(of: [completed], timeout: 0.3)
+        XCTAssertEqual(completionResult, .completed, "Calling SDK cancel alone leaves the picker waiting forever")
+        // Release the fake SDK even on the failing baseline, retaining no hung test task.
+        reply?(.success(42))
+        await operation.value
+        XCTAssertEqual((observed as? URLError)?.code, .timedOut)
+    }
+    func testCancellationReleasesCallerWithoutSDKReplyAndIgnoresLateReply() async throws {
+        let started = expectation(description: "SDK started"), completed = expectation(description: "Caller cancelled")
+        var reply: (@MainActor @Sendable (Result<Int, Error>) -> Void)?
+        var cancellations = 0
+        let operation = Task { @MainActor in
+            do {
+                _ = try await SystemPlacesClient().perform(cancel: { cancellations += 1 }) { reply = $0; started.fulfill() }
+                XCTFail("Cancelled request returned a result")
+            } catch { XCTAssertTrue(error is CancellationError) }
+            completed.fulfill()
+        }
+        await fulfillment(of: [started], timeout: 1)
+        operation.cancel()
+        let result = await XCTWaiter.fulfillment(of: [completed], timeout: 0.3)
+        XCTAssertEqual(result, .completed)
+        reply?(.success(42)); reply?(.failure(URLError(.cancelled)))
+        await operation.value
+        XCTAssertEqual(cancellations, 1)
+        let next: Int = try await SystemPlacesClient().perform(cancel: { XCTFail("Completed request cancelled") }) { $0(.success(7)) }
+        XCTAssertEqual(next, 7)
+    }
+    func testSynchronousCompletionAndCancelCallbackSettleOnlyOnce() async throws {
+        let client = SystemPlacesClient()
+        let value: Int = try await client.perform(cancel: { XCTFail("Successful request cancelled") }) { complete in
+            complete(.success(8)); complete(.success(9))
+        }
+        XCTAssertEqual(value, 8)
+        var reply: (@MainActor @Sendable (Result<Int, Error>) -> Void)?
+        do {
+            let _: Int = try await client.perform(deadline: .milliseconds(20), cancel: { reply?(.failure(URLError(.cancelled))) }) { reply = $0 }
+            XCTFail("Timed out request returned a result")
+        } catch { XCTAssertEqual((error as? URLError)?.code, .timedOut) }
+    }
     func testMapKitItemConvertsAddressAndCoordinatesWithoutProviderSpecificFields() throws {
         let item: MKMapItem
         if #available(iOS 26.0, *) {

@@ -25,9 +25,11 @@ struct NativePlace: Equatable, Sendable {
         }
         let search = MKLocalSearch(request: request)
         let cancel: @MainActor @Sendable () -> Void = { search.cancel() }
-        return try await perform(cancel: cancel) {
-            let response = try await search.start()
-            return response.mapItems.compactMap(Self.place)
+        return try await perform(cancel: cancel) { complete in
+            search.start { response, error in
+                if let error { complete(.failure(error)) }
+                else { complete(.success(response?.mapItems.compactMap(Self.place) ?? [])) }
+            }
         }
     }
 
@@ -37,32 +39,40 @@ struct NativePlace: Equatable, Sendable {
             guard let request = MKReverseGeocodingRequest(location: location) else { return nil }
             request.preferredLocale = AppLanguage.shared.value.locale
             let cancel: @MainActor @Sendable () -> Void = { request.cancel() }
-            return try await perform(cancel: cancel) {
-                try await request.mapItems.compactMap(Self.place).first
+            return try await perform(cancel: cancel) { complete in
+                request.getMapItems { items, error in
+                    if let error { complete(.failure(error)) }
+                    else { complete(.success(items?.compactMap(Self.place).first)) }
+                }
             }
         } else {
             let geocoder = CLGeocoder()
             let cancel: @MainActor @Sendable () -> Void = { geocoder.cancelGeocode() }
-            return try await perform(cancel: cancel) {
-                let values = try await geocoder.reverseGeocodeLocation(location, preferredLocale: AppLanguage.shared.value.locale)
-                return values.first.map { NativePlace(name: $0.name ?? "", address: Self.address($0), point: point) }
+            return try await perform(cancel: cancel) { complete in
+                geocoder.reverseGeocodeLocation(location, preferredLocale: AppLanguage.shared.value.locale) { values, error in
+                    if let error { complete(.failure(error)) }
+                    else { complete(.success(values?.first.map { NativePlace(name: $0.name ?? "", address: Self.address($0), point: point) })) }
+                }
             }
         }
     }
 
-    private func perform<T: Sendable>(cancel: @escaping @MainActor @Sendable () -> Void,
-                                     operation: () async throws -> T) async throws -> T {
-        let timeout = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(12))
-            if !Task.isCancelled { cancel() }
-        }
-        defer { timeout.cancel() }
+    func perform<T: Sendable>(deadline: Duration = .seconds(12), cancel: @escaping @MainActor @Sendable () -> Void,
+                              start: (@escaping @MainActor @Sendable (Result<T, Error>) -> Void) -> Void) async throws -> T {
+        let request = SystemPlaceRequest<T>(cancel: cancel)
         return try await withTaskCancellationHandler {
             try Task.checkCancellation()
-            let value = try await operation()
-            try Task.checkCancellation()
-            return value
-        } onCancel: { Task { @MainActor in cancel() } }
+            return try await withCheckedThrowingContinuation { continuation in
+                request.continuation = continuation
+                request.timer = Task { @MainActor [weak request] in
+                    do { try await Task.sleep(for: deadline) } catch { return }
+                    request?.finish(.failure(URLError(.timedOut)), cancelRequest: true)
+                }
+                start { [weak request] result in request?.finish(result) }
+            }
+        } onCancel: {
+            Task { @MainActor in request.finish(.failure(CancellationError()), cancelRequest: true) }
+        }
     }
 
     static func place(_ item: MKMapItem) -> NativePlace? {
@@ -85,6 +95,24 @@ struct NativePlace: Equatable, Sendable {
             if !parts.contains(value) { parts.append(value) }
         }
         return parts.joined(separator: " ")
+    }
+}
+
+/// Own the caller's completion independently of the SDK's cancellation callback.
+/// MainActor serialization makes deadline, cancellation and late callbacks finish exactly once.
+@MainActor private final class SystemPlaceRequest<Value: Sendable> {
+    var continuation: CheckedContinuation<Value, Error>?
+    var timer: Task<Void, Never>?
+    private var cancel: (@MainActor @Sendable () -> Void)?
+    init(cancel: @escaping @MainActor @Sendable () -> Void) { self.cancel = cancel }
+    func finish(_ result: Result<Value, Error>, cancelRequest: Bool = false) {
+        guard let continuation else { return }
+        self.continuation = nil
+        timer?.cancel(); timer = nil
+        let stop = cancel; cancel = nil
+        // Settle before cancel: an SDK may synchronously invoke its callback from cancel().
+        continuation.resume(with: result)
+        if cancelRequest { stop?() }
     }
 }
 

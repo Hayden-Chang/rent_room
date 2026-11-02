@@ -1,6 +1,19 @@
 import XCTest
 @testable import Xunju
 
+@MainActor private final class TimedPlaceClient: NativePlacesClient {
+    var reply: (@MainActor @Sendable (Result<[NativePlace], Error>) -> Void)?
+    var immediate: [NativePlace]?
+    var cancellations = 0
+    func search(_ keyword: String, center: GeographicPoint?) async throws -> [NativePlace] {
+        try await SystemPlacesClient().perform(deadline: .milliseconds(20), cancel: { self.cancellations += 1 }) { complete in
+            reply = complete
+            if let immediate { complete(.success(immediate)) }
+        }
+    }
+    func reverse(_ point: GeographicPoint) async throws -> NativePlace? { nil }
+}
+
 @MainActor private final class DelayedPlaceClient: NativePlacesClient {
     let started: XCTestExpectation
     private var reply: CheckedContinuation<[NativePlace], Error>?
@@ -158,6 +171,24 @@ private actor PlaceTransportCounter: MapTransport {
         XCTAssertNotNil(GeographicPoint(restored.house(id)["location"]))
         try workspace.logout()
         XCTAssertThrowsError(try search.selected(office))
+    }
+    func testTimedOutSearchStopsLoadingPreservesAddressAndAllowsFreshSearch() async throws {
+        let store = try NativeStore(directory: root())
+        try store.call("settings", ["property": .string("workplace"), "value": .string("Saved address")])
+        let before = store.state, client = TimedPlaceClient()
+        let search = PlaceSearch(store: store, places: NativePlaceService(client: client), validScope: { true })
+        search.query = "California"; await search.submit()?.value
+        XCTAssertFalse(search.busy); XCTAssertTrue(search.choices.isEmpty)
+        XCTAssertEqual(search.message, "地点查询失败，请重试或手动填写地址")
+        XCTAssertEqual(store.state, before); XCTAssertEqual(client.cancellations, 1)
+        let stale = client.reply
+        client.immediate = [NativePlace(name: "Cupertino", address: "Cupertino, CA", point: .init(latitude: 37.33, longitude: -122.03))]
+        search.query = "Cupertino"; await search.submit()?.value
+        let current = search.choices
+        stale?(.success([NativePlace(name: "Wrong old result", address: "Old address", point: .init(latitude: 0, longitude: 0))]))
+        XCTAssertFalse(search.busy); XCTAssertTrue(search.message.isEmpty)
+        XCTAssertEqual(search.choices.map(\.id), current.map(\.id)); XCTAssertEqual(search.choices.first?.name, "Cupertino")
+        XCTAssertEqual(store.state, before)
     }
     func testCancelledPlaceResponseDoesNotRestoreCandidatesOrChangeRecords() async throws {
         let started = expectation(description: "Read-only query started"), client = DelayedPlaceClient(started: started)
