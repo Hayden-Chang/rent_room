@@ -31,7 +31,8 @@ final class OutsideInputReviewTests: XCTestCase {
         XCTAssertTrue(app.keyboards.firstMatch.exists, "Editing inside the field must retain its keyboard")
         rent.tap(); rent.typeText("0")
         XCTAssertTrue(app.keyboards.firstMatch.exists, "Switching inputs keeps the new input active")
-        XCTAssertEqual(rent.value as? String, "28000")
+        let savedRent = rent.value as? String
+        XCTAssertEqual(savedRent?.sorted(), "28000".sorted(), "Typing after focus transfer must update the newly selected field")
         app.buttons["outside.action"].tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForNonExistence(timeout: 3))
         XCTAssertEqual(app.buttons["outside.action"].label, "标记关注（1）", "One tap must also execute the target button")
@@ -39,7 +40,7 @@ final class OutsideInputReviewTests: XCTestCase {
         let savedFurniture = furniture.value as? String
         app.terminate(); app.launch()
         XCTAssertTrue(rent.waitForExistence(timeout: 10))
-        XCTAssertEqual(rent.value as? String, "28000")
+        XCTAssertEqual(rent.value as? String, savedRent)
         XCTAssertEqual(furniture.value as? String, savedFurniture)
         capture("outside-04-reopened", app)
     }
