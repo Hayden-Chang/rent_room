@@ -1,0 +1,32 @@
+Validated final-pr-head plan rent-room-swipe-reveal-integrated-01a19a99: 6 UT, 3 UI.
+Build cache: /Volumes/mac2/codex-builds/time-fragment-dd-shared-cc334543ebf2fd16b9a7ef7a-simulator; scheme Xunju
+Running rent-room-swipe-reveal-integrated-01a19a99 build; command PID 27243; simulator none.
+Native core: 69 canonical sources, 342608 bytes
+Regional copy: 190 paired entries; agy provenance and placeholders verified.
+App copy: 1350 entries; agy provenance and placeholders verified
+Native map configuration: configured
+XcodeGen 2.45.4: deterministic project verified
+Writing result bundle at path:
+	/private/tmp/rent-room-swipe-reveal-evidence/integrated.build.xcresult
+
+Simulator queue rent-room-swipe-reveal-integrated-01a19a99: 0.5s.
+Running rent-room-swipe-reveal-integrated-01a19a99 test; command PID 27927; simulator 5FC4A20B-AF44-4A92-BF91-B0096BEBF1D9.
+Native core: 69 canonical sources, 342608 bytes
+Regional copy: 190 paired entries; agy provenance and placeholders verified.
+App copy: 1350 entries; agy provenance and placeholders verified
+Native map configuration: configured
+XcodeGen 2.45.4: deterministic project verified
+Refreshed XCTest runner for rent-room-swipe-reveal-integrated-01a19a99; application data retained
+Writing result bundle at path:
+	/private/tmp/rent-room-swipe-reveal-evidence/integrated.xcresult
+
+2026-11-02 13:30:37.102 xcodebuild[27927:2208836] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-02 13:30:37.103 xcodebuild[27927:2208836] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-02 13:31:16.800 xcodebuild[27927:2208836] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-02 13:31:16.801 xcodebuild[27927:2208836] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-02 13:31:51.912 xcodebuild[27927:2208836] [MT] IDELaunchParametersSnapshot: The operation couldn’t be completed. (DebuggerLLDB.DebuggerVersionStore.StoreError error 0.)
+2026-11-02 13:31:51.912 xcodebuild[27927:2208836] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-11-02 13:32:02.494 xcodebuild[27927:2208836] [MT] IDETestOperationsObserverDebug: 102.051 elapsed -- Testing started completed.
+2026-11-02 13:32:02.494 xcodebuild[27927:2208836] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-11-02 13:32:02.494 xcodebuild[27927:2208836] [MT] IDETestOperationsObserverDebug: 102.051 sec, +102.051 sec -- end
+Testing started
