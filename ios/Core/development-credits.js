@@ -1,6 +1,6 @@
 import {validateCredits} from '../../apps/wechat/src/lib/property-credits.js';
 
-// NativeStore supplies the compile-time gate. Release always passes false.
+// NativeStore supplies the compile-time gate. Ordinary Release always passes false.
 export function grantDevelopmentCredits(store, enabled) {
   if (!enabled) throw Error('开发点数仅限开发构建');
   const info = store.capacity();

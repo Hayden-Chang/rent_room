@@ -6,6 +6,7 @@
 
 - 入口：`bash scripts/deploy-ios-device.sh --help`；只支持隔离副本，不提供 canonical 安装开关。
 - 工程真源：`ios/project.yml`；通过 `scripts/run-xcodebuild.sh` 检查 XcodeGen 并构建。使用正常 `Xunju` scheme、Release 配置，不使用 StoreKit 测试 scheme 或 DEBUG 启动参数。
+- 开发加点：Debug 构建通过 `DEBUG` 启用，本入口的隔离 Release 副本通过 `XUNJU_DEVELOPMENT_CREDITS` 启用。在设置页 5 秒内点击“版本 / Version”10 次，向本机开发账本增加 10 个房源点数；可重复，成功新建房源优先扣开发点数，重启和恢复购买保留余额。普通 App Store Release 不传此编译条件，入口关闭且不计入开发余额。开发点数不伪造 StoreKit 交易，也不会由恢复购买在其他设备发放。评审页面与测试启动参数仍仅在 Debug 生效。
 - 正式身份：`com.keeline.xunju.ios` / 看房搭子。本入口禁止安装该身份。
 - 开发副本：`com.keeline.xunju.ios.dev.<copy-id>` / 看房搭子开发版。copy-id 为3至32位小写 ASCII 字母和数字，以字母开头。本任务固定复用 `iosparity20261019`，后续更新沿用此副本及其本机数据。
 - 显式输入当前分支、完整 SHA、设备 CoreDevice ID、设备名、硬件 UDID 和签名团队。拒绝脏 worktree、来源改变、设备不匹配、错误签名或共享 Keychain / App Group；不自动切换设备、身份或团队。

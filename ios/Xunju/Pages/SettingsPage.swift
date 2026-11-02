@@ -20,7 +20,7 @@ struct SettingsPage: View {
                     onboarding: Binding(get: { workspace.store.state["xiaoda"]["enabled"].bool }, set: { value in
                         workspace.perform { try workspace.store.call("settings", ["property": .string("onboarding"), "value": .bool(value)]) }
                     }), action: act, openLegal: { openURL($0.url) })
-                    #if DEBUG
+                    #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
                     .developmentCreditGrant { try workspace.store.grantDevelopmentCredits() }
                     #endif
             }.padding(16)

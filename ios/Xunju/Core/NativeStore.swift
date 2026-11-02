@@ -99,10 +99,10 @@ final class NativeStore {
         let hasPrevious = FileManager.default.fileExists(atPath: directory.appending(path: "state.previous.json").path)
         let raw: Any
         if missing { raw = NSNull() } else { raw = try records.read() }
-        #if DEBUG
+        #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
         let developmentCredits = developmentCreditsEnabled
         #else
-        // The test seam can disable grants in Debug, but cannot enable them in Release.
+        // A caller can disable grants, but cannot enable them in an ordinary Release build.
         let developmentCredits = false
         #endif
         let result = context.objectForKeyedSubscript("XunjuCore")?.invokeMethod("initialize", withArguments: [
@@ -112,7 +112,7 @@ final class NativeStore {
     }
 
     var activeHouses: [HouseSummary] { houses.filter { !$0.archived } }
-    #if DEBUG
+    #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
     func grantDevelopmentCredits() throws { try call("grantDevelopmentCredits") }
     #endif
     var archivedHouses: [HouseSummary] { houses.filter(\.archived) }

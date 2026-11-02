@@ -1,4 +1,4 @@
-#if DEBUG
+#if DEBUG || XUNJU_DEVELOPMENT_CREDITS
 import SwiftUI
 
 /// Counts one deliberate burst; time is monotonic and injectable for boundary tests.
@@ -19,7 +19,7 @@ struct DevelopmentCreditsTapSequence {
     mutating func reset() { startedAt = nil; count = 0 }
 }
 
-/// Debug-only presentation. The owner must persist the grant before returning.
+/// Development-only presentation. The owner must persist the grant before returning.
 struct DevelopmentCreditsVersionRow: View {
     let version: String
     let grant: () throws -> Void
@@ -31,8 +31,11 @@ struct DevelopmentCreditsVersionRow: View {
 
     var body: some View {
         HStack {
-            Button(action: tapped) { AppText("版本").frame(minHeight: 50).contentShape(Rectangle()) }
-                .buttonStyle(.plain).accessibilityIdentifier("settings.development-credits")
+            AppText("版本").frame(minHeight: 50).contentShape(Rectangle())
+                .onTapGesture(perform: tapped)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { tapped() }
+                .accessibilityIdentifier("settings.development-credits")
             Spacer()
             Text(verbatim: version).foregroundStyle(XJTheme.muted)
         }

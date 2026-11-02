@@ -13,13 +13,13 @@ import XCTest
         let before = store.capacity
         XCTAssertThrowsError(try store.call("grantDevelopmentCredits"))
         XCTAssertEqual(store.capacity, before)
-        #if !DEBUG
+        #if !DEBUG && !XUNJU_DEVELOPMENT_CREDITS
         let release = try NativeStore(directory: root(), developmentCreditsEnabled: true)
         XCTAssertThrowsError(try release.call("grantDevelopmentCredits"))
         #endif
     }
 
-    #if DEBUG
+    #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
     func testRepeatGrantsCreateDebitAndRestartPersistWithoutPurchases() throws {
         let directory = root(), store = try NativeStore(directory: directory, freeLimit: 2)
         try store.grantDevelopmentCredits(); try store.grantDevelopmentCredits()

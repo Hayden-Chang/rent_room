@@ -28,7 +28,7 @@ struct LocalSettingsSurface: View {
     @Binding var onboarding: Bool
     let action: (LocalSettingsAction) -> Void
     let openLegal: (LegalPage) -> Void
-    #if DEBUG
+    #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
     var grantDevelopmentCredits: (() throws -> Void)?
     func developmentCreditGrant(_ action: @escaping () throws -> Void) -> Self {
         var copy = self; copy.grantDevelopmentCredits = action; return copy
@@ -62,7 +62,7 @@ struct LocalSettingsSurface: View {
             }
             XJCard { TouchTrailSettingsRow() }
             XJCard {
-                #if DEBUG
+                #if DEBUG || XUNJU_DEVELOPMENT_CREDITS
                 if let grantDevelopmentCredits {
                     DevelopmentCreditsVersionRow(version: version, grant: grantDevelopmentCredits)
                 } else { versionLabel }
