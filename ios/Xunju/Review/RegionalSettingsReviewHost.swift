@@ -18,6 +18,12 @@ struct RegionalSettingsReviewHost: View {
     }
 
     var body: some View {
+        GeometryReader { geometry in
+            reviewContent.frame(width: geometry.size.width, height: geometry.size.height)
+        }
+    }
+
+    private var reviewContent: some View {
         VStack(spacing: 0) {
             header
             Group {
