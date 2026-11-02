@@ -50,8 +50,9 @@ import XCTest
         XCTAssertTrue(title.waitForExistence(timeout: 3)); reveal(title, app)
         let yes = app.buttons["mp.field.choice.\(id).是"].firstMatch
         XCTAssertTrue(yes.isHittable, id)
-        // Accessibility converts pixel bounds to floating-point points.
-        let roundingTolerance: CGFloat = 0.1
+        // Accessibility pixel rounding can report 43⅔ pt for a 44 pt control.
+        // Allow at most one physical pixel on supported 2x/3x screens.
+        let roundingTolerance: CGFloat = 0.5
         XCTAssertLessThanOrEqual(title.frame.maxX, yes.frame.minX + roundingTolerance, "English text must not overlap choices: \(id)")
         XCTAssertGreaterThanOrEqual(yes.frame.width + roundingTolerance, 44, id)
         XCTAssertGreaterThanOrEqual(yes.frame.height + roundingTolerance, 44, id)
