@@ -50,6 +50,7 @@ bash scripts/deploy-ios-device.sh \
 - 校验：该目录必须在 worktree 外、不能在 `--output` 内、在启动卷上，已存在时必须是目录；回执记录 `derivedData` 与 `derivedDataMode`（`cache` / `per-run`）。
 - 缓存不绕过任何检查：构建来源 SHA、Bundle ID、显示名、签名、描述文件、本地化资源和设备读回仍在每次部署时重新校验，日志、`build.xcresult` 与 `receipt.json` 仍写入本次唯一 output。
 - 实测（2026-11-02，p10002 / Xcode 26.6，copy-id `r005` 同一 SHA）：空缓存构建 139 秒，同一缓存第二次部署 24 秒；改动一个 Swift 文件后增量构建落在两者之间。
+- 同一个 `--derived-data` 目录不要被两个部署同时使用；并行部署按 copy-id 各用一个目录，否则 Xcode 构建目录会互相覆盖。
 - 需要“从零构建”的干净证据时不要传该参数；缓存命中失败或产物可疑时，删除该目录重跑一次即可恢复全量行为。
 
 
