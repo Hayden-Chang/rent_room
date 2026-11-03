@@ -12,5 +12,5 @@ button::after{border:0}
 .purchase-pressed{opacity:.8}
 .purchase[disabled]{opacity:.45;background:#4d56df;color:#fff}
 .restore{margin-top:24px;width:100%;min-height:44px;padding:12px;background:transparent;color:#667187;font-size:15px;font-weight:400}
-.pending,.error{margin-top:24px;line-height:1.5}
-.pending{color:#4d56df}.error{color:#bb4149}
+.error{margin-top:24px;line-height:1.5}
+.error{color:#bb4149}

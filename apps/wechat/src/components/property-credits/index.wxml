@@ -4,7 +4,6 @@
  <view class="purchase-wrap">
   <button class="purchase" hover-class="purchase-pressed" loading="{{busy}}" disabled="{{busy}}" bindtap="purchase">{{pending?'核对付款并重试':authenticated?'¥1.99 购买 10 点':'微信登录后购买'}}</button>
  </view>
- <view wx:if="{{pending}}" class="pending">支付结果正在确认，点数到账前不会增加余额。</view>
- <view wx:if="{{error}}" class="error">{{error}}</view>
+ <view wx:if="{{pending || error}}" class="error">{{pending?'支付结果正在确认，请勿重复购买':error}}</view>
  <button class="restore" disabled="{{busy}}" bindtap="restore">{{authenticated?'刷新点数':'微信登录并恢复购买记录'}}</button>
 </view>

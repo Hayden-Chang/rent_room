@@ -1,5 +1,13 @@
 # 支付重试与诊断验证（2026-11-03）
 
+## 用户确认的提示文案调整
+
+用户在 2026-11-03 明确要求把两段待确认说明合并成一条红色提示：“支付结果正在确认，请勿重复购买”。组件在 pending 状态只渲染这一条，避免同屏叠加蓝色说明和红色长提示；非 pending 的错误仍使用对应错误文案。只修改组件模板和样式，支付状态处理与后端未改动。
+
+本次增量验证：`property-credits-component.test.js` 和 `capacity-runtime.test.js` 共 **23 项通过**；wcc 22 文件、wcsc 24 文件通过，正常配置包体为 **1,919,539 字节**。其余付款/诊断代码与此前 117 项通过的候选完全相同，复用原结果，未重复运行全部相关用例。日志为 `copy-simplification-tests.log`、`copy-simplification-compile.log`。
+
+当前[待确认预览](evidence/payment-retry-20261103/pending-recovery.png)来自共享池 run `5cbb285b8fed470085bd5ea116537ff7`，仅以测试桩准备页面状态，没有实际扣款。本次文案已获用户明确确认；先前真实点击/原生弹窗/手机支付的验证限制仍保留。
+
 ## 复现与修复
 
 原生支付失败后，旧实现仍保存 pending requestId；服务端返回 unpaid 时一直保留本地 pending。刷新后重复购买被拦截，新版点数组件又直接禁用了 pending 按钮。HTTP 200 本身无法说明微信业务调用成功，旧日志也无法把原生错误和某笔订单对应起来。
@@ -48,7 +56,7 @@ node scripts/check.mjs
 
 原始工具失败记录保留在共享池 runs 的 `2657f60174e54a0db2b849fb2f4769d3` 和 `c1be99e77545405ea0da2bee2f8d5e7b`。第一轮预览 `5b9703b8e44b49efb7f538fc20540e24` 截图早于渲染完成，仅保留排查，不作为最终界面证据。
 
-最终稳定预览 run `b57066a12c1f40ba9254d6eef92a980e`（与最终生产代码相同；仅测试域名和隔离数据根不同）：[明确失败](evidence/payment-retry-20261103/failed-retry-enabled.png)、[结果待确认](evidence/payment-retry-20261103/pending-recovery.png)，已逐张检查。SDK 截图不包含原生确认弹窗，CUA 截图连接又超时，弹窗视觉检查仍未完成；参数和取消行为已由定向测试覆盖。
+首次修复的稳定预览 run `b57066a12c1f40ba9254d6eef92a980e` 已逐张检查；[明确失败](evidence/payment-retry-20261103/failed-retry-enabled.png)仍保留该轮截图，待确认截图已更新至上方文案调整记录。SDK 截图不包含原生确认弹窗，CUA 截图连接又超时，弹窗视觉检查仍未完成；参数和取消行为已由定向测试覆盖。
 
 ## 交付边界
 
