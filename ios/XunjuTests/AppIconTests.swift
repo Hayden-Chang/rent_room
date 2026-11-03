@@ -15,7 +15,7 @@ final class AppIconTests: XCTestCase {
         let values = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
         XCTAssertEqual(values["CFBundleDisplayName"], "看房搭子")
         XCTAssertEqual(values["CFBundleDisplayName"], Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String)
-        XCTAssertEqual(AppCopy.text("看房搭子", language: .english), "Xunju")
+        XCTAssertEqual(AppCopy.text("看房搭子", language: .english), "RentVisit")
     }
 
     func testBuiltAppContainsPrimaryIconMetadataAndImages() throws {
