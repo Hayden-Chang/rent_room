@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum LocalSettingsAction: String, CaseIterable {
-    case capacity, workplace, archive, templates, importFile, export, permissions, feedback, share, language, currency
+    case capacity, workplace, archive, templates, importFile, export, permissions, feedback, language, currency
     var title: String {
         switch self {
         case .language: "语言"
@@ -14,7 +14,6 @@ enum LocalSettingsAction: String, CaseIterable {
         case .export: "导出房源"
         case .permissions: "权限管理"
         case .feedback: "使用反馈"
-        case .share: "分享看房搭子"
         }
     }
 }
@@ -45,7 +44,7 @@ struct LocalSettingsSurface: View {
             AppText("数据与备份").font(.system(size: 16, weight: .semibold)).padding(.top, 8)
             XJCard(verticalPadding: 4) { VStack(spacing: 0) { row(.importFile); row(.export) } }
             XJCard(verticalPadding: 4) { row(.permissions, showsDivider: false) }
-            XJCard(verticalPadding: 4) { VStack(spacing: 0) { row(.feedback); AppStoreReviewRow(appID: AppStoreReview.appID); row(.share) } }
+            XJCard(verticalPadding: 4) { VStack(spacing: 0) { row(.feedback); AppStoreReviewRow(appID: AppStoreReview.appID) } }
             XJCard(verticalPadding: 4) {
                 VStack(spacing: 0) {
                     ForEach(LegalPage.allCases, id: \.self) { page in

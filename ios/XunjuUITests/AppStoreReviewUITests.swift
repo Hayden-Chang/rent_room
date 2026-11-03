@@ -40,7 +40,7 @@ import XCTest
         XCTAssertTrue(row.isHittable)
         XCTAssertTrue(row.label.contains("在 App Store 中评价"))
         XCTAssertTrue(app.buttons["local-settings.feedback"].exists)
-        XCTAssertTrue(app.buttons["local-settings.share"].exists)
+        XCTAssertFalse(app.buttons["local-settings.share"].exists)
         capture("app-store-review-row", app)
         row.tap()
         let destination = app.staticTexts["review.openedURL"]
