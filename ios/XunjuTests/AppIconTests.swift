@@ -4,6 +4,11 @@ import UIKit
 
 @MainActor
 final class AppIconTests: XCTestCase {
+    func testBuiltAppSupportsOnlyIPhone() throws {
+        let families = try XCTUnwrap(Bundle.main.object(forInfoDictionaryKey: "UIDeviceFamily") as? [Int])
+        XCTAssertEqual(families, [1], "The packaged app must target iPhone only")
+    }
+
     func testEnglishDisplayNameUsesRentVisit() throws {
         let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "en.lproj"))
         let values = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
@@ -19,12 +24,11 @@ final class AppIconTests: XCTestCase {
     }
 
     func testBuiltAppContainsPrimaryIconMetadataAndImages() throws {
-        // Bundle's key lookup applies device qualifiers; inspect the packaged plist
-        // directly so an iPhone test can also verify the iPad icon declaration.
+        // Inspect the packaged iPhone icon declaration and compiled images.
         let plistURL = try XCTUnwrap(Bundle.main.url(forResource: "Info", withExtension: "plist"))
         let info = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: plistURL), format: nil) as? [String: Any])
         let resources = try FileManager.default.contentsOfDirectory(at: Bundle.main.bundleURL, includingPropertiesForKeys: nil)
-        for key in ["CFBundleIcons", "CFBundleIcons~ipad"] {
+        for key in ["CFBundleIcons"] {
             let icons = try XCTUnwrap(info[key] as? [String: Any], "Missing \(key) in the installed app")
             let primary = try XCTUnwrap(icons["CFBundlePrimaryIcon"] as? [String: Any])
             XCTAssertEqual(primary["CFBundleIconName"] as? String, "AppIcon")
