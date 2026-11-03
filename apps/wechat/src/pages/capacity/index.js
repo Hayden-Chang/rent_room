@@ -1,3 +1,4 @@
+import {paymentCancelled} from '../../lib/payment-diagnostics.js';
 import {withAppShare} from '../../lib/share.js';
 import {protectedPage} from '../../lib/auth-page.js';
 import {service,notify} from '../../lib/ui.js';
@@ -21,7 +22,7 @@ Page(withAppShare(protectedPage({
   }catch(error){notify(error);}finally{if(!this.accountUnloaded)this.setData({busy:false});}},
  async purchase(){if(this.data.busy)return;if(!getApp().auth.isAuthenticated())return this.loginForCapacity();const platform=service();this.setData({busy:true,error:''});
   try{await platform.billing.purchase();if(this.accountUnloaded||platform!==getApp().service)return;this.refresh();if(!this.data.pending)this.resume();}
-  catch(error){if(!/cancel/i.test(error.errMsg||error.message||''))this.setData({error:/确认|退款|未开放|版本|不支持|登录/.test(error.message||'')?error.message:'支付未完成，请重试。'});}
+  catch(error){if(!paymentCancelled(error))this.setData({error:/确认|退款|未开放|版本|不支持|登录/.test(error.message||'')?error.message:(platform.billing.snapshot().pending?'支付结果尚未确认，请刷新点数查询；已扣款或等待苹果确认时请勿重新购买':'支付未完成，可以重新购买。')});}
   finally{if(!this.accountUnloaded&&platform===getApp().service){this.refresh();this.setData({busy:false});}}},
  resume(){if(this.resuming||!this.data.intent||!this.data.remaining)return;this.resuming=true;try{
    continueHouseAction({replace:true});

@@ -17,9 +17,9 @@ describe('property credits presentation boundary',()=>{
   const f=fixture({remaining:0,fromCreation:true});f.act('purchase');f.act('restore');
   expect(f.events).toEqual(['purchase','restore']);expect(f.component.data.remaining).toBe(0);
  });
- it('blocks a second payment while pending but allows purchase reconciliation',()=>{
+ it('routes pending taps to the billing confirmation flow without granting credits',()=>{
   const f=fixture({pending:true});f.act('purchase');f.act('restore');
-  expect(f.events).toEqual(['restore']);expect(f.component.data.remaining).toBe(7);
+  expect(f.events).toEqual(['purchase','restore']);expect(f.component.data.remaining).toBe(7);
  });
  it('blocks all conflicting actions while busy',()=>{
   const f=fixture({busy:true});for(const name of ['purchase','restore'])f.act(name);

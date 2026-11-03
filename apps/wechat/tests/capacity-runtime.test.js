@@ -117,3 +117,19 @@ it.each([
  expect(store.get().houses).toHaveLength(initial);
  store.change(s=>delete s.xiaoda.intent);page.refresh();expect(page.data.fromCreation).toBe(false);
 });
+
+it('explains an unknown payment instead of promising an immediate retry',async()=>{
+ const r=runtime(),page=r.load('capacity');
+ r.app.service.billing.snapshot=()=>({pending:true});
+ r.app.service.billing.purchase=async()=>{throw {errMsg:'requestVirtualPayment:fail timeout'};};
+ await page.purchase();expect(page.data.error).toContain('支付结果尚未确认');expect(page.data.error).not.toContain('请重试');
+ expect(page.data.busy).toBe(false);
+});
+it('offers retry text for a verified failed payment and hides numeric cancellation',async()=>{
+ const r=runtime(),page=r.load('capacity');
+ r.app.service.billing.snapshot=()=>({pending:false});
+ r.app.service.billing.purchase=async()=>{throw {errCode:-1,errMsg:'requestVirtualPayment:fail'};};
+ await page.purchase();expect(page.data.error).toBe('支付未完成，可以重新购买。');
+ r.app.service.billing.purchase=async()=>{throw {errCode:-2,errMsg:'用户取消'};};
+ await page.purchase();expect(page.data.error).toBe('');
+});
