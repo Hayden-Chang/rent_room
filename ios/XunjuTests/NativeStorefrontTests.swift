@@ -8,7 +8,7 @@ import StoreKitTest
         XCTAssertEqual(Bundle.main.object(forInfoDictionaryKey: "SKIncludeConsumableInAppPurchaseHistory") as? Bool, true)
         // Validate the build setting separately from localized branding.
         XCTAssertEqual(Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String, "看房搭子")
-        let names = ["zh-Hans": "看房搭子", "en": "Xunju"]
+        let names = ["zh-Hans": "看房搭子", "en": "RentVisit"]
         for (language, name) in names {
             let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "\(language).lproj"))
             let values = try XCTUnwrap(try PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])

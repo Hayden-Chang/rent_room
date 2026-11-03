@@ -6,7 +6,6 @@ struct SettingsPage: View {
     var imported: () -> Void = {}
     @State private var destination: LocalSettingsAction?
     @State private var feedback = false
-    @State private var sharing = false
     @Environment(\.openURL) private var openURL
     var body: some View {
         ScrollView {
@@ -40,27 +39,14 @@ struct SettingsPage: View {
                 }
             }
             .fullScreenCover(isPresented: $feedback) { FeedbackPage(workspace: workspace, completed: {}).presentationBackground(.clear) }
-            .sheet(isPresented: $sharing) {
-                if let cover = AppCopy.shareCoverURL {
-                    LocalShareSheet(items: [cover])
-                }
-            }
     }
     private func act(_ action: LocalSettingsAction) {
         switch action {
         case .permissions: if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
         case .feedback: feedback = true
-        case .share: sharing = true
         default: destination = action
         }
     }
-}
-private struct LocalShareSheet: UIViewControllerRepresentable {
-    let items: [Any]
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        UIActivityViewController(activityItems: items, applicationActivities: nil)
-    }
-    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }
 struct CloseSheetButton: View {
     @Environment(\.dismiss) private var dismiss

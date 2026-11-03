@@ -4,12 +4,18 @@ import UIKit
 
 @MainActor
 final class AppIconTests: XCTestCase {
+    func testEnglishDisplayNameUsesRentVisit() throws {
+        let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "en.lproj"))
+        let values = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
+        XCTAssertEqual(values["CFBundleDisplayName"], "RentVisit")
+    }
+
     func testChineseDisplayNameUsesKanfangDazi() throws {
         let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "zh-Hans.lproj"))
         let values = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
         XCTAssertEqual(values["CFBundleDisplayName"], "看房搭子")
         XCTAssertEqual(values["CFBundleDisplayName"], Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String)
-        XCTAssertEqual(AppCopy.text("看房搭子", language: .english), "Xunju")
+        XCTAssertEqual(AppCopy.text("看房搭子", language: .english), "RentVisit")
     }
 
     func testBuiltAppContainsPrimaryIconMetadataAndImages() throws {

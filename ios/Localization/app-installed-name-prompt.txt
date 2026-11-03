@@ -1,0 +1,4 @@
+Fix the installed English app name reported from TestFlight: use the App Store brand RentVisit for the canonical app-name key s0411. Keep the Chinese name 看房搭子 and all bundle identifiers unchanged. This editorial correction also supplies the generated English CFBundleDisplayName.
+{
+  "s0411": "看房搭子"
+}

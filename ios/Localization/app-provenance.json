@@ -1783,6 +1783,18 @@
       "english": "app-stage-guide-en.json",
       "promptSHA256": "fefb2e4340a6240936e257f3f6b594fd7aa9060cded61f52620b2978e1273b05",
       "englishSHA256": "a0cb1734deb2b1753dfd1f4f9638c5fdc297a227dd778abd53bf28c3804e1ca4"
+    },
+    {
+      "generator": "Codex editorial revision",
+      "date": "2026-11-03",
+      "reason": "Correct the old Xunju English installation name to the existing RentVisit brand after the TestFlight report.",
+      "keys": [
+        "s0411"
+      ],
+      "prompt": "app-installed-name-prompt.txt",
+      "english": "app-installed-name-en.json",
+      "promptSHA256": "91060087e1f6f13a1f4ace13eaf2c7bd0cf21a3c447602a9ee9d8ec1cafffd3b",
+      "englishSHA256": "bfc7a75df4e4928a6c13f7d41eef4b39c5f0071b376899053cdf29f5a908d0a4"
     }
   ],
   "sourceCorrections": [
