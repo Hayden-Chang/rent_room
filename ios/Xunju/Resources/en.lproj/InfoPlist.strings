@@ -1,4 +1,4 @@
-"CFBundleDisplayName" = "Xunju";
+"CFBundleDisplayName" = "RentVisit";
 "NSCameraUsageDescription" = "Take viewing photos and videos to save in local home records";
 "NSMicrophoneUsageDescription" = "Record on-site audio when taking home viewing videos";
 "NSLocationWhenInUseUsageDescription" = "Get your current location to identify currency and select home or workplace locations.";

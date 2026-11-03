@@ -4,6 +4,12 @@ import UIKit
 
 @MainActor
 final class AppIconTests: XCTestCase {
+    func testEnglishDisplayNameUsesRentVisit() throws {
+        let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "en.lproj"))
+        let values = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
+        XCTAssertEqual(values["CFBundleDisplayName"], "RentVisit")
+    }
+
     func testChineseDisplayNameUsesKanfangDazi() throws {
         let url = try XCTUnwrap(Bundle.main.url(forResource: "InfoPlist", withExtension: "strings", subdirectory: "zh-Hans.lproj"))
         let values = try XCTUnwrap(PropertyListSerialization.propertyList(from: Data(contentsOf: url), format: nil) as? [String: String])
