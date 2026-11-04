@@ -12,11 +12,21 @@ export function accountWx({wallets=new Map()}={}){
   const fs={mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync(p){if(!disk.has(p))throw Error('missing');return disk.get(p);},
     writeFileSync(p,v){if(failing)throw Error('disk full');disk.set(p,v);},copyFileSync(a,b){if(failing)throw Error('disk full');if(!disk.has(a))throw Error('missing');disk.set(b,disk.get(a));},
     renameSync(a,b){if(failing)throw Error('disk full');if(!disk.has(a))throw Error('missing');disk.set(b,disk.get(a));disk.delete(a);},unlinkSync:p=>disk.delete(p)};
-  function credits(){const w=wallets.get(identity);return w?{version:1,migrated:true,remaining:Math.max(0,w.free+packs*10-w.used-[...w.operations.values()].filter(s=>s!=='cancelled').length)}:{version:1,migrated:false};}
+  function credits(){const w=wallets.get(identity);return w?{version:1,migrated:true,freeRemaining:Math.max(0,w.free-w.used-(w.guestUsed||0)-[...w.operations.values()].filter(s=>s!=='cancelled').length),remaining:Math.max(0,w.free+packs*10-w.used-(w.guestUsed||0)-[...w.operations.values()].filter(s=>s!=='cancelled').length)}:{version:1,migrated:false};}
   function defaultResponse(options){
     if(options.url.endsWith('/credits/migrate')){
       if(!wallets.has(identity))wallets.set(identity,{free:freeLimit,used:Math.min(options.data.active,freeLimit+packs*10),operations:new Map()});
       return {statusCode:200,data:{credits:credits()}};
+    }
+    if(options.url.endsWith('/credits/guest-claims')){
+      const w=wallets.get(identity),{guestId,freeSpent}=options.data;
+      if(!w)return {statusCode:409,data:{detail:{message:'尚未迁移'}}};
+      w.guests??=new Map();const previous=w.guests.get(guestId)||0;
+      const operations=[...w.operations.values()];
+      if(freeSpent>previous&&operations.includes('reserved'))return {statusCode:409,data:{detail:{message:'请先确认新建结果'}}};
+      w.guestUsed=(w.guestUsed||0)+Math.min(Math.max(0,freeSpent-previous),Math.max(0,w.free-w.used-(w.guestUsed||0)-operations.filter(s=>s==='committed').length));
+      w.guests.set(guestId,Math.max(previous,freeSpent));
+      return {statusCode:200,data:{credits:credits(),guestClaim:{guestId,freeSpent:w.guests.get(guestId)}}};
     }
     if(options.url.endsWith('/credits/operations')){
       const w=wallets.get(identity),{requestId,action}=options.data;let state=w?.operations.get(requestId);

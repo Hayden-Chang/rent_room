@@ -19,9 +19,9 @@ it('converts the remaining purchased capacity once across restart and two new de
  await b.service.createHouse('另一设备');await reboot.service.billing.refresh();expect(reboot.service.store.capacity().remaining).toBe(5);
  expect(first.calls.filter(c=>c.url?.endsWith('/credits/migrate'))).toHaveLength(1);
 });
-it('associates guest records without counting them as old account occupancy',async()=>{
+it('inherits guest consumption separately from old account occupancy',async()=>{
  const m=accountWx(),a=app(m),id=await a.service.createHouse('未登录创建');
- expect(await a.auth.login()).toBe(true);expect(a.service.store.house(id)).toBeTruthy();expect(a.service.store.capacity().remaining).toBe(1);
+ expect(await a.auth.login()).toBe(true);expect(a.service.store.house(id)).toBeTruthy();expect(a.service.store.capacity().remaining).toBe(0);
  expect(m.calls.find(c=>c.url?.endsWith('/credits/migrate')).data).toEqual({active:0});
 });
 it('blocks direct authenticated creation and keeps zero-credit import, restore and edits local',async()=>{

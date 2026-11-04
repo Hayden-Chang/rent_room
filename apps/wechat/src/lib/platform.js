@@ -8,6 +8,7 @@ import {writeIssue} from './issues.js';
 import {createBilling} from './billing.js';
 import {dataRoot,validAccountId} from './account-storage.js';
 import {createCreditClient} from './credit-client.js';
+import {inheritGuestCredits,rememberGuestAllowance} from './guest-credit-claims.js';
 import {createAccountProfile} from './account-profile.js';
 
 export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{},migrationActive=0,firstVisit=false}={}) {
@@ -30,7 +31,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     wx[name]({...args,success:value=>active&&version===epoch?resolve(value):reject(Error('登录状态已变化，请重新操作')),fail:reject});
   });
   const policyRoot=dataRoot(wx),policyPath=policyRoot+'/capacity-policy.json';let rawStore;
-  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,onChange:()=>rawStore?.refreshCapacity(),
+  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,onChange:()=>{if(rawStore&&validAccountId(session?.account))rememberGuestAllowance(wx,billing.snapshot().credits);rawStore?.refreshCapacity();},
     readPolicy:()=>exists(policyPath)?fs.readFileSync(policyPath,'utf8'):null,
     writePolicy:text=>{try{fs.mkdirSync(policyRoot,true);}catch{}const tmp=policyPath+'.pending';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,policyPath);},
     read:()=>exists(root+'/purchases.json')?fs.readFileSync(root+'/purchases.json','utf8'):null,
@@ -51,6 +52,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     }
   });
   const remoteCredits=validAccountId(session?.account);let creditReserved=null;
+  if(remoteCredits)rememberGuestAllowance(wx,billing.snapshot().credits);
   const ensureActive=()=>{if(!active)throw Error('登录状态已变化，请重新操作');};
   rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit,firstVisit:firstVisit&&!exists(previous),
     spendCreation:remoteCredits?()=>{if(!creditReserved)throw Error('请联网确认房源点数后新建');}:null,
@@ -192,7 +194,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     if(exists(previous)){const snapshot=JSON.parse(fs.readFileSync(previous,'utf8'));snapshot.houses=snapshot.houses.filter(h=>h.id!==id);fs.writeFileSync(previous,JSON.stringify(snapshot),'utf8');}
     for(const m of media)if(m.path.startsWith(root+'/media/')&&exists(m.path))fs.unlinkSync(m.path);
   }
-  return {store,profile,billing,api,prepareCredits:()=>creditClient?.initialize(),createHouse:name=>creditClient?creditClient.create(name):store.add(name),feedback:createFeedback(api,typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__),setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),commute:createCommute(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
+  return {store,profile,billing,api,prepareCredits:async()=>{await creditClient?.initialize();if(remoteCredits)await inheritGuestCredits(wx,root,session.account,billing);},createHouse:name=>creditClient?creditClient.create(name):store.add(name),feedback:createFeedback(api,typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__),setActive(value){if(active!==value)epoch++;active=value;if(!active)for(const path of exports)discardExport({filePath:path});},places:createPlaces(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),commute:createCommute(api,typeof __TIANDITU_KEY__==='undefined'?'':__TIANDITU_KEY__),chooseMedia,stageIssueMedia,discardIssueMedia,saveIssue,exportFile,shareExport,discardExport,selectImport,commitImport,removeHouse,root,
     preview(media,current){return api('previewMedia',{sources:media.map(m=>({url:m.path,type:m.type})),current:Math.max(0,media.findIndex(m=>m.id===current))});}
   };
 }

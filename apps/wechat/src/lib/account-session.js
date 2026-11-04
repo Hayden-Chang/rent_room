@@ -3,6 +3,7 @@ import {createPlatform} from './platform.js';
 import {guestStorage,claimGuestRecords} from './guest-storage.js';
 import {CREDIT_VERSION,validateEntitlement} from './capacity-policy.js';
 import {prepareCreditMigration,validateCreditBalance} from './credit-client.js';
+import {rememberGuestAllowance} from './guest-credit-claims.js';
 
 export function createAccountSession(wx,{firstVisitExamples=false}={}) {
   const fs=wx.getFileSystemManager(),base=dataRoot(wx),rememberPath=base+'/login.json';
@@ -63,15 +64,23 @@ export function createAccountSession(wx,{firstVisitExamples=false}={}) {
         remember(true);
         const migrationActive=prepareCreditMigration(fs,storage.root,next.id);
         if(storage.needsClaim)storage.claim();
-        claimGuestRecords(wx,next.id,storage.root,!previousAccount?previous.root:null,{packs:identity.credentials.packs,freeLimit:identity.credentials.capacity?.freeLimit??1});
-        const nextService=createPlatform(wx,{root:storage.root,session:identity.credentials,migrationActive,onExpired:()=>{
+        const claimOptions={packs:identity.credentials.packs,freeLimit:identity.credentials.capacity?.freeLimit??1};
+        claimGuestRecords(wx,next.id,storage.root,!previousAccount?previous.root:null,{...claimOptions,prepareOnly:true});
+        let nextService;
+        const makeService=credentials=>createPlatform(wx,{root:storage.root,session:credentials,migrationActive,onExpired:()=>{
           if(active!==nextService)return;
           if(!active.store.status().blocked)active.store.save();
           generation++;pending=null;active.setActive(false);active=createPlatform(wx,guestStorage(wx));account=null;state='signed-out';error='登录已过期，可继续使用免费记录，购买时请重新登录';emit();
           wx.reLaunch({url:'/pages/home/index'});
         }});
+        nextService=makeService(identity.credentials);
         await nextService.prepareCredits();
         if(version!==generation){nextService.setActive(false);return false;}
+        // Copy the latest guest snapshot only after remote inheritance succeeds.
+        const credentials={...identity.credentials,credits:nextService.billing.snapshot().credits};
+        nextService.setActive(false);
+        claimGuestRecords(wx,next.id,storage.root,!previousAccount?previous.root:null,claimOptions);
+        nextService=makeService(credentials);
         // Remembering consent is not authentication: every cold launch rechecks identity.
         active=nextService;account=next;active.setActive(true);state='authenticated';emit();return true;
       }catch(e){
@@ -98,6 +107,7 @@ export function createAccountSession(wx,{firstVisitExamples=false}={}) {
     logout(){
       const checking=state==='checking';active?.setActive(true);
       if(active&&!active.store.status().blocked&&!active.store.save()){if(checking)active.setActive(false);throw Error('保存失败，请重试保存后再退出');}
+      if(account)rememberGuestAllowance(wx,active.billing.snapshot().credits);
       const guest=createPlatform(wx,guestStorage(wx));remember(false);generation++;pending=null;active?.setActive(false);active=guest;account=null;state='signed-out';error='';emit();
     }
   };
