@@ -46,6 +46,9 @@ import XCTest
         let scoped = ["--returning-business-fixture", "--business-test", UUID().uuidString]
         XCTAssertFalse(FilledReviewFixture.enabled(scoped))
         XCTAssertTrue(FilledReviewFixture.enabled(scoped + ["--filled-review-fixture"]))
+        XCTAssertFalse(FilledReviewFixture.creationEnabled(["--review-creation-fixture"]))
+        XCTAssertFalse(FilledReviewFixture.creationEnabled(scoped))
+        XCTAssertTrue(FilledReviewFixture.creationEnabled(scoped + ["--review-creation-fixture"]))
     }
     func testCancelledPendingFailedAndRevokedPurchasesDoNotRequest() async throws {
         for outcome in ["cancelled", "pending", "failed", "revoked"] {

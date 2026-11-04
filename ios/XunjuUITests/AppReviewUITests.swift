@@ -2,12 +2,13 @@ import XCTest
 
 @MainActor final class AppReviewUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch(purchase: Bool = false, filled: Bool = false) -> XCUIApplication {
+    private func launch(purchase: Bool = false, filled: Bool = false, creation: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString,
             "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         if purchase { app.launchArguments += ["--capacity-business-fixture", "success"] }
         if filled { app.launchArguments += ["--filled-review-fixture"] }
+        if creation { app.launchArguments += ["--review-creation-fixture"] }
         app.launch(); XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String) {
@@ -32,7 +33,7 @@ import XCTest
         XCTAssertTrue(title.waitForNonExistence(timeout: 3))
     }
     func testThirdCreationRequestsSystemReviewOnceAndKeepsManualFeedback() {
-        let app = launch()
+        let app = launch(creation: true)
         for n in 1...3 {
             app.homeAddButton.tap()
             let name = app.textFields["prompt.text"]
@@ -66,10 +67,10 @@ import XCTest
     func testVerifiedPurchaseRequestsSystemReviewAfterThankYou() {
         let app = launch(purchase: true)
         app.buttons["tab.我的"].tap(); app.buttons["local-settings.capacity"].tap()
-        let purchase = app.buttons["capacity.purchase"]
+        let purchase = app.buttons["credits.purchase"]
         let enabled = expectation(for: NSPredicate(format: "enabled == true"), evaluatedWith: purchase)
         wait(for: [enabled], timeout: 8); purchase.tap()
-        let granted = expectation(for: NSPredicate(format: "label == %@", "0 / 11 套"), evaluatedWith: app.staticTexts["capacity.total"])
+        let granted = expectation(for: NSPredicate(format: "label MATCHES %@", "^12[^0-9]*$"), evaluatedWith: app.staticTexts["credits.balance"])
         wait(for: [granted], timeout: 8)
         dismissSystemReview(app, name: "review-after-verified-purchase")
         XCTAssertFalse(app.buttons["关闭反馈"].exists)

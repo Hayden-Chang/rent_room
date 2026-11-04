@@ -6,6 +6,9 @@ import Foundation
     static func enabled(_ arguments: [String]) -> Bool {
         ReturningBusinessFixture.enabled(arguments) && arguments.contains("--filled-review-fixture")
     }
+    static func creationEnabled(_ arguments: [String]) -> Bool {
+        ReturningBusinessFixture.enabled(arguments) && arguments.contains("--review-creation-fixture")
+    }
 
     static func prepare(_ store: NativeStore) throws {
         guard store.houses.isEmpty else { return }
