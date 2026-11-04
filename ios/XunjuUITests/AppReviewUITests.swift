@@ -31,9 +31,18 @@ import XCTest
         XCTAssertTrue(title.waitForExistence(timeout: 10), app.debugDescription)
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "App", "评分")).firstMatch.exists)
         XCTAssertEqual(app.otherElements["评分"].value as? String, "零颗星")
-        capture(name)
         let later = app.buttons["以后"]
-        XCTAssertTrue(later.exists); later.tap()
+        // StoreKit exposes accessibility before its entrance animation settles.
+        var previousFrame: CGRect?
+        let settled = expectation(for: NSPredicate { _, _ in
+            guard later.isHittable else { return false }
+            let frame = later.frame
+            defer { previousFrame = frame }
+            return !frame.isEmpty && previousFrame == frame
+        }, evaluatedWith: later)
+        wait(for: [settled], timeout: 5)
+        capture(name)
+        later.tap()
         XCTAssertTrue(title.waitForNonExistence(timeout: 3))
     }
     func testThirdCreationRequestsSystemReviewOnceAndKeepsManualFeedback() {
@@ -60,8 +69,15 @@ import XCTest
         XCTAssertTrue(app.buttons["house.评分房源3"].waitForExistence(timeout: 10))
         assertNoDelayedReview(app)
         app.buttons["tab.我的"].tap()
+        let settings = expectation(for: NSPredicate(format: "selected == true"), evaluatedWith: app.buttons["tab.我的"])
+        wait(for: [settings], timeout: 3)
         let feedback = app.buttons["local-settings.feedback"]
-        for _ in 0..<4 { if feedback.isHittable { break }; app.swipeUp() }
+        for _ in 0..<4 {
+            if feedback.isHittable && feedback.frame.maxY < app.buttons["tab.我的"].frame.minY { break }
+            app.swipeUp()
+        }
+        XCTAssertTrue(feedback.isHittable)
+        XCTAssertLessThan(feedback.frame.maxY, app.buttons["tab.我的"].frame.minY)
         feedback.tap(); XCTAssertTrue(app.buttons["feedback.ease.方便"].waitForExistence(timeout: 3))
         capture("review-manual-feedback-retained")
         app.buttons["关闭反馈"].tap(); app.buttons["tab.房源"].tap()
