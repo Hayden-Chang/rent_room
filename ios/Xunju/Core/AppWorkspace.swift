@@ -78,6 +78,7 @@ final class AppWorkspace {
                 store = try NativeStore(directory: store.records.directory, packs: store.capacity.packs, freeLimit: capacityPolicy.freeLimit, network: mapTransport)
             }
         }
+        if FilledReviewFixture.enabled(arguments) { try FilledReviewFixture.prepare(store) }
         if ReturningBusinessFixture.enabled(arguments), arguments.contains("--pixel-parity-fixture"), store.houses.isEmpty {
             try PixelParityFixture.populate(store)
         }

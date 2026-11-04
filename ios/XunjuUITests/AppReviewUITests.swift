@@ -2,11 +2,12 @@ import XCTest
 
 @MainActor final class AppReviewUITests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
-    private func launch(purchase: Bool = false) -> XCUIApplication {
+    private func launch(purchase: Bool = false, filled: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--returning-business-fixture", "--business-test", UUID().uuidString,
             "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         if purchase { app.launchArguments += ["--capacity-business-fixture", "success"] }
+        if filled { app.launchArguments += ["--filled-review-fixture"] }
         app.launch(); XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String) {
@@ -75,5 +76,29 @@ import XCTest
         app.navigationBackButton.tap(); app.buttons["tab.房源"].tap()
         XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 3))
         assertNoDelayedReview(app)
+    }
+    func testFiftyFirstFilledItemRequestsOnlyAfterReturningHomeAndOnlyOnce() {
+        let app = launch(filled: true)
+        let house = app.buttons["house.评分检查项房源"]
+        XCTAssertTrue(house.exists)
+        assertNoDelayedReview(app)
+        house.tap()
+        let search = app.textFields["mp.checklist.search"]
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.tap(); search.typeText("租金")
+        app.buttons["checklist.keyboard.done"].tap()
+        let rent = app.textFields["mp.field.input.f1_6"]
+        XCTAssertTrue(rent.waitForExistence(timeout: 3)); rent.tap(); rent.typeText("2800")
+        app.buttons["完成"].firstMatch.tap()
+        XCTAssertEqual(rent.value as? String, "2800")
+        assertNoDelayedReview(app)
+        capture("review-51-items-still-in-detail")
+        app.navigationBackButton.tap()
+        XCTAssertTrue(house.waitForExistence(timeout: 4))
+        dismissSystemReview(app, name: "review-after-51-items-return-home")
+        app.terminate(); app.launch()
+        XCTAssertTrue(house.waitForExistence(timeout: 10))
+        assertNoDelayedReview(app)
+        capture("review-51-items-relaunch-no-repeat")
     }
 }

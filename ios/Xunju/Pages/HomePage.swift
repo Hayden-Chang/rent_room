@@ -84,7 +84,7 @@ struct HomePage: View {
             .onAppear(perform: refreshGuide)
             .onDisappear { managed = nil }
             .modifier(AppReviewPrompt(workspace: workspace, ready: path.isEmpty && !adding && managed == nil
-                && exporting == nil && !capacity && !capacityAfterName && !continueCreate))
+                && exporting == nil && !capacity && !capacityAfterName && !continueCreate, includeFilledItems: true))
     }
     private func closeHouse() {
         if let id = path.last { workspace.perform { try workspace.store.call("leaveInspection", ["id": .string(id)]) } }
