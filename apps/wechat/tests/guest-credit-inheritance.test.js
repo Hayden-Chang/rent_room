@@ -33,7 +33,7 @@ it('inherits additional guest spending after a failed login without resetting th
 });
 it('claims only unused free credits in an existing account and preserves paid balance',async()=>{
  const {m,app}=await fixture();m.packs(1);await app.auth.login();await app.service.createHouse('账号已用一点');app.auth.logout();
- await app.service.createHouse('游客一');await app.service.createHouse('游客二');
+ await app.service.createHouse('游客一');expect(()=>app.service.createHouse('游客二')).toThrow('不足');
  expect(await app.auth.login()).toBe(true);expect(app.service.store.capacity().remaining).toBe(10);
  app.auth.logout();expect(await app.auth.login()).toBe(true);expect(app.service.store.capacity().remaining).toBe(10);
 });
@@ -52,4 +52,30 @@ it('does not spend for imported or example houses and never accepts a missing in
  app.auth.logout();await app.service.createHouse('游客消费');
  m.respond(o=>o.url.endsWith('/credits/guest-claims')?{statusCode:200,data:{credits:{version:1,migrated:true,remaining:2}}}:m.defaultResponse(o));
  expect(await app.auth.login()).toBe(false);expect(app.auth.isAuthenticated()).toBe(false);expect(app.service.store.get().houses).toHaveLength(1);
+});
+it('keeps the same remaining point through logout, guest creation and relogin',async()=>{
+ const {m,app}=await fixture();await app.service.createHouse('第一套');
+ expect(await app.auth.login()).toBe(true);expect(app.service.store.capacity().remaining).toBe(1);
+ app.auth.logout();expect(app.service.store.capacity().remaining).toBe(1);
+ const guest=launch(m);expect(guest.service.store.capacity().remaining).toBe(1);
+ await guest.service.createHouse('第二套');expect(guest.service.store.capacity().remaining).toBe(0);
+ expect(await guest.auth.login()).toBe(true);expect(guest.service.store.capacity().remaining).toBe(0);
+ guest.auth.logout();expect(guest.service.store.capacity().remaining).toBe(0);
+ expect(()=>guest.service.createHouse('第三套')).toThrow('不足');
+ expect(await guest.auth.login()).toBe(true);expect(guest.service.store.capacity().remaining).toBe(0);
+});
+it('does not reset guest allowance when the account spends first or owns paid credits',async()=>{
+ const {m,app}=await fixture();m.packs(1);await app.auth.login();await app.service.createHouse('账号第一套');
+ expect(app.service.store.capacity().remaining).toBe(11);app.auth.logout();expect(app.service.store.capacity().remaining).toBe(1);
+ await app.service.createHouse('游客最后一套');expect(await app.auth.login()).toBe(true);expect(app.service.store.capacity().remaining).toBe(10);
+ app.auth.logout();expect(app.service.store.capacity().remaining).toBe(0);
+});
+it('keeps the authenticated session and old guest pointer if inherited allowance cannot be saved',async()=>{
+ const {m,app}=await fixture();await app.service.createHouse('第一套');await app.auth.login();
+ const pointer=m.disk.get('/user/xunju/guest-current.json'),rename=m.fs.renameSync;
+ m.fs.renameSync=(from,to)=>{if(to.includes('/guests/')&&to.endsWith('/property-credits.json'))throw Error('disk full');rename(from,to);};
+ expect(()=>app.auth.logout()).toThrow('disk full');expect(app.auth.isAuthenticated()).toBe(true);
+ expect(app.service.store.capacity().remaining).toBe(1);expect(m.disk.get('/user/xunju/guest-current.json')).toBe(pointer);
+ m.fs.renameSync=rename;app.auth.logout();expect(app.service.store.capacity().remaining).toBe(1);
+ expect(await app.auth.login()).toBe(true);expect(app.service.store.capacity().remaining).toBe(1);
 });

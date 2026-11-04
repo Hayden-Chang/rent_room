@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import {buildSync} from 'esbuild';
 import {accountWx} from './helpers/account-fixture.js';
+import {freshHouse} from '../src/lib/model.js';
 const A='a'.repeat(64),B='b'.repeat(64);
 const appCode=buildSync({entryPoints:['src/app.js'],bundle:true,write:false,format:'cjs',platform:'browser',define:{__WECHAT_API_URL__:JSON.stringify('https://login.example.com/api/rent-room')}}).outputFiles[0].text;
 function harness(m=accountWx()){
@@ -34,9 +35,10 @@ it('keeps free records and media when signing in and never lends them to the nex
  h.m.identity(B);h.m.packs(0);await h.app.auth.login();expect(h.app.service.store.get().houses).toEqual([]);
  h.app.auth.logout();h.m.identity(A);h.m.packs(1);await h.app.auth.login();house=h.app.service.store.house(id);expect(h.m.disk.get(house.media[0].path)).toBe('image-bytes');
 });
-it('merges later free records into an existing account once without discarding records over capacity',async()=>{
+it('merges later imported records into an existing account once without discarding records over capacity',async()=>{
  const h=harness();h.m.freeCapacity(2);await h.app.auth.login();await h.app.service.createHouse('账号一');await h.app.service.createHouse('账号二');h.app.auth.logout();
- const id=h.app.service.store.add('后来记录');expect(await h.app.auth.login()).toBe(true);
+ expect(()=>h.app.service.store.add('超额新建')).toThrow('不足');
+ const imported=freshHouse('后来导入'),id=imported.id;h.app.service.store.import([imported]);expect(await h.app.auth.login()).toBe(true);
  expect(h.app.service.store.get().houses).toHaveLength(3);expect(h.app.service.store.house(id)).toBeTruthy();expect(h.app.service.store.capacity().over).toBe(1);
  h.app.auth.logout();await h.app.auth.login();expect(h.app.service.store.get().houses).toHaveLength(3);
 });

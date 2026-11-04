@@ -3,7 +3,8 @@ import {dataRoot,validAccountId} from './account-storage.js';
 import {clone,emptyState,uid,validateState} from './model.js';
 import {initializeCredits} from './property-credits.js';
 import {withCreditStorage} from './credit-storage.js';
-import {guestFreeSpent,stageGuestCredits,guestCreditSources} from './guest-credit-claims.js';
+import {DEFAULT_FREE_LIMIT,policyFreeLimit} from './capacity-policy.js';
+import {guestFreeSpent,stageGuestCredits,guestCreditSources,limitGuestAllowance} from './guest-credit-claims.js';
 
 function files(wx){
  const fs=wx.getFileSystemManager();
@@ -22,7 +23,13 @@ export function guestStorage(wx){
   id=read(pointer).id;
   if(typeof id!=='string'||!/^h[a-z0-9]+$/.test(id))throw Error('本机未登录记录目录读取失败，请勿清理小程序数据');
  }
- if(!id||exists(base+'/guests/'+id+'/account-owner.json')){id=uid();write(pointer,{id});}
+ let freeLimit=DEFAULT_FREE_LIMIT;
+ try{if(exists(base+'/capacity-policy.json'))freeLimit=policyFreeLimit(read(base+'/capacity-policy.json').capacity);}catch{}
+ if(!id||exists(base+'/guests/'+id+'/account-owner.json')){
+  const previousRoot=id?base+'/guests/'+id:null,next=uid();
+  limitGuestAllowance(wx,base+'/guests/'+next,freeLimit,previousRoot);
+  id=next;write(pointer,{id});
+ }else limitGuestAllowance(wx,base+'/guests/'+id,freeLimit);
  return {root:base+'/guests/'+id};
 }
 

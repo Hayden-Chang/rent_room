@@ -26,6 +26,18 @@ for(const spent of [0,1,2]){
  console.log('PASS real API: guest spent '+spent+', repeated login and restart');
 }
 {
+ const {m}=fixture('guest-logout-and-spend'),app=launch(m);await app.auth.refreshCapacity();
+ await app.service.createHouse('第一套');assert.equal(await app.auth.login(),true);assert.equal(app.service.store.capacity().remaining,1);
+ app.auth.logout();assert.equal(app.service.store.capacity().remaining,1);
+ const guest=launch(m);assert.equal(guest.service.store.capacity().remaining,1);
+ await guest.service.createHouse('第二套');assert.equal(guest.service.store.capacity().remaining,0);
+ assert.equal(await guest.auth.login(),true);assert.equal(guest.service.store.capacity().remaining,0);
+ guest.auth.logout();assert.equal(guest.service.store.capacity().remaining,0);assert.throws(()=>guest.service.createHouse('第三套'),/不足/);
+ assert.equal(await guest.auth.login(),true);assert.equal(guest.service.store.capacity().remaining,0);
+ assert.equal(guest.service.store.get().houses.length,2);
+ console.log('PASS real API: login 1, logout 1, restart 1, create 0, relogin 0, third creation blocked');
+}
+{
  const {m,loseReply}=fixture('guest-lost-response'),app=launch(m);await app.auth.refreshCapacity();
  await app.service.createHouse('第一套');loseReply();assert.equal(await app.auth.login(),false);
  await app.service.createHouse('第二套');const restarted=launch(m);assert.equal(await restarted.auth.login(),true);

@@ -8,7 +8,7 @@ import {writeIssue} from './issues.js';
 import {createBilling} from './billing.js';
 import {dataRoot,validAccountId} from './account-storage.js';
 import {createCreditClient} from './credit-client.js';
-import {inheritGuestCredits} from './guest-credit-claims.js';
+import {inheritGuestCredits,rememberGuestAllowance} from './guest-credit-claims.js';
 import {createAccountProfile} from './account-profile.js';
 
 export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>{},migrationActive=0,firstVisit=false}={}) {
@@ -31,7 +31,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     wx[name]({...args,success:value=>active&&version===epoch?resolve(value):reject(Error('登录状态已变化，请重新操作')),fail:reject});
   });
   const policyRoot=dataRoot(wx),policyPath=policyRoot+'/capacity-policy.json';let rawStore;
-  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,onChange:()=>rawStore?.refreshCapacity(),
+  const billing=createBilling(api,{url:typeof __WECHAT_API_URL__==='undefined'?'':__WECHAT_API_URL__,session,onExpired,onChange:()=>{if(rawStore&&validAccountId(session?.account))rememberGuestAllowance(wx,billing.snapshot().credits);rawStore?.refreshCapacity();},
     readPolicy:()=>exists(policyPath)?fs.readFileSync(policyPath,'utf8'):null,
     writePolicy:text=>{try{fs.mkdirSync(policyRoot,true);}catch{}const tmp=policyPath+'.pending';fs.writeFileSync(tmp,text,'utf8');fs.renameSync(tmp,policyPath);},
     read:()=>exists(root+'/purchases.json')?fs.readFileSync(root+'/purchases.json','utf8'):null,
@@ -52,6 +52,7 @@ export function createPlatform(wx,{root=dataRoot(wx),session=null,onExpired=()=>
     }
   });
   const remoteCredits=validAccountId(session?.account);let creditReserved=null;
+  if(remoteCredits)rememberGuestAllowance(wx,billing.snapshot().credits);
   const ensureActive=()=>{if(!active)throw Error('登录状态已变化，请重新操作');};
   rawStore=createStore(adapter,{getPacks:()=>billing.snapshot().packs,getFreeLimit:()=>billing.snapshot().freeLimit,firstVisit:firstVisit&&!exists(previous),
     spendCreation:remoteCredits?()=>{if(!creditReserved)throw Error('请联网确认房源点数后新建');}:null,

@@ -3,6 +3,7 @@ import {createPlatform} from './platform.js';
 import {guestStorage,claimGuestRecords} from './guest-storage.js';
 import {CREDIT_VERSION,validateEntitlement} from './capacity-policy.js';
 import {prepareCreditMigration,validateCreditBalance} from './credit-client.js';
+import {rememberGuestAllowance} from './guest-credit-claims.js';
 
 export function createAccountSession(wx,{firstVisitExamples=false}={}) {
   const fs=wx.getFileSystemManager(),base=dataRoot(wx),rememberPath=base+'/login.json';
@@ -106,6 +107,7 @@ export function createAccountSession(wx,{firstVisitExamples=false}={}) {
     logout(){
       const checking=state==='checking';active?.setActive(true);
       if(active&&!active.store.status().blocked&&!active.store.save()){if(checking)active.setActive(false);throw Error('保存失败，请重试保存后再退出');}
+      if(account)rememberGuestAllowance(wx,active.billing.snapshot().credits);
       const guest=createPlatform(wx,guestStorage(wx));remember(false);generation++;pending=null;active?.setActive(false);active=guest;account=null;state='signed-out';error='';emit();
     }
   };

@@ -12,7 +12,7 @@ export function accountWx({wallets=new Map()}={}){
   const fs={mkdirSync(){},accessSync(p){if(!disk.has(p))throw Error('missing');},readFileSync(p){if(!disk.has(p))throw Error('missing');return disk.get(p);},
     writeFileSync(p,v){if(failing)throw Error('disk full');disk.set(p,v);},copyFileSync(a,b){if(failing)throw Error('disk full');if(!disk.has(a))throw Error('missing');disk.set(b,disk.get(a));},
     renameSync(a,b){if(failing)throw Error('disk full');if(!disk.has(a))throw Error('missing');disk.set(b,disk.get(a));disk.delete(a);},unlinkSync:p=>disk.delete(p)};
-  function credits(){const w=wallets.get(identity);return w?{version:1,migrated:true,remaining:Math.max(0,w.free+packs*10-w.used-(w.guestUsed||0)-[...w.operations.values()].filter(s=>s!=='cancelled').length)}:{version:1,migrated:false};}
+  function credits(){const w=wallets.get(identity);return w?{version:1,migrated:true,freeRemaining:Math.max(0,w.free-w.used-(w.guestUsed||0)-[...w.operations.values()].filter(s=>s!=='cancelled').length),remaining:Math.max(0,w.free+packs*10-w.used-(w.guestUsed||0)-[...w.operations.values()].filter(s=>s!=='cancelled').length)}:{version:1,migrated:false};}
   function defaultResponse(options){
     if(options.url.endsWith('/credits/migrate')){
       if(!wallets.has(identity))wallets.set(identity,{free:freeLimit,used:Math.min(options.data.active,freeLimit+packs*10),operations:new Map()});

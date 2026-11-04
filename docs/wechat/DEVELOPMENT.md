@@ -107,4 +107,4 @@ npm run package
 
 ## 游客点数继承（2026-11-04）
 
-`guest-credit-claims.js` 负责游客消费来源、原子确认值和服务端回执；`account-session.js` 在继承成功后才复制最新游客记录。契约、受影响测试映射及本机前后端合约验证见 [游客消费继承](GUEST_CREDIT_INHERITANCE.md)。
+`guest-credit-claims.js` 负责游客消费来源、原子确认值、服务端回执，以及退出后的免费余额继承；`account-session.js` 在继承成功后才复制最新游客记录。新游客目录保留已消耗基数，登录只追加本批次消费。契约、受影响测试映射及本机前后端合约验证见 [游客消费继承](GUEST_CREDIT_INHERITANCE.md)。
