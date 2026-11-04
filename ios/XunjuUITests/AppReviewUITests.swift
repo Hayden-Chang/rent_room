@@ -9,7 +9,11 @@ import XCTest
         if purchase { app.launchArguments += ["--capacity-business-fixture", "success"] }
         if filled { app.launchArguments += ["--filled-review-fixture"] }
         if creation { app.launchArguments += ["--review-creation-fixture"] }
-        app.launch(); XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 10)); return app
+        app.launch()
+        let currency = app.buttons["currency.prompt.decline"]
+        XCTAssertTrue(currency.waitForExistence(timeout: 10)); currency.tap()
+        XCTAssertTrue(currency.waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.homeAddButton.waitForExistence(timeout: 10)); return app
     }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())

@@ -116,16 +116,22 @@ import XCTest
         await storefront.receive?(storefront.transaction)
         XCTAssertTrue(try reopened.store.call("reviewRequest").bool)
     }
-    func testReviewPersistenceFailureDoesNotFailConfirmedPurchase() async throws {
+    func testFailedReviewRequestDoesNotUndoConfirmedPurchase() async throws {
         let (workspace, storefront, _) = try fixture()
-        await workspace.billing.load()
+        await workspace.billing.load(); await workspace.billing.purchase()
+        XCTAssertTrue(workspace.store.state["iosReview"]["purchased"].bool)
         let current = workspace.store.records.directory.appending(path: "state.json")
-        if FileManager.default.fileExists(atPath: current.path) { try FileManager.default.removeItem(at: current) }
+        let saved = try Data(contentsOf: current)
+        try FileManager.default.removeItem(at: current)
         try FileManager.default.createDirectory(at: current, withIntermediateDirectories: false)
-        await workspace.billing.purchase()
+        XCTAssertThrowsError(try workspace.store.call("reviewRequest"))
         XCTAssertEqual(workspace.store.capacity.packs, 1)
         XCTAssertEqual(storefront.finished, ["10001"])
         XCTAssertTrue(workspace.billing.error.isEmpty)
+        XCTAssertFalse(workspace.store.state["iosReview"]["requested"].bool)
+        try FileManager.default.removeItem(at: current)
+        try saved.write(to: current)
+        XCTAssertTrue(try workspace.store.call("reviewRequest").bool)
         XCTAssertFalse(try workspace.store.call("reviewRequest").bool)
     }
 }
