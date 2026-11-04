@@ -3,6 +3,7 @@ import {dataRoot,validAccountId} from './account-storage.js';
 import {clone,emptyState,uid,validateState} from './model.js';
 import {initializeCredits} from './property-credits.js';
 import {withCreditStorage} from './credit-storage.js';
+import {guestFreeSpent,stageGuestCredits,guestCreditSources} from './guest-credit-claims.js';
 
 function files(wx){
  const fs=wx.getFileSystemManager();
@@ -27,7 +28,7 @@ export function guestStorage(wx){
 
 // Journal first, reserve the source, then atomically commit the merged state.
 // Originals remain as recovery copies; a retry uses the committed batch ID.
-export function claimGuestRecords(wx,accountId,target,source,{packs=0,freeLimit=1}={}){
+export function claimGuestRecords(wx,accountId,target,source,{packs=0,freeLimit=1,prepareOnly=false}={}){
  if(!validAccountId(accountId))throw Error('账号校验失败，请重新登录');
  const {fs,exists,write,read}=files(wx),base=dataRoot(wx),journal=target+'/guest-claim.json';
  try{fs.mkdirSync(target,true);}catch{fs.accessSync(target);}
@@ -50,11 +51,14 @@ export function claimGuestRecords(wx,accountId,target,source,{packs=0,freeLimit=
   });
   const raw=adapter.read(),state=raw?migrateXiaoda(validateState(JSON.parse(raw))):emptyState();
   initializeCredits(state,packs,freeLimit);
-  if(state.guestClaims?.includes(batch))return;
+  const spent=guestFreeSpent(wx,root,freeLimit);
+  if(state.guestClaims?.includes(batch)){if(spent)stageGuestCredits(wx,target,accountId,batch);return;}
   const incoming=exists(root+'/state.json')?migrateXiaoda(validateState(read(root+'/state.json'))):emptyState();
   const defaults=emptyState().settings;
-  if(!incoming.houses.length&&JSON.stringify(incoming.settings||defaults)===JSON.stringify(defaults)&&JSON.stringify(incoming.xiaoda)===JSON.stringify(newXiaoda()))return;
+  if(!spent&&!incoming.houses.length&&JSON.stringify(incoming.settings||defaults)===JSON.stringify(defaults)&&JSON.stringify(incoming.xiaoda)===JSON.stringify(newXiaoda()))return;
   write(journal,{root});write(marker,{version:1,accountId});
+  stageGuestCredits(wx,target,accountId,batch);
+  if(prepareOnly)return;
   const inherit=!exists(current)||(!state.xiaoda.legacy&&state.xiaoda.setup!=='done');
   const next=clone(state),remapped=new Map(),ids=new Set(next.houses.map(h=>h.id));
   try{fs.mkdirSync(target+'/media',true);}catch{fs.accessSync(target+'/media');}
@@ -79,9 +83,10 @@ export function claimGuestRecords(wx,accountId,target,source,{packs=0,freeLimit=
   // Association imports records without consuming the destination's credits.
   adapter.write(JSON.stringify(next));
  }
+ for(const root of guestCreditSources(wx,target,accountId))transfer(root);
  if(exists(journal))transfer(read(journal).root);
  if(source&&source!==target)transfer(source);
  // A leftover journal is safe: the destination's committed batch prevents a
  // duplicate import. Cleanup failure must not revive an already claimed source.
- if(exists(journal))try{fs.unlinkSync(journal);}catch{}
+ if(!prepareOnly&&exists(journal))try{fs.unlinkSync(journal);}catch{}
 }

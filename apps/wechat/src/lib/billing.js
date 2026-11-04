@@ -159,5 +159,8 @@ export function createBilling(api,{url='',session=null,onExpired=()=>{},read=()=
     if(result.operation?.requestId!==requestId||!['reserved','committed','cancelled'].includes(result.operation.state))throw Error('新建结果尚未确认，请重试');
     return result;
   }
-  return {snapshot,refresh,refreshRules,purchase,migrateCredits,creditOperation};
+  async function inheritGuestCredits(guestId,freeSpent){
+    return (await creditRequest('/credits/guest-claims',{guestId,freeSpent})).guestClaim;
+  }
+  return {snapshot,refresh,refreshRules,purchase,migrateCredits,creditOperation,inheritGuestCredits};
 }

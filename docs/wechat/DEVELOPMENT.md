@@ -104,3 +104,7 @@ npm run package
 ## 精简模式（2026-10-24）
 
 精简清单源为 `apps/wechat/data/simple-checklist.json`，通过 `scripts/simple-core.mjs` 和 build 生成 `src/lib/simple-topics.json`，不手改生成文件。基本信息与费用复用详细清单真源；两套模板独立保存，仅影响新房源。来源、退出确认、旧记录保留与定向验证见 [精简模式记录](SIMPLE_MODE.md)。
+
+## 游客点数继承（2026-11-04）
+
+`guest-credit-claims.js` 负责游客消费来源、原子确认值和服务端回执；`account-session.js` 在继承成功后才复制最新游客记录。契约、受影响测试映射及本机前后端合约验证见 [游客消费继承](GUEST_CREDIT_INHERITANCE.md)。
