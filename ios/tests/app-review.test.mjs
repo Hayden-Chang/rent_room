@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import test from 'node:test';
+import {activeEntries, stats, rules} from '../../apps/wechat/src/lib/model.js';
 
 const source = readFileSync(new URL('../Xunju/Resources/XunjuCore.js', import.meta.url), 'utf8');
 function fixture(raw = '', free = 1) {
@@ -91,4 +92,68 @@ test('mini-program default store keeps its existing state contract', async () =>
   const store = createStore({read: () => '', write: () => {}});
   store.add('小程序房源');
   assert.equal(store.get().iosReview, undefined);
+});
+
+function fillTo(f, id, count) {
+  const attempted = new Set();
+  while (true) {
+    const house = f.call('snapshot').state.houses.find(h => h.id === id);
+    if (stats(house).done >= count) { assert.equal(stats(house).done, count); return; }
+    const field = activeEntries(house).map(e => e.field).find(field => !field.groupRole && !attempted.has(field.id)
+      && !rules.fieldRecorded(field, house.answers[field.id]));
+    assert.ok(field, 'fixture must have enough real checklist items');
+    attempted.add(field.id);
+    f.call('answer', {id, field: field.id, property: 'value', value: rules.choiceOptions(field)[0] || '50'});
+  }
+}
+
+test('filled items aggregate across active and archived houses; 50 waits and 51 requests only on home', () => {
+  const f = fixture('', 2);
+  const first = f.call('add', {value: '第一套'}).value;
+  const second = f.call('add', {value: '第二套'}).value;
+  fillTo(f, first, 25); fillTo(f, second, 25);
+  assert.equal(f.call('reviewRequest', {value: true}).value, false);
+  f.call('archive', {id: first, value: true});
+  fillTo(f, second, 26);
+  assert.equal(f.call('reviewRequest').value, false, 'purchase page cannot consume filling eligibility');
+  assert.equal(f.call('reviewRequest', {value: true}).value, true);
+  f.call('reviewPurchaseConfirmed');
+  assert.equal(fixture(f.saved(), 2).call('reviewRequest', {value: true}).value, false);
+});
+
+test('example answers, notes, photos and repeated edits do not inflate filled count', () => {
+  const f = fixture('', 2);
+  const id = f.call('add', {value: '用户房源'}).value;
+  fillTo(f, id, 50);
+  const state = f.call('snapshot').state;
+  const example = structuredClone(state.houses[0]);
+  example.id = 'example-review'; example.example = true;
+  state.houses.push(example);
+  const seeded = fixture(JSON.stringify(state), 2);
+  for (let n = 0; n < 3; n++) seeded.call('answer', {id, field: 'f1_6', property: 'note', value: '仅备注'});
+  seeded.call('addMedia', {id, value: {id: 'review-photo', type: 'image', path: 'local-photo.jpg', fieldId: 'f1_6'}});
+  assert.equal(seeded.call('reviewRequest', {value: true}).value, false);
+  fillTo(seeded, id, 51);
+  assert.equal(seeded.call('reviewRequest', {value: true}).value, true);
+});
+
+test('filled eligibility survives relaunch and failed request persistence without consuming it', () => {
+  const f = fixture(); const id = f.call('add', {value: '填写房源'}).value;
+  fillTo(f, id, 51); f.call('save');
+  const reopened = fixture(f.saved());
+  reopened.fail(true); assert.throws(() => reopened.call('reviewRequest', {value: true})); reopened.fail(false);
+  assert.equal(reopened.call('snapshot').state.iosReview.requested, false);
+  assert.equal(reopened.call('reviewRequest', {value: true}).value, true);
+  assert.equal(fixture(reopened.saved()).call('reviewRequest', {value: true}).value, false);
+});
+
+test('cleared answers and deleted houses no longer contribute to the current filled count', () => {
+  const f = fixture('', 2); const id = f.call('add', {value: '填写房源'}).value;
+  fillTo(f, id, 51);
+  const h = f.call('snapshot').state.houses[0];
+  const field = activeEntries(h).map(e => e.field).find(field => rules.fieldRecorded(field, h.answers[field.id]));
+  f.call('answer', {id, field: field.id, property: 'value', value: ''});
+  assert.equal(f.call('reviewRequest', {value: true}).value, false);
+  f.call('archive', {id, value: true}); f.call('remove', {id});
+  assert.equal(f.call('reviewRequest', {value: true}).value, false);
 });

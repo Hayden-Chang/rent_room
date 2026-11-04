@@ -1,3 +1,5 @@
+import {stats} from '../../apps/wechat/src/lib/model.js';
+
 // Only iOS opts into this state. Historical deleted/imported records cannot
 // reliably establish a creation count, so counting starts with this version.
 export function reviewProgress(state) {
@@ -27,9 +29,12 @@ export const reviewActions = {
     if (reviewProgress(store.get()).purchased) return;
     store.change(state => { state.iosReview = {...reviewProgress(state), purchased: true, pendingPurchase: ''}; }, true);
   },
-  reviewRequest(store) {
+  reviewRequest(store, {value: includeFilledItems} = {}) {
     const progress = reviewProgress(store.get());
-    if (progress.requested || progress.created < 3 && !progress.purchased) return false;
+    if (progress.requested) return false;
+    const filledEnough = includeFilledItems === true
+      && store.get().houses.filter(h => !h.example).reduce((count, h) => count + stats(h).done, 0) > 50;
+    if (progress.created < 3 && !progress.purchased && !filledEnough) return false;
     store.change(state => { state.iosReview = {...progress, requested: true}; }, true);
     return true;
   }
